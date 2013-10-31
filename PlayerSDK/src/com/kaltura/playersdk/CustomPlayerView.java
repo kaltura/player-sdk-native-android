@@ -1,5 +1,7 @@
 package com.kaltura.playersdk;
 
+import java.net.URLDecoder;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -7,6 +9,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.BounceInterpolator;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -17,8 +20,6 @@ import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.types.PlayerStates;
-
-import java.net.URLDecoder;
 
 /**
  * Created by michalradwantzor on 9/24/13.
@@ -54,22 +55,28 @@ public class CustomPlayerView extends RelativeLayout {
     }
 
     public void setPlayerViewDimensions ( int width, int height ) {
-        mPlayerView.setDimensions(width, height);
+    	ViewGroup.LayoutParams lp = mWebView.getLayoutParams();
+    	lp.width = width;
+    	lp.height = height;
+    	updateViewLayout(mWebView, lp);
+       // mPlayerView.setDimensions(width, height);
     }
 
 
     public void addComponents( String iframeUrl, int width, int height, Activity activity) {
-        mActivity = activity;
+    	mActivity = activity;
         LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        lp.addRule(CENTER_VERTICAL);
         mPlayerView = new PlayerView(mActivity);
         super.addView(mPlayerView, lp);
         //disables videoView auto resize according to content dimensions
-         mPlayerView.setDimensions(width, height);
+         //mPlayerView.setDimensions(width, height);
 
         setPlayerListeners();
 
+        LayoutParams wvLp = new LayoutParams(width, height);
         mWebView = new WebView(mActivity);
-        this.addView(mWebView, lp);
+        this.addView(mWebView, wvLp);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
@@ -80,6 +87,15 @@ public class CustomPlayerView extends RelativeLayout {
 
         mWebView.loadUrl( iframeUrl );
         mWebView.setBackgroundColor(0);
+    }
+    
+    /**
+     * slides with animation according the given values
+     * @param x x offset to slide
+     * @param duration animation time in milliseconds
+     */
+    public void slideView( int x, int duration ) {
+    	this.animate().xBy(x).setDuration(duration).setInterpolator(new BounceInterpolator());
     }
 
 
@@ -145,7 +161,6 @@ public class CustomPlayerView extends RelativeLayout {
 
     private class CustomWebViewClient extends WebViewClient {
 
-        private boolean _isInFullscreen = false;
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if ( url != null ) {

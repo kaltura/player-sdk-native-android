@@ -27,8 +27,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private OnProgressListener mProgressListener;
     private Timer mTimer;
 
-    private int mForcedWidth = 0;
-    private int mForcedHeight = 0;
+   // private int mForcedWidth = 0;
+   // private int mForcedHeight = 0;
 
     public PlayerView(Context context) {
         super(context);
@@ -167,16 +167,16 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
      * @param w
      * @param h
      */
-    public void setDimensions(int w, int h) {
+  /*  public void setDimensions(int w, int h) {
         mForcedWidth = w;
         mForcedHeight = h;
 
-    }
+    }*/
 
-    @Override
+  /*  @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         setMeasuredDimension(mForcedWidth, mForcedHeight);
-    }
+    }*/
 }
 
 
