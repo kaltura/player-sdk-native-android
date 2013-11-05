@@ -97,6 +97,10 @@ public class CustomPlayerView extends RelativeLayout {
     public void slideView( int x, int duration ) {
     	this.animate().xBy(x).setDuration(duration).setInterpolator(new BounceInterpolator());
     }
+    
+    public boolean isPlaying() {
+    	return ( mPlayerView!=null && mPlayerView.isPlaying() );
+    }
 
 
     private void setPlayerListeners() {
