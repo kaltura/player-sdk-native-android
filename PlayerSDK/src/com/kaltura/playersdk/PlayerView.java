@@ -1,5 +1,8 @@
 package com.kaltura.playersdk;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -10,15 +13,12 @@ import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 /**
  * Created by michalradwantzor on 9/15/13.
  */
 public class PlayerView extends VideoView implements VideoPlayerInterface {
     //TODO make configurable
-    public static int PLAYHEAD_UPDATE_INTERVAL = 500;
+    public static int PLAYHEAD_UPDATE_INTERVAL = 100;
 
     private String mVideoUrl;
     private OnPlayerStateChangeListener mPlayerStateListener;
@@ -27,8 +27,11 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private OnProgressListener mProgressListener;
     private Timer mTimer;
 
-   // private int mForcedWidth = 0;
-   // private int mForcedHeight = 0;
+ //  private int mForcedWidth = 0;
+ //   private int mForcedHeight = 0;
+    
+    
+ //   private double mOriginRatio = 0.0;
 
     public PlayerView(Context context) {
         super(context);
@@ -68,6 +71,17 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
                         }
                     }
                 });
+                
+             /*   mediaPlayer.setOnVideoSizeChangedListener(new OnVideoSizeChangedListener() {
+
+					@Override
+					public void onVideoSizeChanged(MediaPlayer arg0, int arg1,
+							int arg2) {
+						mOriginRatio = (double) arg0.getVideoWidth() / arg0.getVideoHeight();
+						invalidate();
+					}
+                	
+                });*/
             }
         });
 
@@ -162,20 +176,47 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
         mProgressListener = listener;
     }
 
-    /**
-     * The player will be forced to use these dimensions and not the actual video dimensions
-     * @param w
-     * @param h
-     */
-  /*  public void setDimensions(int w, int h) {
-        mForcedWidth = w;
-        mForcedHeight = h;
+    /*
+    public void setDimensions(int w, int h) {
+    	mForcedWidth = w;
+    	mForcedHeight = h;
+    }
 
-    }*/
-
-  /*  @Override
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(mForcedWidth, mForcedHeight);
+    	//setMeasuredDimension( 600,300);
+    	if ( mForcedWidth != 0 && mForcedHeight != 0 && mOriginRatio != 0 ) {
+    		double width;
+    		double height;
+    		if ( mOriginRatio > 1 )
+			{
+    			width = mForcedWidth;
+				height = width / mOriginRatio;
+				
+				if ( height > mForcedHeight)
+				{
+					height = mForcedHeight;
+					width = height * mOriginRatio;
+				}
+			}
+			else
+			{
+				height = mForcedHeight;
+				width = height * mOriginRatio;
+				
+				if ( width > mForcedWidth)
+				{
+					width = mForcedWidth;
+					height = width / mOriginRatio;
+				}
+			}
+    		
+    		setMeasuredDimension( (int) width, (int) height);
+    	}
+    	else {
+    		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    	}
+
     }*/
 }
 

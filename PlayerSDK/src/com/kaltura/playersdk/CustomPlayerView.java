@@ -67,10 +67,11 @@ public class CustomPlayerView extends RelativeLayout {
     	mActivity = activity;
         LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         lp.addRule(CENTER_VERTICAL);
+        lp.addRule(CENTER_HORIZONTAL);
         mPlayerView = new PlayerView(mActivity);
         super.addView(mPlayerView, lp);
         //disables videoView auto resize according to content dimensions
-         //mPlayerView.setDimensions(width, height);
+       //  mPlayerView.setDimensions(width, height);
 
         setPlayerListeners();
 
@@ -139,7 +140,6 @@ public class CustomPlayerView extends RelativeLayout {
         final Runnable runUpdatePlayehead = new Runnable() {
             @Override
             public void run() {
-                System.out.println("----- " + mCurSec + "-----");
                 mWebView.loadUrl("javascript:NativeBridge.videoPlayer.trigger('timeupdate', '" + mCurSec + "');");
             }
         };
