@@ -28,7 +28,6 @@ public class CustomPlayerView extends RelativeLayout {
     private PlayerView mPlayerView;
     private WebView mWebView;
     private double mCurSec;
-    private double mPercent;
     private Activity mActivity;
     private OnToggleFullScreenListener mFSListener;
 
@@ -62,8 +61,6 @@ public class CustomPlayerView extends RelativeLayout {
     	updateViewLayout(mWebView, lp);
        // mPlayerView.setDimensions(width, height);
     }
-    
-   
 
 
     public void addComponents( String iframeUrl, int width, int height, Activity activity) {
@@ -71,7 +68,7 @@ public class CustomPlayerView extends RelativeLayout {
         LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         lp.addRule(CENTER_VERTICAL);
         lp.addRule(CENTER_HORIZONTAL);
-        mPlayerView = PlayerView.getInstance( getContext() );
+        mPlayerView = new PlayerView(mActivity);
         super.addView(mPlayerView, lp);
         //disables videoView auto resize according to content dimensions
        //  mPlayerView.setDimensions(width, height);
@@ -79,7 +76,7 @@ public class CustomPlayerView extends RelativeLayout {
         setPlayerListeners();
 
         LayoutParams wvLp = new LayoutParams(width, height);
-        mWebView = new WebView( getContext() );
+        mWebView = new WebView(mActivity);
         this.addView(mWebView, wvLp);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
@@ -104,15 +101,6 @@ public class CustomPlayerView extends RelativeLayout {
     
     public boolean isPlaying() {
     	return ( mPlayerView!=null && mPlayerView.isPlaying() );
-    }
-    
-    public void moveToBack() {
-    	mPlayerView.setVisibility(View.GONE);
-    }
-    
-    public void restorePlayerState() {
-    	  mWebView.loadUrl("javascript:NativeBridge.videoPlayer.trigger('timeupdate', '" + mCurSec + "');");
-    	  mWebView.loadUrl("javascript:NativeBridge.videoPlayer.trigger('progress', '" + mPercent + "');");
     }
 
 
@@ -169,8 +157,8 @@ public class CustomPlayerView extends RelativeLayout {
         mPlayerView.registerProgressUpdate(new OnProgressListener() {
             @Override
             public void onProgressUpdate(int progress) {
-                mPercent = progress / 100.0;
-                mWebView.loadUrl("javascript:NativeBridge.videoPlayer.trigger('progress', '" + mPercent + "');");
+                double percent = progress / 100.0;
+                mWebView.loadUrl("javascript:NativeBridge.videoPlayer.trigger('progress', '" + percent + "');");
             }
         });
     }

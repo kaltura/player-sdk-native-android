@@ -27,16 +27,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private OnProgressListener mProgressListener;
     private Timer mTimer;
 
-    private static PlayerView playerView;
-    public static PlayerView getInstance( Context context ) {
-    	if ( playerView != null )
-    		return playerView;
-    	
-    	return new PlayerView( context );
-    	
-    }
-    
-    private PlayerView( Context context ) {
+    public PlayerView(Context context) {
         super(context);
 
         super.setOnCompletionListener( new MediaPlayer.OnCompletionListener() {
@@ -86,11 +77,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
 
     @Override
     public void setVideoUrl(String url) {
-    	if ( mVideoUrl == null || !mVideoUrl.equals(url) ) {
-            mVideoUrl = url;
-            super.setVideoURI(Uri.parse(url));
-    	}
-
+        mVideoUrl = url;
+        super.setVideoURI(Uri.parse(url));
     }
 
     @Override
