@@ -113,8 +113,10 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
 
     @Override
     public void pause() {
-        super.pause();
-        mPlayerStateListener.onStateChanged(PlayerStates.PAUSE);
+    	if ( this.isPlaying() ) {
+            super.pause();
+            mPlayerStateListener.onStateChanged(PlayerStates.PAUSE);	
+    	}
     }
 
     @Override
