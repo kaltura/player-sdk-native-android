@@ -33,7 +33,9 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
         super.setOnCompletionListener( new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
-                stop();
+                pause();
+                seekTo( 0 );
+                updateStopState();
             }
         });
 
@@ -124,6 +126,10 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     @Override
     public void stop() {
         super.stopPlayback();
+        updateStopState();
+    }
+    
+    private void updateStopState() {
         if ( mTimer != null ) {
             mTimer.cancel();
             mTimer = null;
