@@ -97,18 +97,20 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
 
     @Override
     public void play() {
-        super.start();
-        if ( mTimer == null ) {
-            mTimer = new Timer();
-        }
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mPlayheadUpdateListener.onPlayheadUpdated(getCurrentPosition());
+    	if ( !this.isPlaying() ) {
+            super.start();
+            if ( mTimer == null ) {
+                mTimer = new Timer();
             }
-        }, 0, PLAYHEAD_UPDATE_INTERVAL);
+            mTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    mPlayheadUpdateListener.onPlayheadUpdated(getCurrentPosition());
+                }
+            }, 0, PLAYHEAD_UPDATE_INTERVAL);
 
-        mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
+            mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
+    	}
     }
 
     @Override
