@@ -8,5 +8,7 @@ public enum PlayerStates {
     LOAD,
     PLAY,
     PAUSE,
-    END
+    END,
+    SEEKING,
+    SEEKED
 }

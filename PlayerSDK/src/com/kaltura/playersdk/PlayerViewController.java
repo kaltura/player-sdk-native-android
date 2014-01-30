@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -311,6 +310,12 @@ public class PlayerViewController extends RelativeLayout {
                         case END:
                             stateName = "ended";
                             break;
+                        case SEEKING:
+                        	stateName = "seeking";
+                        	break;
+                        case SEEKED:
+                        	stateName = "seeked";
+                        	break;
                         default:
                             break;
                         }
