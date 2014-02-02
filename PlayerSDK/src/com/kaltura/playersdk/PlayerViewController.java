@@ -26,6 +26,7 @@ import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.events.KPlayerEvalListener;
 import com.kaltura.playersdk.events.KPlayerEventListener;
+import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -49,6 +50,7 @@ public class PlayerViewController extends RelativeLayout {
     private OnToggleFullScreenListener mFSListener;
     private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
+    private KPlayerJsCallbackReadyListener mJsReadyListener;
     
     public String host = DEFAULT_HOST;
     public String html5Url = DEFAULT_HTML5_URL;
@@ -118,8 +120,7 @@ public class PlayerViewController extends RelativeLayout {
      * @param activity
      *            bounding activity
      */
-    public void addComponents(String iframeUrl, int width, int height,
-            Activity activity) {
+    public void addComponents(String iframeUrl, int width, int height, Activity activity) {
         setPlayerViewDimensions(width, height);
 
         mActivity = activity;
@@ -218,12 +219,12 @@ public class PlayerViewController extends RelativeLayout {
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // Kaltura Player external API
     // /////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void sendNotification(String noteName, Map<String, String> noteBody) {
-        JSONObject jsonObj = new JSONObject(noteBody);
-        notifyKPlayer("sendNotification",
-                new String[] { noteName, jsonObj.toString() });
-        
+    public void registerJsCallbackReady( KPlayerJsCallbackReadyListener listener ) {
+    	mJsReadyListener = listener;
+    }
+    
+    public void sendNotification(String noteName, JSONObject noteBody) {
+        notifyKPlayer("sendNotification",  new String[] { noteName, noteBody.toString() });      
     }
 
     public void addKPlayerEventListener(String eventName,
@@ -260,8 +261,7 @@ public class PlayerViewController extends RelativeLayout {
     }
 
     public void setKDPAttribute(String hostName, String propName, String value) {
-        notifyKPlayer("setKDPAttribute", new String[] { hostName, propName,
-                value });
+        notifyKPlayer("setKDPAttribute", new String[] { hostName, propName, value });
     }
 
     public void asyncEvaluate(String expression, KPlayerEvalListener listener) {
@@ -366,7 +366,12 @@ public class PlayerViewController extends RelativeLayout {
                 if (arr != null && arr.length > 1) {
                     String action = arr[1];
 
-                    if (action.equals("play")) {
+                    if (action.equals("notifyJsReady")) {
+                    	if ( mJsReadyListener != null ) {
+                    		mJsReadyListener.jsCallbackReady();
+                    	}
+                    }
+                    else if (action.equals("play")) {
                         mPlayerView.play();
                         return true;
                     }
@@ -412,12 +417,9 @@ public class PlayerViewController extends RelativeLayout {
                                         }
                                     }
                                 } else if (action.equals("notifyKPlayerEvent")) {
-                                    return notifyKPlayerEvent(value,
-                                            mKplayerEventsMap, false);
-                                } else if (action
-                                        .equals("notifyKPlayerEvaluated")) {
-                                    return notifyKPlayerEvent(value,
-                                            mKplayerEvaluatedMap, true);
+                                    return notifyKPlayerEvent(value, mKplayerEventsMap, false);
+                                } else if (action.equals("notifyKPlayerEvaluated")) {
+                                    return notifyKPlayerEvent(value, mKplayerEvaluatedMap, true);
                                 }
                             }
 
@@ -486,7 +488,10 @@ public class PlayerViewController extends RelativeLayout {
                             Log.w(TAG, "failed to parse object");
                         }
                     } else { // simple string
-                        bodyObj = getStrippedString(params[1]);
+                    	if ( params[1].startsWith("\"") )
+                    		bodyObj = getStrippedString(params[1]);
+                    	else
+                    		bodyObj = params[1];
                     }
                 }
                 
