@@ -4,7 +4,6 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,7 +23,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 
-import com.kaltura.playersdk.events.KPlayerEvalListener;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
@@ -244,13 +242,11 @@ public class PlayerViewController extends RelativeLayout {
             notifyKPlayer("addJsListener", new String[] { eventName });
     }
 
-    public void removeKPlayerEventListener(String eventName,
-            KPlayerEventListener listener) {
-        ArrayList<KPlayerEventListener> listeners = mKplayerEventsMap
-                .get(eventName);
+    public void removeKPlayerEventListener(String eventName,String callbackName) {
+        ArrayList<KPlayerEventListener> listeners = mKplayerEventsMap.get(eventName);
         if (listeners != null) {
             for (int i = 0; i < listeners.size(); i++) {
-                if (listeners.get(i) == listener) {
+                if ( listeners.get(i).getCallbackName().equals( callbackName )) {
                     listeners.remove(i);
                     break;
                 }
@@ -264,8 +260,8 @@ public class PlayerViewController extends RelativeLayout {
         notifyKPlayer("setKDPAttribute", new String[] { hostName, propName, value });
     }
 
-    public void asyncEvaluate(String expression, KPlayerEvalListener listener) {
-        String callbackName = listener.getEvaluatedCallbackName();
+    public void asyncEvaluate(String expression, KPlayerEventListener listener) {
+        String callbackName = listener.getCallbackName();
         mKplayerEvaluatedMap.put(callbackName, listener);
         notifyKPlayer("asyncEvaluate", new String[] { expression, callbackName });
     }
