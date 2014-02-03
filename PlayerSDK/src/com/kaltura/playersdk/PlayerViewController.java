@@ -77,11 +77,21 @@ public class PlayerViewController extends RelativeLayout {
     public void setOnFullScreenListener(OnToggleFullScreenListener listener) {
         mFSListener = listener;
     }
+    
+    public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
+    	setPadding(xPadding, yPadding, 0, 0);
+    	setPlayerViewDimensions( width+xPadding, height+yPadding);
+    }
 
     public void setPlayerViewDimensions(int width, int height) {
         ViewGroup.LayoutParams lp = getLayoutParams();
-        lp.width = width;
-        lp.height = height;
+        if ( lp == null ) {
+        	lp = new ViewGroup.LayoutParams( width, height );
+        } else {
+            lp.width = width;
+            lp.height = height;
+        }
+
         this.setLayoutParams(lp);
         if (mWebView != null) {
             ViewGroup.LayoutParams wvlp = mWebView.getLayoutParams();
@@ -97,13 +107,11 @@ public class PlayerViewController extends RelativeLayout {
      * Build player URL and load it to player view
      * @param partnerId partner ID
      * @param entryId entry ID
-     * @param width width of player
-     * @param height height of player
      * @param activity bounding activity
      */
-    public void addComponents(String partnerId, String entryId, int width, int height, Activity activity) {
+    public void addComponents(String partnerId, String entryId, Activity activity) {
         String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId;
-        addComponents( iframeUrl, width, height, activity );
+        addComponents( iframeUrl, activity );
     }
 
     /**
@@ -111,16 +119,10 @@ public class PlayerViewController extends RelativeLayout {
      * 
      * @param iframeUrl
      *            url to payer
-     * @param width
-     *            width of player
-     * @param height
-     *            height of player
      * @param activity
      *            bounding activity
      */
-    public void addComponents(String iframeUrl, int width, int height, Activity activity) {
-        setPlayerViewDimensions(width, height);
-
+    public void addComponents(String iframeUrl, Activity activity) {
         mActivity = activity;
         LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT);
@@ -131,8 +133,9 @@ public class PlayerViewController extends RelativeLayout {
         // disables videoView auto resize according to content dimensions
         // mPlayerView.setDimensions(width, height);
         setPlayerListeners();
-
-        LayoutParams wvLp = new LayoutParams(width, height);
+        
+        ViewGroup.LayoutParams currLP = getLayoutParams();
+        LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
         mWebView = new WebView(mActivity);
         this.addView(mWebView, wvLp);
         mWebView.getSettings().setJavaScriptEnabled(true);
