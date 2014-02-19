@@ -21,7 +21,7 @@ Future support will include:
 * Multiple stream playback
 * Offline viewing
 
-Architexture Overview
+Architecture Overview
 =====
 ![alt text](http://html5video.org/presentations/HTML5PartDeux.FOSDEM.2014/koverview.jpg "Architecture Overview")
 
