@@ -166,8 +166,7 @@ public class PlayerViewController extends RelativeLayout {
     }
     
     public void destroy() {
-        if ( mPlayerView!=null )
-            mPlayerView.stop();
+       this.stop();
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,6 +215,7 @@ public class PlayerViewController extends RelativeLayout {
             mPlayerView.seek(msec);
         }
     }
+
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // Kaltura Player external API
