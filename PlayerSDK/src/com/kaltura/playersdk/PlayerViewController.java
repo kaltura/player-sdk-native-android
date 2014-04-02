@@ -170,6 +170,7 @@ public class PlayerViewController extends RelativeLayout {
      */
     public void addComponents(String iframeUrl, Activity activity) {	
         mActivity = activity;
+        mCurSec = 0;
         
         LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT);
@@ -474,7 +475,13 @@ public class PlayerViewController extends RelativeLayout {
                     else if ( action.equals("showChromecastDeviceList") ) {
                     	if(!mActivity.isFinishing())
                     	{
-                    		ChromecastHandler.showCCDialog(getContext());
+                    		//workaround to fix weird exception sometimes
+                    		try {
+                    			ChromecastHandler.showCCDialog(getContext());
+                    		} catch (Exception e ) {
+                    			Log.d(TAG, "failed to open cc list");
+                    		}
+                    	
                     	}
                     }
                     // action with params

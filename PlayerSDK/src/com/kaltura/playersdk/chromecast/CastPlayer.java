@@ -166,16 +166,10 @@ public class CastPlayer implements VideoPlayerInterface {
 			}
 
 	
-		} catch (CastException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (TransientNetworkDisconnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} 
 	}
 
 	@Override
@@ -314,7 +308,7 @@ public class CastPlayer implements VideoPlayerInterface {
     	      int currentVolume = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
     	        
     	      try {
-				mCastManager.setDeviceVolume(currentVolume);
+				mCastManager.setVolume(currentVolume);
 			} catch (CastException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
