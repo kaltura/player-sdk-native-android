@@ -26,6 +26,10 @@ public interface VideoPlayerInterface {
     public void stop();
 
     public void seek(int msec);
+    
+    public boolean isPlaying();
+    
+    public boolean canPause();
 
     // events
     public void registerPlayerStateChange(OnPlayerStateChangeListener listener);
@@ -36,6 +40,14 @@ public interface VideoPlayerInterface {
 
     public void registerPlayheadUpdate(OnPlayheadUpdateListener listener);
 
+    public void removePlayheadUpdateListener();
+
     public void registerProgressUpdate(OnProgressListener listener);
+    
+    /**
+     * Set starting point in milliseconds for the next play
+     * @param point
+     */
+    public void setStartingPoint(int point);
 
 }
