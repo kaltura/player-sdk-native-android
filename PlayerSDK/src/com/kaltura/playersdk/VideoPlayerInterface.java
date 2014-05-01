@@ -41,5 +41,9 @@ public interface VideoPlayerInterface {
     public void removePlayheadUpdateListener();
     
     public void setStartingPoint(int point);
+    
+    public boolean canPause();
+    
+    public boolean isPlaying();
 
 }
