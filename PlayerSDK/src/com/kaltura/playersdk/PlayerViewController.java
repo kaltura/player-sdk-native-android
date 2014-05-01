@@ -243,10 +243,14 @@ public class PlayerViewController extends RelativeLayout {
         return (mVideoInterface != null && mVideoInterface.isPlaying());
     }
 
-    public int getDuration() {
-        int duration = 0;
+    /**
+     * 
+     * @return duration in seconds
+     */
+    public double getDuration() {
+        double duration = 0;
         if (mVideoInterface != null)
-            duration = mVideoInterface.getDuration();
+            duration = mVideoInterface.getDuration() / 1000;
 
         return duration;
     }
@@ -363,6 +367,7 @@ public class PlayerViewController extends RelativeLayout {
                 	}
                    // values = TextUtils.join("', '", eventValues);
                 }
+                
                 mWebView.loadUrl("javascript:NativeBridge.videoPlayer."
                         + action + "(" + values + ");");
             }
@@ -375,6 +380,10 @@ public class PlayerViewController extends RelativeLayout {
                 .registerPlayerStateChange(new OnPlayerStateChangeListener() {
                     @Override
                     public boolean onStateChanged(PlayerStates state) {
+                    	if ( state == PlayerStates.START ) {
+                    		notifyKPlayer("trigger", new Object[]{ "durationchange", getDuration() });
+                    		notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });                  		
+                    	}
                     	if ( state != mState ) {
                     		mState = state;
                     		String stateName = "";
@@ -410,9 +419,8 @@ public class PlayerViewController extends RelativeLayout {
         // trigger timeupdate events
         final Runnable runUpdatePlayehead = new Runnable() {
             @Override
-            public void run() {
-                mWebView.loadUrl("javascript:NativeBridge.videoPlayer.trigger('timeupdate', '"
-                        + mCurSec + "');");
+            public void run() {               
+                notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
             }
         };
 
@@ -430,8 +438,8 @@ public class PlayerViewController extends RelativeLayout {
             @Override
             public void onProgressUpdate(int progress) {
                 double percent = progress / 100.0;
-                mWebView.loadUrl("javascript:NativeBridge.videoPlayer.trigger('progress', '"
-                        + percent + "');");
+                notifyKPlayer( "trigger", new Object[]{ "progress", percent});
+ 
             }
         });
     }
@@ -441,6 +449,10 @@ public class PlayerViewController extends RelativeLayout {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url != null) {
+            	
+            	Log.d(TAG, "--------------------url to load: " + url);
+            	
+            	
                 String[] arr = url.split(":");
                 if (arr != null && arr.length > 1) {
                     String action = arr[1];
