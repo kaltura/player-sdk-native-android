@@ -139,6 +139,12 @@ public class PlayerViewController extends RelativeLayout {
             wvlp.height = height;
             updateViewLayout(mWebView, wvlp);
         }
+        if ( mPlayerView != null ) {
+        	LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
+        	plp.width = width;
+        	plp.height = height;
+            updateViewLayout(mPlayerView, plp);
+        }
 
         invalidate();
     }
@@ -173,18 +179,14 @@ public class PlayerViewController extends RelativeLayout {
     public void addComponents(String iframeUrl, Activity activity) {	
         mActivity = activity;
         mCurSec = 0;
-        
-        LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT);
-        lp.addRule(CENTER_VERTICAL);
-        lp.addRule(CENTER_HORIZONTAL);
+        ViewGroup.LayoutParams currLP = getLayoutParams();
         mPlayerView = new PlayerView(mActivity);
-        super.addView(mPlayerView, lp);
+        super.addView(mPlayerView, currLP);
         mVideoInterface = mPlayerView;
         setPlayerListeners();
         createPlayerInstance();
         
-        ViewGroup.LayoutParams currLP = getLayoutParams();
+        
         LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
         mWebView = new WebView(mActivity);
         this.addView(mWebView, wvLp);
