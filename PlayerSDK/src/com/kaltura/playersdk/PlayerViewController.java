@@ -53,6 +53,7 @@ public class PlayerViewController extends RelativeLayout {
     private WebView mWebView;
     private double mCurSec;
     private Activity mActivity;
+    private double mDuration = 0;
     private OnToggleFullScreenListener mFSListener;
     private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
@@ -385,7 +386,8 @@ public class PlayerViewController extends RelativeLayout {
                     @Override
                     public boolean onStateChanged(PlayerStates state) {
                     	if ( state == PlayerStates.START ) {
-                    		notifyKPlayer("trigger", new Object[]{ "durationchange", getDuration() });
+                    		mDuration = getDuration();
+                    		notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
                     		notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });                  		
                     	}
                     	if ( state != mState ) {
@@ -432,8 +434,11 @@ public class PlayerViewController extends RelativeLayout {
         mVideoInterface.registerPlayheadUpdate(new OnPlayheadUpdateListener() {
             @Override
             public void onPlayheadUpdated(int msec) {
-                mCurSec = msec / 1000.0;
-                mActivity.runOnUiThread(runUpdatePlayehead);
+            	double curSec = msec / 1000.0;
+            	if ( curSec <= mDuration ) {
+            		mCurSec = curSec;
+            		 mActivity.runOnUiThread(runUpdatePlayehead);
+            	}
             }
         });
 
@@ -453,6 +458,8 @@ public class PlayerViewController extends RelativeLayout {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url != null) {
+             	Log.d(TAG, "--------------------url to load: " + url);
+             	
             	if ( url.startsWith("js-frame:") ) {
                     String[] arr = url.split(":");
                     if (arr != null && arr.length > 1) {
@@ -562,6 +569,10 @@ public class PlayerViewController extends RelativeLayout {
 
                     }
             	} else {
+            		if (mVideoInterface.canPause()) {
+                        mVideoInterface.pause();
+                        mVideoInterface.setStartingPoint((int) (mCurSec * 1000));
+                    }
             		Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse( url ));
             		mActivity.startActivity(browserIntent);
             		return true;
