@@ -10,7 +10,9 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -449,117 +451,120 @@ public class PlayerViewController extends RelativeLayout {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url != null) {
-            	
-            	Log.d(TAG, "--------------------url to load: " + url);
-            	
-            	
-                String[] arr = url.split(":");
-                if (arr != null && arr.length > 1) {
-                    String action = arr[1];
+            	if ( url.startsWith("js-frame:") ) {
+                    String[] arr = url.split(":");
+                    if (arr != null && arr.length > 1) {
+                        String action = arr[1];
 
-                    if (action.equals("notifyJsReady")) {
-                    	if ( mJsReadyListener != null ) {
-                    		mJsReadyListener.jsCallbackReady();
-                    	}
-                    }
-                    else if (action.equals("notifyLayoutReady")) {   
-                    	setChromecastVisiblity();
-                    	return true;
-                    }
-                    else if (action.equals("play")) {
-                        mVideoInterface.play();
-                        return true;
-                    }
-
-                    else if (action.equals("pause")) {
-                        if (mVideoInterface.canPause()) {
-                            mVideoInterface.pause();
+                        if (action.equals("notifyJsReady")) {
+                        	if ( mJsReadyListener != null ) {
+                        		mJsReadyListener.jsCallbackReady();
+                        	}
+                        }
+                        else if (action.equals("notifyLayoutReady")) {   
+                        	setChromecastVisiblity();
+                        	return true;
+                        }
+                        else if (action.equals("play")) {
+                            mVideoInterface.play();
                             return true;
                         }
-                    }
 
-                    else if (action.equals("toggleFullscreen")) {  
-                        if (mFSListener != null) {
-                            mFSListener.onToggleFullScreen();
-                            return true;
-                        }
-                    }
-                    else if ( action.equals("showChromecastDeviceList") ) {
-                    	if(!mActivity.isFinishing())
-                    	{
-                    		//workaround to fix weird exception sometimes
-                    		try {
-                    			ChromecastHandler.showCCDialog(getContext());
-                    		} catch (Exception e ) {
-                    			Log.d(TAG, "failed to open cc list");
-                    		}
-                    	
-                    	}
-                    }
-                    // action with params
-                    else if (arr.length > 3) {
-                        try {
-                            String value = URLDecoder.decode(arr[3], "UTF-8");
-                            if (value != null && value.length() > 2) {
-                                if (action.equals("setAttribute")) {
-                                    String[] params = getStrippedString(value)
-                                            .split(",");
-                                    if (params != null && params.length > 1) {
-                                        if (params[0].equals("\"currentTime\"")) {
-                                            int seekTo = Math
-                                                    .round(Float
-                                                            .parseFloat(params[1]) * 1000);
-                                            mVideoInterface.seek(seekTo);
-                                        } else if (params[0].equals("\"src\"")) {
-                                            // remove " from the edges
-                                            mVideoUrl = getStrippedString(params[1]);
-                                            mVideoInterface.setVideoUrl(mVideoUrl);
-                                            asyncEvaluate("{mediaProxy.entry.name}", new KPlayerEventListener() {
-												@Override
-												public void onKPlayerEvent(
-														Object body) {
-													mVideoTitle = (String) body;												
-												}
-
-												@Override
-												public String getCallbackName() {
-													return "getEntryName";
-												}
-                                            });
-                                            asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", new KPlayerEventListener() {
-                                            	@Override
-                                            	public void onKPlayerEvent(
-                                            			Object body) {
-                                            		mThumbUrl = (String) body;												
-                                            	}
-                                            	
-                                            	@Override
-                                            	public String getCallbackName() {
-                                            		return "getEntryThumb";
-                                            	}
-                                            });
-                                        } else if (params[0]
-                                                .equals("\"wvServerKey\"")) {
-                                            String licenseUrl = getStrippedString(params[1]);
-                                            WidevineHandler.acquireRights(
-                                                    mActivity,
-                                                    mVideoInterface.getVideoUrl(),
-                                                    licenseUrl);
-                                        }
-                                    }
-                                } else if (action.equals("notifyKPlayerEvent")) {
-                                    return notifyKPlayerEvent(value, mKplayerEventsMap, false);
-                                } else if (action.equals("notifyKPlayerEvaluated")) {
-                                    return notifyKPlayerEvent(value, mKplayerEvaluatedMap, true);
-                                }
+                        else if (action.equals("pause")) {
+                            if (mVideoInterface.canPause()) {
+                                mVideoInterface.pause();
+                                return true;
                             }
-
-                        } catch (Exception e) {
-                            Log.w(TAG, "action failed: " + action);
                         }
-                    }
 
-                }
+                        else if (action.equals("toggleFullscreen")) {  
+                            if (mFSListener != null) {
+                                mFSListener.onToggleFullScreen();
+                                return true;
+                            }
+                        }
+                        else if ( action.equals("showChromecastDeviceList") ) {
+                        	if(!mActivity.isFinishing())
+                        	{
+                        		//workaround to fix weird exception sometimes
+                        		try {
+                        			ChromecastHandler.showCCDialog(getContext());
+                        		} catch (Exception e ) {
+                        			Log.d(TAG, "failed to open cc list");
+                        		}
+                        	
+                        	}
+                        }
+                        // action with params
+                        else if (arr.length > 3) {
+                            try {
+                                String value = URLDecoder.decode(arr[3], "UTF-8");
+                                if (value != null && value.length() > 2) {
+                                    if (action.equals("setAttribute")) {
+                                        String[] params = getStrippedString(value)
+                                                .split(",");
+                                        if (params != null && params.length > 1) {
+                                            if (params[0].equals("\"currentTime\"")) {
+                                                int seekTo = Math
+                                                        .round(Float
+                                                                .parseFloat(params[1]) * 1000);
+                                                mVideoInterface.seek(seekTo);
+                                            } else if (params[0].equals("\"src\"")) {
+                                                // remove " from the edges
+                                                mVideoUrl = getStrippedString(params[1]);
+                                                mVideoInterface.setVideoUrl(mVideoUrl);
+                                                asyncEvaluate("{mediaProxy.entry.name}", new KPlayerEventListener() {
+    												@Override
+    												public void onKPlayerEvent(
+    														Object body) {
+    													mVideoTitle = (String) body;												
+    												}
+
+    												@Override
+    												public String getCallbackName() {
+    													return "getEntryName";
+    												}
+                                                });
+                                                asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", new KPlayerEventListener() {
+                                                	@Override
+                                                	public void onKPlayerEvent(
+                                                			Object body) {
+                                                		mThumbUrl = (String) body;												
+                                                	}
+                                                	
+                                                	@Override
+                                                	public String getCallbackName() {
+                                                		return "getEntryThumb";
+                                                	}
+                                                });
+                                            } else if (params[0]
+                                                    .equals("\"wvServerKey\"")) {
+                                                String licenseUrl = getStrippedString(params[1]);
+                                                WidevineHandler.acquireRights(
+                                                        mActivity,
+                                                        mVideoInterface.getVideoUrl(),
+                                                        licenseUrl);
+                                            }
+                                        }
+                                    } else if (action.equals("notifyKPlayerEvent")) {
+                                        return notifyKPlayerEvent(value, mKplayerEventsMap, false);
+                                    } else if (action.equals("notifyKPlayerEvaluated")) {
+                                        return notifyKPlayerEvent(value, mKplayerEvaluatedMap, true);
+                                    }
+                                }
+
+                            } catch (Exception e) {
+                                Log.w(TAG, "action failed: " + action);
+                            }
+                        }
+
+                    }
+            	} else {
+            		Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse( url ));
+            		mActivity.startActivity(browserIntent);
+            		return true;
+            	}
+
             }
 
             return false;
