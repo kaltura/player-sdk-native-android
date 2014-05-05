@@ -458,7 +458,7 @@ public class PlayerViewController extends RelativeLayout {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url != null) {
-             	Log.d(TAG, "--------------------url to load: " + url);
+             	Log.d(TAG, "shouldOverrideUrlLoading::url to load: " + url);
              	
             	if ( url.startsWith("js-frame:") ) {
                     String[] arr = url.split(":");
