@@ -4,7 +4,9 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -510,17 +512,20 @@ public class PlayerViewController extends RelativeLayout {
                                 String value = URLDecoder.decode(arr[3], "UTF-8");
                                 if (value != null && value.length() > 2) {
                                     if (action.equals("setAttribute")) {
-                                        String[] params = getStrippedString(value)
-                                                .split(",");
-                                        if (params != null && params.length > 1) {
-                                            if (params[0].equals("\"currentTime\"")) {
-                                                int seekTo = Math
-                                                        .round(Float
-                                                                .parseFloat(params[1]) * 1000);
+                                    	JSONArray jsonArr = new JSONArray( value );
+                                    	
+                                    	List<String> params = new ArrayList<String>();
+                                    	for (int i=0; i<jsonArr.length(); i++) {
+                                    		params.add( jsonArr.getString(i) );
+                                    	}
+                                    
+                                        if (params != null && params.size() > 1) {
+                                            if (params.get(0).equals("currentTime")) {
+                                                int seekTo = Math.round(Float.parseFloat(params.get(1)) * 1000);
                                                 mVideoInterface.seek(seekTo);
-                                            } else if (params[0].equals("\"src\"")) {
+                                            } else if (params.get(0).equals("src")) {
                                                 // remove " from the edges
-                                                mVideoUrl = getStrippedString(params[1]);
+                                                mVideoUrl = params.get(1);
                                                 mVideoInterface.setVideoUrl(mVideoUrl);
                                                 asyncEvaluate("{mediaProxy.entry.name}", new KPlayerEventListener() {
     												@Override
@@ -546,9 +551,8 @@ public class PlayerViewController extends RelativeLayout {
                                                 		return "getEntryThumb";
                                                 	}
                                                 });
-                                            } else if (params[0]
-                                                    .equals("\"wvServerKey\"")) {
-                                                String licenseUrl = getStrippedString(params[1]);
+                                            } else if (params.get(0).equals("wvServerKey")) {
+                                                String licenseUrl = params.get(1);
                                                 WidevineHandler.acquireRights(
                                                         mActivity,
                                                         mVideoInterface.getVideoUrl(),
