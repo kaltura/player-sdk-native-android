@@ -185,6 +185,12 @@ public class PlayerViewController extends RelativeLayout {
         ViewGroup.LayoutParams currLP = getLayoutParams();
         mPlayerView = new PlayerView(mActivity);
         super.addView(mPlayerView, currLP);
+       /* 
+        LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
+        lp.addRule(CENTER_VERTICAL);
+        lp.addRule(CENTER_HORIZONTAL);
+        super.addView(mPlayerView, lp);*/
+        
         mVideoInterface = mPlayerView;
         setPlayerListeners();
         createPlayerInstance();
