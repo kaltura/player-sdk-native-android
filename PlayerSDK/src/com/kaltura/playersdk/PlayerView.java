@@ -6,6 +6,7 @@ import java.util.TimerTask;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Handler;
 import android.widget.VideoView;
 
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
@@ -25,8 +26,23 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private MediaPlayer.OnPreparedListener mPreparedListener;
     private OnPlayheadUpdateListener mPlayheadUpdateListener;
     private OnProgressListener mProgressListener;
-    private Timer mTimer;
     private int mStartPos = 0;
+    
+    private Handler mHandler;
+    private Runnable runnable = new Runnable() {
+ 	   @Override
+ 	   public void run() {
+ 		  try {
+      		int position = getCurrentPosition();
+      		if ( position != 0 && mPlayheadUpdateListener != null )
+      			mPlayheadUpdateListener.onPlayheadUpdated(position);
+	      	} catch(IllegalStateException e){
+	  	        e.printStackTrace(); 
+	  	    }
+
+ 		 mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+ 	   }
+ 	};
 
     public PlayerView(Context context) {
         super(context);
@@ -108,23 +124,10 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
             	super.seekTo( mStartPos );
             	mStartPos = 0;
             }
-            if ( mTimer == null ) {
-                mTimer = new Timer();
+            if ( mHandler == null ) {
+            	mHandler = new Handler();
             }
-            mTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                	try {
-                		int position = getCurrentPosition();
-                		if ( position != 0 && mPlayheadUpdateListener != null )
-                			mPlayheadUpdateListener.onPlayheadUpdated(position);
-                	} catch(IllegalStateException e){
-            	        e.printStackTrace(); 
-            	    }
-                   
-                }
-            }, 0, PLAYHEAD_UPDATE_INTERVAL);
-
+            mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
             mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
     	}
     }
@@ -144,9 +147,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     }
     
     private void updateStopState() {
-        if ( mTimer != null ) {
-            mTimer.cancel();
-            mTimer = null;
+        if ( mHandler != null ) {
+        	mHandler.removeCallbacks( runnable );
         }
        
     }
@@ -187,6 +189,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     public void registerProgressUpdate ( OnProgressListener listener ) {
         mProgressListener = listener;
     }
+    
+   
 }
 
 
