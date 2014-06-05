@@ -37,5 +37,13 @@ public interface VideoPlayerInterface {
     public void registerPlayheadUpdate(OnPlayheadUpdateListener listener);
 
     public void registerProgressUpdate(OnProgressListener listener);
+    
+    public void removePlayheadUpdateListener();
+    
+    public void setStartingPoint(int point);
+    
+    public boolean canPause();
+    
+    public boolean isPlaying();
 
 }

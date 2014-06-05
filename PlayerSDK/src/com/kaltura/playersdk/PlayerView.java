@@ -26,6 +26,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private OnPlayheadUpdateListener mPlayheadUpdateListener;
     private OnProgressListener mProgressListener;
     private Timer mTimer;
+    private int mStartPos = 0;
 
     public PlayerView(Context context) {
         super(context);
@@ -36,6 +37,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
                 pause();
                 seekTo( 0 );
                 updateStopState();
+                mPlayerStateListener.onStateChanged(PlayerStates.END);
             }
         });
 
@@ -97,6 +99,10 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     public void play() {
     	if ( !this.isPlaying() ) {
             super.start();
+            if ( mStartPos != 0 ) {
+            	 super.seekTo( mStartPos );
+            	 mStartPos = 0;
+            }
             if ( mTimer == null ) {
                 mTimer = new Timer();
             }
@@ -104,7 +110,9 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
                 @Override
                 public void run() {
                 	try {
-                		mPlayheadUpdateListener.onPlayheadUpdated(getCurrentPosition());
+                		int position = getCurrentPosition();
+                		if ( position != 0 && mPlayheadUpdateListener != null )
+                			mPlayheadUpdateListener.onPlayheadUpdated(position);
                 	} catch(IllegalStateException e){
             	        e.printStackTrace(); 
             	    }
@@ -135,7 +143,6 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
             mTimer.cancel();
             mTimer = null;
         }
-        mPlayerStateListener.onStateChanged(PlayerStates.END);
     }
 
     @Override
@@ -168,6 +175,16 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     @Override
     public void registerProgressUpdate ( OnProgressListener listener ) {
         mProgressListener = listener;
+    }
+    
+    @Override
+    public void setStartingPoint(int point) {
+    	mStartPos = point;
+    }
+    
+    @Override
+    public void removePlayheadUpdateListener() {
+    	mPlayheadUpdateListener = null;
     }
 }
 
