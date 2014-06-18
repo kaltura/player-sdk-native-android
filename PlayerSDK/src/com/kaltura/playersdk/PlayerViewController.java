@@ -123,33 +123,42 @@ public class PlayerViewController extends RelativeLayout {
     
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
     	setPadding(xPadding, yPadding, 0, 0);
-    	setPlayerViewDimensions( width+xPadding, height+yPadding);
-    }
+    	int newWidth = width + xPadding;
+    	int newHeight = height + yPadding;
 
-    public void setPlayerViewDimensions(int width, int height) {
-        ViewGroup.LayoutParams lp = getLayoutParams();
+    	ViewGroup.LayoutParams lp = getLayoutParams();
         if ( lp == null ) {
-        	lp = new ViewGroup.LayoutParams( width, height );
+        	lp = new ViewGroup.LayoutParams( newWidth, newHeight );
         } else {
-            lp.width = width;
-            lp.height = height;
+            lp.width = newWidth;
+            lp.height = newHeight;
         }
 
         this.setLayoutParams(lp);
         if (mWebView != null) {
             ViewGroup.LayoutParams wvlp = mWebView.getLayoutParams();
-            wvlp.width = width;
-            wvlp.height = height;
+            wvlp.width = newWidth;
+            wvlp.height = newHeight;
             updateViewLayout(mWebView, wvlp);
         }
         if ( mPlayerView != null ) {
         	LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
-        	plp.width = width;
-        	plp.height = height;
+        	plp.width = newWidth;
+        	plp.height = newHeight;
+        	if ( xPadding==0 && yPadding==0 ) {
+        		plp.addRule(CENTER_IN_PARENT);        		
+        	} else {
+        		plp.addRule(CENTER_IN_PARENT, 0);
+        	}
             updateViewLayout(mPlayerView, plp);
         }
 
         invalidate();
+    	
+    }
+
+    public void setPlayerViewDimensions(int width, int height) {
+    	setPlayerViewDimensions(width, height, 0, 0);
     }
     
     private void setChromecastVisiblity() {
@@ -184,12 +193,11 @@ public class PlayerViewController extends RelativeLayout {
         mCurSec = 0;
         ViewGroup.LayoutParams currLP = getLayoutParams();
         mPlayerView = new PlayerView(mActivity);
-        super.addView(mPlayerView, currLP);
-       /* 
+        
+      //  super.addView(mPlayerView, currLP);
+        
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-        lp.addRule(CENTER_VERTICAL);
-        lp.addRule(CENTER_HORIZONTAL);
-        super.addView(mPlayerView, lp);*/
+        super.addView(mPlayerView, lp);
         
         mVideoInterface = mPlayerView;
         setPlayerListeners();
