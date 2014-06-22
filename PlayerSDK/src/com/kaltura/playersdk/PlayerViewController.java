@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -70,9 +71,11 @@ public class PlayerViewController extends RelativeLayout {
     private String mThumbUrl ="";
     
     private PlayerStates mState = PlayerStates.START;
+    private KeyguardManager mKMgr;
 
     public PlayerViewController(final Context context) {
         super(context);
+        mKMgr = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
      // Get a handler that can be used to post to the main thread
         Handler mainHandler = new Handler(context.getMainLooper());
         Runnable myRunnable = new Runnable() {
@@ -99,8 +102,7 @@ public class PlayerViewController extends RelativeLayout {
 				});			
 			}       	
         };
-        mainHandler.post(myRunnable);
-	  
+        mainHandler.post(myRunnable);	  
     }
 
     public PlayerViewController(Context context, AttributeSet attrs) {
@@ -454,6 +456,10 @@ public class PlayerViewController extends RelativeLayout {
             	if ( curSec <= mDuration ) {
             		mCurSec = curSec;
             		 mActivity.runOnUiThread(runUpdatePlayehead);
+            	}
+            	//device is sleeping, pause player
+            	if ( mKMgr.inKeyguardRestrictedInputMode() ) {
+            		mVideoInterface.pause();
             	}
             }
         });

@@ -34,7 +34,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
  	   public void run() {
  		  try {
       		int position = getCurrentPosition();
-      		if ( position != 0 && mPlayheadUpdateListener != null )
+      		if ( position != 0 && mPlayheadUpdateListener != null && isPlaying() )
       			mPlayheadUpdateListener.onPlayheadUpdated(position);
 	      	} catch(IllegalStateException e){
 	  	        e.printStackTrace(); 
