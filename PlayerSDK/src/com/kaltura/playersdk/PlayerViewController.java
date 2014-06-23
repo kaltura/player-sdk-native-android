@@ -18,6 +18,7 @@ import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -71,11 +72,11 @@ public class PlayerViewController extends RelativeLayout {
     private String mThumbUrl ="";
     
     private PlayerStates mState = PlayerStates.START;
-    private KeyguardManager mKMgr;
+    private PowerManager mPowerManager;
 
     public PlayerViewController(final Context context) {
         super(context);
-        mKMgr = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        mPowerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
      // Get a handler that can be used to post to the main thread
         Handler mainHandler = new Handler(context.getMainLooper());
         Runnable myRunnable = new Runnable() {
@@ -458,7 +459,7 @@ public class PlayerViewController extends RelativeLayout {
             		 mActivity.runOnUiThread(runUpdatePlayehead);
             	}
             	//device is sleeping, pause player
-            	if ( mKMgr.inKeyguardRestrictedInputMode() ) {
+            	if ( !mPowerManager.isScreenOn() ) {
             		mVideoInterface.pause();
             	}
             }
