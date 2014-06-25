@@ -1,5 +1,7 @@
 Player SDK Native Android
 =================
+For detailed usage guide see [Knowledge Center Android SDK usage guide](http://knowledge.kaltura.com/kaltura-player-sdk-android)
+
 
 The Kaltura player-sdk-native-android component enables embedding the [kaltura player](http://player.kaltura.com) into native environments. This enables full HTML5 player platform, without limitations of HTML5 video tag API in Android platforms. Currently for Android this enables: 
 * Inline playback with HTML controls ( disable controls during ads etc. ) 
