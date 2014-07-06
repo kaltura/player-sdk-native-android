@@ -14,6 +14,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -54,6 +55,7 @@ public class PlayerViewController extends RelativeLayout {
     private VideoPlayerInterface mVideoInterface;
     private PlayerView mPlayerView;
     private WebView mWebView;
+    private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
     private double mDuration = 0;
@@ -137,24 +139,24 @@ public class PlayerViewController extends RelativeLayout {
         }
 
         this.setLayoutParams(lp);
-        if (mWebView != null) {
-            ViewGroup.LayoutParams wvlp = mWebView.getLayoutParams();
-            wvlp.width = newWidth;
-            wvlp.height = newHeight;
-            updateViewLayout(mWebView, wvlp);
+        for ( int i=0; i< this.getChildCount(); i++ ) {
+        	View v = getChildAt(i);
+        	 ViewGroup.LayoutParams vlp = v.getLayoutParams();
+        	 vlp.width = newWidth;
+        	 vlp.height = newHeight;
+             updateViewLayout(v, vlp);
         }
-        if ( mPlayerView != null ) {
-        	LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
-        	plp.width = newWidth;
-        	plp.height = newHeight;
-        	if ( xPadding==0 && yPadding==0 ) {
-        		plp.addRule(CENTER_IN_PARENT);        		
-        	} else {
-        		plp.addRule(CENTER_IN_PARENT, 0);
-        	}
-            updateViewLayout(mPlayerView, plp);
-        }
-
+        
+        if ( mPlayerView!=null ) {
+    		LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
+         	if ( xPadding==0 && yPadding==0 ) {
+         		plp.addRule(CENTER_IN_PARENT);        		
+         	} else {
+         		plp.addRule(CENTER_IN_PARENT, 0);
+         	}
+         	updateViewLayout(mPlayerView, plp);
+    	 }
+  
         invalidate();
     	
     }
@@ -194,19 +196,21 @@ public class PlayerViewController extends RelativeLayout {
         mActivity = activity;
         mCurSec = 0;
         ViewGroup.LayoutParams currLP = getLayoutParams();
+        LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
+        
+        mBackgroundRL = new RelativeLayout(activity);
+        mBackgroundRL.setBackgroundColor(Color.BLACK);
+        this.addView(mBackgroundRL,currLP);
+
         mPlayerView = new PlayerView(mActivity);
-        
-      //  super.addView(mPlayerView, currLP);
-        
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-        super.addView(mPlayerView, lp);
+        this.addView(mPlayerView, lp);
         
         mVideoInterface = mPlayerView;
         setPlayerListeners();
         createPlayerInstance();
         
         
-        LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
         mWebView = new WebView(mActivity);
         this.addView(mWebView, wvLp);
         mWebView.getSettings().setJavaScriptEnabled(true);
