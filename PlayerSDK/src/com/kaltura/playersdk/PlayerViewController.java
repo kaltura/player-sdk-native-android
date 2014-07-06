@@ -11,7 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
-import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -258,6 +257,12 @@ public class PlayerViewController extends RelativeLayout {
     
     public void destroy() {
        this.stop();
+    }
+    
+    public void savePlaybackPosition() {
+    	if ( mVideoInterface!= null ) {
+    		mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
+    	}
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
