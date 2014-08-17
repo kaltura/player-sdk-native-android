@@ -115,6 +115,10 @@ public class PlayerViewController extends RelativeLayout {
             int defStyle) {
         super(context, attrs, defStyle);
     }
+    
+    public void setActivity( Activity activity ) {
+    	mActivity = activity;
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
