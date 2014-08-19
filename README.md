@@ -36,10 +36,14 @@ Quick Start Guide
 git clone https://github.com/kaltura/player-sdk-native-android.git
 ```
 
-Start android SDK, and build the project.
+Import all 5 projects to your workspace:
+* PlayerSDK
+* CastCompanionLibrary-android
+* google-play-services_lib
+* android-support-v7-appcompat
+* android-support-v7-mediarouter
 
-Project dependencies:
-* https://github.com/googlecast/CastCompanionLibrary-android - Please follow the set up instructions from here: https://developers.google.com/cast/docs/downloads
+Verify all projects dependencies are valid.
 
 
 API Overview
