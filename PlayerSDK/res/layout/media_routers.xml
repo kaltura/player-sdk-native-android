@@ -1,0 +1,21 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    
+    <ListView
+        android:id="@+id/listview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    
+      <Button
+        android:id="@+id/disconnect"
+         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/listview"
+        android:text="Disconnect" 
+        android:background="@null"
+        android:textColor="#ffffff"
+        android:layout_marginLeft="5dp" 
+        android:layout_marginBottom="15dp"/>
+
+</RelativeLayout>

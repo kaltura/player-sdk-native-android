@@ -14,8 +14,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.PowerManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -26,8 +29,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 
+import com.google.android.gms.cast.CastDevice;
+import com.kaltura.playersdk.chromecast.CastPlayer;
+import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
+import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
+import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -47,6 +55,7 @@ public class PlayerViewController extends RelativeLayout {
     private VideoPlayerInterface mVideoInterface;
     private PlayerView mPlayerView;
     private WebView mWebView;
+    private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
     private double mDuration = 0;
@@ -64,9 +73,38 @@ public class PlayerViewController extends RelativeLayout {
     private String mThumbUrl ="";
     
     private PlayerStates mState = PlayerStates.START;
+    private PowerManager mPowerManager;
 
     public PlayerViewController(final Context context) {
-        super(context); 
+        super(context);
+        mPowerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
+     // Get a handler that can be used to post to the main thread
+        Handler mainHandler = new Handler(context.getMainLooper());
+        Runnable myRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if ( !ChromecastHandler.initialized )
+				ChromecastHandler.initialize(context, new OnCastDeviceChangeListener() {
+
+					@Override
+					public void onCastDeviceChange(CastDevice oldDevice, CastDevice newDevice) {
+						if ( ChromecastHandler.selectedDevice != null ) {
+							notifyKPlayer("trigger", new String[] { "chromecastDeviceConnected" });
+						} else {
+							notifyKPlayer("trigger", new String[] { "chromecastDeviceDisConnected" });							
+						}
+						createPlayerInstance();
+					}		
+				},
+				new OnCastRouteDetectedListener(){
+					@Override
+					public void onCastRouteDetected() {
+						setChromecastVisiblity();
+					}				
+				});			
+			}       	
+        };
+        mainHandler.post(myRunnable);	  
     }
 
     public PlayerViewController(Context context, AttributeSet attrs) {
@@ -76,6 +114,10 @@ public class PlayerViewController extends RelativeLayout {
     public PlayerViewController(Context context, AttributeSet attrs,
             int defStyle) {
         super(context, attrs, defStyle);
+    }
+    
+    public void setActivity( Activity activity ) {
+    	mActivity = activity;
     }
 
     @Override
@@ -89,33 +131,50 @@ public class PlayerViewController extends RelativeLayout {
     
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
     	setPadding(xPadding, yPadding, 0, 0);
-    	setPlayerViewDimensions( width+xPadding, height+yPadding);
-    }
+    	int newWidth = width + xPadding;
+    	int newHeight = height + yPadding;
 
-    public void setPlayerViewDimensions(int width, int height) {
-        ViewGroup.LayoutParams lp = getLayoutParams();
+    	ViewGroup.LayoutParams lp = getLayoutParams();
         if ( lp == null ) {
-        	lp = new ViewGroup.LayoutParams( width, height );
+        	lp = new ViewGroup.LayoutParams( newWidth, newHeight );
         } else {
-            lp.width = width;
-            lp.height = height;
+            lp.width = newWidth;
+            lp.height = newHeight;
         }
 
         this.setLayoutParams(lp);
-        if (mWebView != null) {
-            ViewGroup.LayoutParams wvlp = mWebView.getLayoutParams();
-            wvlp.width = width;
-            wvlp.height = height;
-            updateViewLayout(mWebView, wvlp);
+        for ( int i=0; i< this.getChildCount(); i++ ) {
+        	View v = getChildAt(i);
+        	 ViewGroup.LayoutParams vlp = v.getLayoutParams();
+        	 vlp.width = newWidth;
+        	 vlp.height = newHeight;
+             updateViewLayout(v, vlp);
         }
-        if ( mPlayerView != null ) {
-        	LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
-        	plp.width = width;
-        	plp.height = height;
-            updateViewLayout(mPlayerView, plp);
-        }
-
+        
+        if ( mPlayerView!=null ) {
+    		LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
+         	if ( xPadding==0 && yPadding==0 ) {
+         		plp.addRule(CENTER_IN_PARENT);        		
+         	} else {
+         		plp.addRule(CENTER_IN_PARENT, 0);
+         	}
+         	updateViewLayout(mPlayerView, plp);
+    	 }
+  
         invalidate();
+    	
+    }
+
+    public void setPlayerViewDimensions(int width, int height) {
+    	setPlayerViewDimensions(width, height, 0, 0);
+    }
+    
+    private void setChromecastVisiblity() {
+    	if ( ChromecastHandler.routeInfos.size() > 0 ) {
+			setKDPAttribute("chromecast", "visible", true);
+		} else {
+			setKDPAttribute("chromecast", "visible", false);						
+		}
     }
     
     /**
@@ -141,20 +200,21 @@ public class PlayerViewController extends RelativeLayout {
         mActivity = activity;
         mCurSec = 0;
         ViewGroup.LayoutParams currLP = getLayoutParams();
-        mPlayerView = new PlayerView(mActivity);
-       
-        LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT);
-        lp.addRule(CENTER_VERTICAL);
-        lp.addRule(CENTER_HORIZONTAL);
-        super.addView(mPlayerView, lp);
+        LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
         
-        // super.addView(mPlayerView, currLP);
+        mBackgroundRL = new RelativeLayout(activity);
+        mBackgroundRL.setBackgroundColor(Color.BLACK);
+        this.addView(mBackgroundRL,currLP);
+
+        mPlayerView = new PlayerView(mActivity);
+        LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
+        this.addView(mPlayerView, lp);
+        
         mVideoInterface = mPlayerView;
         setPlayerListeners();
+        createPlayerInstance();
         
         
-        LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
         mWebView = new WebView(mActivity);
         this.addView(mWebView, wvLp);
         mWebView.getSettings().setJavaScriptEnabled(true);
@@ -171,6 +231,24 @@ public class PlayerViewController extends RelativeLayout {
         mWebView.setBackgroundColor(0);
     }
     
+    /**
+     * create PlayerView / CastPlayer instance according to cast status
+     */
+    private void createPlayerInstance() {
+    	if ( mVideoInterface != null ) {    		
+    		mVideoInterface.removePlayheadUpdateListener();
+    		if ( mVideoInterface instanceof CastPlayer )
+    			mVideoInterface.stop();
+    	}
+    	
+    	if ( ChromecastHandler.selectedDevice != null ) {
+    		mVideoInterface = new CastPlayer(getContext(), mVideoTitle, null, null, mThumbUrl, mVideoUrl);
+    	} else {
+    		mVideoInterface = mPlayerView;
+    	}
+    	mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
+		setPlayerListeners();
+    }
 
     /**
      * slides with animation according the given values
@@ -187,6 +265,12 @@ public class PlayerViewController extends RelativeLayout {
     
     public void destroy() {
        this.stop();
+    }
+    
+    public void savePlaybackPosition() {
+    	if ( mVideoInterface!= null ) {
+    		mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
+    	}
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -387,6 +471,10 @@ public class PlayerViewController extends RelativeLayout {
             		mCurSec = curSec;
             		 mActivity.runOnUiThread(runUpdatePlayehead);
             	}
+            	//device is sleeping, pause player
+            	if ( !mPowerManager.isScreenOn() ) {
+            		mVideoInterface.pause();
+            	}
             }
         });
 
@@ -419,6 +507,7 @@ public class PlayerViewController extends RelativeLayout {
                         	}
                         }
                         else if (action.equals("notifyLayoutReady")) {   
+                        	setChromecastVisiblity();
                         	return true;
                         }
                         else if (action.equals("play")) {
@@ -438,6 +527,18 @@ public class PlayerViewController extends RelativeLayout {
                                 mFSListener.onToggleFullScreen();
                                 return true;
                             }
+                        }
+                        else if ( action.equals("showChromecastDeviceList") ) {
+                        	if(!mActivity.isFinishing())
+                        	{
+                        		//workaround to fix weird exception sometimes
+                        		try {
+                        			ChromecastHandler.showCCDialog(getContext());
+                        		} catch (Exception e ) {
+                        			Log.d(TAG, "failed to open cc list");
+                        		}
+                        	
+                        	}
                         }
                         // action with params
                         else if (arr.length > 3) {
