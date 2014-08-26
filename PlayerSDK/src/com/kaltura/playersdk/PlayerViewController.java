@@ -75,8 +75,24 @@ public class PlayerViewController extends RelativeLayout {
     private PlayerStates mState = PlayerStates.START;
     private PowerManager mPowerManager;
 
-    public PlayerViewController(final Context context) {
+    public PlayerViewController(Context context) {
         super(context);
+        setupPlayerViewController( context );
+	  
+    }
+
+    public PlayerViewController(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        setupPlayerViewController( context );
+    }
+
+    public PlayerViewController(Context context, AttributeSet attrs,
+            int defStyle) {
+        super(context, attrs, defStyle);
+        setupPlayerViewController( context );
+    }
+    
+    private void setupPlayerViewController( final Context context) {
         mPowerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
      // Get a handler that can be used to post to the main thread
         Handler mainHandler = new Handler(context.getMainLooper());
@@ -104,20 +120,12 @@ public class PlayerViewController extends RelativeLayout {
 				});			
 			}       	
         };
-        mainHandler.post(myRunnable);	  
-    }
-
-    public PlayerViewController(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public PlayerViewController(Context context, AttributeSet attrs,
-            int defStyle) {
-        super(context, attrs, defStyle);
+        mainHandler.post(myRunnable);
     }
     
     public void setActivity( Activity activity ) {
     	mActivity = activity;
+        mWebView = new WebView(mActivity);
     }
 
     @Override
@@ -214,8 +222,6 @@ public class PlayerViewController extends RelativeLayout {
         setPlayerListeners();
         createPlayerInstance();
         
-        
-        mWebView = new WebView(mActivity);
         this.addView(mWebView, wvLp);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
