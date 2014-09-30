@@ -40,6 +40,7 @@ import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
+import com.kaltura.playersdk.ima.IMAPlayer;
 import com.kaltura.playersdk.types.PlayerStates;
 import com.kaltura.playersdk.widevine.WidevineHandler;
 
@@ -255,6 +256,18 @@ public class PlayerViewController extends RelativeLayout {
     	mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
 		setPlayerListeners();
     }
+    
+    private void replacePlayerViewChild( View newChild, View oldChild ) {
+    	if ( oldChild.getParent().equals( this ) ) {
+    		this.removeView( oldChild );
+    	}
+    	
+    	
+    	if ( this.getChildCount() > 1 ) {
+    		//last child is the controls webview
+    		this.addView( newChild , this.getChildCount() -1 ,oldChild.getLayoutParams() );
+    	}
+    }
 
     /**
      * slides with animation according the given values
@@ -415,6 +428,12 @@ public class PlayerViewController extends RelativeLayout {
                         + action + "(" + values + ");");
             }
         });
+    }
+    
+    private void removePlayerListeners() {
+    	mVideoInterface.registerPlayerStateChange( null );
+    	mVideoInterface.registerPlayheadUpdate( null );
+    	mVideoInterface.registerProgressUpdate( null );
     }
 
     private void setPlayerListeners() {
@@ -597,6 +616,35 @@ public class PlayerViewController extends RelativeLayout {
                                                         mActivity,
                                                         mVideoInterface.getVideoUrl(),
                                                         licenseUrl);
+                                            } else if ( params.get(0).equals("doubleClickRequestAds") ) {
+                                            	IMAPlayer imaPlayer = new IMAPlayer( getContext() );
+                                            	replacePlayerViewChild( imaPlayer, mPlayerView );
+                                            	imaPlayer.setParams(mVideoInterface, params.get(1), mActivity,  new KPlayerEventListener() {
+
+													@Override
+													public void onKPlayerEvent(
+															Object body) {
+														if ( body instanceof Object[] ) {
+															notifyKPlayer("trigger", (Object[]) body );	
+														} else {
+															notifyKPlayer("trigger", new String[] { body.toString() });																													
+														}
+													}
+
+													@Override
+													public String getCallbackName() {
+														// TODO Auto-generated method stub
+														return null;
+													}
+                                            		
+                                            	});
+                                            	
+                                            	removePlayerListeners();
+                                            	mVideoInterface = imaPlayer;
+                                            	setPlayerListeners();
+                                            	
+                                            	imaPlayer.play();
+                                            
                                             }
                                         }
                                     } else if (action.equals("notifyKPlayerEvent")) {
