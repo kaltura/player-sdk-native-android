@@ -18,8 +18,40 @@ public interface QualityTracksInterface {
 	  */
 	 public void setAutoSwitch( boolean autoSwitch );
 	
+	 /**
+	 * Calls listener when quality list is available 
+	 * @param listener
+	 */
 	 public void registerQualityTracksList( OnQualityTracksListListener listener );
 
+	 /**
+	  * Calls listeners when quality switch starts / ends
+	  * @param listener
+	  */
 	 public void registerQualitySwitchingChange( OnQualitySwitchingListener listener );
+	 
+	 /**
+	  * 
+	  * @return transfer rate of last download
+	  */
+	 public float getLastDownloadTransferRate();
+	 
+	 /**
+	  * 
+	  * @return dropped frame count
+	  */
+	 public float getDroppedFrameCount();
+	 
+	 /**
+	  * 
+	  * @return buffer empting rate
+	  */
+	 public float getBufferEmptyRate();
+	 
+	 /**
+	  * 
+	  * @return current quality index
+	  */
+	 public int getCurrentQualityIndex();
 
 }
