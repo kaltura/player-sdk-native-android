@@ -6,6 +6,12 @@ import com.kaltura.playersdk.events.OnQualityTracksListListener;
 public interface QualityTracksInterface {
 	
 	/**
+	 * 
+	 * @param newTime set buffer time
+	 */
+	public void setBufferTime( int newTime );
+	
+	/**
 	 * Will turn autoSwitch off and select given index
 	 * @param newIndex
 	 */
@@ -32,21 +38,21 @@ public interface QualityTracksInterface {
 	 
 	 /**
 	  * 
-	  * @return transfer rate of last download
+	  * @return transfer rate of last download (KBPS)
 	  */
 	 public float getLastDownloadTransferRate();
 	 
 	 /**
 	  * 
-	  * @return dropped frame count
+	  * @return dropped frame per second
 	  */
-	 public float getDroppedFrameCount();
+	 public float getDroppedFramesPerSecond();
 	 
 	 /**
 	  * 
-	  * @return buffer empting rate
+	  * @return buffer full percentage
 	  */
-	 public float getBufferEmptyRate();
+	 public float getBufferPercentage();
 	 
 	 /**
 	  * 
