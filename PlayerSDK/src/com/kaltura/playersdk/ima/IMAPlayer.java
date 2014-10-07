@@ -367,7 +367,9 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				));
 
 
-		removeView ( adUiContainer );
+		if ( adUiContainer.getParent() != null ) {
+			removeView ( adUiContainer );			
+		}
 		addView ( adUiContainer );
 
 		// Notify the callbacks that the ad has begun playing.
