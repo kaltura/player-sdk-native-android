@@ -124,8 +124,7 @@ public class PlayerViewController extends RelativeLayout {
     }
     
     public void setActivity( Activity activity ) {
-    	mActivity = activity;
-        mWebView = new WebView(mActivity);
+    	mActivity = activity;      
     }
 
     @Override
@@ -206,6 +205,7 @@ public class PlayerViewController extends RelativeLayout {
      */
     public void addComponents(String iframeUrl, Activity activity) {	
         mActivity = activity;
+        mWebView= new WebView(mActivity);
         mCurSec = 0;
         ViewGroup.LayoutParams currLP = getLayoutParams();
         LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
@@ -410,9 +410,11 @@ public class PlayerViewController extends RelativeLayout {
                 	}
                    // values = TextUtils.join("', '", eventValues);
                 }
-                
-                mWebView.loadUrl("javascript:NativeBridge.videoPlayer."
-                        + action + "(" + values + ");");
+                if ( mWebView != null ) {
+                    mWebView.loadUrl("javascript:NativeBridge.videoPlayer."
+                            + action + "(" + values + ");");
+                }
+
             }
         });
     }
