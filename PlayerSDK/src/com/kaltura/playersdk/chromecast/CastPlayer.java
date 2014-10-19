@@ -6,8 +6,6 @@ import java.util.TimerTask;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnErrorListener;
 import android.net.Uri;
 import android.os.Handler;
 
@@ -20,6 +18,7 @@ import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.NoConnectionException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
 import com.kaltura.playersdk.VideoPlayerInterface;
+import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -36,7 +35,6 @@ public class CastPlayer implements VideoPlayerInterface {
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
 
     private OnPlayerStateChangeListener mPlayerStateListener;
-    private MediaPlayer.OnPreparedListener mPreparedListener;
     private OnPlayheadUpdateListener mPlayheadUpdateListener;
     private OnProgressListener mProgressListener;
     private OnErrorListener mErrorListener;
@@ -262,12 +260,8 @@ public class CastPlayer implements VideoPlayerInterface {
 	    }
 
 	    @Override
-	    public void registerReadyToPlay( MediaPlayer.OnPreparedListener listener) {
-	        mPreparedListener = listener;
-	    }
-
-	    @Override
-	    public void registerError( MediaPlayer.OnErrorListener listener) {
+	    public void registerError(OnErrorListener listener) {
+	    	//TODO
 	    	mErrorListener = listener;
 
 	    }

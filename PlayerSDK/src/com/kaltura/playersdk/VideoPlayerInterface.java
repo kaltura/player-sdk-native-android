@@ -1,7 +1,6 @@
 package com.kaltura.playersdk;
 
-import android.media.MediaPlayer;
-
+import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -34,9 +33,7 @@ public interface VideoPlayerInterface {
     // events
     public void registerPlayerStateChange(OnPlayerStateChangeListener listener);
 
-    public void registerReadyToPlay(MediaPlayer.OnPreparedListener listener);
-
-    public void registerError(MediaPlayer.OnErrorListener listener);
+    public void registerError(OnErrorListener listener);
 
     public void registerPlayheadUpdate(OnPlayheadUpdateListener listener);
 
