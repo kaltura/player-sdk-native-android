@@ -160,7 +160,7 @@ public class PlayerViewController extends RelativeLayout {
              updateViewLayout(v, vlp);
         }
         
-        if ( mPlayerView!=null ) {
+        if ( mPlayerView!=null && mPlayerView.getParent() == this ) {
     		LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
          	if ( xPadding==0 && yPadding==0 ) {
          		plp.addRule(CENTER_IN_PARENT);        		
@@ -619,6 +619,7 @@ public class PlayerViewController extends RelativeLayout {
                                             } else if ( params.get(0).equals("doubleClickRequestAds") ) {
                                             	IMAPlayer imaPlayer = new IMAPlayer( getContext() );
                                             	replacePlayerViewChild( imaPlayer, mPlayerView );
+                                            	//imaPlayer.setParams(mVideoInterface, params.get(1), mActivity,  new KPlayerEventListener() {
                                             	imaPlayer.setParams(mVideoInterface, params.get(1), mActivity,  new KPlayerEventListener() {
 
 													@Override
@@ -643,7 +644,7 @@ public class PlayerViewController extends RelativeLayout {
                                             	mVideoInterface = imaPlayer;
                                             	setPlayerListeners();
                                             	
-                                            	imaPlayer.play();
+                                            	//imaPlayer.play();
                                             
                                             }
                                         }

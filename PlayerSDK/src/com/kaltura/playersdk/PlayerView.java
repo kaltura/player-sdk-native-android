@@ -50,18 +50,21 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
                 pause();
                 seekTo( 0 );
                 updateStopState();
-                mPlayerStateListener.onStateChanged(PlayerStates.END);
+                if ( mPlayerStateListener!= null )
+                	mPlayerStateListener.onStateChanged(PlayerStates.END);
             }
         });
 
         super.setOnPreparedListener( new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
-                mPlayerStateListener.onStateChanged(PlayerStates.START);
+            	if ( mPlayerStateListener!=null )
+            		mPlayerStateListener.onStateChanged(PlayerStates.START);
                 mediaPlayer.setOnSeekCompleteListener( new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mediaPlayer) {
-                    	mPlayerStateListener.onStateChanged(PlayerStates.SEEKED);
+                    	if ( mPlayerStateListener!=null )
+                    		mPlayerStateListener.onStateChanged(PlayerStates.SEEKED);
                     }
                 });
 
@@ -125,7 +128,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
             	mHandler = new Handler();
             }
             mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
-            mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
+            if ( mPlayerStateListener!=null )
+            	mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
     	}
     }
 
@@ -133,7 +137,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     public void pause() {
     	if ( this.isPlaying() ) {
             super.pause();
-            mPlayerStateListener.onStateChanged(PlayerStates.PAUSE);	
+            if ( mPlayerStateListener!=null )
+            	mPlayerStateListener.onStateChanged(PlayerStates.PAUSE);	
     	}
     }
 
@@ -152,7 +157,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
 
     @Override
     public void seek(int msec) {
-    	mPlayerStateListener.onStateChanged(PlayerStates.SEEKING);
+    	if ( mPlayerStateListener!=null )
+    		mPlayerStateListener.onStateChanged(PlayerStates.SEEKING);
         super.seekTo(msec);
     }
 

@@ -41,7 +41,8 @@ import com.kaltura.playersdk.events.OnProgressListener;
 
 public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
-	public static int PLAYHEAD_UPDATE_INTERVAL = 200;
+	public static int PLAYHEAD_UPDATE_INTERVAL = 500;
+	public static int MAX_AD_BUFFER_COUNT = 10;
 
 	private OnPlayerStateChangeListener mPlayerStateListener;
 	private OnPlayheadUpdateListener mPlayheadUpdateListener;
@@ -51,18 +52,20 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	 * Responsible for requesting the ad and creating the
 	 * {@link com.google.ads.interactivemedia.v3.api.AdsManager}
 	 */
-	private AdsLoader adsLoader;
+	private AdsLoader mAdsLoader;
 
 
 	/**
 	 * Responsible for containing listeners for processing the elements of the ad.
 	 */
-	private AdsManager adsManager;
+	private AdsManager mAdsManager;
 
 	/**
 	 * URL of the ad
 	 */
 	private Uri mAdTagUrl;
+	
+	private Uri mCurrentAdUrl;
 
 	/**
 	 * These callbacks are notified when the video is played and when it ends. The IMA SDK uses this
@@ -70,13 +73,16 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	 */
 	private List<VideoAdPlayer.VideoAdPlayerCallback> callbacks;
 
-	FrameLayout adPlayerContainer;
-	FrameLayout adUiContainer;
-
+	private FrameLayout adPlayerContainer;
+	private FrameLayout adUiContainer;
+	/**
+	 * Notifies callbacks when the ad finishes.
+	 */
+	private ExoplayerWrapper.PlaybackListener mPlaybackListener;
 
 	private VideoPlayerInterface mContentPlayer;
 	private SimpleVideoPlayer mAdPlayer;
-	private boolean isInSequence;
+	private boolean mIsInSequence;
 	private Activity mActivity;
 
 	private Handler mHandler;
@@ -84,11 +90,12 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	private Runnable runnable = new Runnable() {
 		@Override
 		public void run() {
-			if ( isInSequence && mKPlayerEventListener!=null ) {
+			if ( mIsInSequence && mKPlayerEventListener!=null ) {
 				try {
-					mTimeRemainingObj.put("time", videoAdPlayer.getProgress().getCurrentTime() );
-					mTimeRemainingObj.put("duration", videoAdPlayer.getProgress().getDuration() );
-					float remain = videoAdPlayer.getProgress().getDuration() - videoAdPlayer.getProgress().getCurrentTime();
+					VideoProgressUpdate progress = videoAdPlayer.getProgress();
+					mTimeRemainingObj.put("time", progress.getCurrentTime() );
+					mTimeRemainingObj.put("duration", progress.getDuration() );
+					float remain = progress.getDuration() - progress.getCurrentTime();
 					mTimeRemainingObj.put("remain", remain );
 					mKPlayerEventListener.onKPlayerEvent( new Object[]{"adRemainingTimeChange", mTimeRemainingObj} );
 
@@ -102,6 +109,8 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 			mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
 		}
 	};
+
+	private int mAdBufferCount = 0;
 
 
 	public IMAPlayer(Context context) {
@@ -121,19 +130,67 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		mActivity = activity;
 		mKPlayerEventListener = listener;
 		mContentPlayer = contentPlayer;
-		mAdTagUrl = Uri.parse(adTagUrl);
-		//		mAdTagUrl = Uri.parse("http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]&cust_params=gmf_format%3Dskip");
-		isInSequence = false;
-
-		if ( contentPlayer instanceof View ) {
-			addView( (View) contentPlayer );
+//		adTagUrl =  "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_" +
+//	            "szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[ref" +
+//	            "errer_url]&correlator=[timestamp]&cust_params=gmf_format%3Dskip";
+		if ( adTagUrl != null ) {
+			mAdTagUrl = Uri.parse(adTagUrl);
+			mIsInSequence = true;
+		} else {
+			mIsInSequence = false;
+			
 		}
+		addContentPlayerView();
+		
+		// Create the ad adDisplayContainer UI which will be used by the IMA SDK to overlay ad controls.
+		adUiContainer = new FrameLayout(mActivity);
+		addView(adUiContainer);
 
-		adsLoader = ImaSdkFactory.getInstance().createAdsLoader(activity, ImaSdkFactory.getInstance().createImaSdkSettings());
+		adUiContainer.setLayoutParams(Util.getLayoutParamsBasedOnParent(
+				adUiContainer,
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT));
+			
+
+		mAdsLoader = ImaSdkFactory.getInstance().createAdsLoader(activity, ImaSdkFactory.getInstance().createImaSdkSettings());
 		AdListener adListener = new AdListener();
-		adsLoader.addAdErrorListener(adListener);
-		adsLoader.addAdsLoadedListener(adListener);
+		mAdsLoader.addAdErrorListener(adListener);
+		mAdsLoader.addAdsLoadedListener(adListener);
+		mPlaybackListener = new ExoplayerWrapper.PlaybackListener() {
 
+			/**
+			 * @param e The error.
+			 */
+			@Override
+			public void onError(Exception e) {
+
+			}
+
+			/**
+			 * We notify all callbacks when the ad ends.
+			 * @param playWhenReady Whether the video should play as soon as it is loaded.
+			 * @param playbackState The state of the Exoplayer instance.
+			 */
+			@Override
+			public void onStateChanged(boolean playWhenReady, int playbackState) {
+				if (playbackState == ExoPlayer.STATE_ENDED) {
+					mAdsLoader.contentComplete();
+					for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
+						callback.onEnded();
+					}
+				}
+			}
+
+			/**
+			 * We don't respond to size changes.
+			 * @param width The new width of the player.
+			 * @param height The new height of the player.
+			 */
+			@Override
+			public void onVideoSizeChanged(int width, int height) {
+
+			}
+		};
 
 		callbacks = new ArrayList<VideoAdPlayer.VideoAdPlayerCallback>();
 
@@ -163,7 +220,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	@Override
 	public int getDuration() {
 		if ( mContentPlayer!=null ) {
-			if ( isInSequence ) {
+			if ( mIsInSequence ) {
 				return mAdPlayer.getDuration();
 			} else {
 				return mContentPlayer.getDuration();
@@ -182,38 +239,40 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	public void play() {
 		if (mAdTagUrl != null) {
 			requestAd();
-		} else {
-			mContentPlayer.play();
+		} else if ( mCurrentAdUrl == null ) {
+			if ( mIsInSequence ) 
+				showContentPlayer();
+			else 
+				mContentPlayer.play();
 		}
 
 	}
 
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
-
+		if ( !mIsInSequence ) {
+			mContentPlayer.pause();
+		}
 	}
 
 	@Override
 	public void stop() {
-		// TODO Auto-generated method stub
-
+		if ( !mIsInSequence ) {
+			mContentPlayer.stop();
+		}
 	}
 
 	@Override
 	public void seek(int msec) {
-		//TODO
-		/*	if ( isInSequence ) {
-			mAdPlayer.seekTo( msec );
-		} else {
+		if ( !mIsInSequence ) {
 			mContentPlayer.seek(msec);
-		}*/
+		}
 
 	}
 
 	@Override
 	public boolean isPlaying() {
-		if ( isInSequence )
+		if ( mIsInSequence )
 			return true;
 		if ( mContentPlayer!= null ) {
 			return ( mContentPlayer.isPlaying() );
@@ -225,7 +284,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	@Override
 	public boolean canPause() {
 		if ( mContentPlayer!= null ) {
-			if ( isInSequence ) {
+			if ( mIsInSequence ) {
 				return false;
 			} else {
 				return mContentPlayer.canPause();
@@ -239,7 +298,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	@Override
 	public void registerPlayerStateChange( OnPlayerStateChangeListener listener) {
 		mPlayerStateListener = listener;
-		if ( !isInSequence && mContentPlayer!=null ) {
+		if ( !mIsInSequence && mContentPlayer!=null ) {
 			mContentPlayer.registerPlayerStateChange ( listener );
 		}
 	}
@@ -258,7 +317,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	@Override
 	public void registerPlayheadUpdate( OnPlayheadUpdateListener listener ) {
 		mPlayheadUpdateListener = listener;
-		if ( !isInSequence && mContentPlayer!=null ) {
+		if ( !mIsInSequence && mContentPlayer!=null ) {
 			mContentPlayer.registerPlayheadUpdate ( listener );
 		}
 	}
@@ -266,7 +325,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	@Override
 	public void removePlayheadUpdateListener() {
 		mPlayheadUpdateListener = null;
-		if ( !isInSequence && mContentPlayer!=null ) {
+		if ( !mIsInSequence && mContentPlayer!=null ) {
 			mContentPlayer.removePlayheadUpdateListener ();
 		}
 	}
@@ -274,14 +333,14 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	@Override
 	public void registerProgressUpdate ( OnProgressListener listener ) {
 		mProgressListener = listener;
-		if ( !isInSequence && mContentPlayer!=null ) {
+		if ( !mIsInSequence && mContentPlayer!=null ) {
 			mContentPlayer.registerProgressUpdate ( listener );
 		}
 	}
 
 	private void hideContentPlayer() {
-		if ( !isInSequence ) {
-			isInSequence = true;
+		if ( !mIsInSequence ) {
+			mIsInSequence = true;
 			if ( mContentPlayer.canPause() )
 				mContentPlayer.pause();
 			if ( mContentPlayer instanceof View )
@@ -293,15 +352,40 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 			mContentPlayer.registerProgressUpdate( null );
 		} 
 	}
+	
+	private void notifyAdError() {
+		mAdTagUrl = null;
+		mCurrentAdUrl = null;
+		if ( mKPlayerEventListener!=null ) {
+			mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );
+		}
+		//stop checking for ad progress
+		if ( mHandler != null ) {
+			mHandler.removeCallbacks( runnable );
+		}
+		
+	}
+	
+	private void addContentPlayerView() {
+		if ( mContentPlayer instanceof View ) {
+			
+			ViewGroup.LayoutParams currLP = getLayoutParams();
+			LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
+			int[] rules = ((LayoutParams) ((View) mContentPlayer).getLayoutParams()).getRules();
+			if (  rules[CENTER_IN_PARENT] != 0 ) {
+				lp.addRule(CENTER_IN_PARENT);
+			}
+			addView( (View) mContentPlayer, lp );
+		}
+	}
 
 	private void showContentPlayer() {
-		if ( isInSequence ) {
-			isInSequence = false;
+		if ( mIsInSequence ) {
+			mIsInSequence = false;
 			destroyAdPlayer();
-
+			//addContentPlayerView();
 			if ( mContentPlayer instanceof View )
-				addView( (View) mContentPlayer );
-
+				( (View) mContentPlayer ).setVisibility(View.VISIBLE);
 			//register events
 			mContentPlayer.registerPlayerStateChange( mPlayerStateListener );
 			mContentPlayer.registerPlayheadUpdate( mPlayheadUpdateListener );
@@ -317,12 +401,13 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	 */
 	private void destroyAdPlayer(){
 
-		if(adPlayerContainer != null){
+		if(adPlayerContainer != null && adPlayerContainer.getParent() != null){
 			removeView(adPlayerContainer);
 		}
-		if (adUiContainer != null) {
+		if (adUiContainer != null && adUiContainer.getParent() != null) {
 			removeView(adUiContainer);
 		}
+		
 		if(mAdPlayer != null){
 			mAdPlayer.release();
 		}
@@ -337,40 +422,40 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		adPlayerContainer = new FrameLayout(mActivity);
 		addView(adPlayerContainer);
 
-		Video adVideo = new Video(mAdTagUrl.toString(), Video.VideoType.MP4);
-		mAdPlayer = new SimpleVideoPlayer(mActivity,
-				adPlayerContainer,
-				adVideo,
-				"",
-				true);
-
-		mAdPlayer.addPlaybackListener(playbackListener);
-
-		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
-		// player's surface layer (which is in the background).
-		mAdPlayer.moveSurfaceToForeground();
-		mAdPlayer.play();
-		mAdPlayer.disableSeeking();
-		//  mAdPlayer.setSeekbarColor(Color.YELLOW);
-		mAdPlayer.hideTopChrome();
-		//TODO? mAdPlayer.setFullscreen(contentPlayer.isFullscreen());
-
-
-		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
-		// player's surface layer (which is in the background).
-		isInSequence = true;
-
 		adPlayerContainer.setLayoutParams(Util.getLayoutParamsBasedOnParent(
 				adPlayerContainer,
 				ViewGroup.LayoutParams.MATCH_PARENT,
 				ViewGroup.LayoutParams.MATCH_PARENT
 				));
 
-
 		if ( adUiContainer.getParent() != null ) {
 			removeView ( adUiContainer );			
 		}
 		addView ( adUiContainer );
+
+		Video adVideo = new Video(mCurrentAdUrl.toString(), Video.VideoType.MP4);
+	//	Video adVideo = new Video("http://redirector.gvt1.com/videoplayback/id/b335f171043e745d/itag/18/source/gfp_video_ads/ip/0.0.0.0/ipbits/0/expire/1413828881/sparams/ip,ipbits,expire,id,itag,source/signature/5887F4A4EC6B6487C9120E7EAF87FC83910C55F1.9378D8E28A59E62EB876B71C11597294C28755A2/key/ck2/file/file.mp4", Video.VideoType.MP4);
+	
+		mAdPlayer = new SimpleVideoPlayer(mActivity,
+				adPlayerContainer,
+				adVideo,
+				"",
+				true);
+
+		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
+		// player's surface layer (which is in the background).
+		mIsInSequence = true;
+		
+		mAdPlayer.addPlaybackListener( mPlaybackListener );
+
+		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
+		// player's surface layer (which is in the background).
+		mAdPlayer.moveSurfaceToForeground();
+		mAdPlayer.play();
+		mAdPlayer.disableSeeking();
+		//mAdPlayer.setSeekbarColor(Color.YELLOW);
+		mAdPlayer.hideTopChrome();
+		//TODO? mAdPlayer.setFullscreen(contentPlayer.isFullscreen());
 
 		// Notify the callbacks that the ad has begun playing.
 		/*for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
@@ -384,14 +469,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	 * @return a request for the VAST document.
 	 */
 	private AdsRequest buildAdsRequest(String tagUrl) {
-		// Create the ad adDisplayContainer UI which will be used by the IMA SDK to overlay ad controls.
-		adUiContainer = new FrameLayout(mActivity);
-		addView(adUiContainer);
-
-		adUiContainer.setLayoutParams(Util.getLayoutParamsBasedOnParent(
-				adUiContainer,
-				ViewGroup.LayoutParams.MATCH_PARENT,
-				ViewGroup.LayoutParams.MATCH_PARENT));
+		
 		AdDisplayContainer adDisplayContainer = ImaSdkFactory.getInstance().createAdDisplayContainer();
 		adDisplayContainer.setPlayer(videoAdPlayer);
 		adDisplayContainer.setAdContainer(adUiContainer);
@@ -407,7 +485,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	 * created with
 	 */
 	private void requestAd() {
-		adsLoader.requestAds(buildAdsRequest(mAdTagUrl.toString()));
+		mAdsLoader.requestAds(buildAdsRequest(mAdTagUrl.toString()));
 	}
 
 
@@ -423,8 +501,9 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 		@Override
 		public void loadAd(String mediaUri) {
-			mAdTagUrl = Uri.parse(mediaUri);
+			mCurrentAdUrl = Uri.parse(mediaUri);
 			createAdPlayer();
+			mAdTagUrl = null;
 		}
 
 		@Override
@@ -471,7 +550,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		public VideoProgressUpdate getProgress() {
 			VideoProgressUpdate vpu = null;
 
-			if ( isInSequence && mAdPlayer!=null ) {
+			if ( mIsInSequence && mAdPlayer!=null ) {
 				vpu = new VideoProgressUpdate(mAdPlayer.getCurrentPosition(),
 						mAdPlayer.getDuration());
 			} else {
@@ -479,64 +558,30 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 			}
 
 
-			/*if (oldVpu == null) {
+			if (oldVpu == null) {
 				oldVpu = vpu;
+				mAdBufferCount = 0;				
 			} else if ((!vpu.equals(VideoProgressUpdate.VIDEO_TIME_NOT_READY))
 					&& vpu.getCurrentTime() == oldVpu.getCurrentTime()) {
-				// TODO(hsubrama): Find better method for detecting ad pause and resuming ad playback.
-				// Resume the ad player if it has paused due to buffering.
-				/*	if (mAdPlayer != null && mAdPlayer.shouldBePlaying()) {
-					adPlayer.pause();
-					adPlayer.play();
+				mAdBufferCount++;
+				if (mAdBufferCount == MAX_AD_BUFFER_COUNT && mAdPlayer != null && mIsInSequence) {
+					//try to recover
+						mAdPlayer.pause();
+						//adHandler.postDelayed(playRunnable, 1000);
+						mAdPlayer.play();
+				} else if ( mAdBufferCount > MAX_AD_BUFFER_COUNT ) {
+					Log.w(this.getClass().getSimpleName(), "ad is buffering and can't recover!");
+					notifyAdError();
 				}
-			}*/
+			} else {
+				oldVpu = vpu;
+				mAdBufferCount = 0;
+			}
 
-
-
-			oldVpu = vpu;
 			return vpu;
 		}
 	};
 
-	/**
-	 * Notifies callbacks when the ad finishes.
-	 */
-	private final ExoplayerWrapper.PlaybackListener playbackListener
-	= new ExoplayerWrapper.PlaybackListener() {
-
-		/**
-		 * @param e The error.
-		 */
-		@Override
-		public void onError(Exception e) {
-
-		}
-
-		/**
-		 * We notify all callbacks when the ad ends.
-		 * @param playWhenReady Whether the video should play as soon as it is loaded.
-		 * @param playbackState The state of the Exoplayer instance.
-		 */
-		@Override
-		public void onStateChanged(boolean playWhenReady, int playbackState) {
-			if (playbackState == ExoPlayer.STATE_ENDED) {
-				adsLoader.contentComplete();
-				for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
-					callback.onEnded();
-				}
-			}
-		}
-
-		/**
-		 * We don't respond to size changes.
-		 * @param width The new width of the player.
-		 * @param height The new height of the player.
-		 */
-		@Override
-		public void onVideoSizeChanged(int width, int height) {
-
-		}
-	};
 
 
 	/**
@@ -547,10 +592,8 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		@Override
 		public void onAdError(AdErrorEvent adErrorEvent) {
 			// If there is an error in ad playback, log the error and resume the content.
-			Log.d(this.getClass().getSimpleName(), adErrorEvent.getError().getMessage());
-			if ( mKPlayerEventListener!=null ) {
-				mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );
-			}
+			Log.w(this.getClass().getSimpleName(), adErrorEvent.getError().getMessage());
+			notifyAdError();
 
 		}
 
@@ -561,7 +604,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				JSONObject obj = new JSONObject();
 				switch (event.getType()) {
 				case LOADED:
-					adsManager.start();				
+					mAdsManager.start();				
 					obj.put("isLinear", event.getAd().isLinear());				
 					obj.put("adID", event.getAd().getAdId());
 					obj.put("adSystem", event.getAd().getAdSystem());
@@ -601,6 +644,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 					if ( mHandler != null ) {
 						mHandler.removeCallbacks( runnable );
 					}
+					mCurrentAdUrl = null;
 					break;
 
 				case ALL_ADS_COMPLETED:
@@ -614,7 +658,6 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 				case CONTENT_RESUME_REQUESTED:
 					eventObject = new Object[]{"contentResumeRequested"};
-					destroyAdPlayer();
 					showContentPlayer();
 					break;
 
@@ -647,11 +690,12 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 		@Override
 		public void onAdsManagerLoaded(AdsManagerLoadedEvent adsManagerLoadedEvent) {
-			adsManager = adsManagerLoadedEvent.getAdsManager();
-			adsManager.addAdErrorListener(this);
-			adsManager.addAdEventListener(this);
-			adsManager.init();
+			mAdsManager = adsManagerLoadedEvent.getAdsManager();
+			mAdsManager.addAdErrorListener(this);
+			mAdsManager.addAdEventListener(this);
+			mAdsManager.init();
 			if ( mKPlayerEventListener!=null ) {
+				Log.d(this.getClass().getSimpleName(), "Calling AdLoadedEvent!");
 				mKPlayerEventListener.onKPlayerEvent( "adLoadedEvent" );
 			}
 		}
