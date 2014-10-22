@@ -63,22 +63,22 @@ public class PlayerViewController extends RelativeLayout {
     private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
     private KPlayerJsCallbackReadyListener mJsReadyListener;
-    
+
     public String host = DEFAULT_HOST;
     public String html5Url = DEFAULT_HTML5_URL;
     public String playerId = DEFAULT_PLAYER_ID;
-    
+
     private String mVideoUrl;
     private String mVideoTitle = "";
     private String mThumbUrl ="";
-    
+
     private PlayerStates mState = PlayerStates.START;
     private PowerManager mPowerManager;
 
     public PlayerViewController(Context context) {
         super(context);
         setupPlayerViewController( context );
-	  
+
     }
 
     public PlayerViewController(Context context, AttributeSet attrs) {
@@ -91,7 +91,7 @@ public class PlayerViewController extends RelativeLayout {
         super(context, attrs, defStyle);
         setupPlayerViewController( context );
     }
-    
+
     private void setupPlayerViewController( final Context context) {
         mPowerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
      // Get a handler that can be used to post to the main thread
@@ -107,24 +107,24 @@ public class PlayerViewController extends RelativeLayout {
 						if ( ChromecastHandler.selectedDevice != null ) {
 							notifyKPlayer("trigger", new String[] { "chromecastDeviceConnected" });
 						} else {
-							notifyKPlayer("trigger", new String[] { "chromecastDeviceDisConnected" });							
+							notifyKPlayer("trigger", new String[] { "chromecastDeviceDisConnected" });
 						}
 						createPlayerInstance();
-					}		
+					}
 				},
 				new OnCastRouteDetectedListener(){
 					@Override
 					public void onCastRouteDetected() {
 						setChromecastVisiblity();
-					}				
-				});			
-			}       	
+					}
+				});
+			}
         };
         mainHandler.post(myRunnable);
     }
-    
+
     public void setActivity( Activity activity ) {
-    	mActivity = activity;      
+    	mActivity = activity;
     }
 
     @Override
@@ -135,7 +135,7 @@ public class PlayerViewController extends RelativeLayout {
     public void setOnFullScreenListener(OnToggleFullScreenListener listener) {
         mFSListener = listener;
     }
-    
+
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
     	setPadding(xPadding, yPadding, 0, 0);
     	int newWidth = width + xPadding;
@@ -157,33 +157,33 @@ public class PlayerViewController extends RelativeLayout {
         	 vlp.height = newHeight;
              updateViewLayout(v, vlp);
         }
-        
+
         if ( mPlayerView!=null ) {
     		LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
          	if ( xPadding==0 && yPadding==0 ) {
-         		plp.addRule(CENTER_IN_PARENT);        		
+         		plp.addRule(CENTER_IN_PARENT);
          	} else {
          		plp.addRule(CENTER_IN_PARENT, 0);
          	}
          	updateViewLayout(mPlayerView, plp);
     	 }
-  
+
         invalidate();
-    	
+
     }
 
     public void setPlayerViewDimensions(int width, int height) {
     	setPlayerViewDimensions(width, height, 0, 0);
     }
-    
+
     private void setChromecastVisiblity() {
     	if ( ChromecastHandler.routeInfos.size() > 0 ) {
 			setKDPAttribute("chromecast", "visible", true);
 		} else {
-			setKDPAttribute("chromecast", "visible", false);						
+			setKDPAttribute("chromecast", "visible", false);
 		}
     }
-    
+
     /**
      * Build player URL and load it to player view
      * @param partnerId partner ID
@@ -197,19 +197,19 @@ public class PlayerViewController extends RelativeLayout {
 
     /**
      * load given url to the player view
-     * 
+     *
      * @param iframeUrl
      *            url to payer
      * @param activity
      *            bounding activity
      */
-    public void addComponents(String iframeUrl, Activity activity) {	
+    public void addComponents(String iframeUrl, Activity activity) {
         mActivity = activity;
         mWebView= new WebView(mActivity);
         mCurSec = 0;
         ViewGroup.LayoutParams currLP = getLayoutParams();
         LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
-        
+
         mBackgroundRL = new RelativeLayout(activity);
         mBackgroundRL.setBackgroundColor(Color.BLACK);
         this.addView(mBackgroundRL,currLP);
@@ -217,11 +217,11 @@ public class PlayerViewController extends RelativeLayout {
         mPlayerView = new PlayerView(mActivity);
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
         this.addView(mPlayerView, lp);
-        
+
         mVideoInterface = mPlayerView;
         setPlayerListeners();
         createPlayerInstance();
-        
+
         this.addView(mWebView, wvLp);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
@@ -236,17 +236,17 @@ public class PlayerViewController extends RelativeLayout {
         mWebView.loadUrl(iframeUrl);
         mWebView.setBackgroundColor(0);
     }
-    
+
     /**
      * create PlayerView / CastPlayer instance according to cast status
      */
     private void createPlayerInstance() {
-    	if ( mVideoInterface != null ) {    		
+    	if ( mVideoInterface != null ) {
     		mVideoInterface.removePlayheadUpdateListener();
     		if ( mVideoInterface instanceof CastPlayer )
     			mVideoInterface.stop();
     	}
-    	
+
     	if ( ChromecastHandler.selectedDevice != null ) {
     		mVideoInterface = new CastPlayer(getContext(), mVideoTitle, null, null, mThumbUrl, mVideoUrl);
     	} else {
@@ -258,7 +258,7 @@ public class PlayerViewController extends RelativeLayout {
 
     /**
      * slides with animation according the given values
-     * 
+     *
      * @param x
      *            x offset to slide
      * @param duration
@@ -268,11 +268,11 @@ public class PlayerViewController extends RelativeLayout {
         this.animate().xBy(x).setDuration(duration)
                 .setInterpolator(new BounceInterpolator());
     }
-    
+
     public void destroy() {
        this.stop();
     }
-    
+
     public void savePlaybackPosition() {
     	if ( mVideoInterface!= null ) {
     		mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
@@ -287,7 +287,7 @@ public class PlayerViewController extends RelativeLayout {
     }
 
     /**
-     * 
+     *
      * @return duration in seconds
      */
     public double getDuration() {
@@ -336,9 +336,9 @@ public class PlayerViewController extends RelativeLayout {
     public void registerJsCallbackReady( KPlayerJsCallbackReadyListener listener ) {
     	mJsReadyListener = listener;
     }
-    
+
     public void sendNotification(String noteName, JSONObject noteBody) {
-        notifyKPlayer("sendNotification",  new String[] { noteName, noteBody.toString() });      
+        notifyKPlayer("sendNotification",  new String[] { noteName, noteBody.toString() });
     }
 
     public void addKPlayerEventListener(String eventName,
@@ -385,7 +385,7 @@ public class PlayerViewController extends RelativeLayout {
     // /////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * call js function on NativeBridge.videoPlayer
-     * 
+     *
      * @param action
      *            function name
      * @param eventValues
@@ -396,7 +396,7 @@ public class PlayerViewController extends RelativeLayout {
             @Override
             public void run() {
                 String values = "";
-                
+
                 if (eventValues != null) {
                 	for ( int i=0; i< eventValues.length; i++ ) {
                 		if ( eventValues[i] instanceof String ) {
@@ -428,7 +428,7 @@ public class PlayerViewController extends RelativeLayout {
                     	if ( state == PlayerStates.START ) {
                     		mDuration = getDuration();
                     		notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
-                    		notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });                  		
+                    		notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });
                     	}
                     	if ( state != mState ) {
                     		mState = state;
@@ -457,7 +457,7 @@ public class PlayerViewController extends RelativeLayout {
                                 notifyKPlayer("trigger", new String[] { eventName });
                             }
                     	}
-                        
+
                         return false;
                     }
                 });
@@ -465,7 +465,7 @@ public class PlayerViewController extends RelativeLayout {
         // trigger timeupdate events
         final Runnable runUpdatePlayehead = new Runnable() {
             @Override
-            public void run() {               
+            public void run() {
                 notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
             }
         };
@@ -492,7 +492,7 @@ public class PlayerViewController extends RelativeLayout {
             public void onProgressUpdate(int progress) {
                 double percent = progress / 100.0;
                 notifyKPlayer( "trigger", new Object[]{ "progress", percent});
- 
+
             }
         });
     }
@@ -501,10 +501,11 @@ public class PlayerViewController extends RelativeLayout {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url != null) {
-             	Log.d(TAG, "shouldOverrideUrlLoading::url to load: " + url);
-             	
-            	if ( url.startsWith("js-frame:") ) {
+            if (url != null && !url.contains("mwEmbedFrame")) {
+
+                Log.d(TAG, "shouldOverrideUrlLoading::url to load: " + url);
+
+                if ( url.startsWith("js-frame:") ) {
                     String[] arr = url.split(":");
                     if (arr != null && arr.length > 1) {
                         String action = arr[1];
@@ -514,7 +515,7 @@ public class PlayerViewController extends RelativeLayout {
                         		mJsReadyListener.jsCallbackReady();
                         	}
                         }
-                        else if (action.equals("notifyLayoutReady")) {   
+                        else if (action.equals("notifyLayoutReady")) {
                         	setChromecastVisiblity();
                         	return true;
                         }
@@ -530,7 +531,7 @@ public class PlayerViewController extends RelativeLayout {
                             }
                         }
 
-                        else if (action.equals("toggleFullscreen")) {  
+                        else if (action.equals("toggleFullscreen")) {
                             if (mFSListener != null) {
                                 mFSListener.onToggleFullScreen();
                                 return true;
@@ -545,7 +546,7 @@ public class PlayerViewController extends RelativeLayout {
                         		} catch (Exception e ) {
                         			Log.d(TAG, "failed to open cc list");
                         		}
-                        	
+
                         	}
                         }
                         // action with params
@@ -555,12 +556,12 @@ public class PlayerViewController extends RelativeLayout {
                                 if (value != null && value.length() > 2) {
                                     if (action.equals("setAttribute")) {
                                     	JSONArray jsonArr = new JSONArray( value );
-                                    	
+
                                     	List<String> params = new ArrayList<String>();
                                     	for (int i=0; i<jsonArr.length(); i++) {
                                     		params.add( jsonArr.getString(i) );
                                     	}
-                                    
+
                                         if (params != null && params.size() > 1) {
                                             if (params.get(0).equals("currentTime")) {
                                                 int seekTo = Math.round(Float.parseFloat(params.get(1)) * 1000);
@@ -573,7 +574,7 @@ public class PlayerViewController extends RelativeLayout {
     												@Override
     												public void onKPlayerEvent(
     														Object body) {
-    													mVideoTitle = (String) body;												
+    													mVideoTitle = (String) body;
     												}
 
     												@Override
@@ -585,9 +586,9 @@ public class PlayerViewController extends RelativeLayout {
                                                 	@Override
                                                 	public void onKPlayerEvent(
                                                 			Object body) {
-                                                		mThumbUrl = (String) body;												
+                                                		mThumbUrl = (String) body;
                                                 	}
-                                                	
+
                                                 	@Override
                                                 	public String getCallbackName() {
                                                 		return "getEntryThumb";
@@ -630,7 +631,7 @@ public class PlayerViewController extends RelativeLayout {
         }
 
         /**
-         * 
+         *
          * @param input
          *            string
          * @return given string without its first and last characters
@@ -641,7 +642,7 @@ public class PlayerViewController extends RelativeLayout {
 
         /**
          * Notify the matching listener that event has occured
-         * 
+         *
          * @param input
          *            String with event params
          * @param hashMap
@@ -689,11 +690,11 @@ public class PlayerViewController extends RelativeLayout {
                     		bodyObj = params[1];
                     }
                 }
-                
+
                 Object mapValue = hashMap.get(key);
                 if ( mapValue instanceof KPlayerEventListener ) {
                     ((KPlayerEventListener)mapValue).onKPlayerEvent(bodyObj);
-                } 
+                }
                 else if ( mapValue instanceof ArrayList) {
                     ArrayList<KPlayerEventListener> listeners = (ArrayList)mapValue;
                             for (Iterator<KPlayerEventListener> i = listeners.iterator(); i
