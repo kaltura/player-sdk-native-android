@@ -40,6 +40,7 @@ import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
+import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.ima.IMAPlayer;
 import com.kaltura.playersdk.types.PlayerStates;
 import com.kaltura.playersdk.widevine.WidevineHandler;
@@ -50,8 +51,9 @@ import com.kaltura.playersdk.widevine.WidevineHandler;
 public class PlayerViewController extends RelativeLayout {
     public static String TAG = "PlayerViewController";
     public static String DEFAULT_HOST = "http://cdnbakmi.kaltura.com";
-    public static String DEFAULT_HTML5_URL = "/html5/html5lib/v2.1.1/mwEmbedFrame.php";
+    public static String DEFAULT_HTML5_URL = "/html5/html5lib/v2.20/mwEmbedFrame.php";
     public static String DEFAULT_PLAYER_ID = "21384602";
+    public static int CONTROL_BAR_HEIGHT = 38;
 
     private VideoPlayerInterface mVideoInterface;
     private PlayerView mPlayerView;
@@ -75,6 +77,8 @@ public class PlayerViewController extends RelativeLayout {
     
     private PlayerStates mState = PlayerStates.START;
     private PowerManager mPowerManager;
+    
+    private boolean mWvMinimized = false;
 
     public PlayerViewController(Context context) {
         super(context);
@@ -156,7 +160,8 @@ public class PlayerViewController extends RelativeLayout {
         	View v = getChildAt(i);
         	 ViewGroup.LayoutParams vlp = v.getLayoutParams();
         	 vlp.width = newWidth;
-        	 vlp.height = newHeight;
+        	 if ( !mWvMinimized || !v.equals( mWebView) )
+        		 vlp.height = newHeight;
              updateViewLayout(v, vlp);
         }
         
@@ -644,8 +649,29 @@ public class PlayerViewController extends RelativeLayout {
                                             	mVideoInterface = imaPlayer;
                                             	setPlayerListeners();
                                             	
-                                            	//imaPlayer.play();
-                                            
+                                            	imaPlayer.registerWebViewMinimize( new OnWebViewMinimizeListener() {
+
+													@Override
+													public void setMinimize( boolean minimize ) {
+														if ( minimize != mWvMinimized ) {
+															mWvMinimized = minimize;
+															LayoutParams wvLp = (LayoutParams) mWebView.getLayoutParams();
+															
+															if ( minimize ) {																
+				                                            	float scale = mActivity.getResources().getDisplayMetrics().density;
+				                                            	wvLp.height = (int) (CONTROL_BAR_HEIGHT * scale + 0.5f);;
+				                                            	wvLp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+															} else {
+																wvLp.height = getLayoutParams().height;
+															}
+															
+			                                            	updateViewLayout(mWebView, wvLp);
+														}
+														
+													}
+                                            		
+                                            	});
+                                            	
                                             }
                                         }
                                     } else if (action.equals("notifyKPlayerEvent")) {

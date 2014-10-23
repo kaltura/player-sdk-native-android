@@ -38,16 +38,18 @@ import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
+import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 
 public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 	public static int PLAYHEAD_UPDATE_INTERVAL = 500;
-	public static int MAX_AD_BUFFER_COUNT = 10;
+	public static int MAX_AD_BUFFER_COUNT = 30;
 
 	private OnPlayerStateChangeListener mPlayerStateListener;
 	private OnPlayheadUpdateListener mPlayheadUpdateListener;
 	private OnProgressListener mProgressListener;
 	private KPlayerEventListener mKPlayerEventListener;
+	private OnWebViewMinimizeListener mWebViewMinimizeListener;
 	/**
 	 * Responsible for requesting the ad and creating the
 	 * {@link com.google.ads.interactivemedia.v3.api.AdsManager}
@@ -84,6 +86,17 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	private SimpleVideoPlayer mAdPlayer;
 	private boolean mIsInSequence;
 	private Activity mActivity;
+	private int mContentCurrentPosition = 0;
+	
+	private OnPlayheadUpdateListener mPlayheadListener = new OnPlayheadUpdateListener() {
+
+		@Override
+		public void onPlayheadUpdated(int msec) {
+			mContentCurrentPosition = msec;
+			if ( mPlayheadUpdateListener!=null )
+				mPlayheadUpdateListener.onPlayheadUpdated(msec);			
+		}		
+	};
 
 	private Handler mHandler;
 	private JSONObject mTimeRemainingObj = new JSONObject();
@@ -130,16 +143,19 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		mActivity = activity;
 		mKPlayerEventListener = listener;
 		mContentPlayer = contentPlayer;
-//		adTagUrl =  "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_" +
-//	            "szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[ref" +
-//	            "errer_url]&correlator=[timestamp]&cust_params=gmf_format%3Dskip";
+		//adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x360&iu=/6062/iab_vast_samples/skippable&ciu_szs=300x250,728x90&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+		//adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&" +
+	    //        "url=[referrer_url]&correlator=[timestamp]&ad_rule=1&cmsid=11924&vid=cWCkSYdFlU0&cust_params=gmf_format%3Dstd%2Cskip";
+		
+		adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostpodandbumpers&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=47570401&cmsid=481&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
 		if ( adTagUrl != null ) {
 			mAdTagUrl = Uri.parse(adTagUrl);
 			mIsInSequence = true;
-		} else {
-			mIsInSequence = false;
-			
 		}
+//		else {
+//			mIsInSequence = false;
+//			
+//		}
 		addContentPlayerView();
 		
 		// Create the ad adDisplayContainer UI which will be used by the IMA SDK to overlay ad controls.
@@ -198,6 +214,10 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 	public void setAdTagUrl( String adTagUrl ) {
 		mAdTagUrl = Uri.parse(adTagUrl);
+	}
+	
+	public void registerWebViewMinimize( OnWebViewMinimizeListener listener ) {
+		mWebViewMinimizeListener = listener;
 	}
 
 	@Override
@@ -317,9 +337,6 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	@Override
 	public void registerPlayheadUpdate( OnPlayheadUpdateListener listener ) {
 		mPlayheadUpdateListener = listener;
-		if ( !mIsInSequence && mContentPlayer!=null ) {
-			mContentPlayer.registerPlayheadUpdate ( listener );
-		}
 	}
 
 	@Override
@@ -376,6 +393,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				lp.addRule(CENTER_IN_PARENT);
 			}
 			addView( (View) mContentPlayer, lp );
+			
 		}
 	}
 
@@ -388,8 +406,16 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				( (View) mContentPlayer ).setVisibility(View.VISIBLE);
 			//register events
 			mContentPlayer.registerPlayerStateChange( mPlayerStateListener );
-			mContentPlayer.registerPlayheadUpdate( mPlayheadUpdateListener );
+			mContentPlayer.registerPlayheadUpdate( mPlayheadListener );
 			mContentPlayer.registerProgressUpdate( mProgressListener );
+			
+			for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
+			      callback.onResume();
+			}
+			
+			if ( mWebViewMinimizeListener != null ) {
+				mWebViewMinimizeListener.setMinimize(false);
+			}
 
 			mContentPlayer.play();
 
@@ -453,14 +479,16 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		mAdPlayer.moveSurfaceToForeground();
 		mAdPlayer.play();
 		mAdPlayer.disableSeeking();
-		//mAdPlayer.setSeekbarColor(Color.YELLOW);
 		mAdPlayer.hideTopChrome();
-		//TODO? mAdPlayer.setFullscreen(contentPlayer.isFullscreen());
-
+		
 		// Notify the callbacks that the ad has begun playing.
-		/*for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
+		for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
 			callback.onPlay();
-		}*/
+		}
+		
+		if ( mWebViewMinimizeListener != null ) {
+			mWebViewMinimizeListener.setMinimize(true);
+		}
 	}
 
 	/**
@@ -550,11 +578,18 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		public VideoProgressUpdate getProgress() {
 			VideoProgressUpdate vpu = null;
 
-			if ( mIsInSequence && mAdPlayer!=null ) {
-				vpu = new VideoProgressUpdate(mAdPlayer.getCurrentPosition(),
+			if ( mIsInSequence ) {
+				if ( mAdPlayer!=null ) 
+					vpu = new VideoProgressUpdate(mAdPlayer.getCurrentPosition(),
 						mAdPlayer.getDuration());
+				else 
+					vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
 			} else {
-				vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
+				if ( mContentPlayer!=null ) 
+					vpu = new VideoProgressUpdate(mContentCurrentPosition,
+							mContentPlayer.getDuration());
+				else 
+					vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
 			}
 
 
@@ -654,6 +689,9 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				case CONTENT_PAUSE_REQUESTED:
 					eventObject = new Object[]{"contentPauseRequested"};
 					hideContentPlayer();
+					for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
+					      callback.onPause();
+					}
 					break;
 
 				case CONTENT_RESUME_REQUESTED:
