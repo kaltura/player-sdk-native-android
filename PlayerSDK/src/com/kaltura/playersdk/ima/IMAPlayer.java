@@ -143,11 +143,11 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		mActivity = activity;
 		mKPlayerEventListener = listener;
 		mContentPlayer = contentPlayer;
-		//adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x360&iu=/6062/iab_vast_samples/skippable&ciu_szs=300x250,728x90&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
-		//adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&" +
-	    //        "url=[referrer_url]&correlator=[timestamp]&ad_rule=1&cmsid=11924&vid=cWCkSYdFlU0&cust_params=gmf_format%3Dstd%2Cskip";
-		
-		adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostpodandbumpers&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=47570401&cmsid=481&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+//		adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x360&iu=/6062/iab_vast_samples/skippable&ciu_szs=300x250,728x90&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+//		adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fgmf_demo&ciu_szs&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&" +
+//	            "url=[referrer_url]&correlator=[timestamp]&ad_rule=1&cmsid=11924&vid=cWCkSYdFlU0&cust_params=gmf_format%3Dstd%2Cskip";
+//		
+		//adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostpodandbumpers&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=47570401&cmsid=481&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
 		if ( adTagUrl != null ) {
 			mAdTagUrl = Uri.parse(adTagUrl);
 			mIsInSequence = true;
@@ -358,21 +358,35 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	private void hideContentPlayer() {
 		if ( !mIsInSequence ) {
 			mIsInSequence = true;
-			if ( mContentPlayer.canPause() )
-				mContentPlayer.pause();
-			if ( mContentPlayer instanceof View )
-				( (View) mContentPlayer ).setVisibility(View.GONE);
+			
+			mActivity.runOnUiThread(new Runnable() {
+				public void run() {
+					if ( mContentPlayer.canPause() )
+						mContentPlayer.pause();
+					if ( mContentPlayer instanceof View )
+						( (View) mContentPlayer ).setVisibility(View.INVISIBLE);
 
-			//unregister events
-			mContentPlayer.registerPlayerStateChange( null );
-			mContentPlayer.registerPlayheadUpdate( null );
-			mContentPlayer.registerProgressUpdate( null );
+					//unregister events
+					mContentPlayer.registerPlayerStateChange( null );
+					mContentPlayer.registerPlayheadUpdate( null );
+					mContentPlayer.registerProgressUpdate( null );
+				}
+	
+			});	
+
 		} 
 	}
 	
 	private void notifyAdError() {
 		mAdTagUrl = null;
 		mCurrentAdUrl = null;
+	
+		/*
+		mAdsLoader.contentComplete();
+		for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
+			callback.onEnded();
+		}*/
+		
 		if ( mKPlayerEventListener!=null ) {
 			mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );
 		}
@@ -381,6 +395,8 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 			mHandler.removeCallbacks( runnable );
 		}
 		
+		callResume();
+
 	}
 	
 	private void addContentPlayerView() {
@@ -400,28 +416,40 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	private void showContentPlayer() {
 		if ( mIsInSequence ) {
 			mIsInSequence = false;
-			destroyAdPlayer();
-			//addContentPlayerView();
-			if ( mContentPlayer instanceof View )
-				( (View) mContentPlayer ).setVisibility(View.VISIBLE);
-			//register events
-			mContentPlayer.registerPlayerStateChange( mPlayerStateListener );
-			mContentPlayer.registerPlayheadUpdate( mPlayheadListener );
-			mContentPlayer.registerProgressUpdate( mProgressListener );
 			
-			for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
-			      callback.onResume();
-			}
-			
-			if ( mWebViewMinimizeListener != null ) {
-				mWebViewMinimizeListener.setMinimize(false);
-			}
+			mActivity.runOnUiThread(new Runnable() {
+				public void run() {
+					destroyAdPlayer();
+					
+					if ( mContentPlayer instanceof View )
+						( (View) mContentPlayer ).setVisibility(View.VISIBLE);
+					//register events
+					mContentPlayer.registerPlayerStateChange( mPlayerStateListener );
+					mContentPlayer.registerPlayheadUpdate( mPlayheadListener );
+					mContentPlayer.registerProgressUpdate( mProgressListener );
+					
+					if ( mWebViewMinimizeListener != null ) {
+						mWebViewMinimizeListener.setMinimize(false);
+					}
 
-			mContentPlayer.play();
+					mContentPlayer.play();
+				}
+	
+			});	
 
 		} 
 	}
-
+	
+	 /**
+	   * Notify the ad callbacks that the content has resumed.
+	   */
+	  private void callResume(){
+	    for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
+	      callback.onResume();
+	    }
+	  }
+	
+	
 	/**
 	 * Destroy the {@link SimpleVideoPlayer} responsible for playing the ad and rmeove it.
 	 */
@@ -468,15 +496,14 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				"",
 				true);
 
-		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
-		// player's surface layer (which is in the background).
 		mIsInSequence = true;
 		
 		mAdPlayer.addPlaybackListener( mPlaybackListener );
 
 		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
 		// player's surface layer (which is in the background).
-		mAdPlayer.moveSurfaceToForeground();
+		//mAdPlayer.moveSurfaceToForeground();
+		
 		mAdPlayer.play();
 		mAdPlayer.disableSeeking();
 		mAdPlayer.hideTopChrome();
@@ -596,7 +623,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 			if (oldVpu == null) {
 				oldVpu = vpu;
 				mAdBufferCount = 0;				
-			} else if ((!vpu.equals(VideoProgressUpdate.VIDEO_TIME_NOT_READY))
+			} else if ( mIsInSequence && (!vpu.equals(VideoProgressUpdate.VIDEO_TIME_NOT_READY))
 					&& vpu.getCurrentTime() == oldVpu.getCurrentTime()) {
 				mAdBufferCount++;
 				if (mAdBufferCount == MAX_AD_BUFFER_COUNT && mAdPlayer != null && mIsInSequence) {
@@ -697,6 +724,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				case CONTENT_RESUME_REQUESTED:
 					eventObject = new Object[]{"contentResumeRequested"};
 					showContentPlayer();
+					callResume();
 					break;
 
 				case FIRST_QUARTILE:
