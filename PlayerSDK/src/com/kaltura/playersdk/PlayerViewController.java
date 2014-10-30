@@ -56,7 +56,7 @@ public class PlayerViewController extends RelativeLayout {
     public static int CONTROL_BAR_HEIGHT = 38;
 
     private VideoPlayerInterface mVideoInterface;
-    private PlayerView mPlayerView;
+    private KalturaPlayer mPlayerView;
     private WebView mWebView;
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
@@ -129,8 +129,7 @@ public class PlayerViewController extends RelativeLayout {
     }
     
     public void setActivity( Activity activity ) {
-    	mActivity = activity;
-        mWebView = new WebView(mActivity);
+    	mActivity = activity;      
     }
 
     @Override
@@ -212,6 +211,7 @@ public class PlayerViewController extends RelativeLayout {
      */
     public void addComponents(String iframeUrl, Activity activity) {	
         mActivity = activity;
+        mWebView= new WebView(mActivity);
         mCurSec = 0;
         ViewGroup.LayoutParams currLP = getLayoutParams();
         LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
@@ -220,7 +220,7 @@ public class PlayerViewController extends RelativeLayout {
         mBackgroundRL.setBackgroundColor(Color.BLACK);
         this.addView(mBackgroundRL,currLP);
 
-        mPlayerView = new PlayerView(mActivity);
+        mPlayerView = new KalturaPlayer(mActivity);
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
         this.addView(mPlayerView, lp);
         
@@ -266,8 +266,7 @@ public class PlayerViewController extends RelativeLayout {
     	if ( oldChild.getParent().equals( this ) ) {
     		this.removeView( oldChild );
     	}
-    	
-    	
+
     	if ( this.getChildCount() > 1 ) {
     		//last child is the controls webview
     		this.addView( newChild , this.getChildCount() -1 ,oldChild.getLayoutParams() );
@@ -428,9 +427,11 @@ public class PlayerViewController extends RelativeLayout {
                 	}
                    // values = TextUtils.join("', '", eventValues);
                 }
-                
-                mWebView.loadUrl("javascript:NativeBridge.videoPlayer."
-                        + action + "(" + values + ");");
+                if ( mWebView != null ) {
+                    mWebView.loadUrl("javascript:NativeBridge.videoPlayer."
+                            + action + "(" + values + ");");
+                }
+
             }
         });
     }
