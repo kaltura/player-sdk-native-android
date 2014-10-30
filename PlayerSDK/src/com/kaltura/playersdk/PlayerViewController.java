@@ -53,7 +53,7 @@ public class PlayerViewController extends RelativeLayout {
     public static String DEFAULT_PLAYER_ID = "21384602";
 
     private VideoPlayerInterface mVideoInterface;
-    private PlayerView mPlayerView;
+    private KalturaPlayer mPlayerView;
     private WebView mWebView;
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
@@ -214,7 +214,7 @@ public class PlayerViewController extends RelativeLayout {
         mBackgroundRL.setBackgroundColor(Color.BLACK);
         this.addView(mBackgroundRL,currLP);
 
-        mPlayerView = new PlayerView(mActivity);
+        mPlayerView = new KalturaPlayer(mActivity);
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
         this.addView(mPlayerView, lp);
         
