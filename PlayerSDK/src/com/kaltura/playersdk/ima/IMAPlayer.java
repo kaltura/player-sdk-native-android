@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 
 import com.google.ads.interactivemedia.v3.api.AdDisplayContainer;
 import com.google.ads.interactivemedia.v3.api.AdErrorEvent;
@@ -40,7 +39,7 @@ import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 
-public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
+public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 	public static int PLAYHEAD_UPDATE_INTERVAL = 500;
 	public static int MAX_AD_BUFFER_COUNT = 30;
@@ -152,12 +151,12 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 			mAdTagUrl = Uri.parse(adTagUrl);
 			mIsInSequence = true;
 		}
-//		else {
-//			mIsInSequence = false;
-//			
-//		}
+		else {
+			mIsInSequence = false;
+			
+		}
 		addContentPlayerView();
-		
+	
 		// Create the ad adDisplayContainer UI which will be used by the IMA SDK to overlay ad controls.
 		adUiContainer = new FrameLayout(mActivity);
 		addView(adUiContainer);
@@ -358,22 +357,11 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	private void hideContentPlayer() {
 		if ( !mIsInSequence ) {
 			mIsInSequence = true;
-			
-			mActivity.runOnUiThread(new Runnable() {
-				public void run() {
-					if ( mContentPlayer.canPause() )
-						mContentPlayer.pause();
-					if ( mContentPlayer instanceof View )
-						( (View) mContentPlayer ).setVisibility(View.INVISIBLE);
 
-					//unregister events
-					mContentPlayer.registerPlayerStateChange( null );
-					mContentPlayer.registerPlayheadUpdate( null );
-					mContentPlayer.registerProgressUpdate( null );
-				}
-	
-			});	
-
+			//unregister events
+			mContentPlayer.registerPlayerStateChange( null );
+			mContentPlayer.registerPlayheadUpdate( null );
+			mContentPlayer.registerProgressUpdate( null );
 		} 
 	}
 	
@@ -381,12 +369,6 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		mAdTagUrl = null;
 		mCurrentAdUrl = null;
 	
-		/*
-		mAdsLoader.contentComplete();
-		for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
-			callback.onEnded();
-		}*/
-		
 		if ( mKPlayerEventListener!=null ) {
 			mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );
 		}
@@ -400,29 +382,21 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	}
 	
 	private void addContentPlayerView() {
-		if ( mContentPlayer instanceof View ) {
-			
+		if ( mContentPlayer instanceof View ) {			
 			ViewGroup.LayoutParams currLP = getLayoutParams();
 			LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-			int[] rules = ((LayoutParams) ((View) mContentPlayer).getLayoutParams()).getRules();
-			if (  rules[CENTER_IN_PARENT] != 0 ) {
-				lp.addRule(CENTER_IN_PARENT);
-			}
-			addView( (View) mContentPlayer, lp );
-			
+			addView( (View) mContentPlayer, lp );			
 		}
 	}
 
 	private void showContentPlayer() {
 		if ( mIsInSequence ) {
 			mIsInSequence = false;
-			
+				
 			mActivity.runOnUiThread(new Runnable() {
 				public void run() {
 					destroyAdPlayer();
 					
-					if ( mContentPlayer instanceof View )
-						( (View) mContentPlayer ).setVisibility(View.VISIBLE);
 					//register events
 					mContentPlayer.registerPlayerStateChange( mPlayerStateListener );
 					mContentPlayer.registerPlayheadUpdate( mPlayheadListener );
@@ -434,9 +408,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 					mContentPlayer.play();
 				}
-	
 			});	
-
 		} 
 	}
 	
@@ -464,6 +436,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		
 		if(mAdPlayer != null){
 			mAdPlayer.release();
+			mAdPlayer.moveSurfaceToBackground();
 		}
 		adPlayerContainer = null;
 		mAdPlayer = null;
@@ -485,11 +458,9 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		if ( adUiContainer.getParent() != null ) {
 			removeView ( adUiContainer );			
 		}
+		
 		addView ( adUiContainer );
-
 		Video adVideo = new Video(mCurrentAdUrl.toString(), Video.VideoType.MP4);
-	//	Video adVideo = new Video("http://redirector.gvt1.com/videoplayback/id/b335f171043e745d/itag/18/source/gfp_video_ads/ip/0.0.0.0/ipbits/0/expire/1413828881/sparams/ip,ipbits,expire,id,itag,source/signature/5887F4A4EC6B6487C9120E7EAF87FC83910C55F1.9378D8E28A59E62EB876B71C11597294C28755A2/key/ck2/file/file.mp4", Video.VideoType.MP4);
-	
 		mAdPlayer = new SimpleVideoPlayer(mActivity,
 				adPlayerContainer,
 				adVideo,
@@ -502,7 +473,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
 		// player's surface layer (which is in the background).
-		//mAdPlayer.moveSurfaceToForeground();
+		mAdPlayer.moveSurfaceToForeground();
 		
 		mAdPlayer.play();
 		mAdPlayer.disableSeeking();
@@ -551,6 +522,7 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 	private final VideoAdPlayer videoAdPlayer = new VideoAdPlayer() {
 		@Override
 		public void playAd() {
+			mContentPlayer.pause();
 			hideContentPlayer();
 		}
 
@@ -629,7 +601,6 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 				if (mAdBufferCount == MAX_AD_BUFFER_COUNT && mAdPlayer != null && mIsInSequence) {
 					//try to recover
 						mAdPlayer.pause();
-						//adHandler.postDelayed(playRunnable, 1000);
 						mAdPlayer.play();
 				} else if ( mAdBufferCount > MAX_AD_BUFFER_COUNT ) {
 					Log.w(this.getClass().getSimpleName(), "ad is buffering and can't recover!");
@@ -686,7 +657,6 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 					//handle bug that "STARTED" is not sent
 					obj.put("context", null);
 					obj.put("duration", event.getAd().getDuration());
-					//obj.put("adID", event.getAd().getAdId());
 					eventObject = new Object[]{"adStart", obj};
 
 					break;
@@ -711,10 +681,12 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 
 				case ALL_ADS_COMPLETED:
 					eventObject = new Object[]{"allAdsCompleted"};
+					mCurrentAdUrl = null;
 					break;
 
 				case CONTENT_PAUSE_REQUESTED:
 					eventObject = new Object[]{"contentPauseRequested"};
+					mContentPlayer.pause();
 					hideContentPlayer();
 					for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
 					      callback.onPause();
@@ -767,14 +739,11 @@ public class IMAPlayer extends RelativeLayout implements VideoPlayerInterface {
 		}
 	}
 
-
 	@Override
 	public void setStartingPoint(int point) {
 		if ( mContentPlayer!= null ) {
 			mContentPlayer.setStartingPoint(point);
 		}
-
 	}
-
 
 }

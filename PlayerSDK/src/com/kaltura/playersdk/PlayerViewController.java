@@ -164,7 +164,7 @@ public class PlayerViewController extends RelativeLayout {
              updateViewLayout(v, vlp);
         }
         
-        if ( mPlayerView!=null && mPlayerView.getParent() == this ) {
+       /* if ( mPlayerView!=null && mPlayerView.getParent() == this ) {
     		LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
          	if ( xPadding==0 && yPadding==0 ) {
          		plp.addRule(CENTER_IN_PARENT);        		
@@ -172,7 +172,7 @@ public class PlayerViewController extends RelativeLayout {
          		plp.addRule(CENTER_IN_PARENT, 0);
          	}
          	updateViewLayout(mPlayerView, plp);
-    	 }
+    	 }*/
   
         invalidate();
     	
@@ -625,8 +625,7 @@ public class PlayerViewController extends RelativeLayout {
                                             } else if ( params.get(0).equals("doubleClickRequestAds") ) {
                                             	IMAPlayer imaPlayer = new IMAPlayer( getContext() );
                                             	replacePlayerViewChild( imaPlayer, mPlayerView );
-                                            	//imaPlayer.setParams(mVideoInterface, params.get(1), mActivity,  new KPlayerEventListener() {
-                                            	imaPlayer.setParams(mVideoInterface, params.get(1), mActivity,  new KPlayerEventListener() {
+                                            	imaPlayer.setParams( mVideoInterface, params.get(1), mActivity,  new KPlayerEventListener() {
 
 													@Override
 													public void onKPlayerEvent(

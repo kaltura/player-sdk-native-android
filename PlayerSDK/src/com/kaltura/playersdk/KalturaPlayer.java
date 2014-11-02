@@ -1,6 +1,5 @@
 package com.kaltura.playersdk;
 
-import android.app.Activity;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaCodec.CryptoException;
@@ -10,10 +9,10 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlaybackException;
@@ -25,7 +24,7 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
-import com.google.android.gms.internal.lp;
+import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -51,6 +50,9 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 	private int mStartPos = 0;
 	private int mPrevProgress = 0;
 	private VideoSurfaceView mSurfaceView;
+	
+	private boolean mPrepared = false;
+	private boolean mSeeking = false;
 	
 	private Handler mHandler;
 	private Runnable runnable = new Runnable() {
@@ -95,17 +97,34 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	public KalturaPlayer(Context context) {
 		super(context);
-		
 		setupPlayer();
 	}
+	
+	private void preparePlayer() {
+		mPrepared = true;
+		mPrevProgress = 0;
+		SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
+		Handler handler = new Handler(Looper.getMainLooper());
+		TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 50);
+		TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
+		
+		
+		Surface surface = mSurfaceView.getHolder().getSurface();
+	    if (videoRenderer == null || surface == null || !surface.isValid()) {
+	      // We're not ready yet.
+	      return;
+	    }
+	    mExoPlayer.prepare( videoRenderer, audioRenderer );
+	    mExoPlayer.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
+	}
 
-	private void setupPlayer() {
+	private void setupPlayer() {		 
 		mExoPlayer = ExoPlayer.Factory.newInstance(NUM_OF_RENFERERS);
 		mExoPlayer.addListener(this);
 		mExoPlayer.seekTo(0);
 		mSurfaceView = new VideoSurfaceView( getContext() );
 		LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
-		this.addView(mSurfaceView, lp);
+		this.addView(mSurfaceView, lp);	
 	}
 
 	@Override
@@ -115,29 +134,7 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public void setVideoUrl(String url) {
-	//	if ( mVideoUrl==null ) {
-			mPrevProgress = 0;
-			mVideoUrl = url;
-			SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
-			//TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,  MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-			Handler handler = new Handler(Looper.getMainLooper());
-			TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 50);
-			TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
-			mExoPlayer.prepare( videoRenderer, audioRenderer );
-			
-			Surface surface = mSurfaceView.getHolder().getSurface();
-		    if (videoRenderer == null || surface == null || !surface.isValid()) {
-		      // We're not ready yet.
-		      return;
-		    }
-		    mExoPlayer.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
-		    
-			if ( mProgressHandler == null ) {
-				mProgressHandler = new Handler();
-			}
-			mProgressHandler.postDelayed(progressRunnable, PLAYHEAD_UPDATE_INTERVAL);
-			mExoPlayer.setPlayWhenReady(false);
-		//}
+		mVideoUrl = url;
 	}
 
 	@Override
@@ -147,6 +144,9 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public void play() {
+		if ( !mPrepared ) {
+			preparePlayer();		
+		}
 		if ( !this.isPlaying() ) {
 			mExoPlayer.setPlayWhenReady(true);
 			if ( mStartPos != 0 ) {
@@ -157,6 +157,11 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 				mHandler = new Handler();
 			}
 			mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
+			if ( mProgressHandler == null ) {
+				mProgressHandler = new Handler();
+				mProgressHandler.postDelayed(progressRunnable, PLAYHEAD_UPDATE_INTERVAL);
+		
+			}
 			if ( mPlayerStateChangeListener!=null )
 				mPlayerStateChangeListener.onStateChanged(PlayerStates.PLAY);
 		}		
@@ -174,9 +179,11 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public void pause() {
-		mExoPlayer.setPlayWhenReady(false);
-		if ( mPlayerStateChangeListener!=null )
-			mPlayerStateChangeListener.onStateChanged(PlayerStates.PAUSE);
+		if ( this.isPlaying() ) {
+			mExoPlayer.setPlayWhenReady(false);
+			if ( mPlayerStateChangeListener!=null )
+				mPlayerStateChangeListener.onStateChanged(PlayerStates.PAUSE);
+		}
 	}
 
 	@Override
@@ -189,6 +196,9 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public void seek(int msec) {
+		mSeeking = true;
+		if ( mPlayerStateChangeListener!=null )
+			mPlayerStateChangeListener.onStateChanged(PlayerStates.SEEKING);
 		mExoPlayer.seekTo( msec );
 
 	}
@@ -292,8 +302,11 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 	}
 
 	@Override
-	public void onPlayerStateChanged(boolean arg0, int arg1) {
+	public void onPlayerStateChanged(boolean playWhenReady, int arg1) {
 		PlayerStates state = null;
+		
+		Log.w(this.getClass().getSimpleName(), "PlayerStateChanged: " + arg1);
+		
 		switch ( arg1 ) {
 		case ExoPlayer.STATE_PREPARING:
 		case ExoPlayer.STATE_BUFFERING:
@@ -303,11 +316,20 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 			if ( !mIsReady ) {
 				state = PlayerStates.START;
 				mIsReady = true;
+			} else if ( mSeeking ) {
+				state = PlayerStates.SEEKED;
+				mSeeking = false;
+			}
+			break;
+		case ExoPlayer.STATE_IDLE:
+			if ( mSeeking ) {
+				state = PlayerStates.SEEKED;
+				mSeeking = false;
 			}
 			break;
 		case ExoPlayer.STATE_ENDED:
-			pause();
-			seek( 0 );
+			mExoPlayer.setPlayWhenReady(false);
+			mExoPlayer.seekTo( 0 );
 			updateStopState();
 			state = PlayerStates.END;
 			break;
@@ -316,6 +338,10 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 		if ( state!=null && mPlayerStateChangeListener!=null ) {
 			mPlayerStateChangeListener.onStateChanged(state);
+		}
+		//notify initial play
+		if ( state == PlayerStates.START && playWhenReady ) {
+			mPlayerStateChangeListener.onStateChanged(PlayerStates.PLAY);
 		}
 
 	}
