@@ -368,15 +368,16 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	private void notifyAdError() {
 		mAdTagUrl = null;
 		mCurrentAdUrl = null;
-	
-		if ( mKPlayerEventListener!=null ) {
-			mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );
-		}
+		
 		//stop checking for ad progress
 		if ( mHandler != null ) {
 			mHandler.removeCallbacks( runnable );
 		}
+		if ( mKPlayerEventListener!=null ) {	
+			mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );		
+		}
 		
+		mAdsManager.destroy();
 		callResume();
 
 	}
@@ -605,6 +606,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 				} else if ( mAdBufferCount > MAX_AD_BUFFER_COUNT ) {
 					Log.w(this.getClass().getSimpleName(), "ad is buffering and can't recover!");
 					notifyAdError();
+					
 				}
 			} else {
 				oldVpu = vpu;
