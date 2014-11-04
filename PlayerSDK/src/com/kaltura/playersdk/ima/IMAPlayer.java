@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -384,9 +385,8 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	
 	private void addContentPlayerView() {
 		if ( mContentPlayer instanceof View ) {			
-			ViewGroup.LayoutParams currLP = getLayoutParams();
-			LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-			addView( (View) mContentPlayer, lp );			
+			LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER);
+			addView( (View) mContentPlayer, lp );	
 		}
 	}
 

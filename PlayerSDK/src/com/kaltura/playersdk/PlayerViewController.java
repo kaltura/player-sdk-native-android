@@ -164,7 +164,7 @@ public class PlayerViewController extends RelativeLayout {
              updateViewLayout(v, vlp);
         }
         
-       /* if ( mPlayerView!=null && mPlayerView.getParent() == this ) {
+        if ( mPlayerView!=null && mPlayerView.getParent() == this ) {
     		LayoutParams plp = (LayoutParams) mPlayerView.getLayoutParams();
          	if ( xPadding==0 && yPadding==0 ) {
          		plp.addRule(CENTER_IN_PARENT);        		
@@ -172,7 +172,7 @@ public class PlayerViewController extends RelativeLayout {
          		plp.addRule(CENTER_IN_PARENT, 0);
          	}
          	updateViewLayout(mPlayerView, plp);
-    	 }*/
+    	 }
   
         invalidate();
     	
@@ -269,7 +269,7 @@ public class PlayerViewController extends RelativeLayout {
 
     	if ( this.getChildCount() > 1 ) {
     		//last child is the controls webview
-    		this.addView( newChild , this.getChildCount() -1 ,oldChild.getLayoutParams() );
+    		this.addView( newChild , this.getChildCount() -1, oldChild.getLayoutParams() );
     	}
     }
 
