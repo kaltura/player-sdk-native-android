@@ -4,9 +4,10 @@ import com.kaltura.playersdk.types.TrackType;
 
 public class QualityTrack {
 	
-	String trackId;
-	int bitrate;
-	int height;
-	TrackType type;
+	public String trackId;
+	public int bitrate;
+	public int height;
+	public int width;
+	public TrackType type;
 
 }
