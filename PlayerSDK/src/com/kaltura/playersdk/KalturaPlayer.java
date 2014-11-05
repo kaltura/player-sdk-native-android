@@ -35,8 +35,7 @@ import com.kaltura.playersdk.types.PlayerStates;
  * with one of a number of {@link RendererBuilder} classes to suit different use cases (e.g. DASH,
  * SmoothStreaming and so on).
  */
-public class KalturaPlayer extends FrameLayout implements SurfaceHolder.Callback,
-ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface {
+public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface {
 
 	private int NUM_OF_RENFERERS = 2;
 	public static int PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -92,17 +91,22 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	public KalturaPlayer(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		setupPlayer();
+		addSurface();
 	}
 
 	public KalturaPlayer(Context context) {
 		super(context);
-		setupPlayer();
+		addSurface();
 	}
 	
 	private void preparePlayer() {
 		mPrepared = true;
 		mPrevProgress = 0;
+		
+		mExoPlayer = ExoPlayer.Factory.newInstance(NUM_OF_RENFERERS);
+		mExoPlayer.addListener(this);
+		mExoPlayer.seekTo(0);
+		
 		SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
 		Handler handler = new Handler(Looper.getMainLooper());
 		TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 50);
@@ -118,10 +122,7 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 	    mExoPlayer.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
 	}
 
-	private void setupPlayer() {		 
-		mExoPlayer = ExoPlayer.Factory.newInstance(NUM_OF_RENFERERS);
-		mExoPlayer.addListener(this);
-		mExoPlayer.seekTo(0);
+	private void addSurface() {		 
 		mSurfaceView = new VideoSurfaceView( getContext() );
 		LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
 		this.addView(mSurfaceView, lp);	
@@ -134,7 +135,10 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public void setVideoUrl(String url) {
-		mVideoUrl = url;
+		if ( !url.equals(mVideoUrl) ) {
+			releasePlayer();
+			mVideoUrl = url;
+		}		
 	}
 
 	@Override
@@ -179,7 +183,7 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public void pause() {
-		if ( this.isPlaying() ) {
+		if ( this.isPlaying() && mExoPlayer!=null ) {
 			mExoPlayer.setPlayWhenReady(false);
 			if ( mPlayerStateChangeListener!=null )
 				mPlayerStateChangeListener.onStateChanged(PlayerStates.PAUSE);
@@ -188,24 +192,38 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public void stop() {
-		mExoPlayer.stop();
 		updateStopState();
-		mExoPlayer.release();
+		releasePlayer();
 
+	}
+	
+	private void releasePlayer() {
+		if ( mExoPlayer != null ) {
+			mExoPlayer.stop();
+			mExoPlayer.release();
+			mExoPlayer = null;
+			
+		}
+		mPrepared = false;
+		mIsReady = false;
 	}
 
 	@Override
 	public void seek(int msec) {
-		mSeeking = true;
-		if ( mPlayerStateChangeListener!=null )
-			mPlayerStateChangeListener.onStateChanged(PlayerStates.SEEKING);
-		mExoPlayer.seekTo( msec );
-
+		if ( mIsReady ) {
+			mSeeking = true;
+			if ( mPlayerStateChangeListener!=null )
+				mPlayerStateChangeListener.onStateChanged(PlayerStates.SEEKING);
+			mExoPlayer.seekTo( msec );
+		}
 	}
 
 	@Override
 	public boolean isPlaying() {
-		return mExoPlayer.getPlayWhenReady();
+		if ( mExoPlayer!=null ) {
+			return mExoPlayer.getPlayWhenReady();			
+		}
+		return false;
 	}
 
 	@Override
@@ -268,7 +286,10 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 
 	@Override
 	public int getDuration() {
-		return mExoPlayer.getDuration();
+		if ( mExoPlayer!= null ) {
+			return mExoPlayer.getDuration();			
+		}
+		return 0;
 	}
 
 	@Override
@@ -345,25 +366,5 @@ ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInter
 		}
 
 	}
-
-	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
-
-	}
-
 
 }

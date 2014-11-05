@@ -87,6 +87,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	private boolean mIsInSequence;
 	private Activity mActivity;
 	private int mContentCurrentPosition = 0;
+	private boolean mAdRequestProgress = false;
 	
 	private OnPlayheadUpdateListener mPlayheadListener = new OnPlayheadUpdateListener() {
 
@@ -257,8 +258,9 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 	@Override
 	public void play() {
-		if (mAdTagUrl != null) {
-			requestAd();
+		if ( mAdTagUrl != null ) {
+			if ( !mAdRequestProgress)
+				requestAd();
 		} else if ( mCurrentAdUrl == null ) {
 			if ( mIsInSequence ) 
 				showContentPlayer();
@@ -512,6 +514,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	 * created with
 	 */
 	private void requestAd() {
+		mAdRequestProgress = true;
 		mAdsLoader.requestAds(buildAdsRequest(mAdTagUrl.toString()));
 	}
 
@@ -626,6 +629,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	AdsLoader.AdsLoadedListener, AdEvent.AdEventListener {
 		@Override
 		public void onAdError(AdErrorEvent adErrorEvent) {
+			mAdRequestProgress = false;
 			// If there is an error in ad playback, log the error and resume the content.
 			Log.w(this.getClass().getSimpleName(), adErrorEvent.getError().getMessage());
 			notifyAdError();
@@ -634,6 +638,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 		@Override
 		public void onAdEvent(AdEvent event) {
+			mAdRequestProgress = false;
 			Object[] eventObject = null;
 			try {
 				JSONObject obj = new JSONObject();
