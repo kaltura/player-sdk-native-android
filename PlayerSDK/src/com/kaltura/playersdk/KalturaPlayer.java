@@ -10,6 +10,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceHolder.Callback;
 import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlaybackException;
@@ -33,7 +35,7 @@ import com.kaltura.playersdk.types.PlayerStates;
  * with one of a number of {@link RendererBuilder} classes to suit different use cases (e.g. DASH,
  * SmoothStreaming and so on).
  */
-public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface {
+public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface, Callback {
 
 	private int NUM_OF_RENFERERS = 2;
 	public static int PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -51,20 +53,24 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	
 	private boolean mPrepared = false;
 	private boolean mSeeking = false;
+	private boolean mShouldResumePlayback = false;
 	
 	private Handler mHandler;
 	private Runnable runnable = new Runnable() {
 		@Override
 		public void run() {
-			try {
-				int position = mExoPlayer.getCurrentPosition();
-				if ( position != 0 && mPlayheadUpdateListener != null && isPlaying() )
-					mPlayheadUpdateListener.onPlayheadUpdated(position);
-			} catch(IllegalStateException e){
-				e.printStackTrace(); 
-			}
+			if ( mExoPlayer!=null ) {
+				try {
+					int position = mExoPlayer.getCurrentPosition();
+					if ( position != 0 && mPlayheadUpdateListener != null && isPlaying() )
+						mPlayheadUpdateListener.onPlayheadUpdated(position);
+				} catch(IllegalStateException e){
+					e.printStackTrace(); 
+				}
 
-			mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+				mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+			}
+			
 		}
 	};
 
@@ -124,7 +130,8 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	private void addSurface() {		 
 		mSurfaceView = new VideoSurfaceView( getContext() );
 		LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
-		this.addView(mSurfaceView, lp);	
+		this.addView(mSurfaceView, lp);
+		mSurfaceView.getHolder().addCallback(this);
 	}
 
 	@Override
@@ -189,14 +196,13 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	@Override
 	public void stop() {
 		pause();
-		updateStopState();
 		releasePlayer();
 
 	}
 	
 	private void releasePlayer() {
+		updateStopState();
 		if ( mExoPlayer != null ) {
-			mExoPlayer.stop();
 			mExoPlayer.release();
 			mExoPlayer = null;
 			
@@ -365,13 +371,36 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
 	@Override
 	public void release() {
+		mShouldResumePlayback = isPlaying();
 		stop();
 		
 	}
 
 	@Override
 	public void recoverRelease() {
-		//Not needed, play will recover		
+		//do nothing. Handled by surface callback
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		if ( mShouldResumePlayback ) {
+			play();
+		}
+		mShouldResumePlayback = false;
+		
+	}
+
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

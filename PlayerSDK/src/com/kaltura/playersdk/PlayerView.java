@@ -25,6 +25,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private OnProgressListener mProgressListener;
     private OnErrorListener mErrorListener;
     private int mStartPos = 0;
+    private boolean mShouldResumePlayback = false;
     
     private Handler mHandler;
     private Runnable runnable = new Runnable() {
@@ -150,8 +151,8 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
             }
             if ( mHandler == null ) {
             	mHandler = new Handler();
+            	mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
             }
-            mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
             if ( mPlayerStateListener!=null )
             	mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
     	}
@@ -175,6 +176,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private void updateStopState() {
         if ( mHandler != null ) {
         	mHandler.removeCallbacks( runnable );
+        	mHandler = null;
         }
        
     }
@@ -214,13 +216,17 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
 
 	@Override
 	public void release() {
-		// TODO Auto-generated method stub
+		mShouldResumePlayback = isPlaying();
+		pause();
 		
 	}
 
 	@Override
 	public void recoverRelease() {
-		// TODO Auto-generated method stub
+		if ( mShouldResumePlayback ) {
+			play();
+		}
+		mShouldResumePlayback = false;
 		
 	}
     
