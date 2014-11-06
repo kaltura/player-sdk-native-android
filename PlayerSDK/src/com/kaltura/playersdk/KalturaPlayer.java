@@ -3,8 +3,6 @@ package com.kaltura.playersdk;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaCodec.CryptoException;
-import android.media.MediaPlayer.OnErrorListener;
-import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,7 +10,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlaybackException;
@@ -25,6 +22,7 @@ import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
+import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -44,6 +42,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	private OnPlayerStateChangeListener mPlayerStateChangeListener;
 	private OnPlayheadUpdateListener mPlayheadUpdateListener;
 	private OnProgressListener mProgressListener;
+	private OnErrorListener mErrorListener;
 	
 	private boolean mIsReady = false;
 	private int mStartPos = 0;
@@ -142,11 +141,6 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	}
 
 	@Override
-	public boolean getIsPlaying() {
-		return isPlaying();
-	}
-
-	@Override
 	public void play() {
 		if ( !mPrepared ) {
 			preparePlayer();		
@@ -174,9 +168,11 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	private void updateStopState() {
 		if ( mHandler != null ) {
 			mHandler.removeCallbacks( runnable );
+			mHandler = null;
 		}
 		if ( mProgressHandler != null ) {
 			mProgressHandler.removeCallbacks( progressRunnable );
+			mProgressHandler = null;
 		}
 
 	}
@@ -192,6 +188,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
 	@Override
 	public void stop() {
+		pause();
 		updateStopState();
 		releasePlayer();
 
@@ -238,18 +235,6 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	}
 
 	@Override
-	public void registerReadyToPlay(OnPreparedListener listener) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void registerError(OnErrorListener listener) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void registerPlayheadUpdate(OnPlayheadUpdateListener listener) {
 		mPlayheadUpdateListener = listener;
 
@@ -272,15 +257,12 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 		mStartPos = point;	
 	}
 
-	@Override
-	public void onCryptoError(CryptoException arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
+	
 	@Override
 	public void onDecoderInitializationError(DecoderInitializationException arg0) {
-		// TODO Auto-generated method stub
+		if ( mErrorListener!=null ) {
+			mErrorListener.onError( OnErrorListener.ERROR_UNKNOWN, arg0.getMessage() );
+		}
 
 	}
 
@@ -318,8 +300,9 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
 	@Override
 	public void onPlayerError(ExoPlaybackException arg0) {
-		// TODO Auto-generated method stub
-
+		if ( mErrorListener!=null ) {
+			mErrorListener.onError( OnErrorListener.ERROR_UNKNOWN, arg0.getMessage() );
+		}
 	}
 
 	@Override
@@ -365,6 +348,30 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 			mPlayerStateChangeListener.onStateChanged(PlayerStates.PLAY);
 		}
 
+	}
+
+	@Override
+	public void registerError(OnErrorListener listener) {
+		mErrorListener = listener;		
+	}
+
+	@Override
+	public void onCryptoError(CryptoException e) {
+		if ( mErrorListener!=null ) {
+			mErrorListener.onError( OnErrorListener.MEDIA_ERROR_NOT_VALID, e.getMessage() );
+		}
+		
+	}
+
+	@Override
+	public void release() {
+		stop();
+		
+	}
+
+	@Override
+	public void recoverRelease() {
+		//Not needed, play will recover		
 	}
 
 }

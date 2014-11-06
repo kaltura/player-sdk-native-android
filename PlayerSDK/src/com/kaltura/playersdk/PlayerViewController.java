@@ -97,6 +97,16 @@ public class PlayerViewController extends RelativeLayout {
         setupPlayerViewController( context );
     }
     
+    public void releaseAndSavePosition() {
+    	savePlaybackPosition();
+    	if ( mVideoInterface!= null )
+    		mVideoInterface.release();
+    }
+    
+    public void resumePlayer() {
+    	mVideoInterface.recoverRelease();
+    }
+    
     private void setupPlayerViewController( final Context context) {
         mPowerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
      // Get a handler that can be used to post to the main thread

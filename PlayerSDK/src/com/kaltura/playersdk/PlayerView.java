@@ -139,11 +139,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
         return super.getCurrentPosition();
     }
 
-    @Override
-    public boolean getIsPlaying() {
-        return super.isPlaying();
-    }
-
+    
     @Override
     public void play() {
     	if ( !this.isPlaying() ) {
@@ -215,6 +211,18 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     public void registerProgressUpdate ( OnProgressListener listener ) {
         mProgressListener = listener;
     }
+
+	@Override
+	public void release() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void recoverRelease() {
+		// TODO Auto-generated method stub
+		
+	}
     
    
 }

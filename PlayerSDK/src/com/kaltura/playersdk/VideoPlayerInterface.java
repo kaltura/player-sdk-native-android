@@ -16,8 +16,6 @@ public interface VideoPlayerInterface {
 
     public int getDuration();
 
-    public boolean getIsPlaying();
-
     public void play();
 
     public void pause();
@@ -46,5 +44,15 @@ public interface VideoPlayerInterface {
      * @param point
      */
     public void setStartingPoint(int point);
+    
+    /**
+     * Some players require release when application goes to background
+     */
+    public void release();
+    
+    /**
+     * Recover from release
+     */
+    public void recoverRelease();
 
 }

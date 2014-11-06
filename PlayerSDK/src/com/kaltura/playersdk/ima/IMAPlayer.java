@@ -8,7 +8,6 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -35,6 +34,7 @@ import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlaye
 import com.google.android.libraries.mediaframework.layeredvideo.Util;
 import com.kaltura.playersdk.VideoPlayerInterface;
 import com.kaltura.playersdk.events.KPlayerEventListener;
+import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -88,6 +88,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	private Activity mActivity;
 	private int mContentCurrentPosition = 0;
 	private boolean mAdRequestProgress = false;
+	private boolean mIsAdPlaying = false;
 	
 	private OnPlayheadUpdateListener mPlayheadListener = new OnPlayheadUpdateListener() {
 
@@ -240,20 +241,13 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 	@Override
 	public int getDuration() {
-		if ( mContentPlayer!=null ) {
-			if ( mIsInSequence ) {
-				return mAdPlayer.getDuration();
-			} else {
-				return mContentPlayer.getDuration();
-			}
+		if ( mIsInSequence && mAdPlayer!=null ) {
+			return mAdPlayer.getDuration();
+		} else if ( !mIsInSequence && mContentPlayer!=null ){
+			return mContentPlayer.getDuration();
 		}
-
+		
 		return 0;
-	}
-
-	@Override
-	public boolean getIsPlaying() {
-		return isPlaying();
 	}
 
 	@Override
@@ -266,20 +260,30 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 				showContentPlayer();
 			else 
 				mContentPlayer.play();
+		} else if ( mIsInSequence && !mIsAdPlaying ) {
+			mIsAdPlaying = true;
+			videoAdPlayer.resumeAd();
 		}
 
 	}
 
 	@Override
 	public void pause() {
-		if ( !mIsInSequence ) {
+		if ( mIsInSequence && mIsAdPlaying ) {
+			mIsAdPlaying = false;
+			videoAdPlayer.pauseAd();
+		} else if ( mContentPlayer!=null ){
 			mContentPlayer.pause();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if ( !mIsInSequence ) {
+		if ( mAdPlayer!=null ) {
+			mAdPlayer.pause();
+			mAdPlayer.release();
+		}
+		if ( mContentPlayer!=null ) {
 			mContentPlayer.stop();
 		}
 	}
@@ -289,30 +293,29 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		if ( !mIsInSequence ) {
 			mContentPlayer.seek(msec);
 		}
-
+		//can't seek adPlayer
 	}
 
 	@Override
 	public boolean isPlaying() {
-		if ( mIsInSequence )
-			return true;
-		if ( mContentPlayer!= null ) {
+		if ( mIsInSequence ) {
+			return mIsAdPlaying;
+		}
+		else if ( mContentPlayer!= null ) {
 			return ( mContentPlayer.isPlaying() );
 		}
+		
 		return false;
-
 	}
 
 	@Override
 	public boolean canPause() {
-		if ( mContentPlayer!= null ) {
-			if ( mIsInSequence ) {
-				return false;
-			} else {
-				return mContentPlayer.canPause();
-			}
+		if ( mIsInSequence && mAdPlayer!=null ) {
+			return true;
+		} else if ( !mIsInSequence && mContentPlayer!=null ) {
+			return mContentPlayer.canPause();
 		}
-
+		
 		return false;		
 	}
 
@@ -325,16 +328,6 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		}
 	}
 
-	@Override
-	public void registerReadyToPlay( MediaPlayer.OnPreparedListener listener) {
-		//TODO
-	}
-
-	@Override
-	public void registerError( MediaPlayer.OnErrorListener listener) {
-		//TODO
-
-	}
 
 	@Override
 	public void registerPlayheadUpdate( OnPlayheadUpdateListener listener ) {
@@ -379,7 +372,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		if ( mKPlayerEventListener!=null ) {	
 			mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );		
 		}
-		
+		mIsAdPlaying = false;
 		mAdsManager.destroy();
 		callResume();
 
@@ -441,12 +434,14 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 			mAdPlayer.release();
 			mAdPlayer.moveSurfaceToBackground();
 		}
+		
+		mIsAdPlaying = false;
 		adPlayerContainer = null;
 		mAdPlayer = null;
 
 	}
 
-	private void createAdPlayer(){
+	private void createAdPlayer( boolean shouldPlay ){
 		destroyAdPlayer();
 
 		adPlayerContainer = new FrameLayout(mActivity);
@@ -478,7 +473,9 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		// player's surface layer (which is in the background).
 		mAdPlayer.moveSurfaceToForeground();
 		
-		mAdPlayer.play();
+		if ( shouldPlay )
+			mAdPlayer.play();
+		mIsAdPlaying = true;
 		mAdPlayer.disableSeeking();
 		mAdPlayer.hideTopChrome();
 		
@@ -533,7 +530,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		@Override
 		public void loadAd(String mediaUri) {
 			mCurrentAdUrl = Uri.parse(mediaUri);
-			createAdPlayer();
+			createAdPlayer( true );
 			mAdTagUrl = null;
 		}
 
@@ -748,8 +745,44 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 	@Override
 	public void setStartingPoint(int point) {
-		if ( mContentPlayer!= null ) {
+		if ( !mIsInSequence && mContentPlayer!= null ) {
 			mContentPlayer.setStartingPoint(point);
+		}
+		
+	}
+
+	@Override
+	public void registerError(OnErrorListener listener) {
+		if ( mContentPlayer!=null ) {
+			mContentPlayer.registerError(listener);
+		}		
+	}
+
+	@Override
+	public void release() {
+		if ( mIsInSequence && mAdPlayer!=null ) {
+			mAdPlayer.pause();
+			mAdPlayer.release();
+			mAdPlayer = null;
+			if ( mHandler != null ) {
+				mHandler.removeCallbacks( runnable );
+			}
+		} else if ( !mIsInSequence && mContentPlayer!=null ) {	
+			mContentPlayer.release();
+		}
+	}
+
+	@Override
+	public void recoverRelease() {
+		if ( mIsInSequence ) {
+			createAdPlayer( mIsAdPlaying );
+			if ( mHandler == null ) {
+				mHandler = new Handler();
+			}
+			mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
+			
+		} else if ( mContentPlayer!=null ) {
+			mContentPlayer.recoverRelease();
 		}
 	}
 

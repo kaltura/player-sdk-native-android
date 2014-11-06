@@ -101,12 +101,6 @@ public class CastPlayer implements VideoPlayerInterface {
 		return duration;
 	}
 
-	@Override
-	public boolean getIsPlaying() {
-		// TODO Auto-generated method stub
-		return isPlaying();
-	}
-	
 	public int getCurrentPosition() {
         int pos = 0;
         try {
@@ -315,5 +309,19 @@ public class CastPlayer implements VideoPlayerInterface {
 			}
     	   }
     	}
+
+
+
+		@Override
+		public void release() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void recoverRelease() {
+			// TODO Auto-generated method stub
+			
+		}
 
 }
