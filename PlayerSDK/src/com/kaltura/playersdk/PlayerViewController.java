@@ -97,12 +97,20 @@ public class PlayerViewController extends RelativeLayout {
         setupPlayerViewController( context );
     }
     
+    /**
+     * Release player's instance and save its last position for resuming later on.
+     * This method should be called when the main activity is paused.
+     */
     public void releaseAndSavePosition() {
     	savePlaybackPosition();
     	if ( mVideoInterface!= null )
     		mVideoInterface.release();
     }
     
+    /**
+     * Recover from "releaseAndSavePosition", reload the player from previous position.
+     * This method should be called when the main activity is resumed.
+     */
     public void resumePlayer() {
     	mVideoInterface.recoverRelease();
     }
@@ -151,6 +159,14 @@ public class PlayerViewController extends RelativeLayout {
         mFSListener = listener;
     }
     
+    /**
+     * Sets the player's dimensions. Should be called for any player redraw 
+     * (for example, in screen rotation, if supported by the main activity)
+     * @param width player's width
+     * @param height player's height
+     * @param xPadding player's X position
+     * @param yPadding player's Y position
+     */
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
     	setPadding(xPadding, yPadding, 0, 0);
     	int newWidth = width + xPadding;
@@ -188,6 +204,13 @@ public class PlayerViewController extends RelativeLayout {
     	
     }
 
+    /**
+     * Sets the player's dimensions. Should be called for any player redraw 
+     * (for example, in screen rotation, if supported by the main activity)
+     * Player's X and Y position will be 0
+     * @param width player's width
+     * @param height player's height
+     */
     public void setPlayerViewDimensions(int width, int height) {
     	setPlayerViewDimensions(width, height, 0, 0);
     }
@@ -409,7 +432,7 @@ public class PlayerViewController extends RelativeLayout {
         notifyKPlayer("asyncEvaluate", new String[] { expression, callbackName });
     }
 
-    // /////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * call js function on NativeBridge.videoPlayer
      * 
