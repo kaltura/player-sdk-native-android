@@ -114,7 +114,8 @@ public class PlayerViewController extends RelativeLayout {
 	 * This method should be called when the main activity is resumed.
 	 */
 	public void resumePlayer() {
-		mVideoInterface.recoverRelease();
+		if ( mVideoInterface!= null )
+			mVideoInterface.recoverRelease();
 	}
 
 	private void setupPlayerViewController( final Context context) {
