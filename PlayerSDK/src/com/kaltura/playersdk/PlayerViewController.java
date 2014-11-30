@@ -341,8 +341,8 @@ public class PlayerViewController extends RelativeLayout {
 	 * 
 	 * @return duration in seconds
 	 */
-	public double getDuration() {
-		double duration = 0;
+	public int getDuration() {
+		int duration = 0;
 		if (mVideoInterface != null)
 			duration = mVideoInterface.getDuration() / 1000;
 
@@ -581,7 +581,7 @@ public class PlayerViewController extends RelativeLayout {
 						}
 
 						else if (action.equals("pause")) {
-							if (mVideoInterface.canPause()) {
+							if ( mVideoInterface.canPause() ) {
 								mVideoInterface.pause();
 								return true;
 							}
@@ -625,7 +625,23 @@ public class PlayerViewController extends RelativeLayout {
 											} else if (params.get(0).equals("src")) {
 												// remove " from the edges
 												mVideoUrl = params.get(1);
-												mVideoInterface.setVideoUrl(mVideoUrl);
+												//check for hls
+												String videoUrl = mVideoUrl.substring(0, mVideoUrl.indexOf("?"));
+												String extension = videoUrl.substring(videoUrl.lastIndexOf(".") + 1);
+												if ( extension.equals("m3u8") && !(mVideoInterface instanceof HLSPlayer) ) {	
+													HLSPlayer hlsPlayer = new HLSPlayer( getContext(), mActivity );
+													if ( mVideoInterface instanceof View )
+													replacePlayerViewChild( hlsPlayer, (View)mVideoInterface );		
+													removePlayerListeners();
+													mVideoInterface = hlsPlayer;
+													setPlayerListeners();
+									
+													mVideoInterface.setVideoUrl(mVideoUrl);
+												} else {
+
+													mVideoInterface.setVideoUrl(mVideoUrl);
+												}
+												
 												asyncEvaluate("{mediaProxy.entry.name}", new KPlayerEventListener() {
 													@Override
 													public void onKPlayerEvent(
