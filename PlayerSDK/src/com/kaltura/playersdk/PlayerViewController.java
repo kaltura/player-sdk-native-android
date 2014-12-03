@@ -50,7 +50,7 @@ import com.kaltura.playersdk.widevine.WidevineHandler;
  */
 public class PlayerViewController extends RelativeLayout {
 	public static String TAG = "PlayerViewController";
-	public static String DEFAULT_HOST = "http://kgit.html5video.org";
+	public static String DEFAULT_HOST = "http://kgit.html5video.org/";
 	public static String DEFAULT_HTML5_URL = "/tags/v2.23.rc4/mwEmbedFrame.php";
 	public static String DEFAULT_PLAYER_ID = "21384602";
 	public static int CONTROL_BAR_HEIGHT = 38;
@@ -626,7 +626,8 @@ public class PlayerViewController extends RelativeLayout {
 												// remove " from the edges
 												mVideoUrl = params.get(1);
 												//check for hls
-												String videoUrl = mVideoUrl.substring(0, mVideoUrl.indexOf("?"));
+												int lastIndex = mVideoUrl.indexOf("?") != -1 ? mVideoUrl.indexOf("?") : mVideoUrl.length();
+												String videoUrl = mVideoUrl.substring(0, lastIndex);
 												String extension = videoUrl.substring(videoUrl.lastIndexOf(".") + 1);
 												if ( extension.equals("m3u8") && !(mVideoInterface instanceof HLSPlayer) ) {	
 													HLSPlayer hlsPlayer = new HLSPlayer( getContext(), mActivity );
