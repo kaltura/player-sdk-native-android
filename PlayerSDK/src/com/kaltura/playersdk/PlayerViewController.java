@@ -232,7 +232,7 @@ public class PlayerViewController extends RelativeLayout {
 	 * @param activity bounding activity
 	 */
 	public void addComponents(String partnerId, String entryId, Activity activity) {
-		String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId;
+		String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId + "&flashvars[Kaltura.LeadHLSOnAndroid]=true";
 		addComponents( iframeUrl, activity );
 	}
 
