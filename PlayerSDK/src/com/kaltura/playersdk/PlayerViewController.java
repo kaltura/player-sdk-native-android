@@ -50,8 +50,8 @@ import com.kaltura.playersdk.widevine.WidevineHandler;
  */
 public class PlayerViewController extends RelativeLayout {
 	public static String TAG = "PlayerViewController";
-	public static String DEFAULT_HOST = "http://cdnbakmi.kaltura.com";
-	public static String DEFAULT_HTML5_URL = "/html5/html5lib/v2.20/mwEmbedFrame.php";
+	public static String DEFAULT_HOST = "http://kgit.html5video.org/";
+	public static String DEFAULT_HTML5_URL = "/tags/v2.23.rc4/mwEmbedFrame.php";
 	public static String DEFAULT_PLAYER_ID = "21384602";
 	public static int CONTROL_BAR_HEIGHT = 38;
 
