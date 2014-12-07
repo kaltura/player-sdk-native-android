@@ -224,16 +224,22 @@ public class PlayerViewController extends RelativeLayout {
 			setKDPAttribute("chromecast", "visible", false);						
 		}
 	}
-
-	/**
+	
+	/*
 	 * Build player URL and load it to player view
-	 * @param partnerId partner ID
-	 * @param entryId entry ID
-	 * @param activity bounding activity
+	 * @param requestDataSource - RequestDataSource object
 	 */
 	public void setComponents(RequestDataSource requestDataSource) {
 		String iframeUrl = RequestHandler.videoRequestURL(requestDataSource);
 //		String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId + "&flashvars[Kaltura.LeadHLSOnAndroid]=true";
+		setComponents(iframeUrl);
+	}
+
+	/**
+	 * Build player URL and load it to player view
+	 * @param iFrameUrl- String url
+	 */
+	public void setComponents(String iframeUrl) {
 		mWebView = new WebView(getContext());
 		mCurSec = 0;
 		ViewGroup.LayoutParams currLP = getLayoutParams();
