@@ -75,7 +75,7 @@ public class PlayerViewController extends RelativeLayout {
 
 	private String mVideoUrl;
 	private String mVideoTitle = "";
-	private String mThumbUrl ="";
+	private String mThumbUrl = "";
 
 	private PlayerStates mState = PlayerStates.START;
 	private PowerManager mPowerManager;
@@ -231,27 +231,15 @@ public class PlayerViewController extends RelativeLayout {
 	 * @param entryId entry ID
 	 * @param activity bounding activity
 	 */
-	public void addComponents(String partnerId, String entryId, Activity activity) {
-		String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId + "&flashvars[Kaltura.LeadHLSOnAndroid]=true";
-		addComponents( iframeUrl, activity );
-	}
-
-	/**
-	 * load given url to the player view
-	 * 
-	 * @param iframeUrl
-	 *            url to payer
-	 * @param activity
-	 *            bounding activity
-	 */
-	public void addComponents(String iframeUrl, Activity activity) {	
-		mActivity = activity;
-		mWebView= new WebView(mActivity);
+	public void setComponents(RequestDataSource requestDataSource) {
+		String iframeUrl = RequestHandler.videoRequestURL(requestDataSource);
+//		String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId + "&flashvars[Kaltura.LeadHLSOnAndroid]=true";
+		mWebView= new WebView(getContext());
 		mCurSec = 0;
 		ViewGroup.LayoutParams currLP = getLayoutParams();
 		LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
-		mBackgroundRL = new RelativeLayout(activity);
+		mBackgroundRL = new RelativeLayout(getContext());
 		mBackgroundRL.setBackgroundColor(Color.BLACK);
 		this.addView(mBackgroundRL,currLP);
 
