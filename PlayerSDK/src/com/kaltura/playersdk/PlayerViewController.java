@@ -234,7 +234,7 @@ public class PlayerViewController extends RelativeLayout {
 	public void setComponents(RequestDataSource requestDataSource) {
 		String iframeUrl = RequestHandler.videoRequestURL(requestDataSource);
 //		String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId + "&flashvars[Kaltura.LeadHLSOnAndroid]=true";
-		mWebView= new WebView(getContext());
+		mWebView = new WebView(getContext());
 		mCurSec = 0;
 		ViewGroup.LayoutParams currLP = getLayoutParams();
 		LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);

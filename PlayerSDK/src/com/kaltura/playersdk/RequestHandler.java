@@ -5,13 +5,13 @@ import java.util.Map;
 import android.net.Uri;
 
 public class RequestHandler {
-	static final String KP_PLAYER_ADATA_SOURCE_WidKey = "wid";
-	static final String KP_PLAYER_ADATA_SOURCE_UiConfIdKey = "uiconf_id";
-	static final String KP_PLAYER_ADATA_SOURCE_CacheStKey = "cache_st";
-	static final String KP_PLAYER_ADATA_SOURCE_EntryId = "entry_id";
-	static final String KP_PLAYER_ADATA_SOURCE_UridKey = "urid";
+	private static final String KP_PLAYER_ADATA_SOURCE_WidKey = "wid";
+	private static final String KP_PLAYER_ADATA_SOURCE_UiConfIdKey = "uiconf_id";
+	private static final String KP_PLAYER_ADATA_SOURCE_CacheStKey = "cache_st";
+	private static final String KP_PLAYER_ADATA_SOURCE_EntryId = "entry_id";
+	private static final String KP_PLAYER_ADATA_SOURCE_UridKey = "urid";
 	
-	static public String videoRequestURL(RequestDataSource requestDataSource){
+	public static String videoRequestURL(RequestDataSource requestDataSource){
 		String url = requestDataSource.getServerAddress();
 	    if (url == null || url.length() == 0) {
 	        return null;
