@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public class KPPlayerConfig {
+	//TODO: maybe change string constants to Enum of known flashvars types
 	public final static String KP_PLAYER_CONFIG_NATIVE_AD_ID_KEY = "nativeAdId";
 	public final static String KP_PLAYER_CONFIG_NATIVE_CALL_OUT_KEY = "nativeCallout";
 	public final static String KP_PLAYER_CONFIG_CHROMECAST_KEY = "chromecast.plugin";
