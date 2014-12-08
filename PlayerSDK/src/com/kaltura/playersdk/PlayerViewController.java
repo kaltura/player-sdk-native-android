@@ -3,8 +3,8 @@ package com.kaltura.playersdk;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -81,7 +81,7 @@ public class PlayerViewController extends RelativeLayout {
 	private PowerManager mPowerManager;
 
 	private boolean mWvMinimized = false;
-
+	
 	public PlayerViewController(Context context) {
 		super(context);
 		setupPlayerViewController( context );
@@ -249,7 +249,7 @@ public class PlayerViewController extends RelativeLayout {
 		mBackgroundRL.setBackgroundColor(Color.BLACK);
 		this.addView(mBackgroundRL,currLP);
 
-		KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
+		KalturaPlayer kalturaPlayer = new KalturaPlayer(getContext());
 		LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
 		this.addView(kalturaPlayer, lp);
 
@@ -386,10 +386,8 @@ public class PlayerViewController extends RelativeLayout {
 		notifyKPlayer("sendNotification",  new String[] { noteName, noteBody.toString() });      
 	}
 
-	public void addKPlayerEventListener(String eventName,
-			KPlayerEventListener listener) {
-		ArrayList<KPlayerEventListener> listeners = mKplayerEventsMap
-				.get(eventName);
+	public void addKPlayerEventListener(String eventName, KPlayerEventListener listener) {
+		ArrayList<KPlayerEventListener> listeners = mKplayerEventsMap.get(eventName);
 		boolean isNewEvent = false;
 		if ( listeners == null ) {
 			listeners = new ArrayList<KPlayerEventListener>();
@@ -397,6 +395,7 @@ public class PlayerViewController extends RelativeLayout {
 		if ( listeners.size() == 0 ) {
 			isNewEvent = true;
 		}
+		
 		listeners.add(listener);
 		mKplayerEventsMap.put(eventName, listeners);
 		if ( isNewEvent )
@@ -437,6 +436,7 @@ public class PlayerViewController extends RelativeLayout {
 	 *            function arguments
 	 */
 	private void notifyKPlayer(final String action, final Object[] eventValues) {
+		
 		mActivity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -472,8 +472,7 @@ public class PlayerViewController extends RelativeLayout {
 
 	private void setPlayerListeners() {
 		// notify player state change events
-		mVideoInterface
-		.registerPlayerStateChange(new OnPlayerStateChangeListener() {
+		mVideoInterface.registerPlayerStateChange(new OnPlayerStateChangeListener() {
 			@Override
 			public boolean onStateChanged(PlayerStates state) {
 				if ( state == PlayerStates.START ) {
@@ -639,8 +638,7 @@ public class PlayerViewController extends RelativeLayout {
 												
 												asyncEvaluate("{mediaProxy.entry.name}", new KPlayerEventListener() {
 													@Override
-													public void onKPlayerEvent(
-															Object body) {
+													public void onKPlayerEvent(Object body) {
 														mVideoTitle = (String) body;												
 													}
 
@@ -651,8 +649,7 @@ public class PlayerViewController extends RelativeLayout {
 												});
 												asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", new KPlayerEventListener() {
 													@Override
-													public void onKPlayerEvent(
-															Object body) {
+													public void onKPlayerEvent(Object body) {
 														mThumbUrl = (String) body;												
 													}
 
@@ -670,7 +667,7 @@ public class PlayerViewController extends RelativeLayout {
 													if ( mVideoInterface instanceof View ) {
 														replacePlayerViewChild( playerView, (View)mVideoInterface );
 													} else {
-														addView(playerView, getChildCount() -1, lp);														
+														addView(playerView, getChildCount() - 1, lp);														
 													}
 
 													mOriginalVideoInterface = playerView;
@@ -757,7 +754,7 @@ public class PlayerViewController extends RelativeLayout {
 						mVideoInterface.setStartingPoint((int) (mCurSec * 1000));
 					}
 					Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse( url ));
-					mActivity.startActivity(browserIntent);
+					getContext().startActivity(browserIntent);
 					return true;
 				}
 
@@ -783,13 +780,11 @@ public class PlayerViewController extends RelativeLayout {
 		 *            String with event params
 		 * @param hashMap
 		 *            data provider to look the listener in
-		 * @param clearListeners
+		 * @param shouldClearListeners
 		 *            whether to remove listeners after notifying them
 		 * @return true if listener was noticed, else false
 		 */
-		private boolean notifyKPlayerEvent(String input,
-				HashMap hashMap,
-				boolean clearListeners) {
+		private boolean notifyKPlayerEvent(String input, Map hashMap, boolean shouldClearListeners) {
 			if (hashMap != null) {
 				String value = getStrippedString(input);
 				// //
@@ -831,15 +826,14 @@ public class PlayerViewController extends RelativeLayout {
 				if ( mapValue instanceof KPlayerEventListener ) {
 					((KPlayerEventListener)mapValue).onKPlayerEvent(bodyObj);
 				} 
-				else if ( mapValue instanceof ArrayList) {
-					ArrayList<KPlayerEventListener> listeners = (ArrayList)mapValue;
-					for (Iterator<KPlayerEventListener> i = listeners.iterator(); i
-							.hasNext();) {
-						i.next().onKPlayerEvent(bodyObj);
+				else if ( mapValue instanceof List) {
+					List<KPlayerEventListener> listeners = (List<KPlayerEventListener>) mapValue;
+					for (KPlayerEventListener eventListener : listeners){
+						eventListener.onKPlayerEvent(bodyObj);
 					}
 				}
 
-				if (clearListeners) {
+				if (shouldClearListeners) {
 					hashMap.remove(key);
 				}
 
