@@ -373,7 +373,10 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 			mKPlayerEventListener.onKPlayerEvent( "adsLoadError" );		
 		}
 		mIsAdPlaying = false;
-		mAdsManager.destroy();
+		if	(mAdsManager != null) {
+			mAdsManager.destroy();
+		}
+		
 		callResume();
 
 	}
