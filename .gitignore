@@ -1,5 +1,5 @@
 # built application files
-*.apk
+#.apk
 *.ap_
 
 # files for the dex VM
@@ -27,7 +27,10 @@ local.properties
 proguard/
 
 # Intellij project files
-#*.iml
+*.iml
 #*.ipr
 #*.iws
-#.idea/
+.idea/
+
+.idea/workspace.xml
+.gradle
