@@ -12,13 +12,13 @@
 bin/
 gen/
 playerSDK/build/
-#kalturaPlay/build/
+kalturaPlay/build/
 hLSPlayerSDK/build/
 googlemediaframework/build/
 exoPlayerLib/build/
 castCompanionLibraryandroid/build/
 build/
-.navigation/
+#.navigation/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -34,4 +34,3 @@ proguard/
 
 .idea/workspace.xml
 .gradle
-
