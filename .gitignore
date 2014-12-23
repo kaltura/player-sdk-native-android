@@ -18,7 +18,7 @@ googlemediaframework/build/
 exoPlayerLib/build/
 castCompanionLibraryandroid/build/
 build/
-#.navigation/
+.navigation/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -27,10 +27,10 @@ local.properties
 proguard/
 
 # Intellij project files
-#*.iml
+*.iml
 #*.ipr
 #*.iws
-#.idea/
+.idea/
 
 .idea/workspace.xml
 .gradle
