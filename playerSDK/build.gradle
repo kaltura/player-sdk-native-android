@@ -1,0 +1,29 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 21
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile project(':exoPlayerLib')
+    compile project(':castCompanionLibraryandroid')
+    compile project(':googlemediaframework')
+    compile project(':hLSPlayerSDK')
+    compile 'com.google.android.gms:play-services:+'
+    compile 'com.android.support:mediarouter-v7:19.1.0'
+    compile 'com.android.support:appcompat-v7:21+'
+    compile files('libs/ima-android-sdk-beta8.jar')
+}
