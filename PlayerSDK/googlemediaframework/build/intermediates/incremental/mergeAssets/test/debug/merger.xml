@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="unspecified"><source path="/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/googlemediaframework/build/intermediates/exploded-aar/PlayerSDK/exoPlayerLib/unspecified/assets"/></dataSet><dataSet config="debug"><source path="/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/googlemediaframework/build/intermediates/bundles/debug/assets"/></dataSet><dataSet config="main"><source path="/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/googlemediaframework/src/androidTest/assets"/></dataSet></merger>
