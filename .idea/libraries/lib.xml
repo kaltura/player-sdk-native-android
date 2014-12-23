@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="armeabi">
+  <library name="lib">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/hLSPlayerSDK/libs/armeabi.jar!/" />
+      <root url="jar://$PROJECT_DIR$/hLSPlayerSDK/libs/lib.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

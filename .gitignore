@@ -1,5 +1,5 @@
 # built application files
-*.apk
+.apk
 *.ap_
 
 # files for the dex VM
@@ -12,7 +12,7 @@
 bin/
 gen/
 playerSDK/build/
-kalturaPlay/build/
+#kalturaPlay/build/
 hLSPlayerSDK/build/
 googlemediaframework/build/
 exoPlayerLib/build/
