@@ -1,2 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="debug"><source path="/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/exoPlayerLib/build/intermediates/bundles/debug/res"/></dataSet><dataSet config="main"><source path="/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/exoPlayerLib/src/androidTest/res"/><source path="/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/exoPlayerLib/build/generated/res/rs/test/debug"/><source path="/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/exoPlayerLib/build/generated/res/generated/test/debug"/></dataSet><mergedItems/></merger>

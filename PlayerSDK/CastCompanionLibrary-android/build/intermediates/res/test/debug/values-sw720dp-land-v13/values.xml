@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- From: file:/Users/itayi/Work/MIGRATION2/SDK/PlayerSDK/CastCompanionLibrary-android/build/intermediates/bundles/debug/res/values-sw720dp-land-v13/values.xml -->
-    <eat-comment/>
-    <dimen name="activity_horizontal_margin">128dp</dimen>
-</resources>

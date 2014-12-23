@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/PlayerSDK.iml" filepath="$PROJECT_DIR$/PlayerSDK.iml" />
+      <module fileurl="file://$PROJECT_DIR$/castCompanionLibraryandroid/castCompanionLibraryandroid.iml" filepath="$PROJECT_DIR$/castCompanionLibraryandroid/castCompanionLibraryandroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/exoPlayerLib/exoPlayerLib.iml" filepath="$PROJECT_DIR$/exoPlayerLib/exoPlayerLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/googlemediaframework/googlemediaframework.iml" filepath="$PROJECT_DIR$/googlemediaframework/googlemediaframework.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hLSPlayerSDK/hLSPlayerSDK.iml" filepath="$PROJECT_DIR$/hLSPlayerSDK/hLSPlayerSDK.iml" />
+      <module fileurl="file://$PROJECT_DIR$/kalturaPlay/kalturaPlay.iml" filepath="$PROJECT_DIR$/kalturaPlay/kalturaPlay.iml" />
+      <module fileurl="file://$PROJECT_DIR$/playerSDK/playerSDK.iml" filepath="$PROJECT_DIR$/playerSDK/playerSDK.iml" />
+    </modules>
+  </component>
+</project>
+
