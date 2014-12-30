@@ -1,15 +1,5 @@
 package com.kaltura.playersdk;
 
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -44,6 +34,16 @@ import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.ima.IMAPlayer;
 import com.kaltura.playersdk.types.PlayerStates;
 import com.kaltura.playersdk.widevine.WidevineHandler;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by michalradwantzor on 9/24/13.
@@ -237,7 +237,7 @@ public class PlayerViewController extends RelativeLayout {
 
 	/**
 	 * Build player URL and load it to player view
-	 * @param iFrameUrl- String url
+	 * param iFrameUrl- String url
 	 */
 	public void setComponents(String iframeUrl) {
 		mWebView = new WebView(getContext());
@@ -259,7 +259,7 @@ public class PlayerViewController extends RelativeLayout {
 		this.addView(mWebView, wvLp);
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.setWebViewClient(new CustomWebViewClient());
-		mWebView.setWebChromeClient(new WebChromeClient());
+        mWebView.setWebChromeClient(new WebChromeClient());
 		mWebView.getSettings().setUserAgentString(
 				mWebView.getSettings().getUserAgentString()
 				+ " kalturaNativeCordovaPlayer");
@@ -550,7 +550,13 @@ public class PlayerViewController extends RelativeLayout {
 
 	private class CustomWebViewClient extends WebViewClient {
 
-		@Override
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            view.clearCache(true);
+        }
+
+        @Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
 			if (url != null) {
 				Log.d(TAG, "shouldOverrideUrlLoading::url to load: " + url);
