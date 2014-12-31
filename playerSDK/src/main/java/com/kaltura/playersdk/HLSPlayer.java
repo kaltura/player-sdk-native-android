@@ -1,7 +1,6 @@
 package com.kaltura.playersdk;
 
 import android.app.Activity;
-import android.content.Context;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -26,12 +25,17 @@ import java.util.List;
 public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface {
 
     private HLSPlayerViewController mPlayer;
-    public HLSPlayer(Context context, Activity activity) {
-        super(context);
-        mPlayer = new HLSPlayerViewController(context);
+    public HLSPlayer(Activity activity) {
+        super(activity);
+        mPlayer = new HLSPlayerViewController(activity);
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
         mPlayer.addComponents("", activity);
+    }
+
+    public void close(){
+        mPlayer.close();
+        mPlayer = null;
     }
 
     @Override
@@ -41,8 +45,9 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
 
     @Override
     public void setVideoUrl(String url) {
-        if ( mPlayer.getVideoUrl() == null || !url.equals(mPlayer.getVideoUrl()))
+        if ( mPlayer.getVideoUrl() == null || !url.equals(mPlayer.getVideoUrl())) {
             mPlayer.setVideoUrl(url);
+        }
 
     }
 
@@ -54,7 +59,6 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
     @Override
     public void play() {
         mPlayer.play();
-
     }
 
     @Override
@@ -83,11 +87,17 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
     @Override
     public boolean canPause() {
         //TODO add to HLSPlayerViewController
-        return true;
+
+        return mPlayer != null;
     }
 
     @Override
     public void registerPlayerStateChange(final OnPlayerStateChangeListener listener) {
+        if (listener == null){
+            mPlayer.registerPlayerStateChange(null);
+            return;
+        }
+
         mPlayer.registerPlayerStateChange(new com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener() {
 
             @Override
@@ -125,6 +135,10 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
 
     @Override
     public void registerError(final OnErrorListener listener) {
+        if (listener == null){
+            mPlayer.registerError(null);
+            return;
+        }
         mPlayer.registerError(new com.kaltura.hlsplayersdk.events.OnErrorListener() {
 
             @Override
@@ -139,6 +153,10 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
 
     @Override
     public void registerPlayheadUpdate(final OnPlayheadUpdateListener listener) {
+        if (listener == null){
+            mPlayer.registerPlayheadUpdate(null);
+            return;
+        }
         mPlayer.registerPlayheadUpdate(new com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener() {
 
             @Override
