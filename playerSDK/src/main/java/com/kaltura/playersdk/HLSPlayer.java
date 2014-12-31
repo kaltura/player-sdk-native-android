@@ -196,12 +196,14 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
 
     @Override
     public void release() {
+        mPlayer.release();
         //TODO add to HLSPlayerViewController
 
     }
 
     @Override
     public void recoverRelease() {
+        mPlayer.recoverRelease();
         //TODO add to HLSPlayerViewController
 
     }
