@@ -73,23 +73,30 @@ public class HLSSegmentCache
 			Log.i("HLS Cache", "Miss on " + segmentUri + ", populating..");
 			final SegmentCacheEntry sce = (existing != null) ? existing : new SegmentCacheEntry();
 			sce.uri = segmentUri;
-			sce.running = true;
-			sce.lastTouchedMillis = System.currentTimeMillis();
-			sce.downloadStartTime = sce.lastTouchedMillis;
 			
-			// Issue HTTP request.
-	
-			Thread t = new Thread()		
-			{		
-				public void run() {
-					sce.request = httpClient().get(context, sce.uri, new SegmentBinaryResponseHandler(sce));						
-				}		
-			};		
-			t.start();		
+			initiateDownload(sce);
 
 			segmentCache.put(segmentUri, sce);		
 			return sce;
 		}
+	}
+	
+	private static void initiateDownload(final SegmentCacheEntry sce)
+	{
+		sce.running = true;
+		sce.lastTouchedMillis = System.currentTimeMillis();
+		sce.downloadStartTime = sce.lastTouchedMillis;
+		
+		// Issue HTTP request.
+
+		Thread t = new Thread()		
+		{		
+			public void run() {
+				sce.request = httpClient().get(context, sce.uri, new SegmentBinaryResponseHandler(sce));						
+			}		
+		};		
+		t.start();		
+
 	}
 	
 	static public void store(String segmentUri, byte[] data)
@@ -149,7 +156,7 @@ public class HLSSegmentCache
 		} catch (InterruptedException e) {
 			// Don't care.
 		}
-		populateCache(sce.uri);
+		initiateDownload(sce);
 	}
 	
 	/**
@@ -191,7 +198,6 @@ public class HLSSegmentCache
 				HLSSegmentCache.postProgressUpdate(true);
 				sce.notifySegmentCached();
 			}
-				
 		}
 	}
 	

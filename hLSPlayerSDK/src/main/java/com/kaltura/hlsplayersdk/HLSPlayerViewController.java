@@ -113,10 +113,13 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 		if (seg.altAudioSegment != null)
 		{
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), GetInterfaceThread().getHandler());
+			HLSSegmentCache.precache(seg.altAudioSegment.uri, seg.altAudioSegment.cryptoId);
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
 		}
 		else
 		{
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), GetInterfaceThread().getHandler());
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, null, -1, seg.startTime, seg.cryptoId, -1);
 		}
 	}
@@ -137,10 +140,13 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		
 		if (seg.altAudioSegment != null)
 		{
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), GetInterfaceThread().getHandler());
+			HLSSegmentCache.precache(seg.altAudioSegment.uri, seg.altAudioSegment.cryptoId);
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
 		}
 		else
 		{
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), GetInterfaceThread().getHandler());
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, null, -1, seg.startTime, seg.cryptoId, -1);
 		}
 
@@ -357,7 +363,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 						Log.i("video run", "Video thread sleep interrupted!");
 					}
 					
-					Log.i("PlayerViewController", "Dropped Frames Per Sec: " + DroppedFramesPerSecond());
+					//Log.i("PlayerViewController", "Dropped Frames Per Sec: " + DroppedFramesPerSecond());
 
 				} 
 				else {
@@ -425,6 +431,11 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		mRenderThread.interrupt();
 		mInterfaceThread.interrupt();
 		CloseNativeDecoder();
+		if (mStreamHandler != null)
+		{
+			mStreamHandler.close();
+			mStreamHandler = null;
+		}
 		
 	}
 	
@@ -693,6 +704,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private void initiatePlay()
 	{
 		setStartupState(STARTUP_STATE_STARTED);
+		mStreamHandler.initialize();
 		PlayFile(((double)mStartingMS) / 1000.0f);
 		postPlayerStateChange(PlayerStates.PLAY);
 
@@ -766,11 +778,41 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private int targetSeekMS = 0;
 	private boolean targetSeekSet = false;
 	
+	
+	/***
+	 * seekToCurrentPosition()
+	 * 
+	 * It's pretty obvious what it does. However, why it exists
+	 * probably isn't clear.
+	 * 
+	 * When we switch between backup streams, we need to seek to the
+	 * last known position instead of waiting for the player to just run
+	 * into the new segment, due to the chance that the new segment from
+	 * the alternate stream might not match exactly with the original stream.
+	 * 
+	 * Unfortunately, because backup streams are of the same quality level as
+	 * the primary stream, the native player won't notice a discontinuity, and
+	 * won't reset everything for the new stream unless we do the seek.
+	 * 
+	 */
+	public void seekToCurrentPosition()
+	{
+		seek(mTimeMS);
+	}
+	
 	public void seek(final int msec) {
 		HLSSegmentCache.cancelAllCacheEvents();
 		
 		targetSeekSet = true;
 		targetSeekMS = msec;	
+		if (mStreamHandler != null)
+		{
+			if (targetSeekMS > (mStreamHandler.getDuration() - (int)(1.5 * mManifest.targetDuration * 1000)))
+			{
+				targetSeekMS = mStreamHandler.getDuration() - (int)(1.5 * mManifest.targetDuration * 1000);
+			}
+					
+		}
 				
 		GetInterfaceThread().getHandler().post( new Runnable() {
 			public void run()

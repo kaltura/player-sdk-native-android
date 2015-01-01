@@ -108,7 +108,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 		{
 			for (int i = 0; i < headers.length; ++i)
 			{
-				if (headers[i].getName().equals("Content-Type") && headers[i].getValue().contains("mpegurl") == false)
+				if (headers[i].getName().equals("Content-Type") && headers[i].getValue().toLowerCase().contains("mpegurl") == false)
 				{
 					onFailure(statusCode, headers, responseData, null);
 					return;

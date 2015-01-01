@@ -7,8 +7,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import android.os.SystemClock;
 import android.util.Log;
 
+import com.kaltura.hlsplayersdk.cache.HLSSegmentCache;
+import com.kaltura.hlsplayersdk.cache.SegmentCachedListener;
 import com.kaltura.hlsplayersdk.manifest.ManifestEncryptionKey;
 import com.kaltura.hlsplayersdk.manifest.ManifestParser;
 import com.kaltura.hlsplayersdk.manifest.ManifestPlaylist;
@@ -19,7 +22,42 @@ import com.kaltura.hlsplayersdk.types.TrackType;
 
 // This is the confusingly named "HLSIndexHandler" from the flash HLSPlugin
 // I'll change it, if anyone really hates the new name. It just makes more sense to me.
-public class StreamHandler implements ManifestParser.ReloadEventListener {
+public class StreamHandler implements ManifestParser.ReloadEventListener, SegmentCachedListener {
+	
+	private class ErrorTimer
+	{
+		long mStartTime = 0;
+		long mLastCheckTime = 0;
+		
+		private boolean mIsRunning = false;
+
+		public void start()
+		{
+			mStartTime = SystemClock.elapsedRealtime();
+		}
+		
+		public void stop()
+		{
+			mIsRunning = false;
+		}
+		
+		public boolean isRunning()
+		{
+			return mIsRunning;
+		}
+		
+		public long elapsedTime()
+		{
+			if (mIsRunning)
+			{
+				mLastCheckTime = SystemClock.elapsedRealtime();
+			}
+			return mLastCheckTime - mStartTime;
+		}
+		
+	};
+	
+	
 	public int lastSegmentIndex = 0;
 	public int altAudioIndex = -1;
 	public double lastKnownPlaylistStartTime = 0.0;
@@ -30,8 +68,15 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 	public ManifestParser reloadingManifest = null;
 	public int reloadingQuality = 0;
 	public String baseUrl = null;
+	public String lastBadManifestUri = "";
 	
+	private final long recognizeBadStreamTime = 20000;
 	
+	private ErrorTimer mErrorSurrenderTimer = new ErrorTimer();
+	private boolean mIsRecovering = false;
+	
+	private boolean reloadingFromBackup = false;
+	private ManifestStream primaryStream = null;
 	private Timer reloadTimer = null;
 	private int sequenceSkips = 0;
 	private boolean stalled = false;
@@ -124,19 +169,6 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 	{
 		return manifest.playLists.size() > 0;
 	}
-	private TimerTask reloadTimerComplete = new TimerTask()
-	{
-		public void run()
-		{
-			Log.i("reloadTimerComplete.run", "Reload Timer Complete!");
-			if (targetQuality != lastQuality)
-				reload(targetQuality);
-			else
-				reload(lastQuality);
-//			postDelayed(runnable, frameDelay);
-		}
-		
-	};
 	
 	public List<QualityTrack> getQualityTrackList()
 	{
@@ -169,27 +201,40 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 	
 	public void initialize()
 	{
-		postRatesReady();
-		postIndexReady();
-		updateTotalDuration();
-		
 		ManifestParser man = getManifestForQuality(lastQuality);
 		if (man != null && !man.streamEnds && man.segments.size() > 0)
 		{
 			mTimerDelay = (long) man.segments.get(man.segments.size() - 1).duration * 1000;
-			reloadTimer = new Timer();
-			reloadTimer.schedule(reloadTimerComplete, mTimerDelay);
+			startReloadTimer();
 		}
+	}
+	
+	public void close()
+	{
+		killTimer(); 
 	}
 	
 	private void reload(int quality)
 	{
+		reload(quality, null);
+	}
+	
+	private void killTimer()
+	{
 		if (reloadTimer != null)
-			reloadTimer.cancel(); // In case the timer is active - don't want to do another reload in the middle of it
+		{
+			reloadTimer.cancel();
+			reloadTimer = null;
+		}
+	}
+	
+	private void reload(int quality, ManifestParser manifest )
+	{
+		killTimer(); // In case the timer is active - don't want to do another reload in the middle of it
 		
 		reloadingQuality = quality;
 		
-		ManifestParser manToReload = getManifestForQuality(reloadingQuality);
+		ManifestParser manToReload = manifest != null ? manifest : getManifestForQuality(reloadingQuality);
 		reloadingManifest = new ManifestParser();
 		reloadingManifest.type = manToReload.type;
 		reloadingManifest.setReloadEventListener(this);
@@ -199,25 +244,44 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 	
 	private void startReloadTimer()
 	{
-		if (reloadTimer != null) reloadTimer.schedule(reloadTimerComplete, mTimerDelay);
+		killTimer(); 
+		
+		reloadTimer = new Timer();
+		reloadTimer.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				Log.i("reloadTimerComplete.run", "Reload Timer Complete!");
+				if (mIsRecovering)
+				{
+					attemptRecovery();
+				}
+				else if (targetQuality != lastQuality)
+					reload(targetQuality);
+				else
+					reload(lastQuality);
+//				postDelayed(runnable, frameDelay);
+			}
+			
+		}, mTimerDelay);
 	}
 	
 	@Override
 	public void onReloadComplete(ManifestParser parser) {
 		Log.i("StreamHandler.onReloadComplete", "last/reload/target: " + lastQuality + "/" + reloadingQuality + "/" + targetQuality);
 		ManifestParser newManifest = parser;
+		mFailureCount = 0; // reset the failure count since we had a success
 		if (newManifest != null)
 		{
 			// Set the timer delay to the most likely possible delay
-			if (reloadTimer != null) mTimerDelay = (long)(newManifest.segments.get(newManifest.segments.size() - 1).duration * 1000);
+			mTimerDelay = (long)(newManifest.segments.get(newManifest.segments.size() - 1).duration * 1000);
 			
 			// remove the reload completed listener since this might become the new manifest
-			//newManifest.removeEventListener(Event.COMPLETE, onReloadComplete);
 			newManifest.setReloadEventListener(null);
 			
-			ManifestParser currentManifest = getManifestForQuality(reloadingQuality);
+			ManifestParser currentManifest = reloadingQuality != -1 ? getManifestForQuality(reloadingQuality) : null;
 			
-			long timerOnErrorDelay = (long)(currentManifest.targetDuration * 1000  / 2);
+			long timerOnErrorDelay = (long)(newManifest.targetDuration * 1000  / 2);
 			
 			// If we're not switching quality
 			if (reloadingQuality == lastQuality)
@@ -234,83 +298,96 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 				{
 					// the media sequence is earlier than the one we currently have, which isn't
 					// allowed by the spec, or there are no changes. So do nothing, but check again as quickly as allowed
-					if (reloadTimer != null) mTimerDelay = timerOnErrorDelay;
+					mTimerDelay = timerOnErrorDelay;
 				}
 			}
-			else if (reloadingQuality == targetQuality)
+			else if (reloadingQuality == targetQuality || reloadingQuality == -1)
 			{
 				if (!updateManifestSegmentsQualityChange(newManifest, reloadingQuality) && reloadTimer != null)
 					mTimerDelay = timerOnErrorDelay;
 			}
 
 		}
-		//TODO: dispatchDVRStreamInfo();
+		
+
+		reloadingFromBackup = false;
 		reloadingManifest = null; // don't want to hang on to it
+		if (reloadingQuality == -1)
+		{
+			HLSPlayerViewController.currentController.seekToCurrentPosition();
+		}
 		startReloadTimer();
 		
 	}
+	
+	private int mFailureCount = 0;
 
 	@Override
-	public void onReloadFailed(ManifestParser parser) {
-		if (reloadTimer != null)
+	public void onReloadFailed(ManifestParser parser) 
+	{
+		Log.i("StreamHandler.onReloadFailed", "Manifest reload failed: " + parser.fullUrl);
+		
+		mIsRecovering = true;
+		lastBadManifestUri = parser.fullUrl;
+
+		if (mFailureCount == 0)
 		{
 			mTimerDelay = (long)(getManifestForQuality(lastQuality).targetDuration * 1000  / 2);
 			startReloadTimer();
-		}
-		
-		// Keep track of how many times this particular manifest has failed to reload
-		if (!badManifestMap.containsKey(parser.fullUrl))
-		{
-			badManifestMap.put(parser.fullUrl, 1);
+			++mFailureCount;
+			return;
 		}
 		else
 		{
-			badManifestMap.put(parser.fullUrl, badManifestMap.get(parser.fullUrl) + 1);
+			mFailureCount = 0;
 		}
+
+		attemptRecovery();
+	}
+	
+	private void attemptRecovery()
+	{
+		Log.i("StreamHandler.attemptRecovery", "Attempting Recovery");
+		mIsRecovering = false;
 		
-		// Only continue on to removing the manifest if it has had an error enough times
-		if (badManifestMap.get(parser.fullUrl) < maxFailedManifestTries)
-			return;
+		if (!mErrorSurrenderTimer.isRunning())
+			mErrorSurrenderTimer.start();
 		
-		for (int i = 0; i < manifest.streams.size(); ++i)
+		// Shut everything down if we have had too many errors in a row
+		if (mErrorSurrenderTimer.elapsedTime() >= recognizeBadStreamTime)
 		{
-			ManifestStream curStream = manifest.streams.get(i);
 			
-			// We continue to th enext available stream if the url/uri doesn't match
-			if (!parser.fullUrl.equals(curStream.manifest.fullUrl))
-				continue;
-			
-			// We don't do anything if this is the lowest quality stream and there is no backup
-			if (i == 0 && curStream.backupStream == null)
-				break;
-			
-			// Replace the stream with its backup if possible
-			if (curStream.backupStream != null)
-			{
-				// Remove the bad stream from the linked list, preserving the list's circular behavior
-				while (curStream.backupStream != manifest.streams.get(i))
-				{
-					curStream = curStream.backupStream;
-				}
-				
-				curStream.backupStream = curStream.backupStream.backupStream;
-				
-				// Check if this stream only has one backup
-				if (curStream == curStream.backupStream)
-					curStream.backupStream = null;
-				
-				manifest.streams.set(i, curStream);
-			}
-			else
-			{
-				// If there is no backup available, simply remove the stream from our stream list
-				manifest.streams.remove(i);
-				break;
-				
-			}
+			return;
 		}
 		
-		postRatesReady();
+		
+		// This might just be a bad manifest, so try swapping it with a backup if we can and reload the manifest immediately
+		int quality = targetQuality != lastQuality ? targetQuality : lastQuality;
+		
+		if (!swapBackupStream(getStreamForQuality(quality)))
+			reload(quality);
+		
+	}
+	
+	private boolean swapBackupStream(ManifestStream stream)
+	{
+		if (stream == null) return false;
+		
+		if (stream.backupStream != null)
+		{
+			primaryStream = stream;
+			reload( -1, stream.backupStream.manifest );
+			return true;
+		}
+		
+		
+		return false;
+	}
+	
+	public boolean backupStreamExists()
+	{
+		ManifestStream curStream = getStreamForQuality(lastQuality);
+		return (curStream != null && curStream.backupStream != null);
 	}
 	
 	private boolean updateManifestSegmentsQualityChange(ManifestParser newManifest, int quality)
@@ -318,7 +395,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 		if (newManifest == null || newManifest.segments.size() == 0) return true;
 		
 		ManifestParser lastQualityManifest = getManifestForQuality(lastQuality);
-		ManifestParser targetManifest = getManifestForQuality(quality);
+		ManifestParser targetManifest = quality == -1 ? primaryStream.backupStream.manifest : getManifestForQuality(quality);
 
 		if (newManifest.isDVR() != lastQualityManifest.isDVR())
 		{
@@ -420,125 +497,34 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 			return found; // returning early so that we don't hcange lastQuality (we still need that value around)
 		}
 		
-		// set lastQuality to targetQuality since we're finally all matched up
-		lastQuality = quality;
-		stalled = false;
-		return found;
 		
-	}
-	
-	private boolean old_updateManifestSegmentsQualityChange(ManifestParser newManifest, int quality)
-	{
-		if (newManifest == null || newManifest.segments.size() == 0) return true;
-		ManifestParser lastQualityManifest = getManifestForQuality(lastQuality);
-		ManifestParser targetManifest = getManifestForQuality(quality);
-		
-		if (newManifest.isDVR() != lastQualityManifest.isDVR())
+		// Either set lastQuality to targetQulity or switch to the backup since we're finally all matched up
+		if (quality == -1)
 		{
-			// If the new manifest's DVR status does not match the current DVR status, don't switch qualities
-			targetQuality = lastQuality;
-			return false;
-		}
-		
-		Vector<ManifestSegment> lastQualitySegments = lastQualityManifest.segments;
-		Vector<ManifestSegment> targetSegments = targetManifest.segments;
-		Vector<ManifestSegment> newSegments = newManifest.segments;
-		
-		ManifestSegment matchSegment = lastQualitySegments.get(lastSegmentIndex);
-		
-		// Add the new manifest segments to the targetManifest
-		// Goals: (not in order)
-		//	1) Figure out what the start time of the new manifest is
-		//	2) Append the newManifest to the targetManifest
-		// 	3) Match lastQuality segments to the targetManifest segments by id
-		//		a) set the seg start time
-		//		b) set the seg era
-		//	4) figure out what the new "lastSegmentIndex" is
-		//	5) set lastQuality to the target quality
-		
-		// Starting with adjusting the segment values (so we only have to go through the new manifest info instead of the whole list)
-		
-		// Find the first segment (by id) of the new list in the lastQuality list by running backward through the lastQuality list
-		int matchIndex = 0;
-		int matchEra = 0;
-		double matchStartTime = 0;
-		for (int i = lastQualitySegments.size() - 1; i >= 0; --i)
-		{
-			if (lastQualitySegments.get(i).id == newSegments.get(0).id)
+			// Find the stream to replace with its backup
+			for (int i = 0; i <= manifest.streams.size(); ++i)
 			{
-				matchIndex = i;
-				matchEra = lastQualitySegments.get(i).continuityEra;
-				matchStartTime = lastQualitySegments.get(i).startTime;
-				break;
-			}
-		}
-		
-		// Run through the new segments and fix up the start time, continuity era, and... hmm
-		double nextStartTime = matchStartTime;
-		for (int i = 0; i < newSegments.size(); ++i)
-		{
-			newSegments.get(i).continuityEra += matchEra;
-			newSegments.get(i).startTime = nextStartTime;
-			nextStartTime += newSegments.get(i).duration;		}
-		
-		// This is now where our new playlist starts
-		lastKnownPlaylistStartTime = matchStartTime;
-		
-		// Append the new manifest segments to the targetManifest
-		int idx = 0;
-		if (newSegments.get(0).id < targetSegments.get(targetSegments.size() - 1).id)
-		{
-			for (int i = targetSegments.size() - 1; i >= 0; --i)
-			{
-				if (targetSegments.get(i).id == newSegments.get(0).id)
+				if (i == manifest.streams.size())
 				{
-					idx = i;
+					Log.w("StreamHandler.updateManifestSegmentsQualityChange", " WARNING - Backup Replacement failed: stream with URI " + primaryStream.uri + " not found");
+					break;
+				}
+				
+				if (manifest.streams.get(i) == primaryStream && primaryStream.backupStream != null)
+				{
+					manifest.streams.set(i, primaryStream.backupStream);
 					break;
 				}
 			}
 		}
 		else
 		{
-			idx = targetSegments.size();
+			lastQuality = quality;
 		}
 		
-		targetSegments.setSize(idx);
-		//targetSegments.length = idx; // kill any matching segments since the start times and era will possibly be wrong
-		for (int i = 0; i < newSegments.size(); ++i)
-		{
-			targetSegments.add(newSegments.get(i));
-		}
-		
-		// Figure out what the new lastSegmentIndex is
-		boolean found = false;
-		for (int i = 0; i < targetSegments.size(); ++i)
-		{
-			if (targetSegments.get(i).id == matchSegment.id)
-			{
-				lastSegmentIndex = i;
-				found = true;
-				stalled = false;
-				break;
-			}
-		}
-		
-		if (!found && targetSegments.get(targetSegments.size() - 1).id < matchSegment.id)
-		{
-			stalled = true; // We want to stall because we don't know what the index should be as our new playlist is not quite caught up
-			return found; // Returning early so that we don't change lastQuality (we still need that value around)
-		}
-		else if (!found && targetSegments.get(targetSegments.size() - 1).id > lastQualitySegments.get(lastSegmentIndex).id)
-		{
-			// The new playlist is so far ahead of the old playlist that the item we wanted to play is gone. So go to the
-			// first new index
-			lastSegmentIndex = idx;
-			found = true;
-		}
-		
-		// set lastQuality to targetQuality since we're finally all matched up
-		lastQuality = quality;
 		stalled = false;
-		return found;		
+		return found;
+		
 	}
 	
 	private void updateManifestSegments(ManifestParser newManifest, int quality)
@@ -620,17 +606,6 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 		getManifestForQuality(quality).streamEnds = newManifest.streamEnds;
 		manifest.streamEnds = newManifest.streamEnds;
 
-		updateTotalDuration();		
-	}
-	
-	public void postRatesReady() // 
-	{
-		
-	}
-	
-	public void postIndexReady()
-	{
-		
 	}
 	
 	private int getWorkingQuality(int requestedQuality)
@@ -786,11 +761,6 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 		
 	}
 	
-	private void updateTotalDuration()
-	{
-		
-	}
-	
 	private int getSegmentIndexForTime(double time)
 	{
 		return getSegmentIndexForTimeAndQuality(time, lastQuality);
@@ -833,6 +803,26 @@ public class StreamHandler implements ManifestParser.ReloadEventListener {
 		if (manifest.streams.size() < 1 || manifest.streams.get(0).manifest == null) return manifest;
 		else if ( quality >= manifest.streams.size() ) return manifest.streams.get(0).manifest;
 		return manifest.streams.get(quality).manifest;
+	}
+	
+	public ManifestStream getStreamForQuality(int quality)
+	{
+		if (manifest == null || manifest.streams.size() < 1 || quality >= manifest.streams.size()) return null;
+		return manifest.streams.get(quality);
+	}
+
+	@Override
+	public void onSegmentCompleted(String uri) {
+		HLSSegmentCache.cancelCacheEvent(uri);
+		
+	}
+
+	@Override
+	public void onSegmentFailed(String uri, int errorCode) {
+		HLSSegmentCache.cancelCacheEvent(uri);
+		Log.i("StreamHandler.onSegmentFailed", "Failed Download - attempting recovery: " + errorCode + " " + uri);
+		attemptRecovery();
+		
 	}
 
 
