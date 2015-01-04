@@ -1,11 +1,11 @@
 package com.kaltura.playersdk;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
 
 import com.kaltura.hlsplayersdk.HLSPlayerViewController;
+import com.kaltura.hlsplayersdk.types.PlayerStates;
 import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.playersdk.events.OnAudioTracksListListener;
 import com.kaltura.playersdk.events.OnErrorListener;
@@ -22,9 +22,15 @@ import com.kaltura.playersdk.types.TrackType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface {
+public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener, com.kaltura.hlsplayersdk.events.OnErrorListener, com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener, com.kaltura.hlsplayersdk.events.OnProgressListener, com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
 
     private HLSPlayerViewController mPlayer;
+    private OnPlayerStateChangeListener mPlayerStateChangeListener;
+    private OnPlayheadUpdateListener mPlayheadUpdateListener;
+    private OnQualityTracksListListener mQualityTracksListener;
+    private OnProgressListener mProgressListener;
+    private OnErrorListener mErrorListener;
+
     public HLSPlayer(Activity activity) {
         super(activity);
         mPlayer = new HLSPlayerViewController(activity);
@@ -91,102 +97,6 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
         return mPlayer != null;
     }
 
-    @Override
-    public void registerPlayerStateChange(final OnPlayerStateChangeListener listener) {
-        if (listener == null){
-            mPlayer.registerPlayerStateChange(null);
-            return;
-        }
-
-        mPlayer.registerPlayerStateChange(new com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener() {
-
-            @Override
-            public boolean onStateChanged(com.kaltura.hlsplayersdk.types.PlayerStates hlsPlayerState) {
-                com.kaltura.playersdk.types.PlayerStates state = com.kaltura.playersdk.types.PlayerStates.START;
-                switch ( hlsPlayerState ) {
-                    case START:
-                        state = com.kaltura.playersdk.types.PlayerStates.START;
-                        break;
-                    case LOAD:
-                        state = com.kaltura.playersdk.types.PlayerStates.LOAD;
-                        break;
-                    case PLAY:
-                        state = com.kaltura.playersdk.types.PlayerStates.PLAY;
-                        break;
-                    case PAUSE:
-                        state = com.kaltura.playersdk.types.PlayerStates.PAUSE;
-                        break;
-                    case END:
-                        state = com.kaltura.playersdk.types.PlayerStates.END;
-                        break;
-                    case SEEKING:
-                        state = com.kaltura.playersdk.types.PlayerStates.SEEKING;
-                        break;
-                    case SEEKED:
-                        state = com.kaltura.playersdk.types.PlayerStates.SEEKED;
-                        break;
-                }
-                return listener.onStateChanged(state);
-            }
-
-        });
-
-    }
-
-    @Override
-    public void registerError(final OnErrorListener listener) {
-        if (listener == null){
-            mPlayer.registerError(null);
-            return;
-        }
-        mPlayer.registerError(new com.kaltura.hlsplayersdk.events.OnErrorListener() {
-
-            @Override
-            public void onError(int errorCode, String errorMessage) {
-                listener.onError(errorCode, errorMessage);
-
-            }
-
-        });
-
-    }
-
-    @Override
-    public void registerPlayheadUpdate(final OnPlayheadUpdateListener listener) {
-        if (listener == null){
-            mPlayer.registerPlayheadUpdate(null);
-            return;
-        }
-        mPlayer.registerPlayheadUpdate(new com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener() {
-
-            @Override
-            public void onPlayheadUpdated(int msec) {
-                Log.w("HLSPlayed", "----------update playhead" + msec);
-                listener.onPlayheadUpdated(msec);
-
-            }
-
-        });
-
-    }
-
-    @Override
-    public void removePlayheadUpdateListener() {
-        mPlayer.removePlayheadUpdateListener();
-
-    }
-
-    @Override
-    public void registerProgressUpdate(final OnProgressListener listener) {
-        mPlayer.registerProgressUpdate(new com.kaltura.hlsplayersdk.events.OnProgressListener() {
-
-            @Override
-            public void onProgressUpdate(int progress) {
-                listener.onProgressUpdate(progress);
-            }
-
-        });
-    }
 
     @Override
     public void setStartingPoint(int point) {
@@ -227,35 +137,6 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
     }
 
     @Override
-    public void registerQualityTracksList(final OnQualityTracksListListener listener) {
-        mPlayer.registerQualityTracksList( new com.kaltura.hlsplayersdk.events.OnQualityTracksListListener() {
-
-            @Override
-            public void OnQualityTracksList( List<com.kaltura.hlsplayersdk.QualityTrack> list, int defaultTrackIndex) {
-                List<QualityTrack> newList = new ArrayList<QualityTrack>();
-                for ( int i=0; i < list.size(); i++ ) {
-                    com.kaltura.hlsplayersdk.QualityTrack currentTrack = list.get(i);
-                    QualityTrack newTrack = new QualityTrack();
-                    newTrack.bitrate = currentTrack.bitrate;
-                    newTrack.height = currentTrack.height;
-                    newTrack.width = currentTrack.width;
-                    newTrack.trackId = currentTrack.trackId;
-                    newTrack.type = currentTrack.type == com.kaltura.hlsplayersdk.types.TrackType.VIDEO ? TrackType.VIDEO: TrackType.AUDIO;
-                    newList.add(newTrack);
-                }
-                listener.OnQualityTracksList(newList, defaultTrackIndex);
-            }
-        });
-    }
-
-    @Override
-    public void registerQualitySwitchingChange(
-            OnQualitySwitchingListener listener) {
-        //mPlayer.registerQualitySwitchingChange(listener);
-
-    }
-
-    @Override
     public float getLastDownloadTransferRate() {
         return mPlayer.getLastDownloadTransferRate();
     }
@@ -287,20 +168,38 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
     }
 
     @Override
+    public void switchTextTrack(int newIndex) {
+        mPlayer.switchTextTrack(newIndex);
+
+    }
+
+    /////////////////////////////////////////////////////////
+    //
+    //      HlsPlayerSDK Listeners
+    //
+    ////////////////////////////////////////////////////////
+
+
+    @Override
+    public void registerQualityTracksList(final OnQualityTracksListListener listener) {
+        mQualityTracksListener = listener;
+        mPlayer.registerQualityTracksList(listener != null ? this : null);
+    }
+
+    @Override
+    public void registerQualitySwitchingChange(OnQualitySwitchingListener listener) {
+        //mPlayer.registerQualitySwitchingChange(listener);
+
+    }
+
+    @Override
     public void registerAudioTracksList(OnAudioTracksListListener listener) {
         //mPlayer.registerAudioTracksList(listener);
     }
 
     @Override
-    public void registerAudioSwitchingChange(
-            OnAudioTrackSwitchingListener listener) {
+    public void registerAudioSwitchingChange(OnAudioTrackSwitchingListener listener) {
         //mPlayer.registerAudioSwitchingChange(listener);
-
-    }
-
-    @Override
-    public void switchTextTrack(int newIndex) {
-        mPlayer.switchTextTrack(newIndex);
 
     }
 
@@ -322,4 +221,112 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
 
     }
 
+    @Override
+    public void registerError(final OnErrorListener listener) {
+        mErrorListener = listener;
+        mPlayer.registerError(listener != null ? this : null);
+    }
+
+    @Override
+    public void registerPlayheadUpdate(final OnPlayheadUpdateListener listener) {
+        mPlayheadUpdateListener = listener;
+        mPlayer.registerPlayheadUpdate(listener != null ? this : null);
+
+    }
+
+    @Override
+    public void removePlayheadUpdateListener() {
+        mPlayheadUpdateListener = null;
+        mPlayer.removePlayheadUpdateListener();
+
+    }
+
+    @Override
+    public void registerProgressUpdate(final OnProgressListener listener) {
+        mProgressListener = listener;
+        mPlayer.registerProgressUpdate(listener != null ? this : null);
+
+    }
+
+    @Override
+    public void registerPlayerStateChange(final OnPlayerStateChangeListener listener) {
+        mPlayerStateChangeListener = listener;
+        mPlayer.registerPlayerStateChange(listener != null ? this : null);
+    }
+
+    @Override
+    public boolean onStateChanged(PlayerStates state) {
+        if (mPlayerStateChangeListener != null) {
+            com.kaltura.playersdk.types.PlayerStates kState;
+            switch (state) {
+                case START:
+                    kState = com.kaltura.playersdk.types.PlayerStates.START;
+                    break;
+                case LOAD:
+                    kState = com.kaltura.playersdk.types.PlayerStates.LOAD;
+                    break;
+                case PLAY:
+                    kState = com.kaltura.playersdk.types.PlayerStates.PLAY;
+                    break;
+                case PAUSE:
+                    kState = com.kaltura.playersdk.types.PlayerStates.PAUSE;
+                    break;
+                case END:
+                    kState = com.kaltura.playersdk.types.PlayerStates.END;
+                    break;
+                case SEEKING:
+                    kState = com.kaltura.playersdk.types.PlayerStates.SEEKING;
+                    break;
+                case SEEKED:
+                    kState = com.kaltura.playersdk.types.PlayerStates.SEEKED;
+                    break;
+                default:
+                    kState = com.kaltura.playersdk.types.PlayerStates.START;
+            }
+            return mPlayerStateChangeListener.onStateChanged(kState);
+        }
+
+        return false;
+
+    }
+
+
+    @Override
+    public void onPlayheadUpdated(int msec) {
+        if (mPlayheadUpdateListener != null){
+            mPlayheadUpdateListener.onPlayheadUpdated(msec);
+        }
+    }
+
+    @Override
+    public void onProgressUpdate(int progress) {
+        if ( mProgressListener != null) {
+            mProgressListener.onProgressUpdate(progress);
+        }
+    }
+
+    @Override
+    public void OnQualityTracksList(List<com.kaltura.hlsplayersdk.QualityTrack> list, int defaultTrackIndex) {
+        if (mQualityTracksListener != null){
+            List<QualityTrack> newList = new ArrayList<QualityTrack>();
+            for ( int i=0; i < list.size(); i++ ) {
+                com.kaltura.hlsplayersdk.QualityTrack currentTrack = list.get(i);
+                QualityTrack newTrack = new QualityTrack();
+                newTrack.bitrate = currentTrack.bitrate;
+                newTrack.height = currentTrack.height;
+                newTrack.width = currentTrack.width;
+                newTrack.trackId = currentTrack.trackId;
+                newTrack.type = currentTrack.type == com.kaltura.hlsplayersdk.types.TrackType.VIDEO ? TrackType.VIDEO: TrackType.AUDIO;
+                newList.add(newTrack);
+            }
+            mQualityTracksListener.OnQualityTracksList(newList, defaultTrackIndex);
+        }
+    }
+
+    @Override
+    public void onError(int errorCode, String errorMessage) {
+        if (mErrorListener != null) {
+            mErrorListener.onError(errorCode, errorMessage);
+        }
+    }
 }
