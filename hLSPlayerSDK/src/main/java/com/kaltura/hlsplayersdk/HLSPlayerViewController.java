@@ -1,9 +1,5 @@
 package com.kaltura.hlsplayersdk;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -40,6 +36,10 @@ import com.kaltura.hlsplayersdk.manifest.events.OnParseCompleteListener;
 import com.kaltura.hlsplayersdk.subtitles.SubtitleHandler;
 import com.kaltura.hlsplayersdk.subtitles.TextTrackCue;
 import com.kaltura.hlsplayersdk.types.PlayerStates;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * Main class for HLS video playback on the Java side.
@@ -965,7 +965,9 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 				@Override
 				public void run() {
-					mPlayerStateChangeListener.onStateChanged(state);					
+                    if (mPlayerStateChangeListener != null){
+                        mPlayerStateChangeListener.onStateChanged(state);
+                    }
 				}
 				
 			});
@@ -985,7 +987,9 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mPlayheadUpdateListener.onPlayheadUpdated(msec);					
+                    if (mPlayheadUpdateListener != null) {
+                        mPlayheadUpdateListener.onPlayheadUpdated(msec);
+                    }
 				}
 				
 			});
