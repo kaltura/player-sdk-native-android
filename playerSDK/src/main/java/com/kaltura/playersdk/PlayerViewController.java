@@ -650,8 +650,7 @@ public class PlayerViewController extends RelativeLayout {
                                                             shouldReplacePlayerView = true;
                                                         }
                                                     } else {
-
-                                                        if (!(mVideoInterface instanceof KalturaPlayer) && !(mVideoInterface instanceof IMAPlayer)) {
+                                                        if (mVideoInterface instanceof HLSPlayer) {
                                                             tmpPlayer = new KalturaPlayer(mActivity);
                                                             shouldReplacePlayerView = true;
                                                         }
