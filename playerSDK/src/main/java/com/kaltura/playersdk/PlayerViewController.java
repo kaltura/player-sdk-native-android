@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -161,8 +162,18 @@ public class PlayerViewController extends RelativeLayout {
 	public void setOnFullScreenListener(OnToggleFullScreenListener listener) {
 		mFSListener = listener;
 	}
+    private void setVolumeLevel(double percent) {//Itay
+        AudioManager mgr = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
+        if (percent > 0.01) {
+            while (percent < 1.0) {
+                percent *= 10;
+            }
+        }
+        mgr.setStreamVolume(AudioManager.STREAM_MUSIC, (int)percent, 0);
+    }
 
-	/**
+
+    /**
 	 * Sets the player's dimensions. Should be called for any player redraw 
 	 * (for example, in screen rotation, if supported by the main activity)
 	 * @param width player's width
