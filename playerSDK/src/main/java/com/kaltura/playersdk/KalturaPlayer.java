@@ -38,14 +38,18 @@ import com.kaltura.playersdk.types.PlayerStates;
 public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface, Callback {
 
 	private int NUM_OF_RENFERERS = 2;
+    private static final String TAG = KalturaPlayer.class.getSimpleName();
 	public static int PLAYHEAD_UPDATE_INTERVAL = 200;
+    public static int BUFFER_WAIT_INTERVAL = 200;
+    private static final int BUFFER_COUNTER_MAX = 10;
 	private ExoPlayer mExoPlayer;
 	private String mVideoUrl = null;
 	private OnPlayerStateChangeListener mPlayerStateChangeListener;
 	private OnPlayheadUpdateListener mPlayheadUpdateListener;
 	private OnProgressListener mProgressListener;
 	private OnErrorListener mErrorListener;
-	
+	private int mBufferWaitCounter = 0;
+
 	private boolean mIsReady = false;
 	private int mStartPos = 0;
 	private int mPrevProgress = 0;
@@ -75,6 +79,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 	};
 
 	private Handler mProgressHandler;
+    private Handler mBufferHandler;
 	private Runnable progressRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -155,6 +160,11 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 			preparePlayer();		
 		}
 		if ( !this.isPlaying() ) {
+            int a = mExoPlayer.getPlaybackState();
+            if(a == ExoPlayer.STATE_BUFFERING){
+                startWaitingLoop();
+                return;
+            }
 			mExoPlayer.setPlayWhenReady(true);
 			if ( mStartPos != 0 ) {
 				mExoPlayer.seekTo( mStartPos );
@@ -173,6 +183,32 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 				mPlayerStateChangeListener.onStateChanged(PlayerStates.PLAY);
 		}		
 	}
+
+    private void startWaitingLoop(){
+        mBufferWaitCounter = 0;
+        final Runnable waitingLoopRunnable = new Runnable() {
+            @Override
+            public void run() {
+                int state = mExoPlayer.getPlaybackState();
+                if(state == ExoPlayer.STATE_BUFFERING){
+                    Log.d(TAG, "buffer loop" + mBufferWaitCounter);
+                    mBufferWaitCounter++;
+                    if(mBufferWaitCounter > BUFFER_COUNTER_MAX){
+                        mBufferWaitCounter = 0;
+                        releasePlayer();
+                        preparePlayer();
+                        play();
+                    }else{
+                        mBufferHandler.postDelayed(this, BUFFER_WAIT_INTERVAL);
+                    }
+                }else{
+                    play();
+                }
+            }
+        };
+        mBufferHandler = new Handler(Looper.getMainLooper());
+        mBufferHandler.post(waitingLoopRunnable);
+    }
 
 	private void updateStopState() {
 		if ( mHandler != null ) {
@@ -225,7 +261,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
 	@Override
 	public boolean isPlaying() {
-		if ( mExoPlayer!=null ) {
+		if ( mExoPlayer != null ) {
 			return mExoPlayer.getPlayWhenReady();			
 		}
 		return false;
@@ -340,10 +376,14 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 			}
 			break;
 		case ExoPlayer.STATE_ENDED:
-			mExoPlayer.setPlayWhenReady(false);
-			mExoPlayer.seekTo( 0 );
+            Log.d(TAG, "state ended");
+            if(mExoPlayer != null) {
+                mExoPlayer.setPlayWhenReady(false);
+                mExoPlayer.seekTo(0);
+            }
 			updateStopState();
 			state = PlayerStates.END;
+            stop();
 			break;
 
 		}
