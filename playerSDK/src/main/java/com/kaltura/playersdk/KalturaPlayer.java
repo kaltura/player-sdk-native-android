@@ -208,6 +208,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
     private void updateStopState() {
         if ( mHandler != null ) {
+            Log.d(TAG, "remove handler callbacks");
             mHandler.removeCallbacks(null); //removes all runnables
         }
 
