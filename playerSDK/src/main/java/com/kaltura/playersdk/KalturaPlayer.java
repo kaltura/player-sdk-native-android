@@ -61,45 +61,6 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
-    private final Runnable mPlayHeadUpdateRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if ( mExoPlayer != null ) {
-                try {
-                    int position = mExoPlayer.getCurrentPosition();
-                    if ( position != 0 && mPlayheadUpdateListener != null && isPlaying() )
-                        mPlayheadUpdateListener.onPlayheadUpdated(position);
-                } catch(IllegalStateException e){
-                    e.printStackTrace();
-                }
-
-                mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
-            }
-
-        }
-    };
-
-    private Runnable progressRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (mExoPlayer != null) {
-                try {
-                    int progress = mExoPlayer.getBufferedPercentage();
-                    if (progress != 0 && mProgressListener != null && mPrevProgress != progress) {
-                        mProgressListener.onProgressUpdate(progress);
-                        mPrevProgress = progress;
-                    }
-
-                }catch(IllegalStateException e){
-                    e.printStackTrace();
-                }
-
-                mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
-            }
-        }
-    };
-
-
     public KalturaPlayer(Context context, AttributeSet attrs) {
         super(context, attrs);
         addSurface();
@@ -172,17 +133,53 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
                 mStartPos = 0;
             }
 
-            mHandler.postDelayed(mPlayHeadUpdateRunnable, PLAYHEAD_UPDATE_INTERVAL);
-            mHandler.postDelayed(progressRunnable, PLAYHEAD_UPDATE_INTERVAL);
+            mHandler.removeCallbacks(null);
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if ( mExoPlayer != null ) {
+                        try {
+                            int position = mExoPlayer.getCurrentPosition();
+                            if ( position != 0 && mPlayheadUpdateListener != null && isPlaying() )
+                                mPlayheadUpdateListener.onPlayheadUpdated(position);
+                        } catch(IllegalStateException e){
+                            e.printStackTrace();
+                        }
 
-            if ( mPlayerStateChangeListener!=null )
+                        mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+                    }
+
+                }
+            });
+
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mExoPlayer != null) {
+                        try {
+                            int progress = mExoPlayer.getBufferedPercentage();
+                            if (progress != 0 && mProgressListener != null && mPrevProgress != progress) {
+                                mProgressListener.onProgressUpdate(progress);
+                                mPrevProgress = progress;
+                            }
+
+                        }catch(IllegalStateException e){
+                            e.printStackTrace();
+                        }
+
+                        mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+                    }
+                }
+            });
+
+            if ( mPlayerStateChangeListener != null )
                 mPlayerStateChangeListener.onStateChanged(PlayerStates.PLAY);
         }
     }
 
     private void startWaitingLoop(){
         mBufferWaitCounter = 0;
-        final Runnable waitingLoopRunnable = new Runnable() {
+        mHandler.post(new Runnable() {
             @Override
             public void run() {
                 int state = mExoPlayer.getPlaybackState();
@@ -201,9 +198,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
                     play();
                 }
             }
-        };
-
-        mHandler.post(waitingLoopRunnable);
+        });
     }
 
     private void updateStopState() {
