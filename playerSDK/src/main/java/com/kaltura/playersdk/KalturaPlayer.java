@@ -106,15 +106,6 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
         return mVideoUrl;
     }
 
-    @Override
-    public void setVideoUrl(String url) {
-        if ( !url.equals(mVideoUrl) ) {
-            releasePlayer();
-            mVideoUrl = url;
-            if ( mPlayheadUpdateListener != null )
-                mPlayheadUpdateListener.onPlayheadUpdated( 0 );
-        }
-    }
 	@Override
 	public void setVideoUrl(String url) {
 		if ( !url.equals(mVideoUrl) ) {
