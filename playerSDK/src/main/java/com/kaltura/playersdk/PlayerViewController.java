@@ -537,7 +537,7 @@ public class PlayerViewController extends RelativeLayout {
             @Override
             public void onPlayheadUpdated(int msec) {
                 double curSec = msec / 1000.0;
-                if ( curSec <= mDuration ) {
+                if ( curSec <= mDuration && Math.abs(mCurSec -curSec) > 0.01 ) {
                     mCurSec = curSec;
                     mActivity.runOnUiThread(runUpdatePlayehead);
                 }
