@@ -59,7 +59,7 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
 
     @Override
     public int getDuration() {
-        return mPlayer.getDuration();
+        return mPlayer.getDuration() - 1;
     }
 
     @Override
