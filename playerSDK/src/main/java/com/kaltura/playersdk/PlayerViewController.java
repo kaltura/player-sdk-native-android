@@ -27,6 +27,7 @@ import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
+import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
@@ -479,6 +480,7 @@ public class PlayerViewController extends RelativeLayout {
         mVideoInterface.registerPlayerStateChange( null );
         mVideoInterface.registerPlayheadUpdate( null );
         mVideoInterface.registerProgressUpdate( null );
+        mVideoInterface.registerError(null);
     }
 
     private void setPlayerListeners() {
@@ -555,6 +557,13 @@ public class PlayerViewController extends RelativeLayout {
                 double percent = progress / 100.0;
                 notifyKPlayer( "trigger", new Object[]{ "progress", percent});
 
+            }
+        });
+
+        mVideoInterface.registerError(new OnErrorListener() {
+            @Override
+            public void onError(int errorCode, String errorMessage) {
+                notifyKPlayer("trigger", new Object[]{ "error", errorMessage});
             }
         });
     }

@@ -40,7 +40,7 @@ import java.util.TimerTask;
 
 
 public class MainActivity extends Activity {
-	public static String TAG = "mainActivity";
+	public static final String TAG = MainActivity.class.getSimpleName();
 	public static final String PROP_IFRAME_URL = "iframeUrl";
 	
 	private PlayerViewController mPlayerView;
@@ -126,8 +126,8 @@ public class MainActivity extends Activity {
 					
 					@Override
 					public String getServerAddress() {
-						
-						return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.20/mwEmbedFrame.php";
+//						return "http://10.0.21.71/html5.kaltura/mwEmbed/mwEmbedFrame.php";
+						return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.24/mwEmbedFrame.php";
 					}
 					
 					@Override
