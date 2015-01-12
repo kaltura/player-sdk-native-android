@@ -33,6 +33,7 @@ import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
+import com.kaltura.playersdk.types.PlayerStates;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +54,8 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	private OnProgressListener mProgressListener;
 	private KPlayerEventListener mKPlayerEventListener;
 	private OnWebViewMinimizeListener mWebViewMinimizeListener;
+
+    private boolean mIsAdPaused = false; // indicates whether the pause button is toggled
 	/**
 	 * Responsible for requesting the ad and creating the
 	 * {@link com.google.ads.interactivemedia.v3.api.AdsManager}
@@ -195,6 +198,9 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 			 */
 			@Override
 			public void onStateChanged(boolean playWhenReady, int playbackState) {
+                if (playbackState == ExoPlayer.STATE_READY && playWhenReady){
+                    mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
+                }
 				if (playbackState == ExoPlayer.STATE_ENDED) {
 					mAdsLoader.contentComplete();
 					for (VideoAdPlayer.VideoAdPlayerCallback callback : callbacks) {
@@ -263,9 +269,9 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
             }
 		} else if ( mCurrentAdUrl == null ) {
 			if ( mIsInSequence ) 
-				showContentPlayer();
+                showContentPlayer();
 			else 
-				mContentPlayer.play();
+                mContentPlayer.play();
 		} else if ( mIsInSequence && !mIsAdPlaying ) {
 			mIsAdPlaying = true;
 			videoAdPlayer.resumeAd();
@@ -329,7 +335,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	@Override
 	public void registerPlayerStateChange( OnPlayerStateChangeListener listener) {
 		mPlayerStateListener = listener;
-		if ( !mIsInSequence && mContentPlayer!=null ) {
+		if ( !mIsInSequence && mContentPlayer != null ) {
 			mContentPlayer.registerPlayerStateChange ( listener );
 		}
 	}
@@ -343,7 +349,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	@Override
 	public void removePlayheadUpdateListener() {
 		mPlayheadUpdateListener = null;
-		if ( !mIsInSequence && mContentPlayer!=null ) {
+		if ( !mIsInSequence && mContentPlayer != null ) {
 			mContentPlayer.removePlayheadUpdateListener ();
 		}
 	}
@@ -351,8 +357,8 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	@Override
 	public void registerProgressUpdate ( OnProgressListener listener ) {
 		mProgressListener = listener;
-		if ( !mIsInSequence && mContentPlayer!=null ) {
-			mContentPlayer.registerProgressUpdate ( listener );
+		if ( !mIsInSequence && mContentPlayer != null ) {
+			mContentPlayer.registerProgressUpdate(listener);
 		}
 	}
 
@@ -399,21 +405,21 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 			mIsInSequence = false;
 				
 			mActivity.get().runOnUiThread(new Runnable() {
-				public void run() {
-					destroyAdPlayer();
-					
-					//register events
-					mContentPlayer.registerPlayerStateChange( mPlayerStateListener );
-					mContentPlayer.registerPlayheadUpdate( mPlayheadListener );
-					mContentPlayer.registerProgressUpdate( mProgressListener );
-					
-					if ( mWebViewMinimizeListener != null ) {
-						mWebViewMinimizeListener.setMinimize(false);
-					}
+                public void run() {
+                    destroyAdPlayer();
 
-					mContentPlayer.play();
-				}
-			});	
+                    //register events
+                    mContentPlayer.registerPlayerStateChange(mPlayerStateListener);
+                    mContentPlayer.registerPlayheadUpdate(mPlayheadListener);
+                    mContentPlayer.registerProgressUpdate(mProgressListener);
+
+                    if (mWebViewMinimizeListener != null) {
+                        mWebViewMinimizeListener.setMinimize(false);
+                    }
+
+                    mContentPlayer.play();
+                }
+            });
 		} 
 	}
 	
@@ -557,6 +563,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		public void pauseAd() {
 			if (mAdPlayer != null){
 				mAdPlayer.pause();
+                mIsAdPaused = true;
 			}
 		}
 
@@ -564,6 +571,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		public void resumeAd() {
 			if(mAdPlayer != null) {
 				mAdPlayer.play();
+                mIsAdPaused = false;
 			}
 		}
 
@@ -609,7 +617,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 			if (oldVpu == null) {
 				oldVpu = vpu;
 				mAdBufferCount = 0;				
-			} else if ( mIsInSequence && (!vpu.equals(VideoProgressUpdate.VIDEO_TIME_NOT_READY)) && vpu.getCurrentTime() == oldVpu.getCurrentTime()) {
+			} else if ( mIsInSequence && (!vpu.equals(VideoProgressUpdate.VIDEO_TIME_NOT_READY)) && vpu.getCurrentTime() == oldVpu.getCurrentTime() && !mIsAdPaused) {
 				mAdBufferCount++;
 				if (mAdBufferCount == MAX_AD_BUFFER_COUNT - 15 && mAdPlayer != null && mIsInSequence) {
 					//try to recover
