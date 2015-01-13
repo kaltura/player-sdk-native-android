@@ -634,141 +634,140 @@ public class PlayerViewController extends RelativeLayout {
                                                 int seekTo = Math.round(Float.parseFloat(params.get(1)) * 1000);
                                                 mVideoInterface.seek(seekTo);
                                             } else if (params.get(0).equals("src")) {
-                                                    // remove " from the edges
-                                                    mVideoUrl = params.get(1);
-                                                    //check for hls
-                                                    int lastIndex = mVideoUrl.indexOf("?") != -1 ? mVideoUrl.indexOf("?") : mVideoUrl.length();
-                                                    String videoUrl = mVideoUrl.substring(0, lastIndex);
-                                                    String extension = videoUrl.substring(videoUrl.lastIndexOf(".") + 1);
+                                                // remove " from the edges
+                                                mVideoUrl = params.get(1);
+                                                //check for hls
+                                                int lastIndex = mVideoUrl.indexOf("?") != -1 ? mVideoUrl.indexOf("?") : mVideoUrl.length();
+                                                String videoUrl = mVideoUrl.substring(0, lastIndex);
+                                                String extension = videoUrl.substring(videoUrl.lastIndexOf(".") + 1);
 
-                                                    VideoPlayerInterface tmpPlayer = null;
-                                                    boolean shouldReplacePlayerView = false;
-                                                    if (extension.equals("m3u8")) {
-                                                        if (!(mVideoInterface instanceof HLSPlayer)) {
-                                                            // ((HLSPlayer) mVideoInterface).switchQualityTrack
-                                                            tmpPlayer = new HLSPlayer(mActivity);
-                                                            shouldReplacePlayerView = true;
-                                                        }
+                                                VideoPlayerInterface tmpPlayer = null;
+                                                boolean shouldReplacePlayerView = false;
+                                                if (extension.equals("m3u8")) {
+                                                    if (!(mVideoInterface instanceof HLSPlayer)) {
+                                                        // ((HLSPlayer) mVideoInterface).switchQualityTrack
+                                                        tmpPlayer = new HLSPlayer(mActivity);
+                                                        shouldReplacePlayerView = true;
+                                                    }
+                                                } else {
+                                                    if (mVideoInterface instanceof HLSPlayer) {
+                                                        tmpPlayer = new KalturaPlayer(mActivity);
+                                                        shouldReplacePlayerView = true;
+                                                    }
+                                                }
+
+                                                if (shouldReplacePlayerView && tmpPlayer != null) {
+                                                    if (mVideoInterface instanceof View) {
+                                                        replacePlayerViewChild((View) tmpPlayer, (View) mVideoInterface);
+                                                    }
+                                                    removePlayerListeners();
+                                                    if (mVideoInterface instanceof HLSPlayer) {
+                                                        ((HLSPlayer) mVideoInterface).close();
+                                                    }
+
+                                                    mVideoInterface = tmpPlayer;
+                                                    setPlayerListeners();
+                                                }
+                                                mVideoInterface.setVideoUrl(mVideoUrl);
+                                                asyncEvaluate("{mediaProxy.entry.name}", new KPlayerEventListener() {
+                                                    @Override
+                                                    public void onKPlayerEvent(
+                                                            Object body) {
+                                                        mVideoTitle = (String) body;
+                                                    }
+
+                                                    @Override
+                                                    public String getCallbackName() {
+                                                        return "getEntryName";
+                                                    }
+                                                });
+                                                asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", new KPlayerEventListener() {
+                                                    @Override
+                                                    public void onKPlayerEvent(
+                                                            Object body) {
+                                                        mThumbUrl = (String) body;
+                                                    }
+
+                                                    @Override
+                                                    public String getCallbackName() {
+                                                        return "getEntryThumb";
+                                                    }
+                                                });
+                                            } else if (params.get(0).equals("wvServerKey")) {
+                                                if (!(mVideoInterface instanceof PlayerView)) {
+
+                                                    ViewGroup.LayoutParams currLP = getLayoutParams();
+                                                    PlayerView playerView = new PlayerView(mActivity);
+                                                    LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
+                                                    if (mVideoInterface instanceof View) {
+                                                        replacePlayerViewChild(playerView, (View) mVideoInterface);
                                                     } else {
-                                                        if (mVideoInterface instanceof HLSPlayer) {
-                                                            tmpPlayer = new KalturaPlayer(mActivity);
-                                                            shouldReplacePlayerView = true;
-                                                        }
+                                                        addView(playerView, getChildCount() - 1, lp);
                                                     }
 
-                                                    if (shouldReplacePlayerView && tmpPlayer != null) {
-                                                        if (mVideoInterface instanceof View) {
-                                                            replacePlayerViewChild((View) tmpPlayer, (View) mVideoInterface);
-                                                        }
-                                                        removePlayerListeners();
-                                                        if (mVideoInterface instanceof HLSPlayer){
-                                                            ((HLSPlayer) mVideoInterface).close();
-                                                        }
+                                                    mOriginalVideoInterface = playerView;
+                                                    mOriginalVideoInterface.setVideoUrl(mVideoInterface.getVideoUrl());
+                                                    createPlayerInstance();
+                                                }
+                                                String licenseUrl = params.get(1);
+                                                WidevineHandler.acquireRights(
+                                                        mActivity,
+                                                        mVideoInterface.getVideoUrl(),
+                                                        licenseUrl);
+                                            } else if (params.get(0).equals("doubleClickRequestAds")) {
+                                                if (mVideoInterface instanceof KalturaPlayer) {
+                                                    IMAPlayer imaPlayer = new IMAPlayer(getContext());
+                                                    replacePlayerViewChild(imaPlayer, (KalturaPlayer) mVideoInterface);
+                                                    imaPlayer.setParams(mVideoInterface, params.get(1), mActivity, new KPlayerEventListener() {
 
-                                                        mVideoInterface = tmpPlayer;
-                                                        setPlayerListeners();
-                                                    }
-                                                    mVideoInterface.setVideoUrl(mVideoUrl);
-                                                    asyncEvaluate("{mediaProxy.entry.name}", new KPlayerEventListener() {
                                                         @Override
                                                         public void onKPlayerEvent(
                                                                 Object body) {
-                                                            mVideoTitle = (String) body;
+                                                            if (body instanceof Object[]) {
+                                                                notifyKPlayer("trigger", (Object[]) body);
+                                                            } else {
+                                                                notifyKPlayer("trigger", new String[]{body.toString()});
+                                                            }
                                                         }
 
                                                         @Override
                                                         public String getCallbackName() {
-                                                            return "getEntryName";
+                                                            // TODO Auto-generated method stub
+                                                            return null;
                                                         }
+
                                                     });
-                                                    asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", new KPlayerEventListener() {
-                                                        @Override
-                                                        public void onKPlayerEvent(
-                                                                Object body) {
-                                                            mThumbUrl = (String) body;
-                                                        }
+
+                                                    removePlayerListeners();
+                                                    mVideoInterface = imaPlayer;
+                                                    setPlayerListeners();
+
+                                                    imaPlayer.registerWebViewMinimize(new OnWebViewMinimizeListener() {
 
                                                         @Override
-                                                        public String getCallbackName() {
-                                                            return "getEntryThumb";
-                                                        }
-                                                    });
-                                                } else if (params.get(0).equals("wvServerKey")) {
-                                                    if (!(mVideoInterface instanceof PlayerView)) {
+                                                        public void setMinimize(boolean minimize) {
+                                                            if (minimize != mWvMinimized) {
+                                                                mWvMinimized = minimize;
+                                                                LayoutParams wvLp = (LayoutParams) mWebView.getLayoutParams();
 
-                                                        ViewGroup.LayoutParams currLP = getLayoutParams();
-                                                        PlayerView playerView = new PlayerView(mActivity);
-                                                        LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-                                                        if (mVideoInterface instanceof View) {
-                                                            replacePlayerViewChild(playerView, (View) mVideoInterface);
-                                                        } else {
-                                                            addView(playerView, getChildCount() - 1, lp);
-                                                        }
-
-                                                        mOriginalVideoInterface = playerView;
-                                                        mOriginalVideoInterface.setVideoUrl(mVideoInterface.getVideoUrl());
-                                                        createPlayerInstance();
-                                                    }
-                                                    String licenseUrl = params.get(1);
-                                                    WidevineHandler.acquireRights(
-                                                            mActivity,
-                                                            mVideoInterface.getVideoUrl(),
-                                                            licenseUrl);
-                                                } else if (params.get(0).equals("doubleClickRequestAds")) {
-                                                    if (mVideoInterface instanceof KalturaPlayer) {
-                                                        IMAPlayer imaPlayer = new IMAPlayer(getContext());
-                                                        replacePlayerViewChild(imaPlayer, (KalturaPlayer) mVideoInterface);
-                                                        imaPlayer.setParams(mVideoInterface, params.get(1), mActivity, new KPlayerEventListener() {
-
-                                                            @Override
-                                                            public void onKPlayerEvent(
-                                                                    Object body) {
-                                                                if (body instanceof Object[]) {
-                                                                    notifyKPlayer("trigger", (Object[]) body);
+                                                                if (minimize) {
+                                                                    float scale = mActivity.getResources().getDisplayMetrics().density;
+                                                                    wvLp.height = (int) (CONTROL_BAR_HEIGHT * scale + 0.5f);
+                                                                    ;
+                                                                    wvLp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
                                                                 } else {
-                                                                    notifyKPlayer("trigger", new String[]{body.toString()});
-                                                                }
-                                                            }
-
-                                                            @Override
-                                                            public String getCallbackName() {
-                                                                // TODO Auto-generated method stub
-                                                                return null;
-                                                            }
-
-                                                        });
-
-                                                        removePlayerListeners();
-                                                        mVideoInterface = imaPlayer;
-                                                        setPlayerListeners();
-
-                                                        imaPlayer.registerWebViewMinimize(new OnWebViewMinimizeListener() {
-
-                                                            @Override
-                                                            public void setMinimize(boolean minimize) {
-                                                                if (minimize != mWvMinimized) {
-                                                                    mWvMinimized = minimize;
-                                                                    LayoutParams wvLp = (LayoutParams) mWebView.getLayoutParams();
-
-                                                                    if (minimize) {
-                                                                        float scale = mActivity.getResources().getDisplayMetrics().density;
-                                                                        wvLp.height = (int) (CONTROL_BAR_HEIGHT * scale + 0.5f);
-                                                                        ;
-                                                                        wvLp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                                                                    } else {
-                                                                        wvLp.height = getLayoutParams().height;
-                                                                    }
-
-                                                                    updateViewLayout(mWebView, wvLp);
+                                                                    wvLp.height = getLayoutParams().height;
                                                                 }
 
+                                                                updateViewLayout(mWebView, wvLp);
                                                             }
 
-                                                        });
+                                                        }
 
-                                                    } else {
-                                                        Log.w(TAG, "DoubleClick is not supported by this player");
-                                                    }
+                                                    });
+
+                                                } else {
+                                                    Log.w(TAG, "DoubleClick is not supported by this player");
                                                 }
                                             }
                                         }
@@ -777,6 +776,7 @@ public class PlayerViewController extends RelativeLayout {
                                     } else if (action.equals("notifyKPlayerEvaluated")) {
                                         return notifyKPlayerEvent(value, mKplayerEvaluatedMap, true);
                                     }
+                                }
 
 
                             } catch (Exception e) {
