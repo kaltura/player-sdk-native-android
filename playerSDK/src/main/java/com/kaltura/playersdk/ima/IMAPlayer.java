@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
@@ -113,7 +114,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		public void run() {
 			if ( mIsInSequence && mKPlayerEventListener != null ) {
 				try {
-					VideoProgressUpdate progress = videoAdPlayer.getProgress();
+					VideoProgressUpdate progress = videoAdPlayer.getAdProgress();
 					mTimeRemainingObj.put("time", progress.getCurrentTime() );
 					mTimeRemainingObj.put("duration", progress.getDuration() );
 					float remain = progress.getDuration() - progress.getCurrentTime();
@@ -596,7 +597,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		 * then the start method will be ignored.
 		 */
 		@Override
-		public VideoProgressUpdate getProgress() {
+		public VideoProgressUpdate getAdProgress() {
 			VideoProgressUpdate vpu = null;
 
 			if ( mIsInSequence ) {
@@ -738,6 +739,10 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 					eventObject = new Object[]{"thirdQuartile"};
 					break;
 
+                case CLICKED:
+                    Map<String,String> data = event.getAdData();
+                    Log.d(TAG, data.toString());
+                    break;
 				default:
 					break;
 				}
@@ -759,7 +764,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 			mAdsManager.addAdErrorListener(this);
 			mAdsManager.addAdEventListener(this);
 			mAdsManager.init();
-			if ( mKPlayerEventListener!=null ) {
+			if ( mKPlayerEventListener != null ) {
 				Log.d(this.getClass().getSimpleName(), "Calling AdLoadedEvent!");
 				mKPlayerEventListener.onKPlayerEvent( "adLoadedEvent" );
 			}
@@ -768,7 +773,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 	@Override
 	public void setStartingPoint(int point) {
-		if ( !mIsInSequence && mContentPlayer!= null ) {
+		if (!mIsInSequence && mContentPlayer != null) {
 			mContentPlayer.setStartingPoint(point);
 		}
 		
@@ -776,21 +781,21 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 	@Override
 	public void registerError(OnErrorListener listener) {
-		if ( mContentPlayer!=null ) {
+		if (mContentPlayer != null) {
 			mContentPlayer.registerError(listener);
 		}		
 	}
 
 	@Override
 	public void release() {
-		if ( mIsInSequence && mAdPlayer!=null ) {
+		if ( mIsInSequence && mAdPlayer != null ) {
 			mAdPlayer.pause();
 			mAdPlayer.release();
 			mAdPlayer = null;
 			if ( mPlayheadHandler != null ) {
 				mPlayheadHandler.removeCallbacks( mRunnable );
 			}
-		} else if ( !mIsInSequence && mContentPlayer!=null ) {	
+		} else if ( !mIsInSequence && mContentPlayer != null ) {
 			mContentPlayer.release();
 		}
 	}
