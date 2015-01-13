@@ -40,7 +40,7 @@ import java.util.TimerTask;
 
 
 public class MainActivity extends Activity {
-	public static String TAG = "mainActivity";
+	public static String TAG = MainActivity.class.getSimpleName();
 	public static final String PROP_IFRAME_URL = "iframeUrl";
 	
 	private PlayerViewController mPlayerView;
@@ -75,6 +75,7 @@ public class MainActivity extends Activity {
 					
 					@Override
 					public void onKPlayerEvent(Object body) {
+                        Log.d(TAG,"doPlay event called");
 						setFullScreen();
                         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 					}
@@ -84,10 +85,25 @@ public class MainActivity extends Activity {
 						return "EventListenerDoPlay";
 					}
 				});
+                mPlayerView.addKPlayerEventListener("play", new KPlayerEventListener() {
+
+                    @Override
+                    public void onKPlayerEvent(Object body) {
+                        Log.d(TAG,"play event called");
+                        setFullScreen();
+                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    }
+
+                    @Override
+                    public String getCallbackName() {
+                        return "EventListenerPlay";
+                    }
+                });
                 mPlayerView.addKPlayerEventListener("doPause", new KPlayerEventListener() {
 
                     @Override
                     public void onKPlayerEvent(Object body) {
+                        Log.d(TAG,"doPause event called");
                         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                     }
 
