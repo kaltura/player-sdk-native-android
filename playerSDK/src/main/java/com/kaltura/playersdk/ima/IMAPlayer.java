@@ -41,7 +41,6 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
@@ -663,7 +662,9 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
                 mAdRequestProgress = false;
             }
 			Object[] eventObject = null;
+            Log.d(TAG, "AdEvent:" + event.getType().toString());
 			try {
+
 				JSONObject obj = new JSONObject();
 				switch (event.getType()) {
 				case LOADED:
@@ -742,8 +743,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 					break;
 
                 case CLICKED:
-                    Map<String,String> data = event.getAdData();
-                    Log.d(TAG, data.toString());
+
                     break;
 				default:
 					break;
