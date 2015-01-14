@@ -468,6 +468,7 @@ public class PlayerViewController extends RelativeLayout {
                     // values = TextUtils.join("', '", eventValues);
                 }
                 if ( mWebView != null ) {
+                    Log.d(TAG,"NotifyKplayer: " + values);
                     mWebView.loadUrl("javascript:NativeBridge.videoPlayer."
                             + action + "(" + values + ");");
                 }
@@ -563,7 +564,11 @@ public class PlayerViewController extends RelativeLayout {
         mVideoInterface.registerError(new OnErrorListener() {
             @Override
             public void onError(int errorCode, String errorMessage) {
-                notifyKPlayer("trigger", new Object[]{ "error", errorMessage});
+                Log.d(TAG, "Error Code: "+String.valueOf(errorCode)+" : "+errorMessage);
+                if (mVideoInterface.getClass().equals(HLSPlayer.class)) {
+                    notifyKPlayer("trigger", new Object[]{"error", errorMessage});
+                }
+
             }
         });
     }

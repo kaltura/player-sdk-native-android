@@ -149,6 +149,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 
 	public void setParams( VideoPlayerInterface contentPlayer, String adTagUrl, Activity activity, KPlayerEventListener listener ) {
+        Log.d(TAG,"Setting Params");
 		mActivity = new WeakReference<Activity>(activity);
 		mKPlayerEventListener = listener;
 		mContentPlayer = contentPlayer;
@@ -419,6 +420,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
                     }
 
                     mContentPlayer.play();
+                    mKPlayerEventListener.onKPlayerEvent("play");
                 }
             });
 		} 
