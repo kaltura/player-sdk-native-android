@@ -22,8 +22,8 @@ dependencies {
     compile project(':castCompanionLibraryandroid')
     compile project(':googlemediaframework')
     compile project(':hLSPlayerSDK')
-    compile 'com.google.android.gms:play-services:+'
-    compile 'com.android.support:mediarouter-v7:19.1.0'
-    compile 'com.android.support:appcompat-v7:21+'
+    compile 'com.google.android.gms:play-services:6+'
+    compile 'com.android.support:mediarouter-v7:19.+'
+    compile 'com.android.support:appcompat-v7:21.+'
     compile files('libs/ima-android-sdk-beta9.jar')
 }
