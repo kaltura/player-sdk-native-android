@@ -730,6 +730,7 @@ public class PlayerViewController extends RelativeLayout {
                                                         licenseUrl);
                                             } else if (params.get(0).equals("doubleClickRequestAds")) {
                                                 if (mVideoInterface instanceof KalturaPlayer) {
+                                                    mVideoInterface.release();
                                                     IMAPlayer imaPlayer = new IMAPlayer(getContext());
                                                     replacePlayerViewChild(imaPlayer, (KalturaPlayer) mVideoInterface);
                                                     imaPlayer.setParams(mVideoInterface, params.get(1), mActivity, new KPlayerEventListener() {
