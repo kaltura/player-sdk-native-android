@@ -1,5 +1,9 @@
 package com.kaltura.hlsplayersdk;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -37,10 +41,6 @@ import com.kaltura.hlsplayersdk.subtitles.SubtitleHandler;
 import com.kaltura.hlsplayersdk.subtitles.TextTrackCue;
 import com.kaltura.hlsplayersdk.types.PlayerStates;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
 /**
  * Main class for HLS video playback on the Java side.
  * 
@@ -57,7 +57,10 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private final int STATE_PAUSED = 2;
 	private final int STATE_PLAYING = 3;
 	private final int STATE_SEEKING = 4;
+	private final int STATE_FORMAT_CHANGING = 5;
 	private final int STATE_FOUND_DISCONTINUITY = 6;
+	private final int STATE_WAITING_FOR_DATA = 7;
+	private final int STATE_CUE_STOP = 8;
 	
 	private final int THREAD_STATE_STOPPED = 0;
 	private final int THREAD_STATE_RUNNING = 1;
@@ -106,9 +109,13 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		ManifestSegment seg = currentController.getStreamHandler().getNextFile(mQualityLevel);
 		if(seg == null)
 		{
-			noMoreSegments = true;
+			if (currentController.getStreamHandler().streamEnds() == true)
+				noMoreSegments = true;
+			Log.i("HLSPlayerViewController.requestNextSegment", "---- Did not receive a valid segment ----- ");
 			return;
 		}
+		
+		Log.i("HLSPlayerViewController.requestNextSegment", "---- Feeding segment '" + seg.uri + "'");
 			
 
 		if (seg.altAudioSegment != null)
@@ -172,7 +179,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		
 		Log.i("PlayerViewController", "Initializing hw surface.");
 		
-		currentController.mActivity.runOnUiThread(new Runnable() {
+		currentController.post(new Runnable() {
 			@Override
 			public void run() {
 				currentController.SetSurface(null);
@@ -186,7 +193,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 						ViewGroup.LayoutParams.FILL_PARENT);
 				lp.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
 				currentController.mPlayerView = new PlayerView(
-						currentController.mActivity, currentController,
+						currentController.getContext(), currentController,
 						epb);
 				currentController.addView(currentController.mPlayerView, lp);
 		
@@ -212,7 +219,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		final int hh = h;
 		if (currentController != null) 
 		{
-			currentController.mActivity.runOnUiThread(new Runnable() {
+			currentController.post(new Runnable() {
 				@Override
 				public void run() {
 					currentController.mVideoWidth = ww;
@@ -255,6 +262,20 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		}
 	}
 	
+	/**
+	 * Provides a method for the native code to notify us of errors
+	 * 
+	 * @param error - These are the codes from the OnErrorListener
+	 * @param msg
+	 */
+	public static void postNativeError(int error, String msg)
+	{
+		if (currentController != null)
+		{
+			currentController.postError(error, msg);
+		}
+	}
+	
 	// Interface thread
 	static class InterfaceThread extends HandlerThread
 	{
@@ -285,7 +306,6 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	}
 
 	// Instance members.
-	private Activity mActivity;
 	private PlayerView mPlayerView;
 
 	// This is our root manifest
@@ -319,6 +339,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private int mRenderThreadState = THREAD_STATE_STOPPED;
 	private Thread mRenderThread;
 	private Runnable renderRunnable = new Runnable() {
+		private int lastState = STATE_STOPPED;
 		public void run() {
 			mRenderThreadState = THREAD_STATE_RUNNING;
 			while (mRenderThreadState == THREAD_STATE_RUNNING) {
@@ -329,10 +350,17 @@ public class HLSPlayerViewController extends RelativeLayout implements
 					continue;
 				}
 				int state = GetState();
-				if (state == STATE_PLAYING || state == STATE_FOUND_DISCONTINUITY) {
+				if (state == STATE_PLAYING || state == STATE_FOUND_DISCONTINUITY || state == STATE_WAITING_FOR_DATA) {
 					int rval = NextFrame();
 					if (rval >= 0) mTimeMS = rval;
-					if (rval < 0) Log.i("videoThread", "NextFrame() returned " + rval);
+					if (rval < 0 && state != lastState)
+					{
+						Log.i("videoThread", "State Changed -- NextFrame() returned " + rval + " : state = " + 
+								(state == STATE_PLAYING ? "STATE_PLAYING" : 
+								(state == STATE_FOUND_DISCONTINUITY ? "STATE_FOUND_DISCONTINUITY" : 
+								(state == STATE_WAITING_FOR_DATA ? "STATE_WAITING_FOR_DATA" : "UNKNOWN STATE"))));
+					}
+					lastState = state;
 					if (rval == -1 && noMoreSegments) currentController.stop();
 					if (rval == -1013) // INFO_DISCONTINUITY
 					{
@@ -366,7 +394,12 @@ public class HLSPlayerViewController extends RelativeLayout implements
 					//Log.i("PlayerViewController", "Dropped Frames Per Sec: " + DroppedFramesPerSecond());
 
 				} 
-				else {
+				else if (state == STATE_CUE_STOP)
+				{
+					stop();
+				}
+				else
+				{
 					try {
 						Thread.sleep(30);
 					} catch (InterruptedException ie) {
@@ -382,7 +415,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	// Handle discontinuity/format change
 	public void HandleFormatChange()
 	{
-		mActivity.runOnUiThread(new Runnable()
+		post(new Runnable()
 			{
 				public void run() {
 					Log.i("HandleFormatChange", "UI Thread calling ApplyFormatChange()");
@@ -428,28 +461,29 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	 */
 	public void close() {
 		Log.i("PlayerViewController", "Closing resources.");
-		mRenderThread.interrupt();
-		mInterfaceThread.interrupt();
+		if (mRenderThread != null) mRenderThread.interrupt();
+		if (mInterfaceThread != null) mInterfaceThread.interrupt();
 		CloseNativeDecoder();
 		if (mStreamHandler != null)
 		{
 			mStreamHandler.close();
 			mStreamHandler = null;
 		}
+		currentController = null;
 		
 	}
 	
 	@Override
 	public void release() {
 		
-		SharedPreferences sp = mActivity.getSharedPreferences("hlsplayersdk", Context.MODE_PRIVATE);
+		SharedPreferences sp = getContext().getSharedPreferences("hlsplayersdk", Context.MODE_PRIVATE);
 		Editor spe = sp.edit();
 		spe.clear();
 		spe.putString("lasturl", mLastUrl);
 		spe.putInt("playstate", GetState());
 		spe.putInt("startms", mStartingMS);
 		spe.putInt("initialquality", mQualityLevel);
-		spe.putInt("initialaudiotrack", mStreamHandler.altAudioIndex);
+		spe.putInt("initialaudiotrack", mStreamHandler != null ? mStreamHandler.altAudioIndex : 0);
 		spe.putInt("initialsubtitletrack", mSubtitleLanguage);
 		spe.commit();
 		
@@ -460,7 +494,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	@Override
 	public void recoverRelease() {
 		// Deserialize postion, playstate, and url
-		SharedPreferences sp = mActivity.getSharedPreferences("hlsplayersdk", Context.MODE_PRIVATE);
+		SharedPreferences sp = getContext().getSharedPreferences("hlsplayersdk", Context.MODE_PRIVATE);
 		mLastUrl = sp.getString("lasturl", "");
 		mInitialPlayState = sp.getInt("playstate", 0);
 		mStartingMS = sp.getInt("startms", 0);
@@ -474,7 +508,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		if (mRestoringState)
 		{
 			// we need to resume, somehow
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -507,7 +541,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	 * actually start.
 	 */
 	public void onParserComplete(ManifestParser parser) {
-		if (parser == null)
+		if (parser == null || parser.hasSegments() == false)
 		{
 			Log.w("PlayerViewController", "Manifest is null. Ending playback.");
 			postError(OnErrorListener.MEDIA_ERROR_NOT_VALID, "No Valid Manifest");
@@ -522,14 +556,14 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		mStreamHandler = new StreamHandler(parser);
 		mSubtitleHandler = new SubtitleHandler(parser);
 		
-		double startTime = 0;
+		double startTime = StreamHandler.USE_DEFAULT_START; // This is a trigger to let getFileForTime know to start a live stream 
 		int subtitleIndex = 0;
 		int qualityLevel = 0;
 		int textTrackIndex = mSubtitleHandler.hasSubtitles() ? mSubtitleHandler.getDefaultLanguageIndex() : 0;
 		if (mRestoringState)
 		{
 			getStreamHandler().setAltAudioTrack(mAltAudioIndex);
-			startTime = (double)mStartingMS / 1000.0;
+			startTime = mStreamHandler.streamEnds() ? (double)mStartingMS / 1000.0 : StreamHandler.USE_DEFAULT_START; // Always go to the end on a live stream, even when we resume
 			qualityLevel = mInitialQualityLevel;
 			textTrackIndex = mInitialSubtitleTrack;
 		}
@@ -542,10 +576,12 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			return;
 		}
 		
-		int precacheCount = SetSegmentsToBuffer(); // Make sure the segments to buffer count
-												   // is set correctly in case it was changed
-												   // before starting playback
+		if (startTime == StreamHandler.USE_DEFAULT_START) startTime = seg.startTime; // If our time isn't set for us (ie. on a resume), 
+																					 // we'll be starting at the front of the segment, 
+																					 // so use that time when feeding the segment and
+																					 // getting text tracks.
 		
+	
 		if (mSubtitleHandler.hasSubtitles())
 		{
 			postTextTracksList(mSubtitleHandler.getLanguageList(), textTrackIndex);
@@ -651,8 +687,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		return GetState() == STATE_PLAYING;
 	}
 
-	public void addComponents(String iframeUrl, Activity activity) {
-		mActivity = activity;
+	public void initialize() {
+		//mActivity = activity;
 		setBackgroundColor(0xFF000000);
 		initializeNative();
 	}
@@ -761,6 +797,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 	public void stop() {
 		HLSSegmentCache.cancelDownloads();
+		if (mStreamHandler != null) mStreamHandler.stopReloads();
 		StopPlayer();
 		try {
 			Thread.sleep(100);
@@ -805,14 +842,6 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		
 		targetSeekSet = true;
 		targetSeekMS = msec;	
-		if (mStreamHandler != null)
-		{
-			if (targetSeekMS > (mStreamHandler.getDuration() - (int)(1.5 * mManifest.targetDuration * 1000)))
-			{
-				targetSeekMS = mStreamHandler.getDuration() - (int)(1.5 * mManifest.targetDuration * 1000);
-			}
-					
-		}
 				
 		GetInterfaceThread().getHandler().post( new Runnable() {
 			public void run()
@@ -828,9 +857,15 @@ public class HLSPlayerViewController extends RelativeLayout implements
 					SeekTo(((double)tsms) / 1000.0f);
 					postPlayerStateChange(PlayerStates.SEEKED);
 				}
-				else if (state == STATE_STOPPED)
+				else if (tss && state == STATE_STOPPED && mRenderThreadState == THREAD_STATE_RUNNING)
 				{
-					Log.i("PlayerViewController.Seek().Runnable()", "Seek halted - player is stopped.");
+					Log.i("PlayerViewController.Seek().Runnable()", "Seeking while player is stopped.");
+					mStreamHandler.initialize(); // Need to restart the reload manifest process
+					postPlayerStateChange(PlayerStates.SEEKING);
+					targetSeekSet = false;
+					targetSeekMS = 0;
+					SeekTo(((double)tsms) / 1000.0f);
+					postPlayerStateChange(PlayerStates.SEEKED);
 				}
 				else
 				{
@@ -960,14 +995,12 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mPlayerStateChangeListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 
 				@Override
 				public void run() {
-                    if (mPlayerStateChangeListener != null){
-                        mPlayerStateChangeListener.onStateChanged(state);
-                    }
+					mPlayerStateChangeListener.onStateChanged(state);					
 				}
 				
 			});
@@ -983,13 +1016,11 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mPlayheadUpdateListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
-                    if (mPlayheadUpdateListener != null) {
-                        mPlayheadUpdateListener.onPlayheadUpdated(msec);
-                    }
+					mPlayheadUpdateListener.onPlayheadUpdated(msec);					
 				}
 				
 			});
@@ -1006,7 +1037,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnProgressListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1028,7 +1059,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mErrorListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1065,7 +1096,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mSubtitleTextListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1093,7 +1124,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnTextTracksListListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1111,7 +1142,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnTextTrackChangeListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1127,13 +1158,36 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 	@Override
 	public void hardSwitchAudioTrack(int newAudioIndex) {
-		postError(OnErrorListener.MEDIA_ERROR_UNSUPPORTED, "hardSwitchAudioTrack");
+		if (getStreamHandler() == null)
+		{
+			postError(OnErrorListener.MEDIA_ERROR_NOT_VALID, "The media is not yet ready.");
+			return; // We haven't started yet
+		}
+		
+		final int newIndex = newAudioIndex;
+		
+		GetInterfaceThread().getHandler().post(new Runnable() {
+			public void run()
+			{
+				postAudioTrackSwitchingStart( getStreamHandler().getAltAudioCurrentIndex(), newIndex);
+				
+				boolean success = getStreamHandler().setAltAudioTrack(newIndex);
+				
+				seekToCurrentPosition();
+
+				postAudioTrackSwitchingEnd( getStreamHandler().getAltAudioCurrentIndex());
+			}
+		});
 		
 	}
 	
 	@Override
 	public void softSwitchAudioTrack(int newAudioIndex) {
-		if (getStreamHandler() == null) return; // We haven't started anything yet.
+		if (getStreamHandler() == null)
+		{
+			postError(OnErrorListener.MEDIA_ERROR_NOT_VALID, "The media is not yet ready.");
+			return; // We haven't started yet
+		}
 
 		postAudioTrackSwitchingStart( getStreamHandler().getAltAudioCurrentIndex(), newAudioIndex);
 		
@@ -1151,7 +1205,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnAudioTracksListListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1171,7 +1225,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnAudioTrackSwitchingListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1185,7 +1239,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnAudioTrackSwitchingListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1232,7 +1286,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnQualityTracksListListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1253,7 +1307,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnQualitySwitchingListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {
@@ -1267,7 +1321,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mOnQualitySwitchingListener != null)
 		{
-			mActivity.runOnUiThread(new Runnable()
+			post(new Runnable()
 			{
 				@Override
 				public void run() {

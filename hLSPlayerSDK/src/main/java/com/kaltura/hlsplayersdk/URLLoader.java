@@ -15,6 +15,8 @@ public class URLLoader extends AsyncHttpResponseHandler
 	public BaseManifestItem manifestItem = null;
 	public String uri;
 	public int videoPlayId = 0; // Used for tracking which video play we're on. See HLSPlayerViewController.setVideoURL()
+	private int reloadCount = 0;
+	private final int MAX_RELOAD_TRIES = 3;
 	
 	public URLLoader(DownloadEventListener eventListener, BaseManifestItem item)
 	{
@@ -35,8 +37,22 @@ public class URLLoader extends AsyncHttpResponseHandler
 	{
 		uri = url;
 		Log.i("URLLoader", "Getting: " + uri);
-		HLSSegmentCache.httpClient().setEnableRedirects(true);
-		HLSSegmentCache.httpClient().get(url, this);
+		AsyncHttpClient httpClient = HLSSegmentCache.httpClient();
+		httpClient.setMaxRetriesAndTimeout(0,httpClient.getConnectTimeout());
+		httpClient.setEnableRedirects(true);
+		httpClient.get(url, this);
+	}
+	
+	private boolean retrying()
+	{
+		++reloadCount;
+		if (reloadCount <= MAX_RELOAD_TRIES)
+		{
+			Log.i("URLLoader", "Retrying [" + reloadCount + "]: " + uri);
+			get(uri);
+			return true;
+		}
+		return false;
 	}
 	
 	
@@ -67,6 +83,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 	//////////////////////////////////
 	@Override
 	public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+		if (retrying()) return;
 		final URLLoader thisLoader = this;
 		final int sc = statusCode;
 		String m = "";

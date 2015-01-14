@@ -163,11 +163,12 @@ public class SegmentCacheEntry {
 		if (statusCode == 200)
 		{
 			downloadCompletedTime = System.currentTimeMillis();
-			Log.i("HLS Cache", "Got " + uri);
+			Log.i("SegmentCacheEntry.postSegmentSucceeded", "Got " + uri);
 			HLSSegmentCache.store(uri, responseData);
 		}
 		else
 		{
+			Log.i("SegmentCacheEntry.postSegmentSucceeded", "statusCode " + "[" + statusCode + "]" + uri);
 			if (mSegmentCachedListener != null)
 				mSegmentCachedListener.onSegmentFailed(uri, statusCode);
 			HLSPlayerViewController.currentController.postError(OnErrorListener.MEDIA_ERROR_IO, uri + "(" + statusCode + ")");
