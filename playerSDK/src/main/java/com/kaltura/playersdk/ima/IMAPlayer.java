@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.google.ads.interactivemedia.v3.api.AdDisplayContainer;
@@ -458,6 +459,13 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 
 	}
 
+    private void playAd(){
+        if (mAdPlayer != null){
+            mAdPlayer.play();
+            ((Activity) getContext()).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
 	private void createAdPlayer( boolean shouldPlay ){
 		destroyAdPlayer();
 
@@ -493,7 +501,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		mAdPlayer.moveSurfaceToForeground();
 		
 		if ( shouldPlay )
-			mAdPlayer.play();
+            playAd();
 		mIsAdPlaying = true;
 		mAdPlayer.disableSeeking();
 		mAdPlayer.hideTopChrome();
@@ -572,7 +580,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 		@Override
 		public void resumeAd() {
 			if(mAdPlayer != null) {
-				mAdPlayer.play();
+				playAd();
                 mIsAdPaused = false;
 			}
 		}
@@ -624,7 +632,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 				if (mAdBufferCount == MAX_AD_BUFFER_COUNT - 15 && mAdPlayer != null && mIsInSequence) {
 					//try to recover
 					mAdPlayer.pause();
-					mAdPlayer.play();
+					playAd();
 				} else if ( mAdBufferCount > MAX_AD_BUFFER_COUNT ) {
 					Log.w(TAG, "ad is buffering and can't recover!");
 					notifyAdError();
