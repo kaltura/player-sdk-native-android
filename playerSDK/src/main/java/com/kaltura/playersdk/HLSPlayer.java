@@ -36,7 +36,7 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
         mPlayer = new HLSPlayerViewController(activity);
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
-        mPlayer.addComponents("", activity);
+        mPlayer.initialize();
     }
 
     public void close(){

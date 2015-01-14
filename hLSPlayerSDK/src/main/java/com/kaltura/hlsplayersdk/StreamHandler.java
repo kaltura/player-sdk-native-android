@@ -57,6 +57,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		
 	};
 	
+	public static final int USE_DEFAULT_START = -999;
 	
 	public int lastSegmentIndex = 0;
 	public int altAudioIndex = -1;
@@ -80,6 +81,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	private Timer reloadTimer = null;
 	private int sequenceSkips = 0;
 	private boolean stalled = false;
+	private boolean closed = false;
 	private HashMap<String, Integer> badManifestMap = new HashMap<String, Integer>();
 	private static final int maxFailedManifestTries = 3; // The number of retries a manifest may occur before we give up on it and remove it from our manifest list.
 	private static final int isTooFarBehind = 5; // How far behind a stream can be before we log a message warning of significant delays
@@ -204,14 +206,25 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		ManifestParser man = getManifestForQuality(lastQuality);
 		if (man != null && !man.streamEnds && man.segments.size() > 0)
 		{
-			mTimerDelay = (long) man.segments.get(man.segments.size() - 1).duration * 1000;
+			mTimerDelay = (long) man.segments.get(man.segments.size() - 1).duration * 1000 / 2;
 			startReloadTimer();
 		}
 	}
 	
+	public void stopReloads()
+	{
+		if (reloadingManifest != null)
+		{
+			reloadingManifest.setReloadEventListener(null);
+			reloadingManifest = null;
+		}
+		killTimer();		
+	}
+	
 	public void close()
 	{
-		killTimer(); 
+		closed = true;
+		stopReloads();
 	}
 	
 	private void reload(int quality)
@@ -230,7 +243,9 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	
 	private void reload(int quality, ManifestParser manifest )
 	{
+		if (closed) return;
 		killTimer(); // In case the timer is active - don't want to do another reload in the middle of it
+		
 		
 		reloadingQuality = quality;
 		
@@ -244,6 +259,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	
 	private void startReloadTimer()
 	{
+		if (closed) return;
 		killTimer(); 
 		
 		reloadTimer = new Timer();
@@ -251,7 +267,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		{
 			public void run()
 			{
-				Log.i("reloadTimerComplete.run", "Reload Timer Complete!");
+				Log.i("StreamHandler.reloadTimerComplete.run", "Reload Timer Complete!");
 				if (mIsRecovering)
 				{
 					attemptRecovery();
@@ -260,7 +276,6 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 					reload(targetQuality);
 				else
 					reload(lastQuality);
-//				postDelayed(runnable, frameDelay);
 			}
 			
 		}, mTimerDelay);
@@ -268,10 +283,19 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	
 	@Override
 	public void onReloadComplete(ManifestParser parser) {
-		Log.i("StreamHandler.onReloadComplete", "last/reload/target: " + lastQuality + "/" + reloadingQuality + "/" + targetQuality);
+		Log.i("StreamHandler.onReloadComplete", "onReloadComplete last/reload/target: " + lastQuality + "/" + reloadingQuality + "/" + targetQuality);
+		if (closed)
+		{
+			Log.i("StreamHandler.onReloadComplete", "StreamHandler is closed. Returning.");
+			return;
+		}
 		ManifestParser newManifest = parser;
 		mFailureCount = 0; // reset the failure count since we had a success
-		if (newManifest != null)
+		if (newManifest == null || newManifest.segments.size() == 0)
+		{
+			Log.e("StreamHandler.onReloadComplete", "newManifest = " + newManifest + " newManifest.segements.size == " + newManifest.segments.size());
+		}
+		if (newManifest != null && newManifest.segments.size() > 0)
 		{
 			// Set the timer delay to the most likely possible delay
 			mTimerDelay = (long)(newManifest.segments.get(newManifest.segments.size() - 1).duration * 1000);
@@ -325,7 +349,8 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	@Override
 	public void onReloadFailed(ManifestParser parser) 
 	{
-		Log.i("StreamHandler.onReloadFailed", "Manifest reload failed: " + parser.fullUrl);
+		if (closed) return;
+		Log.i("StreamHandler.onReloadFailed", "onReloadFailed Manifest reload failed: " + parser.fullUrl);
 		
 		mIsRecovering = true;
 		lastBadManifestUri = parser.fullUrl;
@@ -347,6 +372,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	
 	private void attemptRecovery()
 	{
+		if (closed) return;
 		Log.i("StreamHandler.attemptRecovery", "Attempting Recovery");
 		mIsRecovering = false;
 		
@@ -375,6 +401,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		
 		if (stream.backupStream != null)
 		{
+			Log.i("StreamHandler.swapBackupStream", "Swapping to backupstream: " + stream.backupStream.uri);
 			primaryStream = stream;
 			reload( -1, stream.backupStream.manifest );
 			return true;
@@ -491,7 +518,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		
 		if (!found && targetSegments.get(targetSegments.size() - 1).startTime < matchSegment.startTime)
 		{
-			Log.i("updateManifestSegmentsQualityChange()", "***STALL*** Target STart Time: " + targetSegments.get(targetSegments.size() - 1).startTime + " Match Start Time: " + matchSegment.startTime);
+			Log.i("StreamHandler.updateManifestSegmentsQualityChange()", "***STALL*** Target Sart Time: " + targetSegments.get(targetSegments.size() - 1).startTime + " Match Start Time: " + matchSegment.startTime);
 			
 			stalled = true; // We want to stall because we don't know what the index should be as our new playlist is not quite caught up
 			return found; // returning early so that we don't hcange lastQuality (we still need that value around)
@@ -529,6 +556,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	
 	private void updateManifestSegments(ManifestParser newManifest, int quality)
 	{
+		Log.i("StreamHandler.updateManifestSegments", "Updating manifest segments for quality " + quality);
 		// NOTE: If a stream uses byte ranges, the algorithm in this method will not
 		// take note of them, and will likely return the same file every time. An effort
 		// could also be made to do more stringent testing on the list of segments (beyond just the URI),
@@ -586,26 +614,32 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 			}
 		}
 		
-//		// kill all the segments from the new list that match what we already have
-//		newManifest.segments.splice(0, i + 1);
-//		
-//		// append the remaining segments to the existing segment list
-//		for (k = 0; k < newManifest.segments.length; ++k)
-//		{
-//			segments.push(newManifest.segments[k]);
-//		}
-
-		// TODO: Verifiy that *this below* does what the commented section does above
+		if (i + 1 >= newManifest.segments.size())
+		{
+			Log.i("StreamHandler.updateManifestSegments", "Did not find any new segments");
+		}
+		
 		// append the remaining segments to the existing segment list
+		int lastSize = segments.size();
 		for (k = i+1; k < newManifest.segments.size(); ++k)
 		{
 			segments.add(newManifest.segments.get(k));
+		}
+		if (segments.size() != lastSize)
+		{
+			Log.i("StreamHandler.updateManifestSegments", "We have new segments. We shouldn't be stalled any longer");
+			stalled = false;
 		}
 		
 		// Match the new manifest's and the old manifest's DVR status
 		getManifestForQuality(quality).streamEnds = newManifest.streamEnds;
 		manifest.streamEnds = newManifest.streamEnds;
 
+	}
+	
+	public boolean isStalled()
+	{
+		return stalled;
 	}
 	
 	private int getWorkingQuality(int requestedQuality)
@@ -627,6 +661,24 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		return lastQuality;
 	}
 	
+	private ManifestSegment getSegmentForIndex(Vector<ManifestSegment> segments, int index, int quality)
+	{
+		ManifestSegment seg = segments.get(index);
+		seg.quality = quality;
+		if (altAudioManifest != null)
+		{
+			if (altAudioManifest.segments.size() > index)
+			{
+				seg.altAudioSegment = altAudioManifest.segments.get(index);
+				seg.altAudioSegment.altAudioIndex = altAudioIndex;
+			}
+		}
+		seg.key = getKeyForIndex(index);
+		seg.initializeCrypto();
+		return seg;
+	}
+	
+	
 	public ManifestSegment getFileForTime(double time, int quality)
 	{
 		quality = getWorkingQuality(quality);
@@ -634,10 +686,20 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		double accum = 0.0;
 		Vector<ManifestSegment> segments = getSegmentsForQuality(quality);
 		
+		if (time == USE_DEFAULT_START && !streamEnds())
+		{
+			lastSegmentIndex = Math.max(segments.size() - 2, 0);
+			return getSegmentForIndex(segments, lastSegmentIndex, quality);
+		}
+		else if (time == USE_DEFAULT_START)
+		{
+			time = 0;
+		}
+
+		
 		if (time < lastKnownPlaylistStartTime)
 		{
-			time = lastKnownPlaylistStartTime;  /// TODO: HACK Alert!!! < this should likely be handled by DVRInfo (see dash plugin index handler)
-			/// No longer quite so sure this is a hack, but a requirement
+			time = lastKnownPlaylistStartTime;
 			++sequenceSkips;
 			Log.i("StreamHandler.getFileForTime", "SequenceSkip - time: " + time + " playlistStartTime: " + lastKnownPlaylistStartTime);
 		}
@@ -650,19 +712,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 			if (curSegment.duration > time - accum)
 			{
 				lastSegmentIndex = i;
-				ManifestSegment seg = segments.get(lastSegmentIndex);
-				seg.quality = quality;
-				if (altAudioManifest != null)
-				{
-					if (altAudioManifest.segments.size() > lastSegmentIndex)
-					{
-						seg.altAudioSegment = altAudioManifest.segments.get(lastSegmentIndex);
-						seg.altAudioSegment.altAudioIndex = altAudioIndex;
-					}
-				}
-				seg.key = getKeyForIndex(i);
-				seg.initializeCrypto();
-				return seg;
+				return getSegmentForIndex(segments, lastSegmentIndex, quality);
 			}
 			
 			accum += curSegment.duration;
@@ -671,27 +721,45 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		lastSegmentIndex = i;
 		
 		if (!getManifestForQuality(quality).streamEnds)
+		{
+			Log.i("StreamHandler.getFileForTime", "Couldn't find a segment for the index. Stalling.");
 			stalled = true;
+		}
 		
 		return null;
 	}
 	
+	public boolean streamEnds()
+	{
+		int quality = getWorkingQuality(lastQuality);
+		return getManifestForQuality(quality).streamEnds;
+	}
 
 	public ManifestSegment getNextFile(int quality)
 	{
-		if (stalled)
-		{
-			Log.i("getNextFile()", "---- Stalled -----");
-			return null;
-		}
 		
 		quality = getWorkingQuality(quality);
 		
 		Vector<ManifestSegment> segments = getSegmentsForQuality( quality );
-		++lastSegmentIndex;
-		
-		if ( lastSegmentIndex < segments.size())
+
+		if (lastSegmentIndex < segments.size() && stalled)
 		{
+			Log.i("StreamHandler.getNextFile()", "We have more segments than our current index - toggling off Stalled");
+			stalled = false;
+		}
+		if (stalled)
+		{
+			Log.i("StreamHandler.getNextFile()", "---- Stalled ----- Segment Count=" + segments.size() + " lastSegmentIndex=" + lastSegmentIndex);
+			return null;
+		}
+
+		
+		int targetIndex = lastSegmentIndex + 1;
+		
+		
+		if ( targetIndex < segments.size())
+		{
+			lastSegmentIndex = targetIndex;
 			ManifestSegment lastSegment = segments.get(lastSegmentIndex);
 			lastSegment.key = getKeyForIndex(lastSegmentIndex);
 			if (altAudioManifest != null)
@@ -714,6 +782,14 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 			lastSegment.initializeCrypto();
 			return lastSegment;
 			
+		}
+		
+		Log.i("StreamHandler.getNextFile", "---- No New Segments Found. Last index = " + lastSegmentIndex + " | List Size = " + segments.size());
+		
+		if (!streamEnds())
+		{
+			Log.i("StreamHandler.getNextFile()", "No new segments to play!!! Stalling! Last index = " + lastSegmentIndex + " | List Size = " + segments.size());
+			stalled = true;
 		}
 		
 		return null;

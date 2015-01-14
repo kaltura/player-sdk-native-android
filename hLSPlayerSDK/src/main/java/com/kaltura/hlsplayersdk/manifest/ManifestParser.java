@@ -99,6 +99,16 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		}
 
 	private Object lastHint = null;
+	
+	public boolean hasSegments()
+	{
+		if (segments.size() > 0) return true;
+		for (int i = 0; i < streams.size(); ++i)
+		{
+			if (streams.get(i).manifest != null && streams.get(i).manifest.hasSegments()) return true;
+		}
+		return false;
+	}
 
 	public void parse(String input, String _fullUrl)
 	{
@@ -116,6 +126,11 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		
 		int nextByteRangeStart = 0;
 		
+		if (lines.length == 0)
+		{
+			goodManifest = false;
+		}
+		
 		int i = 0;
 		for ( i = 0; i < lines.length; ++i)
 		{
@@ -128,7 +143,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 			
 			if (i == 0 && !curLine.contains("#EXTM3U"))
 			{
-				Log.i(this.type + ".parse()", "Bad Stream! #EXTM3U is missing from the first line");
+				Log.i("ManifestParser.parse()", "Bad Stream! #EXTM3U is missing from the first line");
 				goodManifest = false;
 				HLSPlayerViewController.currentController.postError(OnErrorListener.MEDIA_ERROR_MALFORMED, "#EXTM3U is missing from the first line. " + this.fullUrl);
 				break;
@@ -254,8 +269,14 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 					segments.add((ManifestSegment)lastHint);
 					lastHint = segments.get(segments.size()-1);
 					String [] valueSplit = tagParams.split(",");
-					((ManifestSegment)lastHint).duration =  Double.parseDouble(valueSplit[0]);
+					
+					if (valueSplit.length > 0) 
+						((ManifestSegment)lastHint).duration =  Double.parseDouble(valueSplit[0]);
+					else 
+						((ManifestSegment)lastHint).duration = targetDuration;
+					
 					((ManifestSegment)lastHint).continuityEra = continuityEra;
+					
 					if(valueSplit.length > 1)
 					{
 						((ManifestSegment)lastHint).title = valueSplit[1];
@@ -459,7 +480,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 	
 	private void announceIfComplete()
 	{
-		Log.i(this.getClass().getName() + ".announceIfComplete()", "_subtitles = " + _subtitlesLoading);
+		Log.i("ManifestParser.announceIfComplete()", "_subtitles = " + _subtitlesLoading);
 		if (manifestParsers.size() == 0 && manifestLoaders.size() == 0)
 		{
 			verifyManifestItemIntegrity();
