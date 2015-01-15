@@ -751,7 +751,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 					break;
 
                 case CLICKED:
-
+                    showContentPlayer();
                     break;
 				default:
 					break;
@@ -785,7 +785,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	public void setStartingPoint(int point) {
 		if (!mIsInSequence && mContentPlayer != null) {
 			mContentPlayer.setStartingPoint(point);
-		}
+        }
 		
 	}
 
@@ -819,7 +819,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 			}
 			mPlayheadHandler.postDelayed(mRunnable, PLAYHEAD_UPDATE_INTERVAL);
 			
-		} else if ( mContentPlayer!=null ) {
+		} else if ( mContentPlayer != null ) {
 			mContentPlayer.recoverRelease();
 		}
 	}
