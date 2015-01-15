@@ -780,7 +780,7 @@ public class PlayerViewController extends RelativeLayout {
                                                         }
 
                                                     });
-
+                                                    mVideoInterface.play();
                                                 } else {
                                                     Log.w(TAG, "DoubleClick is not supported by this player");
                                                 }
