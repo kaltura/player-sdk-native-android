@@ -305,7 +305,7 @@ public class MainActivity extends Activity {
     @Override
     public void onPause() {
     	super.onPause();
-    	if ( mPlayerView!=null ) {
+    	if ( mPlayerView != null ) {
     		mPlayerView.releaseAndSavePosition();
     	}
     }
@@ -313,8 +313,8 @@ public class MainActivity extends Activity {
     @Override
     public void onResume() {
     	super.onResume();
-    	if ( mPlayerView!=null ) {
-//    		mPlayerView.resumePlayer();
+    	if ( mPlayerView != null ) {
+    		mPlayerView.resumePlayer();
     	}
     }
     
