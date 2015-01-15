@@ -266,14 +266,16 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
 	public void play() {
 		if ( mAdTagUrl != null ) {
             synchronized (this){
-                if (!mAdRequestProgress)
+                if (!mAdRequestProgress) {
                     requestAd();
+                }
             }
 		} else if ( mCurrentAdUrl == null ) {
-			if ( mIsInSequence ) 
+			if ( mIsInSequence ) {
                 showContentPlayer();
-			else 
+            }else {
                 mContentPlayer.play();
+            }
 		} else if ( mIsInSequence && !mIsAdPlaying ) {
 			mIsAdPlaying = true;
 			videoAdPlayer.resumeAd();
@@ -419,8 +421,6 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
                         mWebViewMinimizeListener.setMinimize(false);
                     }
 
-                    mContentPlayer.play();
-                    mKPlayerEventListener.onKPlayerEvent("play");
                 }
             });
 		} 

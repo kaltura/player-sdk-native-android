@@ -399,7 +399,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
     @Override
     public void onCryptoError(CryptoException e) {
-        if ( mErrorListener!=null ) {
+        if (mErrorListener != null) {
             mErrorListener.onError( OnErrorListener.MEDIA_ERROR_NOT_VALID, e.getMessage() );
         }
 
