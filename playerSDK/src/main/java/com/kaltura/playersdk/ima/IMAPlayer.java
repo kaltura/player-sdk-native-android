@@ -421,8 +421,6 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
                         mWebViewMinimizeListener.setMinimize(false);
                     }
 
-//                    mContentPlayer.play();
-//                    mKPlayerEventListener.onKPlayerEvent("play");
                 }
             });
 		} 
