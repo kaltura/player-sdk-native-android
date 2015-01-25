@@ -118,6 +118,11 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 		}		
 	}
 
+    private void setPlayWhenReady(boolean shouldPlay) {
+        mExoPlayer.setPlayWhenReady(shouldPlay);
+        setKeepScreenOn(shouldPlay);
+    }
+
     @Override
     public void play() {
         if ( !mPrepared ) {
@@ -129,7 +134,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
                 startWaitingLoop();
                 return;
             }
-            mExoPlayer.setPlayWhenReady(true);
+            setPlayWhenReady(true);
             if ( mStartPos != 0 ) {
                 mExoPlayer.seekTo( mStartPos );
                 mStartPos = 0;
@@ -213,9 +218,9 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
     @Override
     public void pause() {
-        if ( this.isPlaying() && mExoPlayer!=null ) {
-            mExoPlayer.setPlayWhenReady(false);
-            if ( mPlayerStateChangeListener!=null )
+        if ( this.isPlaying() && mExoPlayer != null ) {
+            setPlayWhenReady(false);
+            if ( mPlayerStateChangeListener != null )
                 mPlayerStateChangeListener.onStateChanged(PlayerStates.PAUSE);
         }
     }
@@ -369,7 +374,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
                 Log.d(TAG, "state ended");
                 if (mExoPlayer != null) {
                     Log.d(TAG, "state ended: set play when ready false");
-                    mExoPlayer.setPlayWhenReady(false);
+                    setPlayWhenReady(false);
                 }
                 if (mExoPlayer != null) {
                     Log.d(TAG, "state ended: seek to 0");
