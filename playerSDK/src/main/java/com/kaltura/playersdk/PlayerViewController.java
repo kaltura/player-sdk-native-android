@@ -260,7 +260,7 @@ public class PlayerViewController extends RelativeLayout {
         mBackgroundRL = new RelativeLayout(getContext());
         mBackgroundRL.setBackgroundColor(Color.BLACK);
         this.addView(mBackgroundRL,currLP);
-
+//itay: maybe remove
         KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
         this.addView(kalturaPlayer, lp);
@@ -566,13 +566,29 @@ public class PlayerViewController extends RelativeLayout {
             public void onError(int errorCode, String errorMessage) {
                 Log.d(TAG, "Error Code: "+String.valueOf(errorCode)+" : "+errorMessage);
                 if (mVideoInterface.getClass().equals(HLSPlayer.class)) {
-                    notifyKPlayer("trigger", new Object[]{"error", errorMessage});
+                    notifyKPlayer("trigger", new Object[]{"error", ErrorGenerator.generateErrorMessage(errorMessage,errorCode)});
+                    /*
+                        currentDynamicStramIndex: 0
+                        errorDetail: null
+                        errorId: 16
+                        errorMessage: "Stream not found"
+                        initialStreamIndex: 0
+                        stackTrace: null
+                    */
                 }
 
             }
         });
     }
 
+    private static class ErrorGenerator {
+        public static String generateErrorMessage(String errorMessage, int errorCode){
+            return "{" +
+                        "errorMessage: " + "\"" + errorMessage +"\"" + ", " +
+                        "errorId: " + errorCode +
+                    "}";
+        }
+    }
     private class CustomWebViewClient extends WebViewClient {
 
         @Override
