@@ -7,27 +7,42 @@ import org.apache.http.Header;
 import android.util.Log;
 
 import com.kaltura.hlsplayersdk.cache.HLSSegmentCache;
+import com.kaltura.hlsplayersdk.events.OnErrorListener;
 import com.kaltura.hlsplayersdk.manifest.BaseManifestItem;
 import com.loopj.android.http.*;
 
 public class URLLoader extends AsyncHttpResponseHandler 
 {	
+	private static int urlHandleSource = 0;
+	
+	private static int getNextHandle()
+	{
+		++urlHandleSource;
+		return urlHandleSource;
+	}
+	
+	private int myUrlHandle = 0;
+	
 	public BaseManifestItem manifestItem = null;
 	public String uri;
 	public int videoPlayId = 0; // Used for tracking which video play we're on. See HLSPlayerViewController.setVideoURL()
 	private int reloadCount = 0;
 	private final int MAX_RELOAD_TRIES = 3;
+	private String mTag;
 	
-	public URLLoader(DownloadEventListener eventListener, BaseManifestItem item)
+	public URLLoader(String tag, DownloadEventListener eventListener, BaseManifestItem item)
 	{
-		Log.i("URLLoader.URLLoader()", "Constructing" );
+		myUrlHandle = getNextHandle();
+		Log.i("URLLoader [" + myUrlHandle + "].URLLoader[" + tag + "]", "Constructing [handle=" + myUrlHandle + "]" );
 		setDownloadEventListener( eventListener );
 		manifestItem = item;
+		mTag = tag;
 	}
 	
-	public URLLoader(DownloadEventListener eventListener, BaseManifestItem item, int playId)
+	public URLLoader(String tag, DownloadEventListener eventListener, BaseManifestItem item, int playId)
 	{
-		Log.i("URLLoader.URLLoader()", "Constructing" );
+		myUrlHandle = getNextHandle();
+		Log.i("URLLoader [" + myUrlHandle + "].URLLoader[" + tag + "]", "Constructing [handle=" + myUrlHandle + "]" );
 		setDownloadEventListener( eventListener );
 		videoPlayId = playId;
 		manifestItem = item;
@@ -36,19 +51,27 @@ public class URLLoader extends AsyncHttpResponseHandler
 	public void get(String url)
 	{
 		uri = url;
-		Log.i("URLLoader", "Getting: " + uri);
+		Log.i("URLLoader [" + myUrlHandle + "].get[" + mTag + "]", "Getting: " + uri);
 		AsyncHttpClient httpClient = HLSSegmentCache.httpClient();
 		httpClient.setMaxRetriesAndTimeout(0,httpClient.getConnectTimeout());
 		httpClient.setEnableRedirects(true);
-		httpClient.get(url, this);
+		try
+		{
+			httpClient.get(url, this);
+		}
+		catch (Exception e)
+		{
+			HLSPlayerViewController.currentController.postError(OnErrorListener.ERROR_UNKNOWN, "URL Get Failed: " + e.getMessage());
+		}
 	}
 	
 	private boolean retrying()
 	{
 		++reloadCount;
+		if (mDownloadEventListener == null) return false;
 		if (reloadCount <= MAX_RELOAD_TRIES)
 		{
-			Log.i("URLLoader", "Retrying [" + reloadCount + "]: " + uri);
+			Log.i("URLLoader [" + myUrlHandle + "].retrying[" + mTag + "]", "Retrying [" + reloadCount + "]: " + uri);
 			get(uri);
 			return true;
 		}
@@ -72,7 +95,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 	{
 		if (mDownloadEventListener != null && listener != null)
 		{
-			Log.e("URLLoader.setDownloadEventListener", "Tried to change the downloadEventListener for " + uri);
+			Log.e("URLLoader [" + myUrlHandle + "].setDownloadEventListener[" + mTag + "]", "Tried to change the downloadEventListener for " + uri);
 		}
 		else
 			mDownloadEventListener = listener;
@@ -83,6 +106,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 	//////////////////////////////////
 	@Override
 	public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+		Log.i("URLLoader [" + myUrlHandle + "].failure[" + mTag + "]", uri + "StatusCode (" + statusCode + ")");
 		if (retrying()) return;
 		final URLLoader thisLoader = this;
 		final int sc = statusCode;
@@ -102,7 +126,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 			{
 				@Override
 				public void run() {
-					mDownloadEventListener.onDownloadFailed(thisLoader, "Failure: " + msg + "(" + sc + ")");				
+					mDownloadEventListener.onDownloadFailed(thisLoader, "URLLoader [" + myUrlHandle + "] Failure: " + msg + "(" + sc + ")");				
 				}
 			});
 		}
@@ -111,12 +135,12 @@ public class URLLoader extends AsyncHttpResponseHandler
 	@Override
 	public void onSuccess(int statusCode, Header[] headers, byte[] responseData) {
 		
-		Log.i("URLLoader.success", "Received: " + uri);
+		Log.i("URLLoader [" + myUrlHandle + "].success[" + mTag + "]", "Received: " + uri);
 		final URLLoader thisLoader = this;
 
 		for (int i = 0; i < headers.length; ++i)
 		{
-			Log.v("URLLoader.success", "Header: " + headers[i].getName() + ": " + headers[i].getValue());
+			Log.v("URLLoader [" + myUrlHandle + "].success", "Header: " + headers[i].getName() + ": " + headers[i].getValue());
 		}
 	
 		if (mDownloadEventListener == null) return;
@@ -140,6 +164,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 		}
 		catch (Exception e)
 		{
+			Log.i("URLLoader [" + myUrlHandle + "]", "Failed to convert response to string for uri: " + uri);
 			onFailure(statusCode, headers, responseData, null);
 		}
 		final String response = s;

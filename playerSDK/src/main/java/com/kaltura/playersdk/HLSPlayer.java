@@ -1,6 +1,7 @@
 package com.kaltura.playersdk;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
 
@@ -24,6 +25,7 @@ import java.util.List;
 
 public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener, com.kaltura.hlsplayersdk.events.OnErrorListener, com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener, com.kaltura.hlsplayersdk.events.OnProgressListener, com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
 
+    private static final String TAG = HLSPlayer.class.getSimpleName();
     private HLSPlayerViewController mPlayer;
     private OnPlayerStateChangeListener mPlayerStateChangeListener;
     private OnPlayheadUpdateListener mPlayheadUpdateListener;
@@ -325,6 +327,11 @@ public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, Text
 
     @Override
     public void onError(int errorCode, String errorMessage) {
+        Log.e(TAG, "HLS Error Occurred - error code: " + errorCode + " " + "msg: " + errorMessage);
+    }
+
+    @Override
+    public void onFatalError(int errorCode, String errorMessage) {
         if (mErrorListener != null) {
             mErrorListener.onError(errorCode, errorMessage);
         }
