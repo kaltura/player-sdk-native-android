@@ -36,7 +36,7 @@ Quick Start Guide
 git clone https://github.com/kaltura/player-sdk-native-android.git
 ```
 
-Start up xcode, and build the project.
+Start up Android Studio, and build the project.
 
 API Overview
 =====
