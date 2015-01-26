@@ -566,15 +566,8 @@ public class PlayerViewController extends RelativeLayout {
             public void onError(int errorCode, String errorMessage) {
                 Log.d(TAG, "Error Code: "+String.valueOf(errorCode)+" : "+errorMessage);
                 if (mVideoInterface.getClass().equals(HLSPlayer.class)) {
-                    notifyKPlayer("trigger", new Object[]{"error", ErrorGenerator.generateErrorMessage(errorMessage,errorCode)});
-                    /*
-                        currentDynamicStramIndex: 0
-                        errorDetail: null
-                        errorId: 16
-                        errorMessage: "Stream not found"
-                        initialStreamIndex: 0
-                        stackTrace: null
-                    */
+                    String error = ErrorGenerator.generateErrorMessage(errorMessage, errorCode);
+                    notifyKPlayer("trigger", new Object[]{"error", error});
                 }
 
             }
@@ -583,10 +576,26 @@ public class PlayerViewController extends RelativeLayout {
 
     private static class ErrorGenerator {
         public static String generateErrorMessage(String errorMessage, int errorCode){
-            return "{" +
-                        "errorMessage: " + "\"" + errorMessage +"\"" + ", " +
-                        "errorId: " + errorCode +
-                    "}";
+             /*
+                currentDynamicStramIndex: 0
+                errorDetail: null
+                errorId: 16
+                errorMessage: "Stream not found"
+                initialStreamIndex: 0
+                stackTrace: null
+             */
+            String result;
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("errorMessage",errorMessage);
+                jsonObject.put("errorId", errorCode);
+                result = jsonObject.toString();
+            } catch (JSONException e) {
+                e.printStackTrace();
+                result = errorMessage;
+            }
+
+            return result;
         }
     }
     private class CustomWebViewClient extends WebViewClient {
