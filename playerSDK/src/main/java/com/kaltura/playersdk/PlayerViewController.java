@@ -278,7 +278,9 @@ public class PlayerViewController extends RelativeLayout {
         if (Build.VERSION.SDK_INT >= 11) {
             mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
-
+        if (!iframeUrl.startsWith("js-frame:")){
+            iframeUrl += "js-frame:";
+        }
         mWebView.loadUrl(iframeUrl);
         mWebView.setBackgroundColor(0);
     }
@@ -611,7 +613,7 @@ public class PlayerViewController extends RelativeLayout {
             if (url != null) {
                 Log.d(TAG, "shouldOverrideUrlLoading::url to load: " + url);
 
-                if ( url.startsWith("js-frame:") ) {
+                if ( url.startsWith("js-frame:") || url.contains("mwEmbedFrame.php")) {
                     String[] arr = url.split(":");
                     if (arr != null && arr.length > 1) {
                         String action = arr[1];
