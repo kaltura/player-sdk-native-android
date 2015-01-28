@@ -1,4 +1,4 @@
-package com.kaltura.playersdk;
+package com.kaltura.playersdk.players;
 
 import android.content.Context;
 import android.media.MediaCodec;
@@ -12,7 +12,6 @@ import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
-import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
@@ -35,7 +34,7 @@ import com.kaltura.playersdk.types.PlayerStates;
  * with one of a number of {@link RendererBuilder} classes to suit different use cases (e.g. DASH,
  * SmoothStreaming and so on).
  */
-public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface, Callback {
+public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface, Callback {
 
     private int NUM_OF_RENFERERS = 2;
     private static final String TAG = KalturaPlayer.class.getSimpleName();

@@ -1,4 +1,4 @@
-package com.kaltura.playersdk;
+package com.kaltura.playersdk.players;
 
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;

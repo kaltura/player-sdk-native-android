@@ -35,6 +35,10 @@ import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.ima.IMAPlayer;
+import com.kaltura.playersdk.players.HLSPlayer;
+import com.kaltura.playersdk.players.KalturaPlayer;
+import com.kaltura.playersdk.players.PlayerView;
+import com.kaltura.playersdk.players.VideoPlayerInterface;
 import com.kaltura.playersdk.types.PlayerStates;
 import com.kaltura.playersdk.widevine.WidevineHandler;
 
@@ -481,9 +485,9 @@ public class PlayerViewController extends RelativeLayout {
     }
 
     private void removePlayerListeners() {
-        mVideoInterface.registerPlayerStateChange( null );
-        mVideoInterface.registerPlayheadUpdate( null );
-        mVideoInterface.registerProgressUpdate( null );
+        mVideoInterface.registerPlayerStateChange(null);
+        mVideoInterface.registerPlayheadUpdate(null);
+        mVideoInterface.registerProgressUpdate(null);
         mVideoInterface.registerError(null);
     }
 
@@ -559,7 +563,7 @@ public class PlayerViewController extends RelativeLayout {
             @Override
             public void onProgressUpdate(int progress) {
                 double percent = progress / 100.0;
-                notifyKPlayer( "trigger", new Object[]{ "progress", percent});
+                notifyKPlayer("trigger", new Object[]{"progress", percent});
 
             }
         });
@@ -567,7 +571,7 @@ public class PlayerViewController extends RelativeLayout {
         mVideoInterface.registerError(new OnErrorListener() {
             @Override
             public void onError(int errorCode, String errorMessage) {
-                Log.d(TAG, "Error Code: "+String.valueOf(errorCode)+" : "+errorMessage);
+                Log.d(TAG, "Error Code: " + String.valueOf(errorCode) + " : " + errorMessage);
                 if (mVideoInterface.getClass().equals(HLSPlayer.class)) {
                     ErrorBuilder.ErrorObject error = new ErrorBuilder().setErrorId(errorCode).setErrorMessage(errorMessage).build();
                     notifyKPlayer("trigger", new Object[]{"error", error});

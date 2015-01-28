@@ -1,4 +1,4 @@
-package com.kaltura.playersdk;
+package com.kaltura.playersdk.players;
 
 import android.content.Context;
 import android.media.MediaPlayer;
@@ -16,7 +16,7 @@ import com.kaltura.playersdk.types.PlayerStates;
 /**
  * Created by michalradwantzor on 9/15/13.
  */
-public class PlayerView extends FrameLayout implements VideoPlayerInterface {
+public class PlayerView extends BasePlayerView implements VideoPlayerInterface {
     //TODO make configurable
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
 

@@ -1,12 +1,15 @@
-package com.kaltura.playersdk;
+package com.kaltura.playersdk.players;
 
 import android.app.Activity;
 import android.util.Log;
 import android.view.Gravity;
-import android.widget.FrameLayout;
 
 import com.kaltura.hlsplayersdk.HLSPlayerViewController;
 import com.kaltura.hlsplayersdk.types.PlayerStates;
+import com.kaltura.playersdk.AlternateAudioTracksInterface;
+import com.kaltura.playersdk.QualityTrack;
+import com.kaltura.playersdk.QualityTracksInterface;
+import com.kaltura.playersdk.TextTracksInterface;
 import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.playersdk.events.OnAudioTracksListListener;
 import com.kaltura.playersdk.events.OnErrorListener;
@@ -23,7 +26,7 @@ import com.kaltura.playersdk.types.TrackType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HLSPlayer extends FrameLayout implements VideoPlayerInterface, TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener, com.kaltura.hlsplayersdk.events.OnErrorListener, com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener, com.kaltura.hlsplayersdk.events.OnProgressListener, com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
+public class HLSPlayer extends BasePlayerView implements VideoPlayerInterface, TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener, com.kaltura.hlsplayersdk.events.OnErrorListener, com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener, com.kaltura.hlsplayersdk.events.OnProgressListener, com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
 
     private static final String TAG = HLSPlayer.class.getSimpleName();
     private HLSPlayerViewController mPlayer;

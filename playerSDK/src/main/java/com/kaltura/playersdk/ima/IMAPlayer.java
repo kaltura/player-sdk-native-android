@@ -26,7 +26,8 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 import com.google.android.libraries.mediaframework.layeredvideo.Util;
-import com.kaltura.playersdk.VideoPlayerInterface;
+import com.kaltura.playersdk.players.BasePlayerView;
+import com.kaltura.playersdk.players.VideoPlayerInterface;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
@@ -42,7 +43,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
+public class IMAPlayer extends BasePlayerView {
 
 	public final static int PLAYHEAD_UPDATE_INTERVAL = 500;
 	public final static int MAX_AD_BUFFER_COUNT = 50;
