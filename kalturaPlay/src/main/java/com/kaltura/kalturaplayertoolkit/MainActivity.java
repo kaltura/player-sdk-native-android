@@ -148,7 +148,7 @@ public class MainActivity extends Activity {
 					@Override
 					public KPPlayerConfig getFlashVars() {
 						KPPlayerConfig playerConfig = new KPPlayerConfig();
-						playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
+//						playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
 						return playerConfig;
 					}
 					

@@ -1,7 +1,4 @@
-package com.kaltura.playersdk.chromecast;
-
-import java.util.Timer;
-import java.util.TimerTask;
+package com.kaltura.playersdk.players;
 
 import android.content.Context;
 import android.database.ContentObserver;
@@ -17,14 +14,17 @@ import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.NoConnectionException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
-import com.kaltura.playersdk.players.VideoPlayerInterface;
+import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
-public class CastPlayer implements VideoPlayerInterface {
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class CastPlayer extends BasePlayerView {
 	
 	private String mVideoUrl;
 	private MediaInfo mMediaInfo;
@@ -43,7 +43,8 @@ public class CastPlayer implements VideoPlayerInterface {
     private SettingsContentObserver mSettingsContentObserver;
 	
 	public CastPlayer( Context context, String title, String subtitle, String studio, String thumbUrl, String videoUrl) {
-		mContext = context;
+		super(context);
+        mContext = context;
 		mCastManager = ChromecastHandler.getVideoCastManager(context);
 		mVideoUrl = videoUrl;
 	 	mMovieMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);

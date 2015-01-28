@@ -26,7 +26,7 @@ import com.kaltura.playersdk.types.TrackType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HLSPlayer extends BasePlayerView implements VideoPlayerInterface, TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener, com.kaltura.hlsplayersdk.events.OnErrorListener, com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener, com.kaltura.hlsplayersdk.events.OnProgressListener, com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
+public class HLSPlayer extends BasePlayerView implements TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener, com.kaltura.hlsplayersdk.events.OnErrorListener, com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener, com.kaltura.hlsplayersdk.events.OnProgressListener, com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
 
     private static final String TAG = HLSPlayer.class.getSimpleName();
     private HLSPlayerViewController mPlayer;

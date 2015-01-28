@@ -34,7 +34,7 @@ import com.kaltura.playersdk.types.PlayerStates;
  * with one of a number of {@link RendererBuilder} classes to suit different use cases (e.g. DASH,
  * SmoothStreaming and so on).
  */
-public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface, Callback {
+public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, Callback {
 
     private int NUM_OF_RENFERERS = 2;
     private static final String TAG = KalturaPlayer.class.getSimpleName();

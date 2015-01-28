@@ -22,7 +22,7 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
-import com.kaltura.playersdk.chromecast.CastPlayer;
+import com.kaltura.playersdk.players.CastPlayer;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
@@ -34,8 +34,9 @@ import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
-import com.kaltura.playersdk.ima.IMAPlayer;
+import com.kaltura.playersdk.players.BasePlayerView;
 import com.kaltura.playersdk.players.HLSPlayer;
+import com.kaltura.playersdk.players.IMAPlayer;
 import com.kaltura.playersdk.players.KalturaPlayer;
 import com.kaltura.playersdk.players.PlayerView;
 import com.kaltura.playersdk.players.VideoPlayerInterface;
@@ -63,9 +64,9 @@ public class PlayerViewController extends RelativeLayout {
     public static int CONTROL_BAR_HEIGHT = 38;
 
     //current active VideoPlayerInterface
-    private VideoPlayerInterface mVideoInterface;
+    private BasePlayerView mVideoInterface;
     //Original VideoPlayerInterface that was created by "addComponents"
-    private VideoPlayerInterface mOriginalVideoInterface;
+    private BasePlayerView mOriginalVideoInterface;
     private WebView mWebView;
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
@@ -701,7 +702,7 @@ public class PlayerViewController extends RelativeLayout {
                                                 String videoUrl = mVideoUrl.substring(0, lastIndex);
                                                 String extension = videoUrl.substring(videoUrl.lastIndexOf(".") + 1);
 
-                                                VideoPlayerInterface tmpPlayer = null;
+                                                BasePlayerView tmpPlayer = null;
                                                 boolean shouldReplacePlayerView = false;
                                                 if (extension.equals("m3u8")) {
                                                     if (!(mVideoInterface instanceof HLSPlayer)) {

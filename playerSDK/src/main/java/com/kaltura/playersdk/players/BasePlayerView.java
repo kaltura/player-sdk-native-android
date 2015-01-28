@@ -25,8 +25,9 @@ public abstract class BasePlayerView extends FrameLayout {
     public BasePlayerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
-    
+
     public abstract String getVideoUrl();
+
     public abstract void setVideoUrl(String url);
 
     public abstract int getDuration();

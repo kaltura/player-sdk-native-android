@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.ima;
+package com.kaltura.playersdk.players;
 
 import android.app.Activity;
 import android.content.Context;
@@ -26,8 +26,6 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 import com.google.android.libraries.mediaframework.layeredvideo.Util;
-import com.kaltura.playersdk.players.BasePlayerView;
-import com.kaltura.playersdk.players.VideoPlayerInterface;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
@@ -89,7 +87,7 @@ public class IMAPlayer extends BasePlayerView {
 	 */
 	private ExoplayerWrapper.PlaybackListener mPlaybackListener;
 
-	private VideoPlayerInterface mContentPlayer;
+	private BasePlayerView mContentPlayer;
 	private SimpleVideoPlayer mAdPlayer;
 	private boolean mIsInSequence;
 	private WeakReference<Activity> mActivity;
@@ -148,7 +146,7 @@ public class IMAPlayer extends BasePlayerView {
 	}
 
 
-	public void setParams( VideoPlayerInterface contentPlayer, String adTagUrl, Activity activity, KPlayerEventListener listener ) {
+	public void setParams( BasePlayerView contentPlayer, String adTagUrl, Activity activity, KPlayerEventListener listener ) {
         Log.d(TAG,"Setting Params");
 		mActivity = new WeakReference<Activity>(activity);
 		mKPlayerEventListener = listener;
