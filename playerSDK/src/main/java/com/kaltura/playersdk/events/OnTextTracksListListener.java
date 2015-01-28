@@ -5,7 +5,7 @@ import java.util.List;
 public abstract class OnTextTracksListListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.TEXT_TRACK_LIST;
+        mEventType = EventType.TEXT_TRACK_LIST_LISTENER_TYPE;
     }
 
     @Override

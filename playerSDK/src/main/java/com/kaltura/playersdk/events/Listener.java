@@ -10,7 +10,7 @@ public abstract class Listener {
     private static String TAG;
     protected EventType mEventType;
 
-    final void executeCallback(InputObject inputObject)
+    final public void executeCallback(InputObject inputObject)
     {
         if(checkValidInputObjectType(inputObject)){
             executeInternalCallback(inputObject);
@@ -38,22 +38,22 @@ public abstract class Listener {
     }
 
     public static enum EventType{
-        JS_CALLBACK_READY,
-        AUDIO_TRACKS_LIST,
-        AUDIO_TRACK_SWITCH,
-        CAST_DEVICE_CHANGE,
-        CAST_ROUTE_DETECTED,
-        ERROR,
-        PLAYER_STATE_CHANGE,
-        PLAYHEAD_UPDATE,
-        PROGRESS,
-        QUALITY_SWITCHING,
-        QUALITY_TRACKS_LIST,
-        TEXT_TRACK_CHANGE,
-        TEXT_TRACK_LIST,
-        TEXT_TRACK_TEXT,
-        TOGGLE_FULLSCREEN,
-        WEB_VIEW_MINIMIZE,
-        KPLAYER_EVENT_LISTENER
+        JS_CALLBACK_READY_LISTENER_TYPE,
+        AUDIO_TRACKS_LIST_LISTENER_TYPE,
+        AUDIO_TRACK_SWITCH_LISTENER_TYPE,
+        CAST_DEVICE_CHANGE_LISTENER_TYPE,
+        CAST_ROUTE_DETECTED_LISTENER_TYPE,
+        ERROR_LISTENER_TYPE,
+        PLAYER_STATE_CHANGE_LISTENER_TYPE,
+        PLAYHEAD_UPDATE_LISTENER_TYPE,
+        PROGRESS_LISTENER_TYPE,
+        QUALITY_SWITCHING_LISTENER_TYPE,
+        QUALITY_TRACKS_LIST_LISTENER_TYPE,
+        TEXT_TRACK_CHANGE_LISTENER_TYPE,
+        TEXT_TRACK_LIST_LISTENER_TYPE,
+        TEXT_TRACK_TEXT_LISTENER_TYPE,
+        TOGGLE_FULLSCREEN_LISTENER_TYPE,
+        WEB_VIEW_MINIMIZE_LISTENER_TYPE,
+        KPLAYER_EVENT_LISTENER_TYPE
     }
 }

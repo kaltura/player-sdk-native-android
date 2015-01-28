@@ -3,7 +3,7 @@ package com.kaltura.playersdk.events;
 public abstract class OnWebViewMinimizeListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.WEB_VIEW_MINIMIZE;
+        mEventType = EventType.WEB_VIEW_MINIMIZE_LISTENER_TYPE;
     }
 
     @Override

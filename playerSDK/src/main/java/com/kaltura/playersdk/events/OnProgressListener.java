@@ -6,24 +6,24 @@ package com.kaltura.playersdk.events;
 public abstract class OnProgressListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.PROGRESS;
+        mEventType = EventType.PROGRESS_LISTENER_TYPE;
     }
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-        AudioTrackSwitchingInputObject input = (AudioTrackSwitchingInputObject) inputObject;
+        ProgressInputObject input = (ProgressInputObject) inputObject;
         onProgressUpdate(input.progress);
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){
-        return inputObject instanceof AudioTrackSwitchingInputObject;
+        return inputObject instanceof ProgressInputObject;
     }
 
 
 
     abstract public void onProgressUpdate(int progress);
 
-    public static class AudioTrackSwitchingInputObject extends InputObject{
+    public static class ProgressInputObject extends InputObject{
         public int progress;
     }
 }

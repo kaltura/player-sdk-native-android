@@ -5,7 +5,7 @@ import java.util.List;
 public abstract class OnAudioTracksListListener extends Listener{
     @Override
     protected void setEventType() {
-        mEventType = EventType.AUDIO_TRACKS_LIST;
+        mEventType = EventType.AUDIO_TRACKS_LIST_LISTENER_TYPE;
     }
 
     @Override

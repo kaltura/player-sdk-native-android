@@ -6,7 +6,7 @@ package com.kaltura.playersdk.events;
 public abstract class OnToggleFullScreenListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.TOGGLE_FULLSCREEN;
+        mEventType = EventType.TOGGLE_FULLSCREEN_LISTENER_TYPE;
     }
 
     @Override

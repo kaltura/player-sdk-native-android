@@ -4,7 +4,7 @@ public abstract class KPlayerEventListener extends Listener{
 
     @Override
     final protected void setEventType() {
-        mEventType = EventType.KPLAYER_EVENT_LISTENER;
+        mEventType = EventType.KPLAYER_EVENT_LISTENER_TYPE;
     }
 
     @Override

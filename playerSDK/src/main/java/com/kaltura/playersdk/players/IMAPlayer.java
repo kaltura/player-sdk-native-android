@@ -27,10 +27,8 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 import com.google.android.libraries.mediaframework.layeredvideo.Util;
 import com.kaltura.playersdk.events.KPlayerEventListener;
-import com.kaltura.playersdk.events.OnErrorListener;
+import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
@@ -48,9 +46,6 @@ public class IMAPlayer extends BasePlayerView {
 
     private final static String TAG = IMAPlayer.class.getSimpleName();
 
-	private OnPlayerStateChangeListener mPlayerStateListener;
-	private OnPlayheadUpdateListener mPlayheadUpdateListener;
-	private OnProgressListener mProgressListener;
 	private KPlayerEventListener mKPlayerEventListener;
 	private OnWebViewMinimizeListener mWebViewMinimizeListener;
 
@@ -94,16 +89,6 @@ public class IMAPlayer extends BasePlayerView {
 	private int mContentCurrentPosition = 0;
 	private boolean mAdRequestProgress = false;
 	private boolean mIsAdPlaying = false;
-	
-	private OnPlayheadUpdateListener mPlayheadListener = new OnPlayheadUpdateListener() {
-
-		@Override
-		public void onPlayheadUpdated(int msec) {
-			mContentCurrentPosition = msec;
-			if ( mPlayheadUpdateListener!=null )
-				mPlayheadUpdateListener.onPlayheadUpdated(msec);			
-		}		
-	};
 
 	private Handler mPlayheadHandler;
 	private JSONObject mTimeRemainingObj = new JSONObject();
@@ -199,7 +184,9 @@ public class IMAPlayer extends BasePlayerView {
 			@Override
 			public void onStateChanged(boolean playWhenReady, int playbackState) {
                 if (playbackState == ExoPlayer.STATE_READY && playWhenReady){
-                    mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
+                    OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
+                    input.state = PlayerStates.PLAY;
+                    executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
                 }
 				if (playbackState == ExoPlayer.STATE_ENDED) {
 					mAdsLoader.contentComplete();
@@ -334,44 +321,14 @@ public class IMAPlayer extends BasePlayerView {
 	}
 
 
-	@Override
-	public void registerPlayerStateChange( OnPlayerStateChangeListener listener) {
-		mPlayerStateListener = listener;
-		if ( !mIsInSequence && mContentPlayer != null ) {
-			mContentPlayer.registerPlayerStateChange ( listener );
-		}
-	}
-
-
-	@Override
-	public void registerPlayheadUpdate( OnPlayheadUpdateListener listener ) {
-		mPlayheadUpdateListener = listener;
-	}
-
-	@Override
-	public void removePlayheadUpdateListener() {
-		mPlayheadUpdateListener = null;
-		if ( !mIsInSequence && mContentPlayer != null ) {
-			mContentPlayer.removePlayheadUpdateListener ();
-		}
-	}
-
-	@Override
-	public void registerProgressUpdate ( OnProgressListener listener ) {
-		mProgressListener = listener;
-		if ( !mIsInSequence && mContentPlayer != null ) {
-			mContentPlayer.registerProgressUpdate(listener);
-		}
-	}
-
 	private void hideContentPlayer() {
 		if ( !mIsInSequence ) {
 			mIsInSequence = true;
 
 			//unregister events
-			mContentPlayer.registerPlayerStateChange( null );
-			mContentPlayer.registerPlayheadUpdate( null );
-			mContentPlayer.registerProgressUpdate( null );
+			mContentPlayer.removeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE);
+			mContentPlayer.removeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE);
+			mContentPlayer.removeListener(Listener.EventType.PROGRESS_LISTENER_TYPE);
 		} 
 	}
 	
@@ -411,9 +368,9 @@ public class IMAPlayer extends BasePlayerView {
                     destroyAdPlayer();
 
                     //register events
-                    mContentPlayer.registerPlayerStateChange(mPlayerStateListener);
-                    mContentPlayer.registerPlayheadUpdate(mPlayheadListener);
-                    mContentPlayer.registerProgressUpdate(mProgressListener);
+                    mContentPlayer.registerListener(getListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE));//registerPlayerStateChange(mPlayerStateListener);
+                    mContentPlayer.registerListener(getListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE));//registerPlayheadUpdate(mPlayheadListener);
+                    mContentPlayer.registerListener(getListener(Listener.EventType.PROGRESS_LISTENER_TYPE));//registerProgressUpdate(mProgressListener);
 
                     if (mWebViewMinimizeListener != null) {
                         mWebViewMinimizeListener.setMinimize(false);
@@ -788,13 +745,6 @@ public class IMAPlayer extends BasePlayerView {
 	}
 
 	@Override
-	public void registerError(OnErrorListener listener) {
-		if (mContentPlayer != null) {
-			mContentPlayer.registerError(listener);
-		}		
-	}
-
-	@Override
 	public void release() {
 		if ( mIsInSequence && mAdPlayer != null ) {
 			mAdPlayer.pause();
@@ -822,4 +772,10 @@ public class IMAPlayer extends BasePlayerView {
 		}
 	}
 
+    @Override
+    protected List<Listener.EventType> getCompatibleListenersList() {
+        List<Listener.EventType> list = new ArrayList<>(super.getCompatibleListenersList());
+        list.add(Listener.EventType.WEB_VIEW_MINIMIZE_LISTENER_TYPE);
+        return list;
+    }
 }

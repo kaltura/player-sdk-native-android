@@ -10,6 +10,7 @@ import com.kaltura.playersdk.AlternateAudioTracksInterface;
 import com.kaltura.playersdk.QualityTrack;
 import com.kaltura.playersdk.QualityTracksInterface;
 import com.kaltura.playersdk.TextTracksInterface;
+import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.playersdk.events.OnAudioTracksListListener;
 import com.kaltura.playersdk.events.OnErrorListener;
@@ -227,39 +228,6 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
     }
 
     @Override
-    public void registerError(final OnErrorListener listener) {
-        mErrorListener = listener;
-        mPlayer.registerError(listener != null ? this : null);
-    }
-
-    @Override
-    public void registerPlayheadUpdate(final OnPlayheadUpdateListener listener) {
-        mPlayheadUpdateListener = listener;
-        mPlayer.registerPlayheadUpdate(listener != null ? this : null);
-
-    }
-
-    @Override
-    public void removePlayheadUpdateListener() {
-        mPlayheadUpdateListener = null;
-        mPlayer.removePlayheadUpdateListener();
-
-    }
-
-    @Override
-    public void registerProgressUpdate(final OnProgressListener listener) {
-        mProgressListener = listener;
-        mPlayer.registerProgressUpdate(listener != null ? this : null);
-
-    }
-
-    @Override
-    public void registerPlayerStateChange(final OnPlayerStateChangeListener listener) {
-        mPlayerStateChangeListener = listener;
-        mPlayer.registerPlayerStateChange(listener != null ? this : null);
-    }
-
-    @Override
     public boolean onStateChanged(PlayerStates state) {
         if (mPlayerStateChangeListener != null) {
             com.kaltura.playersdk.types.PlayerStates kState;
@@ -288,7 +256,9 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
                 default:
                     kState = com.kaltura.playersdk.types.PlayerStates.START;
             }
-            return mPlayerStateChangeListener.onStateChanged(kState);
+            OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
+            inputObject.state = kState;
+            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
         }
 
         return false;

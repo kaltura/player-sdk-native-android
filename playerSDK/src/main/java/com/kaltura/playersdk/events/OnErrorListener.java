@@ -5,7 +5,7 @@ public abstract class OnErrorListener extends Listener{
 
     @Override
     final protected void setEventType() {
-        mEventType = EventType.ERROR;
+        mEventType = EventType.ERROR_LISTENER_TYPE;
     }
 
     @Override
@@ -47,7 +47,7 @@ public abstract class OnErrorListener extends Listener{
     abstract public void onError(int errorCode, String errorMessage);
 
     public static class ErrorInputObject extends InputObject{
-        int errorCode;
-        String errorMessage;
+        public int errorCode;
+        public String errorMessage;
     }
 }

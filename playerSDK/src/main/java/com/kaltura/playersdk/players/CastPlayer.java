@@ -15,9 +15,8 @@ import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.NoConnectionException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
-import com.kaltura.playersdk.events.OnErrorListener;
+import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
@@ -34,10 +33,6 @@ public class CastPlayer extends BasePlayerView {
 	private VideoCastManager mCastManager;
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
 
-    private OnPlayerStateChangeListener mPlayerStateListener;
-    private OnPlayheadUpdateListener mPlayheadUpdateListener;
-    private OnProgressListener mProgressListener;
-    private OnErrorListener mErrorListener;
     private Timer mTimer;
     private int mStartPos = 0;
     private SettingsContentObserver mSettingsContentObserver;
@@ -141,21 +136,27 @@ public class CastPlayer extends BasePlayerView {
                 		int newPos = getCurrentPosition();
                 		if ( newPos > 0 ) 
                 		{
-                			if ( mPlayheadUpdateListener != null ){
-                				mPlayheadUpdateListener.onPlayheadUpdated(newPos);                				
-                			}
+                            OnProgressListener.ProgressInputObject inputObject = new OnProgressListener.ProgressInputObject();
+                            inputObject.progress = newPos;
+                			executeListener(Listener.EventType.PROGRESS_LISTENER_TYPE, inputObject);
+
                 			if ( newPos >= getDuration() ) {
-                    			mPlayerStateListener.onStateChanged(PlayerStates.END);
+                                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject1 = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
+                                inputObject1.state = PlayerStates.END;
+                                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject1);
                     		}
                 		}	
 	                }
 	            }, 0, PLAYHEAD_UPDATE_INTERVAL);
-				mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
-//		    	mCastManager.startCastControllerActivity(mContext, mMediaInfo,
-//		       			0, true);
+                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
+                inputObject.state = PlayerStates.PLAY;
+                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
+
 			} else if ( mCastManager.getPlaybackStatus() == MediaStatus.PLAYER_STATE_PAUSED ) {
 				mCastManager.play();
-				mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
+                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
+                inputObject.state = PlayerStates.PLAY;
+                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
 			}
 
 	
@@ -170,7 +171,9 @@ public class CastPlayer extends BasePlayerView {
 		try {
 			if ( mCastManager.isRemoteMediaLoaded() && !mCastManager.isRemoteMoviePaused() ) {
 				mCastManager.pause();
-				mPlayerStateListener.onStateChanged(PlayerStates.PAUSE);
+                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
+                inputObject.state = PlayerStates.PAUSE;
+                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
 			}
 
 		} catch (CastException e) {
@@ -248,33 +251,6 @@ public class CastPlayer extends BasePlayerView {
 
 		return false;
 	}
-
-	 @Override
-	    public void registerPlayerStateChange( OnPlayerStateChangeListener listener) {
-	        mPlayerStateListener = listener;
-	    }
-
-	    @Override
-	    public void registerError(OnErrorListener listener) {
-	    	//TODO
-	    	mErrorListener = listener;
-
-	    }
-
-	    @Override
-	    public void registerPlayheadUpdate( OnPlayheadUpdateListener listener ) {
-	        mPlayheadUpdateListener = listener;
-	    }
-	    
-	    @Override
-	    public void removePlayheadUpdateListener() {
-	    	mPlayheadUpdateListener = null;
-	    }
-
-	    @Override
-	    public void registerProgressUpdate ( OnProgressListener listener ) {
-	        mProgressListener = listener;
-	    }
 	    
 	    
 	    

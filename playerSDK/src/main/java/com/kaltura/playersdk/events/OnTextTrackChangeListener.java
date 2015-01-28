@@ -3,7 +3,7 @@ package com.kaltura.playersdk.events;
 public abstract class OnTextTrackChangeListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.TEXT_TRACK_CHANGE;
+        mEventType = EventType.TEXT_TRACK_CHANGE_LISTENER_TYPE;
     }
 
     @Override

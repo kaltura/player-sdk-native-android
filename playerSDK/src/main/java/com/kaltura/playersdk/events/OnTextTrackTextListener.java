@@ -11,7 +11,7 @@ package com.kaltura.playersdk.events;
 public abstract class OnTextTrackTextListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.TEXT_TRACK_TEXT;
+        mEventType = EventType.TEXT_TRACK_TEXT_LISTENER_TYPE;
     }
 
     @Override

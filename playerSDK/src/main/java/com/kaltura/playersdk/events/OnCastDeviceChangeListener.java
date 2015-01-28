@@ -5,7 +5,7 @@ import com.google.android.gms.cast.CastDevice;
 public abstract class OnCastDeviceChangeListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.CAST_DEVICE_CHANGE;
+        mEventType = EventType.CAST_DEVICE_CHANGE_LISTENER_TYPE;
     }
 
     @Override

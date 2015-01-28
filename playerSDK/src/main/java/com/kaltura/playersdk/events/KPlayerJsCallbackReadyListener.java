@@ -3,7 +3,7 @@ package com.kaltura.playersdk.events;
 public abstract class KPlayerJsCallbackReadyListener  extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.JS_CALLBACK_READY;
+        mEventType = EventType.JS_CALLBACK_READY_LISTENER_TYPE;
     }
 
     @Override

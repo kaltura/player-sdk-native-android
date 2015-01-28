@@ -8,12 +8,13 @@ import com.kaltura.playersdk.types.PlayerStates;
 public abstract class OnPlayerStateChangeListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.PLAYER_STATE_CHANGE;
+        mEventType = EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE;
     }
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-
+        PlayerStateChangeInputObject input = (PlayerStateChangeInputObject)inputObject;
+        onStateChanged(input.state);
     }
 
     @Override
@@ -23,9 +24,9 @@ public abstract class OnPlayerStateChangeListener extends Listener{
 
 
 
-    abstract public boolean onStateChanged(PlayerStates state);
+    abstract public void onStateChanged(PlayerStates state);
 
     public static class PlayerStateChangeInputObject extends InputObject{
-
+        public PlayerStates state;
     }
 }

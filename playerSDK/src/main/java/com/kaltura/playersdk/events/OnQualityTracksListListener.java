@@ -7,7 +7,7 @@ import java.util.List;
 public abstract class OnQualityTracksListListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.QUALITY_TRACKS_LIST;
+        mEventType = EventType.QUALITY_TRACKS_LIST_LISTENER_TYPE;
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.kaltura.playersdk.events;
 public abstract class OnAudioTrackSwitchingListener extends Listener{
     @Override
     protected void setEventType() {
-        mEventType = EventType.AUDIO_TRACK_SWITCH;
+        mEventType = EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE;
     }
 
     @Override

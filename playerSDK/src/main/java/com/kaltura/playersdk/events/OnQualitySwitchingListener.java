@@ -3,7 +3,7 @@ package com.kaltura.playersdk.events;
 public abstract class OnQualitySwitchingListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.QUALITY_SWITCHING;
+        mEventType = EventType.QUALITY_SWITCHING_LISTENER_TYPE;
     }
 
     @Override
