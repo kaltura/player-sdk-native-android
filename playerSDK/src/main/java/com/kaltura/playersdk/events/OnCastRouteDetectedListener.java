@@ -5,7 +5,28 @@ package com.kaltura.playersdk.events;
  * @author michalradwantzor
  *
  */
-public interface OnCastRouteDetectedListener {
-	public void onCastRouteDetected();
+public abstract class OnCastRouteDetectedListener extends Listener{
+    @Override
+    final protected void setEventType() {
+        mEventType = EventType.CAST_ROUTE_DETECTED;
+    }
+
+    @Override
+    final protected void executeInternalCallback(InputObject inputObject){
+        onCastRouteDetected();
+    }
+
+    final protected boolean checkValidInputObjectType(InputObject inputObject){
+        return true;
+//        return inputObject instanceof CastRouteDetectedInputObject;
+    }
+
+
+
+    abstract public void onCastRouteDetected();
+
+    public static class CastRouteDetectedInputObject extends InputObject{
+
+    }
 
 }
