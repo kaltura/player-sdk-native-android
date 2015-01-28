@@ -21,6 +21,7 @@ import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
+import com.google.gson.Gson;
 import com.kaltura.playersdk.chromecast.CastPlayer;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
@@ -260,7 +261,7 @@ public class PlayerViewController extends RelativeLayout {
         mBackgroundRL = new RelativeLayout(getContext());
         mBackgroundRL.setBackgroundColor(Color.BLACK);
         this.addView(mBackgroundRL,currLP);
-
+//itay: maybe remove
         KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
         this.addView(kalturaPlayer, lp);
@@ -278,7 +279,9 @@ public class PlayerViewController extends RelativeLayout {
         if (Build.VERSION.SDK_INT >= 11) {
             mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
-
+        if (!iframeUrl.startsWith("js-frame:")){
+            iframeUrl += "js-frame:";
+        }
         mWebView.loadUrl(iframeUrl);
         mWebView.setBackgroundColor(0);
     }
@@ -566,13 +569,52 @@ public class PlayerViewController extends RelativeLayout {
             public void onError(int errorCode, String errorMessage) {
                 Log.d(TAG, "Error Code: "+String.valueOf(errorCode)+" : "+errorMessage);
                 if (mVideoInterface.getClass().equals(HLSPlayer.class)) {
-                    notifyKPlayer("trigger", new Object[]{"error", errorMessage});
+                    ErrorBuilder.ErrorObject error = new ErrorBuilder().setErrorId(errorCode).setErrorMessage(errorMessage).build();
+                    notifyKPlayer("trigger", new Object[]{"error", error});
                 }
 
             }
         });
     }
 
+    private static class ErrorBuilder {
+        String errorMessage;
+        int errorId;
+
+        public ErrorBuilder()
+        {
+
+        }
+
+        public ErrorBuilder setErrorMessage(String errorMessage){
+            this.errorMessage = errorMessage;
+            return this;
+        }
+
+
+        public ErrorBuilder setErrorId(int errorId){
+            this.errorId = errorId;
+            return this;
+        }
+
+        public ErrorObject build(){
+            return new ErrorObject(this);
+        }
+
+        public static class ErrorObject{
+            String errorMessage;
+            int errorId;
+            private ErrorObject(ErrorBuilder builder){
+                errorMessage = builder.errorMessage;
+                errorId = builder.errorId;
+            }
+
+            @Override
+            public String toString() {
+                return new Gson().toJson(this);
+            }
+        }
+    }
     private class CustomWebViewClient extends WebViewClient {
 
         @Override

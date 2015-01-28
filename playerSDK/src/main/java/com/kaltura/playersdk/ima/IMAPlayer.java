@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.google.ads.interactivemedia.v3.api.AdDisplayContainer;
@@ -462,7 +461,7 @@ public class IMAPlayer extends FrameLayout implements VideoPlayerInterface {
     private void playAd(){
         if (mAdPlayer != null){
             mAdPlayer.play();
-            ((Activity) getContext()).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            setKeepScreenOn(true);
         }
     }
 

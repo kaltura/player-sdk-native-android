@@ -408,7 +408,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 	
 	private void addItemToManifestLoader(BaseManifestItem item)
 	{
-		URLLoader manifestLoader = new URLLoader(this, item);
+		URLLoader manifestLoader = new URLLoader("ManifestParser.addItemToManifestLoader", this, item);
 		manifestLoaders.add(manifestLoader);
 		manifestLoader.get(item.uri);
 	}
@@ -474,7 +474,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		// When the URLLoader finishes, it should set the parseComplete listener to *this*, and
 		// when that completes, it should call the reloadCompleteListener
 		fullUrl = manifest.fullUrl;
-		URLLoader manifestLoader = new URLLoader(this, null);
+		URLLoader manifestLoader = new URLLoader("ManifestParser.reload", this, null);
 		manifestLoader.get(fullUrl);
 	}
 	
