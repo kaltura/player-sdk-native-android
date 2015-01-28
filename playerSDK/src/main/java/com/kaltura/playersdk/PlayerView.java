@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
+import android.widget.FrameLayout;
 import android.widget.VideoView;
 
 import com.kaltura.playersdk.events.OnErrorListener;
@@ -15,7 +16,7 @@ import com.kaltura.playersdk.types.PlayerStates;
 /**
  * Created by michalradwantzor on 9/15/13.
  */
-public class PlayerView extends VideoView implements VideoPlayerInterface {
+public class PlayerView extends FrameLayout implements VideoPlayerInterface {
     //TODO make configurable
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
 
@@ -26,9 +27,10 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     private OnErrorListener mErrorListener;
     private int mStartPos = 0;
     private boolean mShouldResumePlayback = false;
-    
+    private VideoView mVideoView;
+
     private Handler mHandler;
-    private Runnable runnable = new Runnable() {
+    final private Runnable runnable = new Runnable() {
  	   @Override
  	   public void run() {
  		  try {
@@ -43,37 +45,41 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
  	   }
  	};
 
+
+
     public PlayerView(Context context) {
         super(context);
-
-        super.setOnCompletionListener( new MediaPlayer.OnCompletionListener() {
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((LayoutParams.MATCH_PARENT), (LayoutParams.MATCH_PARENT));
+        mVideoView = new VideoView(getContext());
+        addView(mVideoView, lp);
+        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 pause();
-                seekTo( 0 );
+                mVideoView.seekTo(0);
                 updateStopState();
-                if ( mPlayerStateListener!= null )
-                	mPlayerStateListener.onStateChanged(PlayerStates.END);
+                if (mPlayerStateListener != null)
+                    mPlayerStateListener.onStateChanged(PlayerStates.END);
             }
         });
 
-        super.setOnPreparedListener( new MediaPlayer.OnPreparedListener() {
+        mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
-            	if ( mPlayerStateListener!=null )
-            		mPlayerStateListener.onStateChanged(PlayerStates.START);
-                mediaPlayer.setOnSeekCompleteListener( new MediaPlayer.OnSeekCompleteListener() {
+                if (mPlayerStateListener != null)
+                    mPlayerStateListener.onStateChanged(PlayerStates.START);
+                mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mediaPlayer) {
-                    	if ( mPlayerStateListener!=null )
-                    		mPlayerStateListener.onStateChanged(PlayerStates.SEEKED);
+                        if (mPlayerStateListener != null)
+                            mPlayerStateListener.onStateChanged(PlayerStates.SEEKED);
                     }
                 });
 
                 mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int progress) {
-                        if ( mProgressListener != null ) {
+                        if (mProgressListener != null) {
 
                             mProgressListener.onProgressUpdate(progress);
                         }
@@ -82,38 +88,40 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
             }
         });
         
-        super.setOnErrorListener( new MediaPlayer.OnErrorListener() {
-			
-			@Override
-			public boolean onError(MediaPlayer mp, int what, int extra) {
-				if ( mErrorListener!=null ) {
-					int errorCode = OnErrorListener.ERROR_UNKNOWN;
-					switch( extra ) {
-					case MediaPlayer.MEDIA_ERROR_IO:
-						errorCode = OnErrorListener.MEDIA_ERROR_IO;
-						break;
-					case MediaPlayer.MEDIA_ERROR_MALFORMED:
-						errorCode = OnErrorListener.MEDIA_ERROR_MALFORMED;
-						break;
-					case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-						errorCode = OnErrorListener.MEDIA_ERROR_NOT_VALID;
-						break;
-					case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
-						errorCode = OnErrorListener.MEDIA_ERROR_TIMED_OUT;
-						break;
-					case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
-						errorCode = OnErrorListener.MEDIA_ERROR_UNSUPPORTED;
-						break;
-					}
-					
-					mErrorListener.onError( errorCode, "");
-				}
-				
-				return false;
-			}
-		});
+        mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                if (mErrorListener != null) {
+                    int errorCode = OnErrorListener.ERROR_UNKNOWN;
+                    switch (extra) {
+                        case MediaPlayer.MEDIA_ERROR_IO:
+                            errorCode = OnErrorListener.MEDIA_ERROR_IO;
+                            break;
+                        case MediaPlayer.MEDIA_ERROR_MALFORMED:
+                            errorCode = OnErrorListener.MEDIA_ERROR_MALFORMED;
+                            break;
+                        case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
+                            errorCode = OnErrorListener.MEDIA_ERROR_NOT_VALID;
+                            break;
+                        case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
+                            errorCode = OnErrorListener.MEDIA_ERROR_TIMED_OUT;
+                            break;
+                        case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
+                            errorCode = OnErrorListener.MEDIA_ERROR_UNSUPPORTED;
+                            break;
+                    }
+
+                    mErrorListener.onError(errorCode, "");
+                }
+
+                return false;
+            }
+        });
 
     }
+
+
 
     @Override
     public void setStartingPoint(int point) {
@@ -128,25 +136,25 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     @Override
     public void setVideoUrl(String url) {
         mVideoUrl = url;
-        super.setVideoURI(Uri.parse(url));
+        mVideoView.setVideoURI(Uri.parse(url));
     }
 
     @Override
     public int getDuration() {
-        return super.getDuration();
+        return mVideoView.getDuration();
     }
 
     public int getCurrentPosition() {
-        return super.getCurrentPosition();
+        return mVideoView.getCurrentPosition();
     }
 
     
     @Override
     public void play() {
     	if ( !this.isPlaying() ) {
-            super.start();
+            mVideoView.start();
             if ( mStartPos != 0 ) {
-            	super.seekTo( mStartPos );
+                mVideoView.seekTo(mStartPos);
             	mStartPos = 0;
             }
             if ( mHandler == null ) {
@@ -161,7 +169,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     @Override
     public void pause() {
     	if ( this.isPlaying() ) {
-            super.pause();
+            mVideoView.pause();
             if ( mPlayerStateListener!=null )
             	mPlayerStateListener.onStateChanged(PlayerStates.PAUSE);	
     	}
@@ -169,7 +177,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
 
     @Override
     public void stop() {
-        super.stopPlayback();
+        mVideoView.stopPlayback();
         updateStopState();
     }
     
@@ -185,7 +193,7 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
     public void seek(int msec) {
     	if ( mPlayerStateListener!=null )
     		mPlayerStateListener.onStateChanged(PlayerStates.SEEKING);
-        super.seekTo(msec);
+        mVideoView.seekTo(msec);
     }
 
     @Override
@@ -229,8 +237,16 @@ public class PlayerView extends VideoView implements VideoPlayerInterface {
 		mShouldResumePlayback = false;
 		
 	}
-    
-   
+
+    @Override
+    public boolean isPlaying() {
+        return mVideoView.isPlaying();
+    }
+
+    @Override
+    public boolean canPause() {
+        return mVideoView.canPause();
+    }
 }
 
 
