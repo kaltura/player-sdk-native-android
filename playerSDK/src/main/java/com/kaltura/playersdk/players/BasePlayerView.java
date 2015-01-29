@@ -26,7 +26,7 @@ import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +95,12 @@ public abstract class BasePlayerView extends FrameLayout {
     Override if you would like to add more listeners
      */
     protected List<Listener.EventType> getCompatibleListenersList(){
-        return Arrays.asList(DEFAULT_LISTENERS);
+        List<Listener.EventType> list = new ArrayList<>();
+        for (Listener.EventType eventType : DEFAULT_LISTENERS){
+            list.add(eventType);
+        }
+        return list;
+
     }
 
     final protected Listener getListener(Listener.EventType event){
