@@ -60,16 +60,6 @@ public abstract class BasePlayerView extends FrameLayout {
     public abstract boolean canPause();
 
     // events
-//    public abstract void registerPlayerStateChange(OnPlayerStateChangeListener listener);
-//
-//    public abstract void registerError(OnErrorListener listener);
-//
-//    public abstract void registerPlayheadUpdate(OnPlayheadUpdateListener listener);
-//
-//    public abstract void removePlayheadUpdateListener();
-//
-//    public abstract void registerProgressUpdate(OnProgressListener listener);
-
 
     final private void initListeners(){
         List<Listener.EventType> eventsArr = getCompatibleListenersList();
