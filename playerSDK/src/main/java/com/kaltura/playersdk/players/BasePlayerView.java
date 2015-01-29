@@ -168,7 +168,7 @@ public abstract class BasePlayerView extends FrameLayout {
             OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject input =  new OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject();
             input.newTrackIndex = newTrackIndex;
             input.methodChoice = OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject.MethodChoice.END;
-                    BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE, input);
+            BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE, input);
         }
 
         void executeonCastDeviceChange(CastDevice oldDevice, CastDevice newDevice){
