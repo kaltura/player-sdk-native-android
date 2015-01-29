@@ -31,7 +31,7 @@ import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
+import com.kaltura.playersdk.events.OnProgressUpdateListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.players.BasePlayerView;
@@ -488,7 +488,7 @@ public class PlayerViewController extends RelativeLayout {
     private void removePlayerListeners() {
         mVideoInterface.removeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE);
         mVideoInterface.removeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE);
-        mVideoInterface.removeListener(Listener.EventType.PROGRESS_LISTENER_TYPE);
+        mVideoInterface.removeListener(Listener.EventType.PROGRESS_UPDATE_LISTENER_TYPE);
         mVideoInterface.removeListener(Listener.EventType.ERROR_LISTENER_TYPE);
     }
 
@@ -547,19 +547,19 @@ public class PlayerViewController extends RelativeLayout {
             @Override
             public void onPlayheadUpdated(int msec) {
                 double curSec = msec / 1000.0;
-                if ( curSec <= mDuration && Math.abs(mCurSec -curSec) > 0.01 ) {
+                if (curSec <= mDuration && Math.abs(mCurSec - curSec) > 0.01) {
                     mCurSec = curSec;
                     mActivity.runOnUiThread(runUpdatePlayehead);
                 }
                 //device is sleeping, pause player
-                if ( !mPowerManager.isScreenOn() ) {
+                if (!mPowerManager.isScreenOn()) {
                     mVideoInterface.pause();
                 }
             }
         });
 
         // listens for progress events and notify javascript
-        mVideoInterface.registerListener(new OnProgressListener() {
+        mVideoInterface.registerListener(new OnProgressUpdateListener() {
             @Override
             public void onProgressUpdate(int progress) {
                 double percent = progress / 100.0;

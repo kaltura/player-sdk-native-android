@@ -17,7 +17,7 @@ import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDi
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnProgressListener;
+import com.kaltura.playersdk.events.OnProgressUpdateListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
 import java.util.Timer;
@@ -136,27 +136,19 @@ public class CastPlayer extends BasePlayerView {
                 		int newPos = getCurrentPosition();
                 		if ( newPos > 0 ) 
                 		{
-                            OnProgressListener.ProgressInputObject inputObject = new OnProgressListener.ProgressInputObject();
-                            inputObject.progress = newPos;
-                			executeListener(Listener.EventType.PROGRESS_LISTENER_TYPE, inputObject);
-
+                            mListenerExecutor.executeOnProgressUpdate(newPos);
                 			if ( newPos >= getDuration() ) {
-                                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject1 = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                                inputObject1.state = PlayerStates.END;
-                                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject1);
+                                mListenerExecutor.executeOnStateChanged(PlayerStates.END);
                     		}
                 		}	
 	                }
 	            }, 0, PLAYHEAD_UPDATE_INTERVAL);
-                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                inputObject.state = PlayerStates.PLAY;
-                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
+
+                mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
 
 			} else if ( mCastManager.getPlaybackStatus() == MediaStatus.PLAYER_STATE_PAUSED ) {
 				mCastManager.play();
-                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                inputObject.state = PlayerStates.PLAY;
-                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
+                mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
 			}
 
 	
@@ -171,9 +163,7 @@ public class CastPlayer extends BasePlayerView {
 		try {
 			if ( mCastManager.isRemoteMediaLoaded() && !mCastManager.isRemoteMoviePaused() ) {
 				mCastManager.pause();
-                OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                inputObject.state = PlayerStates.PAUSE;
-                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
+                mListenerExecutor.executeOnStateChanged(PlayerStates.PAUSE);
 			}
 
 		} catch (CastException e) {

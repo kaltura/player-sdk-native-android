@@ -26,8 +26,6 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
 /**
@@ -107,10 +105,7 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
 		if ( !url.equals(mVideoUrl) ) {
 			releasePlayer();
 			mVideoUrl = url;
-
-            OnPlayheadUpdateListener.PlayheadUpdateInputObject input = new OnPlayheadUpdateListener.PlayheadUpdateInputObject();
-            input.msec = 0;
-            executeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnPlayheadUpdated(0);
             preparePlayer();
 		}		
 	}
@@ -145,9 +140,7 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
                         try {
                             int position = mExoPlayer.getCurrentPosition();
                             if ( position != 0 && isPlaying() ) {
-                                OnPlayheadUpdateListener.PlayheadUpdateInputObject input = new OnPlayheadUpdateListener.PlayheadUpdateInputObject();
-                                input.msec = position;
-                                executeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE,input);
+                                mListenerExecutor.executeOnPlayheadUpdated(position);
                             }
                         } catch(IllegalStateException e){
                             e.printStackTrace();
@@ -166,9 +159,7 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
                         try {
                             int progress = mExoPlayer.getBufferedPercentage();
                             if (progress != 0 && mPrevProgress != progress) {
-                                OnProgressListener.ProgressInputObject input = new OnProgressListener.ProgressInputObject();
-                                input.progress = progress;
-                                executeListener(Listener.EventType.PROGRESS_LISTENER_TYPE, input);
+                                mListenerExecutor.executeOnProgressUpdate(progress);
                                 mPrevProgress = progress;
                             }
 
@@ -181,9 +172,7 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
                 }
             });
 
-            OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-            input.state = PlayerStates.PLAY;
-            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
         }
     }
 
@@ -223,9 +212,7 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
     public void pause() {
         if ( this.isPlaying() && mExoPlayer != null ) {
             setPlayWhenReady(false);
-            OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-            input.state = PlayerStates.PAUSE;
-            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PAUSE);
         }
     }
 
@@ -252,9 +239,7 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
     public void seek(int msec) {
         if ( mIsReady ) {
             mSeeking = true;
-            OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-            input.state = PlayerStates.SEEKING;
-            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.SEEKING);
             mExoPlayer.seekTo( msec );
         }
     }
@@ -281,11 +266,8 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
 
 
     @Override
-    public void onDecoderInitializationError(DecoderInitializationException arg0) {
-        OnErrorListener.ErrorInputObject input = new OnErrorListener.ErrorInputObject();
-        input.errorCode = OnErrorListener.ERROR_UNKNOWN;
-        input.errorMessage = arg0.getMessage();
-        executeListener(Listener.EventType.ERROR_LISTENER_TYPE, input);
+    public void onDecoderInitializationError(DecoderInitializationException e) {
+        mListenerExecutor.executeOnError(OnErrorListener.ERROR_UNKNOWN, e.getMessage());
 
     }
 
@@ -322,11 +304,8 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
     }
 
     @Override
-    public void onPlayerError(ExoPlaybackException arg0) {
-        OnErrorListener.ErrorInputObject input = new OnErrorListener.ErrorInputObject();
-        input.errorCode = OnErrorListener.ERROR_UNKNOWN;
-        input.errorMessage = arg0.getMessage();
-        executeListener(Listener.EventType.ERROR_LISTENER_TYPE, input);
+    public void onPlayerError(ExoPlaybackException e) {
+        mListenerExecutor.executeOnError(OnErrorListener.ERROR_UNKNOWN, e.getMessage());
     }
 
     @Override
@@ -373,25 +352,19 @@ public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener,
         }
 
         if ( state != null ) {
-            OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-            input.state = state;
-            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnStateChanged(state);
         }
+        //TODO: this if doesn't make a whole lot of sense
         //notify initial play
         if ( state == PlayerStates.START && playWhenReady ) {
-            OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-            input.state = PlayerStates.PLAY;
-            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
         }
 
     }
 
     @Override
     public void onCryptoError(CryptoException e) {
-        OnErrorListener.ErrorInputObject input = new OnErrorListener.ErrorInputObject();
-        input.errorCode = OnErrorListener.MEDIA_ERROR_NOT_VALID;
-        input.errorMessage = e.getMessage();
-        executeListener(Listener.EventType.ERROR_LISTENER_TYPE, input);
+        mListenerExecutor.executeOnError(OnErrorListener.MEDIA_ERROR_NOT_VALID, e.getMessage());
     }
 
     @Override

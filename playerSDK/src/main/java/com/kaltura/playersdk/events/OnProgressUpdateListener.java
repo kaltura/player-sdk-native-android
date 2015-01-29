@@ -3,10 +3,10 @@ package com.kaltura.playersdk.events;
 /**
  * Created by michalradwantzor on 9/17/13.
  */
-public abstract class OnProgressListener extends Listener{
+public abstract class OnProgressUpdateListener extends Listener{
     @Override
     final protected void setEventType() {
-        mEventType = EventType.PROGRESS_LISTENER_TYPE;
+        mEventType = EventType.PROGRESS_UPDATE_LISTENER_TYPE;
     }
 
     @Override

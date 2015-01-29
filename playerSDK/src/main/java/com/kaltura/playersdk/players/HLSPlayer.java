@@ -12,10 +12,6 @@ import com.kaltura.playersdk.TextTracksInterface;
 import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.playersdk.events.OnAudioTracksListListener;
-import com.kaltura.playersdk.events.OnErrorListener;
-import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.events.OnQualitySwitchingListener;
 import com.kaltura.playersdk.events.OnQualityTracksListListener;
 import com.kaltura.playersdk.events.OnTextTrackChangeListener;
@@ -247,10 +243,8 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
             default:
                 kState = com.kaltura.playersdk.types.PlayerStates.START;
         }
-        OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-        inputObject.state = kState;
-        executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
 
+        mListenerExecutor.executeOnStateChanged(kState);
         return false;
 
     }
@@ -258,16 +252,12 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
 
     @Override
     public void onPlayheadUpdated(int msec) {
-        OnPlayheadUpdateListener.PlayheadUpdateInputObject inputObject = new OnPlayheadUpdateListener.PlayheadUpdateInputObject();
-        inputObject.msec = msec;
-        executeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE, inputObject);
+        mListenerExecutor.executeOnPlayheadUpdated(msec);
     }
 
     @Override
     public void onProgressUpdate(int progress) {
-        OnProgressListener.ProgressInputObject inputObject = new OnProgressListener.ProgressInputObject();
-        inputObject.progress = progress;
-        executeListener(Listener.EventType.PROGRESS_LISTENER_TYPE, inputObject);
+        mListenerExecutor.executeOnProgressUpdate(progress);
     }
 
     @Override
@@ -295,10 +285,7 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
 
     @Override
     public void onFatalError(int errorCode, String errorMessage) {
-        OnErrorListener.ErrorInputObject inputObject = new OnErrorListener.ErrorInputObject();
-        inputObject.errorCode = errorCode;
-        inputObject.errorMessage = errorMessage;
-        executeListener(Listener.EventType.ERROR_LISTENER_TYPE, inputObject);
+        mListenerExecutor.executeOnError(errorCode,errorMessage);
     }
 
     @Override
@@ -349,7 +336,7 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
                     mPlayer.registerPlayheadUpdate(null);
                 }
                 break;
-            case PROGRESS_LISTENER_TYPE:
+            case PROGRESS_UPDATE_LISTENER_TYPE:
                 if(shouldRegister) {
                     mPlayer.registerProgressUpdate(this);
                 }else{

@@ -12,17 +12,17 @@ public abstract class OnQualityTracksListListener extends Listener{
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-        AudioTrackSwitchingInputObject input = (AudioTrackSwitchingInputObject)inputObject;
+        QualityTracksListInputObject input = (QualityTracksListInputObject)inputObject;
         OnQualityTracksList(input.list,input.defaultTrackIndex);
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){
-        return inputObject instanceof AudioTrackSwitchingInputObject;
+        return inputObject instanceof QualityTracksListInputObject;
     }
 
     abstract public void OnQualityTracksList( List<QualityTrack> list, int defaultTrackIndex );
 
-    public static class AudioTrackSwitchingInputObject extends InputObject{
+    public static class QualityTracksListInputObject extends InputObject{
         public List<QualityTrack> list;
         public int defaultTrackIndex;
     }

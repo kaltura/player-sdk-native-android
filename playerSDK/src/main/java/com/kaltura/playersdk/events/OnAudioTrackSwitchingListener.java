@@ -8,7 +8,15 @@ public abstract class OnAudioTrackSwitchingListener extends Listener{
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-
+        AudioTrackSwitchingInputObject input = (AudioTrackSwitchingInputObject) inputObject;
+        switch (input.methodChoice){
+            case START:
+                onAudioSwitchingStart(input.oldTrackIndex,input.newTrackIndex);
+                break;
+            case END:
+                onAudioSwitchingEnd(input.newTrackIndex);
+                break;
+        }
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){
@@ -21,7 +29,13 @@ public abstract class OnAudioTrackSwitchingListener extends Listener{
     abstract public void onAudioSwitchingEnd( int newTrackIndex );
 
     public static class AudioTrackSwitchingInputObject extends InputObject{
-        int oldTrackIndex;
-        int newTrackIndex;
+        public MethodChoice methodChoice;
+        public int oldTrackIndex;
+        public int newTrackIndex;
+
+        public enum MethodChoice{
+            START,
+            END
+        }
     }
 }

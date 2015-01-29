@@ -10,20 +10,20 @@ public abstract class OnAudioTracksListListener extends Listener{
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-        AudioTracksListInputObjectInputObject input = (AudioTracksListInputObjectInputObject)inputObject;
+        AudioTracksListInputObject input = (AudioTracksListInputObject)inputObject;
         List<String> list = input.list;
         int defaultTrackIndex = input.defaultTrackIndex;
         OnAudioTracksList(list, defaultTrackIndex);
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){
-        return inputObject instanceof AudioTracksListInputObjectInputObject;
+        return inputObject instanceof AudioTracksListInputObject;
     }
 
 
     abstract public void OnAudioTracksList( List<String> list, int defaultTrackIndex );
 
-    public static class AudioTracksListInputObjectInputObject extends InputObject{
+    public static class AudioTracksListInputObject extends InputObject{
         public List<String> list;
         public int defaultTrackIndex;
     }

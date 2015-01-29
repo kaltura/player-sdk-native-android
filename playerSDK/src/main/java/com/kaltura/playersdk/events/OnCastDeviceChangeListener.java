@@ -10,19 +10,19 @@ public abstract class OnCastDeviceChangeListener extends Listener{
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-        AudioTrackSwitchingInputObject input = (AudioTrackSwitchingInputObject)inputObject;
+        CastDeviceChangeInputObject input = (CastDeviceChangeInputObject)inputObject;
         onCastDeviceChange(input.oldDevice, input.newDevice);
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){
-        return inputObject instanceof AudioTrackSwitchingInputObject;
+        return inputObject instanceof CastDeviceChangeInputObject;
     }
 
 
 
     abstract public void onCastDeviceChange(CastDevice oldDevice, CastDevice newDevice);
 
-    public static class AudioTrackSwitchingInputObject extends InputObject{
+    public static class CastDeviceChangeInputObject extends InputObject{
         public CastDevice oldDevice;
         public CastDevice newDevice;
 

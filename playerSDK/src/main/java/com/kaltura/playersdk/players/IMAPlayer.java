@@ -184,9 +184,7 @@ public class IMAPlayer extends BasePlayerView {
 			@Override
 			public void onStateChanged(boolean playWhenReady, int playbackState) {
                 if (playbackState == ExoPlayer.STATE_READY && playWhenReady){
-                    OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                    input.state = PlayerStates.PLAY;
-                    executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+                    mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
                 }
 				if (playbackState == ExoPlayer.STATE_ENDED) {
 					mAdsLoader.contentComplete();
@@ -328,7 +326,7 @@ public class IMAPlayer extends BasePlayerView {
 			//unregister events
 			mContentPlayer.removeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE);
 			mContentPlayer.removeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE);
-			mContentPlayer.removeListener(Listener.EventType.PROGRESS_LISTENER_TYPE);
+			mContentPlayer.removeListener(Listener.EventType.PROGRESS_UPDATE_LISTENER_TYPE);
 		} 
 	}
 	
@@ -370,7 +368,7 @@ public class IMAPlayer extends BasePlayerView {
                     //register events
                     mContentPlayer.registerListener(getListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE));//registerPlayerStateChange(mPlayerStateListener);
                     mContentPlayer.registerListener(getListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE));//registerPlayheadUpdate(mPlayheadListener);
-                    mContentPlayer.registerListener(getListener(Listener.EventType.PROGRESS_LISTENER_TYPE));//registerProgressUpdate(mProgressListener);
+                    mContentPlayer.registerListener(getListener(Listener.EventType.PROGRESS_UPDATE_LISTENER_TYPE));//registerProgressUpdate(mProgressListener);
 
                     if (mWebViewMinimizeListener != null) {
                         mWebViewMinimizeListener.setMinimize(false);

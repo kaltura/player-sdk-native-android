@@ -8,7 +8,7 @@ public abstract class OnQualitySwitchingListener extends Listener{
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-        AudioTrackSwitchingInputObject input = (AudioTrackSwitchingInputObject) inputObject;
+        QualitySwitchingInputObject input = (QualitySwitchingInputObject) inputObject;
         switch (input.methodChoice){
             case START:
                 onQualitySwitchingStart(input.oldTrackIndex, input.newTrackIndex);
@@ -20,7 +20,7 @@ public abstract class OnQualitySwitchingListener extends Listener{
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){
-        return inputObject instanceof AudioTrackSwitchingInputObject;
+        return inputObject instanceof QualitySwitchingInputObject;
     }
 
 
@@ -29,7 +29,7 @@ public abstract class OnQualitySwitchingListener extends Listener{
 
     abstract public void onQualitySwitchingEnd( int newTrackIndex );
 
-    public static class AudioTrackSwitchingInputObject extends InputObject{
+    public static class QualitySwitchingInputObject extends InputObject{
         public MethodChoice methodChoice;
         public int oldTrackIndex;
         public int newTrackIndex;

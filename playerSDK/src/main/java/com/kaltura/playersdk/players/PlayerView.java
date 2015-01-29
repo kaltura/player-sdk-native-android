@@ -7,11 +7,7 @@ import android.os.Handler;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
-import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnErrorListener;
-import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
 /**
@@ -33,9 +29,7 @@ public class PlayerView extends BasePlayerView {
  		  try {
                     int position = getCurrentPosition();
                     if ( position != 0 && isPlaying() ) {
-                        OnPlayheadUpdateListener.PlayheadUpdateInputObject input = new OnPlayheadUpdateListener.PlayheadUpdateInputObject();
-                        input.msec = position;
-                        executeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE, input);
+                        mListenerExecutor.executeOnPlayheadUpdated(position);
                     }
                } catch(IllegalStateException e){
                     e.printStackTrace();
@@ -58,33 +52,25 @@ public class PlayerView extends BasePlayerView {
                 pause();
                 mVideoView.seekTo(0);
                 updateStopState();
-                OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                input.state = PlayerStates.END;
-                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+                mListenerExecutor.executeOnStateChanged(PlayerStates.END);
             }
         });
 
         mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
-                OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                input.state = PlayerStates.START;
-                executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+                mListenerExecutor.executeOnStateChanged(PlayerStates.START);
                 mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mediaPlayer) {
-                        OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-                        input.state = PlayerStates.SEEKED;
-                        executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+                        mListenerExecutor.executeOnStateChanged(PlayerStates.SEEKED);
                     }
                 });
 
                 mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int progress) {
-                        OnProgressListener.ProgressInputObject input = new OnProgressListener.ProgressInputObject();
-                        input.progress = progress;
-                        executeListener(Listener.EventType.PROGRESS_LISTENER_TYPE, input);
+                        mListenerExecutor.executeOnProgressUpdate(progress);
                     }
                 });
             }
@@ -112,11 +98,8 @@ public class PlayerView extends BasePlayerView {
                         errorCode = OnErrorListener.MEDIA_ERROR_UNSUPPORTED;
                         break;
                 }
-                OnErrorListener.ErrorInputObject input = new OnErrorListener.ErrorInputObject();
-                input.errorMessage = "";
-                input.errorCode = errorCode;
-                executeListener(Listener.EventType.ERROR_LISTENER_TYPE, input);
 
+                mListenerExecutor.executeOnError(errorCode,"");
                 return false;
             }
         });
@@ -163,9 +146,7 @@ public class PlayerView extends BasePlayerView {
             	mHandler = new Handler();
             	mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
             }
-            OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-            input.state = PlayerStates.PLAY;
-            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
     	}
     }
 
@@ -173,9 +154,7 @@ public class PlayerView extends BasePlayerView {
     public void pause() {
     	if ( this.isPlaying() ) {
             mVideoView.pause();
-            OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-            input.state = PlayerStates.PAUSE;
-            executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PAUSE);
     	}
     }
 
@@ -195,9 +174,7 @@ public class PlayerView extends BasePlayerView {
 
     @Override
     public void seek(int msec) {
-        OnPlayerStateChangeListener.PlayerStateChangeInputObject input = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
-        input.state = PlayerStates.SEEKING;
-    	executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, input);
+        mListenerExecutor.executeOnStateChanged(PlayerStates.SEEKING);
         mVideoView.seekTo(msec);
     }
 

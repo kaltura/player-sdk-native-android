@@ -8,18 +8,18 @@ public abstract class OnTextTrackChangeListener extends Listener{
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-        AudioTrackSwitchingInputObject input = (AudioTrackSwitchingInputObject) inputObject;
-        onOnTextTrackChanged(input.newTrackIndex);
+        TextTrackChangedInputObject input = (TextTrackChangedInputObject) inputObject;
+        onTextTrackChanged(input.newTrackIndex);
     }
 
     @Override
     final protected boolean checkValidInputObjectType(InputObject inputObject){
-        return inputObject instanceof AudioTrackSwitchingInputObject;
+        return inputObject instanceof TextTrackChangedInputObject;
     }
 
-    abstract public void onOnTextTrackChanged( int newTrackIndex );
+    abstract public void onTextTrackChanged( int newTrackIndex );
 
-    public static class AudioTrackSwitchingInputObject extends InputObject{
+    public static class TextTrackChangedInputObject extends InputObject{
         public int newTrackIndex;
     }
 

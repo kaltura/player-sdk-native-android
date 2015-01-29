@@ -10,20 +10,20 @@ public abstract class OnTextTracksListListener extends Listener{
 
     @Override
     final protected void executeInternalCallback(InputObject inputObject){
-        AudioTrackSwitchingInputObject input = (AudioTrackSwitchingInputObject) inputObject;
-        OnTextTracksList(input.list, input.defaultTrackIndex);
+        TextTracksListInputObject input = (TextTracksListInputObject) inputObject;
+        onTextTracksList(input.list, input.defaultTrackIndex);
     }
 
     @Override
     final protected boolean checkValidInputObjectType(InputObject inputObject){
-        return inputObject instanceof AudioTrackSwitchingInputObject;
+        return inputObject instanceof TextTracksListInputObject;
     }
 
 
 
-    abstract public void OnTextTracksList( List<String> list, int defaultTrackIndex );
+    abstract public void onTextTracksList( List<String> list, int defaultTrackIndex );
 
-    public static class AudioTrackSwitchingInputObject extends InputObject{
+    public static class TextTracksListInputObject extends InputObject{
         public List<String> list;
         public int defaultTrackIndex;
     }
