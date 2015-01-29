@@ -504,28 +504,9 @@ public class PlayerViewController extends RelativeLayout {
                         }
                         if ( state != mState ) {
                             mState = state;
-                            String stateName = "";
-                            switch (state) {
-                                case PLAY:
-                                    stateName = "play";
-                                    break;
-                                case PAUSE:
-                                    stateName = "pause";
-                                    break;
-                                case END:
-                                    stateName = "ended";
-                                    break;
-                                case SEEKING:
-                                    stateName = "seeking";
-                                    break;
-                                case SEEKED:
-                                    stateName = "seeked";
-                                    break;
-                                default:
-                                    break;
-                            }
-                            if (stateName != "") {
-                                final String eventName = stateName;
+
+                            if (mState != PlayerStates.LOAD) {
+                                final String eventName = state.toString();
                                 notifyKPlayer("trigger", new String[] { eventName });
                             }
                         }

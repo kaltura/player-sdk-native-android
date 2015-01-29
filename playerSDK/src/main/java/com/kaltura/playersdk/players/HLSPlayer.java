@@ -24,7 +24,11 @@ public class HLSPlayer extends BasePlayerView implements
         com.kaltura.hlsplayersdk.events.OnErrorListener,
         com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener,
         com.kaltura.hlsplayersdk.events.OnProgressListener,
-        com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
+        com.kaltura.hlsplayersdk.events.OnAudioTracksListListener,
+        com.kaltura.hlsplayersdk.events.OnAudioTrackSwitchingListener,
+        com.kaltura.hlsplayersdk.events.OnQualityTracksListListener,
+        com.kaltura.hlsplayersdk.events.OnQualitySwitchingListener
+{
 
     private static final String TAG = HLSPlayer.class.getSimpleName();
     private HLSPlayerViewController mPlayer;
@@ -263,54 +267,37 @@ public class HLSPlayer extends BasePlayerView implements
 
 //    TODO: discuss this issue with dp so they will change their player listeners scheme
     private void registerHLSListener(Listener.EventType eventType, boolean shouldRegister){
+
         switch(eventType){
             case JS_CALLBACK_READY_LISTENER_TYPE:
                 break;
             case AUDIO_TRACKS_LIST_LISTENER_TYPE:
+                mPlayer.registerAudioTracksList(shouldRegister ? this : null);
                 break;
             case AUDIO_TRACK_SWITCH_LISTENER_TYPE:
+                mPlayer.registerAudioSwitchingChange(shouldRegister ? this : null);
                 break;
             case CAST_DEVICE_CHANGE_LISTENER_TYPE:
                 break;
             case CAST_ROUTE_DETECTED_LISTENER_TYPE:
                 break;
             case ERROR_LISTENER_TYPE:
-                if(shouldRegister) {
-                    mPlayer.registerError(this);
-                }else {
-                    mPlayer.registerError(null);
-                }
+                    mPlayer.registerError(shouldRegister ? this : null);
                 break;
             case PLAYER_STATE_CHANGE_LISTENER_TYPE:
-                if(shouldRegister) {
-                    mPlayer.registerPlayerStateChange(this);
-                }else{
-                    mPlayer.registerPlayerStateChange(null);
-                }
+                    mPlayer.registerPlayerStateChange(shouldRegister ? this : null);
                 break;
             case PLAYHEAD_UPDATE_LISTENER_TYPE:
-                if(shouldRegister) {
-                    mPlayer.registerPlayheadUpdate(this);
-                }else{
-                    mPlayer.registerPlayheadUpdate(null);
-                }
+                    mPlayer.registerPlayheadUpdate(shouldRegister ? this : null);
                 break;
             case PROGRESS_UPDATE_LISTENER_TYPE:
-                if(shouldRegister) {
-                    mPlayer.registerProgressUpdate(this);
-                }else{
-                    mPlayer.registerProgressUpdate(null);
-                }
+                    mPlayer.registerProgressUpdate(shouldRegister ? this : null);
                 break;
             case QUALITY_SWITCHING_LISTENER_TYPE:
-//                    mPlayer.registerQualitySwitchingChange(this);
+                    mPlayer.registerQualitySwitchingChange(shouldRegister ? this : null);
                 break;
             case QUALITY_TRACKS_LIST_LISTENER_TYPE:
-                if(shouldRegister) {
-                    mPlayer.registerQualityTracksList(this);
-                }else {
-                    mPlayer.registerQualityTracksList(null);
-                }
+                    mPlayer.registerQualityTracksList(shouldRegister ? this : null);
                 break;
             case TEXT_TRACK_CHANGE_LISTENER_TYPE:
                 break;
@@ -329,4 +316,28 @@ public class HLSPlayer extends BasePlayerView implements
     }
 
 
+    @Override
+    public void onAudioSwitchingStart(int oldTrackIndex, int newTrackIndex) {
+        mListenerExecutor.executeOnAudioSwitchingStart(oldTrackIndex, newTrackIndex);
+    }
+
+    @Override
+    public void onAudioSwitchingEnd(int newTrackIndex) {
+        mListenerExecutor.executeonAudioSwitchingEnd(newTrackIndex);
+    }
+
+    @Override
+    public void OnAudioTracksList(List<String> list, int defaultTrackIndex) {
+        mListenerExecutor.executeOnAudioTracksList(list,defaultTrackIndex);
+    }
+
+    @Override
+    public void onQualitySwitchingStart(int oldTrackIndex, int newTrackIndex) {
+
+    }
+
+    @Override
+    public void onQualitySwitchingEnd(int newTrackIndex) {
+
+    }
 }
