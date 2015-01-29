@@ -7,20 +7,24 @@ import android.view.Gravity;
 import com.kaltura.hlsplayersdk.HLSPlayerViewController;
 import com.kaltura.hlsplayersdk.types.PlayerStates;
 import com.kaltura.playersdk.AlternateAudioTracksInterface;
+import com.kaltura.playersdk.QualityTrack;
 import com.kaltura.playersdk.QualityTracksInterface;
 import com.kaltura.playersdk.TextTracksInterface;
 import com.kaltura.playersdk.events.Listener;
-import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
-import com.kaltura.playersdk.events.OnAudioTracksListListener;
-import com.kaltura.playersdk.events.OnQualitySwitchingListener;
-import com.kaltura.playersdk.events.OnQualityTracksListListener;
-import com.kaltura.playersdk.events.OnTextTrackChangeListener;
-import com.kaltura.playersdk.events.OnTextTrackTextListener;
-import com.kaltura.playersdk.events.OnTextTracksListListener;
+import com.kaltura.playersdk.types.TrackType;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class HLSPlayer extends BasePlayerView implements TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener, com.kaltura.hlsplayersdk.events.OnErrorListener, com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener, com.kaltura.hlsplayersdk.events.OnProgressListener, com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
+public class HLSPlayer extends BasePlayerView implements
+        TextTracksInterface,
+        AlternateAudioTracksInterface,
+        QualityTracksInterface,
+        com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener,
+        com.kaltura.hlsplayersdk.events.OnErrorListener,
+        com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener,
+        com.kaltura.hlsplayersdk.events.OnProgressListener,
+        com.kaltura.hlsplayersdk.events.OnQualityTracksListListener{
 
     private static final String TAG = HLSPlayer.class.getSimpleName();
     private HLSPlayerViewController mPlayer;
@@ -64,19 +68,16 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
     @Override
     public void pause() {
         mPlayer.pause();
-
     }
 
     @Override
     public void stop() {
         mPlayer.stop();
-
     }
 
     @Override
     public void seek(int msec) {
         mPlayer.seek(msec);
-
     }
 
     @Override
@@ -86,8 +87,6 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
 
     @Override
     public boolean canPause() {
-        //TODO add to HLSPlayerViewController
-
         return mPlayer != null;
     }
 
@@ -95,21 +94,16 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
     @Override
     public void setStartingPoint(int point) {
         mPlayer.setStartingPoint(point);
-
     }
 
     @Override
     public void release() {
         mPlayer.release();
-        //TODO add to HLSPlayerViewController
-
     }
 
     @Override
     public void recoverRelease() {
         mPlayer.recoverRelease();
-        //TODO add to HLSPlayerViewController
-
     }
 
     @Override
@@ -173,48 +167,6 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
     //
     ////////////////////////////////////////////////////////
 
-
-    @Override
-    public void registerQualityTracksList(final OnQualityTracksListListener listener) {
-//        mQualityTracksListener = listener;
-//        mPlayer.registerQualityTracksList(listener != null ? this : null);
-    }
-
-    @Override
-    public void registerQualitySwitchingChange(OnQualitySwitchingListener listener) {
-        //mPlayer.registerQualitySwitchingChange(listener);
-
-    }
-
-    @Override
-    public void registerAudioTracksList(OnAudioTracksListListener listener) {
-        //mPlayer.registerAudioTracksList(listener);
-    }
-
-    @Override
-    public void registerAudioSwitchingChange(OnAudioTrackSwitchingListener listener) {
-        //mPlayer.registerAudioSwitchingChange(listener);
-
-    }
-
-    @Override
-    public void registerTextTracksList(OnTextTracksListListener listener) {
-        //mPlayer.registerTextTracksList(listener);
-
-    }
-
-    @Override
-    public void registerTextTrackChanged(OnTextTrackChangeListener listener) {
-        //mPlayer.registerTextTrackChanged(listener);
-
-    }
-
-    @Override
-    public void registerTextTrackText(OnTextTrackTextListener listener) {
-        //mPlayer.registerTextTrackText(listener);
-
-    }
-
     @Override
     public boolean onStateChanged(PlayerStates state) {
         com.kaltura.playersdk.types.PlayerStates kState;
@@ -249,7 +201,6 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
 
     }
 
-
     @Override
     public void onPlayheadUpdated(int msec) {
         mListenerExecutor.executeOnPlayheadUpdated(msec);
@@ -262,20 +213,18 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
 
     @Override
     public void OnQualityTracksList(List<com.kaltura.hlsplayersdk.QualityTrack> list, int defaultTrackIndex) {
-//        if (mQualityTracksListener != null){
-//            List<QualityTrack> newList = new ArrayList<QualityTrack>();
-//            for ( int i=0; i < list.size(); i++ ) {
-//                com.kaltura.hlsplayersdk.QualityTrack currentTrack = list.get(i);
-//                QualityTrack newTrack = new QualityTrack();
-//                newTrack.bitrate = currentTrack.bitrate;
-//                newTrack.height = currentTrack.height;
-//                newTrack.width = currentTrack.width;
-//                newTrack.trackId = currentTrack.trackId;
-//                newTrack.type = currentTrack.type == com.kaltura.hlsplayersdk.types.TrackType.VIDEO ? TrackType.VIDEO: TrackType.AUDIO;
-//                newList.add(newTrack);
-//            }
-//            mQualityTracksListener.OnQualityTracksList(newList, defaultTrackIndex);
-//        }
+        List<QualityTrack> newList = new ArrayList<QualityTrack>();
+        for ( int i=0; i < list.size(); i++ ) {
+            com.kaltura.hlsplayersdk.QualityTrack currentTrack = list.get(i);
+            QualityTrack newTrack = new QualityTrack();
+            newTrack.bitrate = currentTrack.bitrate;
+            newTrack.height = currentTrack.height;
+            newTrack.width = currentTrack.width;
+            newTrack.trackId = currentTrack.trackId;
+            newTrack.type = currentTrack.type == com.kaltura.hlsplayersdk.types.TrackType.VIDEO ? TrackType.VIDEO: TrackType.AUDIO;
+            newList.add(newTrack);
+        }
+        mListenerExecutor.executeOnQualityTracksList(newList,defaultTrackIndex);
     }
 
     @Override
@@ -286,6 +235,16 @@ public class HLSPlayer extends BasePlayerView implements TextTracksInterface, Al
     @Override
     public void onFatalError(int errorCode, String errorMessage) {
         mListenerExecutor.executeOnError(errorCode,errorMessage);
+    }
+
+    @Override
+    protected List<Listener.EventType> getCompatibleListenersList() {
+        List<Listener.EventType> list = super.getCompatibleListenersList();
+        list.add(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE);
+        list.add(Listener.EventType.AUDIO_TRACKS_LIST_LISTENER_TYPE);
+        list.add(Listener.EventType.QUALITY_SWITCHING_LISTENER_TYPE);
+        list.add(Listener.EventType.QUALITY_TRACKS_LIST_LISTENER_TYPE);
+        return list;
     }
 
     @Override

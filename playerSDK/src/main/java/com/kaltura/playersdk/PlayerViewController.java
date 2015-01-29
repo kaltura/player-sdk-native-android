@@ -945,4 +945,9 @@ public class PlayerViewController extends RelativeLayout {
         }
 
     }
+
+
+    public static enum KPlayerEventTypes{
+
+    }
 }

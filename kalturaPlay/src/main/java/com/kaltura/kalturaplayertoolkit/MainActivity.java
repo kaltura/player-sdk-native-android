@@ -142,7 +142,7 @@ public class MainActivity extends Activity {
 					
 					@Override
 					public String getServerAddress() {
-                        return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
+                        return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.27.2/mwEmbedFrame.php";
                     }
 					
 					@Override
