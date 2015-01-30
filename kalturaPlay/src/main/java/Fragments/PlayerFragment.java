@@ -118,20 +118,8 @@ public class PlayerFragment extends Fragment {
                         return "EventListenerDoPlay";
                     }
                 });
-                mPlayerView.addKPlayerEventListener("play", new KPlayerEventListener() {
 
-                    @Override
-                    public void onKPlayerEvent(Object body) {
-                        Log.d(TAG,"play event called");
-                        setFullScreen();
-                        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
 
-                    @Override
-                    public String getCallbackName() {
-                        return "EventListenerPlay";
-                    }
-                });
                 mPlayerView.addKPlayerEventListener("doPause", new KPlayerEventListener() {
 
                     @Override
@@ -146,7 +134,25 @@ public class PlayerFragment extends Fragment {
                     }
                 });
 
+                View view = PlayerFragment.this.getView();
+                if(view != null)
+                    view.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+
+                    @Override
+                    public void onSystemUiVisibilityChange(int visibility) {
+                        Log.d(TAG, "onSystemVisibility change");
+                        if(visibility == (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN)) {
+                            Point size = getRealScreenSize();
+                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                        }else{
+                            Point size = getScreenWithoutNavigationSize();
+                            mPlayerView.setPlayerViewDimensions(size.x,size.y);
+                        }
+                    }
+                });
+
             }
+
         });
 
         showPlayerView();
@@ -280,9 +286,17 @@ public class PlayerFragment extends Fragment {
         View decorView = getActivity().getWindow().getDecorView(); //navigation view
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
+//        Point size = getRealScreenSize();
+//        mPlayerView.setPlayerViewDimensions(size.x, size.y);
+    }
 
-        Point size = getRealScreenSize();
-        mPlayerView.setPlayerViewDimensions(size.x, size.y);
+    private Point getScreenWithoutNavigationSize() {
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        DisplayMetrics realMetrics = new DisplayMetrics();
+        display.getMetrics(realMetrics);
+        int width = realMetrics.widthPixels;
+        int height = realMetrics.heightPixels;
+        return new Point(width, height);
     }
 
     @SuppressLint("NewApi") private Point getRealScreenSize(){
@@ -312,6 +326,7 @@ public class PlayerFragment extends Fragment {
         }
         return new Point(realWidth,realHeight);
     }
+
     private void showPlayerView() {
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         mPlayerView.setVisibility(RelativeLayout.VISIBLE);
