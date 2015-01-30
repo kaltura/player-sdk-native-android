@@ -47,10 +47,10 @@ public class PlayerFragment extends Fragment {
 //    private static final String ARG_PARAM2 = "param2";
 
     private PlayerViewController mPlayerView;
-
+    private static final int FULL_SCREEN_FLAG = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+//    private String mParam1;
+//    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
 
@@ -134,18 +134,16 @@ public class PlayerFragment extends Fragment {
                     }
                 });
 
-                View view = PlayerFragment.this.getView();
-                if(view != null)
-                    view.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+                mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
 
                     @Override
                     public void onSystemUiVisibilityChange(int visibility) {
                         Log.d(TAG, "onSystemVisibility change");
-                        if(visibility == (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN)) {
+                        if(visibility == FULL_SCREEN_FLAG) {
                             Point size = getRealScreenSize();
                             mPlayerView.setPlayerViewDimensions(size.x, size.y);
                         }else{
-                            Point size = getScreenWithoutNavigationSize();
+                            Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
                             mPlayerView.setPlayerViewDimensions(size.x,size.y);
                         }
                     }
@@ -284,7 +282,7 @@ public class PlayerFragment extends Fragment {
 
     private void setFullScreen (){
         View decorView = getActivity().getWindow().getDecorView(); //navigation view
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        int uiOptions = FULL_SCREEN_FLAG;
         decorView.setSystemUiVisibility(uiOptions);
 //        Point size = getRealScreenSize();
 //        mPlayerView.setPlayerViewDimensions(size.x, size.y);
