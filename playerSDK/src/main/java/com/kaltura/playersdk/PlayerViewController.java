@@ -22,19 +22,24 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
-import com.kaltura.playersdk.chromecast.CastPlayer;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
+import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
+import com.kaltura.playersdk.events.OnProgressUpdateListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
-import com.kaltura.playersdk.ima.IMAPlayer;
+import com.kaltura.playersdk.players.BasePlayerView;
+import com.kaltura.playersdk.players.CastPlayer;
+import com.kaltura.playersdk.players.HLSPlayer;
+import com.kaltura.playersdk.players.IMAPlayer;
+import com.kaltura.playersdk.players.KalturaPlayer;
+import com.kaltura.playersdk.players.PlayerView;
 import com.kaltura.playersdk.types.PlayerStates;
 import com.kaltura.playersdk.widevine.WidevineHandler;
 
@@ -59,9 +64,9 @@ public class PlayerViewController extends RelativeLayout {
     public static int CONTROL_BAR_HEIGHT = 38;
 
     //current active VideoPlayerInterface
-    private VideoPlayerInterface mVideoInterface;
+    private BasePlayerView mVideoInterface;
     //Original VideoPlayerInterface that was created by "addComponents"
-    private VideoPlayerInterface mOriginalVideoInterface;
+    private BasePlayerView mOriginalVideoInterface;
     private WebView mWebView;
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
@@ -291,7 +296,7 @@ public class PlayerViewController extends RelativeLayout {
      */
     private void createPlayerInstance() {
         if ( mVideoInterface != null ) {
-            mVideoInterface.removePlayheadUpdateListener();
+            mVideoInterface.removeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE);
             if ( mVideoInterface instanceof CastPlayer )
                 mVideoInterface.stop();
         }
@@ -481,18 +486,17 @@ public class PlayerViewController extends RelativeLayout {
     }
 
     private void removePlayerListeners() {
-        mVideoInterface.registerPlayerStateChange( null );
-        mVideoInterface.registerPlayheadUpdate( null );
-        mVideoInterface.registerProgressUpdate( null );
-        mVideoInterface.registerError(null);
+        mVideoInterface.removeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE);
+        mVideoInterface.removeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE);
+        mVideoInterface.removeListener(Listener.EventType.PROGRESS_UPDATE_LISTENER_TYPE);
+        mVideoInterface.removeListener(Listener.EventType.ERROR_LISTENER_TYPE);
     }
 
     private void setPlayerListeners() {
         // notify player state change events
-        mVideoInterface
-                .registerPlayerStateChange(new OnPlayerStateChangeListener() {
+        mVideoInterface.registerListener(new OnPlayerStateChangeListener() {
                     @Override
-                    public boolean onStateChanged(PlayerStates state) {
+                    public void onStateChanged(PlayerStates state) {
                         if ( state == PlayerStates.START ) {
                             mDuration = getDuration();
                             notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
@@ -500,33 +504,14 @@ public class PlayerViewController extends RelativeLayout {
                         }
                         if ( state != mState ) {
                             mState = state;
-                            String stateName = "";
-                            switch (state) {
-                                case PLAY:
-                                    stateName = "play";
-                                    break;
-                                case PAUSE:
-                                    stateName = "pause";
-                                    break;
-                                case END:
-                                    stateName = "ended";
-                                    break;
-                                case SEEKING:
-                                    stateName = "seeking";
-                                    break;
-                                case SEEKED:
-                                    stateName = "seeked";
-                                    break;
-                                default:
-                                    break;
-                            }
-                            if (stateName != "") {
-                                final String eventName = stateName;
+
+                            if (mState != PlayerStates.LOAD) {
+                                final String eventName = state.toString();
                                 notifyKPlayer("trigger", new String[] { eventName });
                             }
                         }
 
-                        return false;
+                        return;
                     }
                 });
 
@@ -539,35 +524,35 @@ public class PlayerViewController extends RelativeLayout {
         };
 
         // listens for playhead update
-        mVideoInterface.registerPlayheadUpdate(new OnPlayheadUpdateListener() {
+        mVideoInterface.registerListener(new OnPlayheadUpdateListener() {
             @Override
             public void onPlayheadUpdated(int msec) {
                 double curSec = msec / 1000.0;
-                if ( curSec <= mDuration && Math.abs(mCurSec -curSec) > 0.01 ) {
+                if (curSec <= mDuration && Math.abs(mCurSec - curSec) > 0.01) {
                     mCurSec = curSec;
                     mActivity.runOnUiThread(runUpdatePlayehead);
                 }
                 //device is sleeping, pause player
-                if ( !mPowerManager.isScreenOn() ) {
+                if (!mPowerManager.isScreenOn()) {
                     mVideoInterface.pause();
                 }
             }
         });
 
         // listens for progress events and notify javascript
-        mVideoInterface.registerProgressUpdate(new OnProgressListener() {
+        mVideoInterface.registerListener(new OnProgressUpdateListener() {
             @Override
             public void onProgressUpdate(int progress) {
                 double percent = progress / 100.0;
-                notifyKPlayer( "trigger", new Object[]{ "progress", percent});
+                notifyKPlayer("trigger", new Object[]{"progress", percent});
 
             }
         });
 
-        mVideoInterface.registerError(new OnErrorListener() {
+        mVideoInterface.registerListener(new OnErrorListener() {
             @Override
             public void onError(int errorCode, String errorMessage) {
-                Log.d(TAG, "Error Code: "+String.valueOf(errorCode)+" : "+errorMessage);
+                Log.d(TAG, "Error Code: " + String.valueOf(errorCode) + " : " + errorMessage);
                 if (mVideoInterface.getClass().equals(HLSPlayer.class)) {
                     ErrorBuilder.ErrorObject error = new ErrorBuilder().setErrorId(errorCode).setErrorMessage(errorMessage).build();
                     notifyKPlayer("trigger", new Object[]{"error", error});
@@ -697,7 +682,7 @@ public class PlayerViewController extends RelativeLayout {
                                                 String videoUrl = mVideoUrl.substring(0, lastIndex);
                                                 String extension = videoUrl.substring(videoUrl.lastIndexOf(".") + 1);
 
-                                                VideoPlayerInterface tmpPlayer = null;
+                                                BasePlayerView tmpPlayer = null;
                                                 boolean shouldReplacePlayerView = false;
                                                 if (extension.equals("m3u8")) {
                                                     if (!(mVideoInterface instanceof HLSPlayer)) {
@@ -939,6 +924,11 @@ public class PlayerViewController extends RelativeLayout {
 
             return false;
         }
+
+    }
+
+
+    public static enum KPlayerEventTypes{
 
     }
 }

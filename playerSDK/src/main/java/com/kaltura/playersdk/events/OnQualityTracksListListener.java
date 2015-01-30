@@ -1,9 +1,29 @@
 package com.kaltura.playersdk.events;
 
-import java.util.List;
-
 import com.kaltura.playersdk.QualityTrack;
 
-public interface OnQualityTracksListListener {
-	public void OnQualityTracksList( List<QualityTrack> list, int defaultTrackIndex );
+import java.util.List;
+
+public abstract class OnQualityTracksListListener extends Listener{
+    @Override
+    final protected void setEventType() {
+        mEventType = EventType.QUALITY_TRACKS_LIST_LISTENER_TYPE;
+    }
+
+    @Override
+    final protected void executeInternalCallback(InputObject inputObject){
+        QualityTracksListInputObject input = (QualityTracksListInputObject)inputObject;
+        OnQualityTracksList(input.list,input.defaultTrackIndex);
+    }
+
+    final protected boolean checkValidInputObjectType(InputObject inputObject){
+        return inputObject instanceof QualityTracksListInputObject;
+    }
+
+    abstract public void OnQualityTracksList( List<QualityTrack> list, int defaultTrackIndex );
+
+    public static class QualityTracksListInputObject extends InputObject{
+        public List<QualityTrack> list;
+        public int defaultTrackIndex;
+    }
 }

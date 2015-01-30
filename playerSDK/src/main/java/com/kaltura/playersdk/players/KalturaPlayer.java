@@ -1,4 +1,4 @@
-package com.kaltura.playersdk;
+package com.kaltura.playersdk.players;
 
 import android.content.Context;
 import android.media.MediaCodec;
@@ -12,7 +12,6 @@ import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
-import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
@@ -24,10 +23,9 @@ import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
+import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
 /**
@@ -35,7 +33,7 @@ import com.kaltura.playersdk.types.PlayerStates;
  * with one of a number of {@link RendererBuilder} classes to suit different use cases (e.g. DASH,
  * SmoothStreaming and so on).
  */
-public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, VideoPlayerInterface, Callback {
+public class KalturaPlayer extends BasePlayerView implements ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, Callback {
 
     private int NUM_OF_RENFERERS = 2;
     private static final String TAG = KalturaPlayer.class.getSimpleName();
@@ -44,10 +42,6 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
     private static final int BUFFER_COUNTER_MAX = 5;
     private volatile ExoPlayer mExoPlayer;
     private String mVideoUrl = null;
-    private OnPlayerStateChangeListener mPlayerStateChangeListener;
-    private OnPlayheadUpdateListener mPlayheadUpdateListener;
-    private OnProgressListener mProgressListener;
-    private OnErrorListener mErrorListener;
     private int mBufferWaitCounter = 0;
 
     private boolean mIsReady = false;
@@ -111,9 +105,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 		if ( !url.equals(mVideoUrl) ) {
 			releasePlayer();
 			mVideoUrl = url;
-            if ( mPlayheadUpdateListener != null ) {
-                mPlayheadUpdateListener.onPlayheadUpdated(0);
-            }
+            mListenerExecutor.executeOnPlayheadUpdated(0);
             preparePlayer();
 		}		
 	}
@@ -147,8 +139,9 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
                     if ( mExoPlayer != null ) {
                         try {
                             int position = mExoPlayer.getCurrentPosition();
-                            if ( position != 0 && mPlayheadUpdateListener != null && isPlaying() )
-                                mPlayheadUpdateListener.onPlayheadUpdated(position);
+                            if ( position != 0 && isPlaying() ) {
+                                mListenerExecutor.executeOnPlayheadUpdated(position);
+                            }
                         } catch(IllegalStateException e){
                             e.printStackTrace();
                         }
@@ -165,8 +158,8 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
                     if (mExoPlayer != null) {
                         try {
                             int progress = mExoPlayer.getBufferedPercentage();
-                            if (progress != 0 && mProgressListener != null && mPrevProgress != progress) {
-                                mProgressListener.onProgressUpdate(progress);
+                            if (progress != 0 && mPrevProgress != progress) {
+                                mListenerExecutor.executeOnProgressUpdate(progress);
                                 mPrevProgress = progress;
                             }
 
@@ -179,8 +172,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
                 }
             });
 
-            if ( mPlayerStateChangeListener != null )
-                mPlayerStateChangeListener.onStateChanged(PlayerStates.PLAY);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
         }
     }
 
@@ -220,8 +212,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
     public void pause() {
         if ( this.isPlaying() && mExoPlayer != null ) {
             setPlayWhenReady(false);
-            if ( mPlayerStateChangeListener != null )
-                mPlayerStateChangeListener.onStateChanged(PlayerStates.PAUSE);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PAUSE);
         }
     }
 
@@ -248,8 +239,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
     public void seek(int msec) {
         if ( mIsReady ) {
             mSeeking = true;
-            if ( mPlayerStateChangeListener!=null )
-                mPlayerStateChangeListener.onStateChanged(PlayerStates.SEEKING);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.SEEKING);
             mExoPlayer.seekTo( msec );
         }
     }
@@ -267,29 +257,7 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
         return mIsReady;
     }
 
-    @Override
-    public void registerPlayerStateChange(OnPlayerStateChangeListener listener) {
-        mPlayerStateChangeListener = listener;
 
-    }
-
-    @Override
-    public void registerPlayheadUpdate(OnPlayheadUpdateListener listener) {
-        mPlayheadUpdateListener = listener;
-
-    }
-
-    @Override
-    public void removePlayheadUpdateListener() {
-        mPlayheadUpdateListener = null;
-
-    }
-
-    @Override
-    public void registerProgressUpdate(OnProgressListener listener) {
-        // TODO Auto-generated method stub
-
-    }
 
     @Override
     public void setStartingPoint(int point) {
@@ -298,10 +266,8 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
 
     @Override
-    public void onDecoderInitializationError(DecoderInitializationException arg0) {
-        if ( mErrorListener!=null ) {
-            mErrorListener.onError( OnErrorListener.ERROR_UNKNOWN, arg0.getMessage() );
-        }
+    public void onDecoderInitializationError(DecoderInitializationException e) {
+        mListenerExecutor.executeOnError(OnErrorListener.ERROR_UNKNOWN, e.getMessage());
 
     }
 
@@ -338,10 +304,8 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
     }
 
     @Override
-    public void onPlayerError(ExoPlaybackException arg0) {
-        if ( mErrorListener!=null ) {
-            mErrorListener.onError( OnErrorListener.ERROR_UNKNOWN, arg0.getMessage() );
-        }
+    public void onPlayerError(ExoPlaybackException e) {
+        mListenerExecutor.executeOnError(OnErrorListener.ERROR_UNKNOWN, e.getMessage());
     }
 
     @Override
@@ -387,27 +351,20 @@ public class KalturaPlayer extends FrameLayout implements ExoPlayer.Listener, Me
 
         }
 
-        if ( state!=null && mPlayerStateChangeListener!=null ) {
-            mPlayerStateChangeListener.onStateChanged(state);
+        if ( state != null ) {
+            mListenerExecutor.executeOnStateChanged(state);
         }
+        //TODO: this if doesn't make a whole lot of sense
         //notify initial play
         if ( state == PlayerStates.START && playWhenReady ) {
-            mPlayerStateChangeListener.onStateChanged(PlayerStates.PLAY);
+            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
         }
 
-    }
-
-    @Override
-    public void registerError(OnErrorListener listener) {
-        mErrorListener = listener;
     }
 
     @Override
     public void onCryptoError(CryptoException e) {
-        if (mErrorListener != null) {
-            mErrorListener.onError( OnErrorListener.MEDIA_ERROR_NOT_VALID, e.getMessage() );
-        }
-
+        mListenerExecutor.executeOnError(OnErrorListener.MEDIA_ERROR_NOT_VALID, e.getMessage());
     }
 
     @Override

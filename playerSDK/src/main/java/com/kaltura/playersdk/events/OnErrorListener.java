@@ -1,8 +1,26 @@
 package com.kaltura.playersdk.events;
 
 
-public interface OnErrorListener {
-	
+public abstract class OnErrorListener extends Listener{
+
+    @Override
+    final protected void setEventType() {
+        mEventType = EventType.ERROR_LISTENER_TYPE;
+    }
+
+    @Override
+    final  protected void executeInternalCallback(InputObject inputObject){
+        ErrorInputObject input = (ErrorInputObject)inputObject;
+        onError(input.errorCode, input.errorMessage);
+    }
+
+    final protected boolean checkValidInputObjectType(InputObject inputObject){
+        return inputObject instanceof ErrorInputObject;
+    }
+
+
+
+    //TODO: change to enums....
 	 public static final int ERROR_UNKNOWN = -100;
 
     /** 
@@ -25,6 +43,11 @@ public interface OnErrorListener {
     
     /** profile is incompatible to hardware */
     public static final int MEDIA_INCOMPATIBLE_PROFILE = -106;
-	    
-	public void onError(int errorCode, String errorMessage);
+
+    abstract public void onError(int errorCode, String errorMessage);
+
+    public static class ErrorInputObject extends InputObject{
+        public int errorCode;
+        public String errorMessage;
+    }
 }
