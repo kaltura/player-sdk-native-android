@@ -154,87 +154,53 @@ public class PlayerFragment extends Fragment {
         });
 
         showPlayerView();
-        //show demo
-        mPlayerView.setComponents(new RequestDataSource() {
-
-            @Override
-            public String getWid() {
-                return "_243342";
-            }
-
-            @Override
-            public String getUrid() {
-                // TODO Auto-generated method stub
-                return null;
-            }
-
-            @Override
-            public String getUiConfId() {
-                return "21384602";
-            }
-
-            @Override
-            public String getServerAddress() {
-                return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
-            }
-
-            @Override
-            public KPPlayerConfig getFlashVars() {
-                KPPlayerConfig playerConfig = new KPPlayerConfig();
-                playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
-                return playerConfig;
-            }
-
-            @Override
-            public String getEntryId() {
-                return "0_c0r624gh";
-            }
-
-            @Override
-            public String getCacheStr() {
-                // TODO Auto-generated method stub
-                return null;
-            }
-        });
 
         Intent intent = getActivity().getIntent();
+        String iFrameUrl = intent.getStringExtra(getString(R.string.prop_iframe_url));
+        if (iFrameUrl != null){
+            mPlayerView.setComponents(iFrameUrl);
+        }else{
+            mPlayerView.setComponents(new RequestDataSource() {
 
-        ///////////////////////////////////////////////////////////////////////////
-        //for tests
-        //doubleclick
-        // intent.putExtra(PROP_IFRAME_URL, "http://10.0.21.62/html5.kaltura/mwEmbed/mwEmbedFrame.php/p/524241/sp/52424100/uiconf_id/25906371/wid/_524241/entry_id/0_8zzalxul?iframeembed=true&#038;playerId=kaltura_player_1404535475&#038;entry_id=0_8zzalxul");
-        //vast
-        //   intent.putExtra(PROP_IFRAME_URL, "http://192.168.1.14/html5.kaltura/mwEmbed/mwEmbedFrame.php/wid/_243342/uiconf_id/13920942/entry_id/0_uka1msg4/?&flashvars%5BimageDefaultDuration%5D=2&flashvars%5BautoPlay%5D=false&flashvars%5BautoMute%5D=false&");
-        // widevine
-        //  intent.putExtra(PROP_IFRAME_URL, "http://192.168.1.14/html5.kaltura/mwEmbed/mwEmbedFrame.php/p/524241/sp/52424100/uiconf_id/26356811/wid/_524241/entry_id/0_lnthb45u?iframeembed=true&#038;playerId=kaltura_player_1404535475&#038;entry_id=0_lnthb45u");
+                @Override
+                public String getWid() {
+                    return "_243342";
+                }
 
-        /////////////////////////////////////////////
+                @Override
+                public String getUrid() {
+                    // TODO Auto-generated method stub
+                    return null;
+                }
 
+                @Override
+                public String getUiConfId() {
+                    return "21384602";
+                }
 
+                @Override
+                public String getServerAddress() {
+                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
+                }
 
-        if ( intent.getStringExtra(getString(R.string.prop_iframe_url))!= null ) {
-            showIframeView();
-        } else {
+                @Override
+                public KPPlayerConfig getFlashVars() {
+                    KPPlayerConfig playerConfig = new KPPlayerConfig();
+                    playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
+                    return playerConfig;
+                }
 
+                @Override
+                public String getEntryId() {
+                    return "0_c0r624gh";
+                }
 
-
-	    	/*  Button goBtn = (Button) findViewById(R.id.submitBtn);
-	          final EditText urlText = (EditText) findViewById(R.id.iframeUrl);
-
-	          mPlayerView.setVisibility(RelativeLayout.GONE);
-
-	          if ( goBtn != null) {
-	              goBtn.setOnClickListener( new OnClickListener() {
-
-	  				@Override
-	  				public void onClick(View v) {
-	  					//TODO validate url
-	  					getIntent().putExtra(PROP_IFRAME_URL, urlText.getText().toString());
-	  	            	showPlayerView();
-	  				}
-
-	              });
-	          } */
+                @Override
+                public String getCacheStr() {
+                    // TODO Auto-generated method stub
+                    return null;
+                }
+            });
         }
 
         return fragmentView;
@@ -331,11 +297,6 @@ public class PlayerFragment extends Fragment {
         Point size = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getSize(size);
         mPlayerView.setPlayerViewDimensions( size.x, size.y, 0, 0 );
-    }
-
-    private void showIframeView() {
-        showPlayerView();
-        mPlayerView.setComponents( getActivity().getIntent().getStringExtra(getString(R.string.prop_iframe_url)));
     }
 
     @Override

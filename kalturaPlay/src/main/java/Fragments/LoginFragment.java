@@ -75,7 +75,7 @@ public class LoginFragment extends Fragment {
         Intent intent = getActivity().getIntent();
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         // check if this intent is started via browser
-        if ( Intent.ACTION_VIEW.equals( intent.getAction() ) ) {
+        if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
             String[] params = null;
             try {
@@ -84,10 +84,10 @@ public class LoginFragment extends Fragment {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            if ( params!=null && params.length > 1 ) {
+            if (params !=null && params.length > 1) {
                 String iframeUrl = params[1];
                 intent.putExtra(getString(R.string.prop_iframe_url), iframeUrl);
-                loadPlayerFragment();
+                loadPlayerFragment(false);
             } else {
                 Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
             }
@@ -104,25 +104,27 @@ public class LoginFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                loadPlayerFragment();
+                loadPlayerFragment(true);
             }
         });
         return fragmentView;
     }
 
-    private void loadPlayerFragment(){
+    private void loadPlayerFragment(boolean addToBackStack){
         // Create fragment and give it an argument specifying the article it should show
         PlayerFragment newFragment = new PlayerFragment();
         Bundle args = new Bundle();
-//                args.putInt(ArticleFragment.ARG_POSITION, position);
         newFragment.setArguments(args);
-
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
 
 // Replace whatever is in the fragment_container view with this fragment,
 // and add the transaction to the back stack so the user can navigate back
+
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, newFragment);
-        transaction.addToBackStack(null);
+
+        if(addToBackStack) {
+            transaction.addToBackStack(null);
+        }
 
 // Commit the transaction
         transaction.commit();
