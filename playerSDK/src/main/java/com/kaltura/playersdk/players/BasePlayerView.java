@@ -108,8 +108,10 @@ public abstract class BasePlayerView extends FrameLayout {
     }
 
     public void registerListener(Listener listener){
-        if ( mEventTypeListenerMap.containsKey(listener.getEventType()) ){
-            mEventTypeListenerMap.put(listener.getEventType(), listener);
+        if (listener != null) {
+            if (mEventTypeListenerMap.containsKey(listener.getEventType())) {
+                mEventTypeListenerMap.put(listener.getEventType(), listener);
+            }
         }
     }
 
