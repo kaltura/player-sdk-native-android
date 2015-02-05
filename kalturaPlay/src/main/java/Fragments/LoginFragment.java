@@ -1,12 +1,13 @@
 package Fragments;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
@@ -72,6 +73,7 @@ public class LoginFragment extends Fragment {
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate(R.layout.fragment_login, container, false);
         Intent intent = getActivity().getIntent();
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         // check if this intent is started via browser
         if ( Intent.ACTION_VIEW.equals( intent.getAction() ) ) {
             Uri uri = intent.getData();
