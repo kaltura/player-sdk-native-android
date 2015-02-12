@@ -96,10 +96,11 @@ public class LoginFragment extends Fragment {
         }
 
 
-        TextView infoMsg = (TextView)fragmentView.findViewById(R.id.infoMsg);
-        Spanned spanned = Html.fromHtml(getString(R.string.main_message));
+        TextView infoMsg = (TextView)fragmentView.findViewById(R.id.powered);
+        Spanned spanned = Html.fromHtml(getString(R.string.footer));
         infoMsg.setMovementMethod(LinkMovementMethod.getInstance());
         infoMsg.setText(spanned);
+
         Button demoBtn = (Button)fragmentView.findViewById(R.id.demoBtn);
         demoBtn.setOnClickListener( new View.OnClickListener() {
 
