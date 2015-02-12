@@ -17,6 +17,7 @@
             android:id="@+id/imageView"
             android:layout_width="300dp"
             android:layout_height="100dp"
+            android:src="@drawable/logo"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="100dp"/>

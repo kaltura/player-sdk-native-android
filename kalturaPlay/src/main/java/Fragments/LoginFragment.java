@@ -87,7 +87,8 @@ public class LoginFragment extends Fragment {
             if (params !=null && params.length > 1) {
                 String iframeUrl = params[1];
                 intent.putExtra(getString(R.string.prop_iframe_url), iframeUrl);
-                loadPlayerFragment(false);
+                FullscreenFragment newFragment = new FullscreenFragment();
+                loadFragment(false, newFragment);
             } else {
                 Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
             }
@@ -104,15 +105,16 @@ public class LoginFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                loadPlayerFragment(true);
+                PlayerFragment newFragment = new PlayerFragment();
+                loadFragment(true, newFragment);
             }
         });
         return fragmentView;
     }
 
-    private void loadPlayerFragment(boolean addToBackStack){
+    private void loadFragment(boolean addToBackStack , Fragment newFragment){
         // Create fragment and give it an argument specifying the article it should show
-        PlayerFragment newFragment = new PlayerFragment();
+
         Bundle args = new Bundle();
         newFragment.setArguments(args);
 

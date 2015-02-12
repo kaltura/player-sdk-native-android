@@ -3,8 +3,6 @@ package Fragments;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.net.Uri;
@@ -16,7 +14,9 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.kaltura.kalturaplayertoolkit.R;
@@ -53,6 +53,8 @@ public class PlayerFragment extends Fragment {
 //    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+    private int mHeight; //
+    private int mWidth; //= mPlayerView.getWidth();
 
     /**
      * Use this factory method to create a new instance of
@@ -89,8 +91,25 @@ public class PlayerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View fragmentView = inflater.inflate(R.layout.fragment_player, container, false);
+        final View fragmentView = inflater.inflate(R.layout.fragment_player, container, false);
+        final WebView browser=(WebView)fragmentView.findViewById(R.id.web_view);
+        browser.loadUrl("http://commonsware.com");
         mPlayerView = (PlayerViewController) fragmentView.findViewById(R.id.player);
+//        mHeight = mPlayerView.getHeight();
+//        mWidth = mPlayerView.getWidth();
+        final ViewTreeObserver vto = browser.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+
+                    browser.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+
+                Point p = getRealScreenSize();
+                mWidth = p.x;
+                mHeight = p.y - browser.getHeight();
+                showPlayerView();
+            }
+        });
         mPlayerView.setActivity(getActivity());
         mPlayerView.setOnFullScreenListener(new OnToggleFullScreenListener() {
 
@@ -153,13 +172,9 @@ public class PlayerFragment extends Fragment {
 
         });
 
-        showPlayerView();
 
-        Intent intent = getActivity().getIntent();
-        String iFrameUrl = intent.getStringExtra(getString(R.string.prop_iframe_url));
-        if (iFrameUrl != null){
-            mPlayerView.setComponents(iFrameUrl);
-        }else{
+
+
             mPlayerView.setComponents(new RequestDataSource() {
 
                 @Override
@@ -201,7 +216,7 @@ public class PlayerFragment extends Fragment {
                     return null;
                 }
             });
-        }
+
 
         return fragmentView;
     }
@@ -255,11 +270,13 @@ public class PlayerFragment extends Fragment {
     }
 
     private Point getScreenWithoutNavigationSize() {
-        Display display = getActivity().getWindowManager().getDefaultDisplay();
-        DisplayMetrics realMetrics = new DisplayMetrics();
-        display.getMetrics(realMetrics);
-        int width = realMetrics.widthPixels;
-        int height = realMetrics.heightPixels;
+        int height = mHeight;
+        int width = mWidth;
+//        Display display = getActivity().getWindowManager().getDefaultDisplay();
+//        DisplayMetrics realMetrics = new DisplayMetrics();
+//        display.getMetrics(realMetrics);
+//        int width = realMetrics.widthPixels;
+//        int height = realMetrics.heightPixels;
         return new Point(width, height);
     }
 
@@ -292,11 +309,11 @@ public class PlayerFragment extends Fragment {
     }
 
     private void showPlayerView() {
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-        mPlayerView.setVisibility(RelativeLayout.VISIBLE);
-        Point size = new Point();
-        getActivity().getWindowManager().getDefaultDisplay().getSize(size);
-        mPlayerView.setPlayerViewDimensions( size.x, size.y, 0, 0 );
+//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+//        mPlayerView.setVisibility(RelativeLayout.VISIBLE);
+//        Point size = new Point();
+//        getActivity().getWindowManager().getDefaultDisplay().getSize(size);
+        mPlayerView.setPlayerViewDimensions( mWidth, mHeight, 0, 0 );
     }
 
     @Override
