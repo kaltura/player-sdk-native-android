@@ -26,7 +26,7 @@
             android:layout_marginBottom="100dp"
             android:text="@string/footer"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#cccccc" />
+            android:textColor="#ff286780" />
 
         <TextView
             android:id="@+id/infoMsg"
@@ -37,7 +37,7 @@
             android:layout_centerHorizontal="true"
             android:text=""
             android:textColorLink="#00c9ea"
-            android:textColor="#ffffff"
+            android:textColor="#ff286780"
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceLarge"/>
 
