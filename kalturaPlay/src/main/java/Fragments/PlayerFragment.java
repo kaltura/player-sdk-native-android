@@ -54,8 +54,8 @@ public class PlayerFragment extends Fragment {
 //    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private int mHeight; //
-    private int mWidth; //= mPlayerView.getWidth();
+    private int defaultPlayerHeight;
+    private int defaultPlayerWidth;
 
     /**
      * Use this factory method to create a new instance of
@@ -106,8 +106,8 @@ public class PlayerFragment extends Fragment {
                 mPlayerView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 
                 Point p = getRealScreenSize();
-                mWidth = mPlayerView.getMeasuredWidth();
-                mHeight = mPlayerView.getMeasuredHeight();
+                defaultPlayerWidth = mPlayerView.getMeasuredWidth();
+                defaultPlayerHeight = mPlayerView.getMeasuredHeight();
                 showPlayerView();
             }
         });
@@ -261,23 +261,40 @@ public class PlayerFragment extends Fragment {
         public void onFragmentInteraction(Uri uri);
     }
 
-
-    private void setFullScreen (){
+    private void setPlayerFullScreen(){
         View decorView = getActivity().getWindow().getDecorView(); //navigation view
         int uiOptions = FULL_SCREEN_FLAG;
         decorView.setSystemUiVisibility(uiOptions);
-//        Point size = getRealScreenSize();
-//        mPlayerView.setPlayerViewDimensions(size.x, size.y);
+        Point size = getRealScreenSize();
+        mPlayerView.setPlayerViewDimensions(size.x, size.y);
+    }
+
+    private void setFullScreen (){
+//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if(mPlayerView.getHeight() > defaultPlayerHeight){
+                Point size = getDefaultPlayerScreenSize();
+                mPlayerView.setPlayerViewDimensions(size.x, size.y);
+            }else{
+                setPlayerFullScreen();
+            }
+        } else {
+            setPlayerFullScreen();
+        }
+    }
+
+    private Point getDefaultPlayerScreenSize() {
+        int height = defaultPlayerHeight;
+        int width = defaultPlayerWidth;
+        return new Point(width, height);
     }
 
     private Point getScreenWithoutNavigationSize() {
-        int height = mHeight;
-        int width = mWidth;
-//        Display display = getActivity().getWindowManager().getDefaultDisplay();
-//        DisplayMetrics realMetrics = new DisplayMetrics();
-//        display.getMetrics(realMetrics);
-//        int width = realMetrics.widthPixels;
-//        int height = realMetrics.heightPixels;
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        DisplayMetrics realMetrics = new DisplayMetrics();
+        display.getMetrics(realMetrics);
+        int width = realMetrics.widthPixels;
+        int height = realMetrics.heightPixels;
         return new Point(width, height);
     }
 
@@ -314,7 +331,7 @@ public class PlayerFragment extends Fragment {
         mPlayerView.setVisibility(RelativeLayout.VISIBLE);
 //        Point size = new Point();
 //        getActivity().getWindowManager().getDefaultDisplay().getSize(size);
-        mPlayerView.setPlayerViewDimensions( mWidth, mHeight, 0, 0 );
+        mPlayerView.setPlayerViewDimensions( defaultPlayerWidth, defaultPlayerHeight, 0, 0 );
     }
 
     @Override
@@ -328,9 +345,8 @@ public class PlayerFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             Point size;
-                            if (getResources().getConfiguration().orientation ==
-                                    Configuration.ORIENTATION_PORTRAIT) {
-                                size = getScreenWithoutNavigationSize();
+                            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                                size = getDefaultPlayerScreenSize();
                             } else {
                                 size = new Point();
                                 getActivity().getWindowManager().getDefaultDisplay().getSize(size);
