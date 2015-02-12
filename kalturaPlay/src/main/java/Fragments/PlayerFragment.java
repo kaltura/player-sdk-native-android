@@ -3,6 +3,7 @@ package Fragments;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.net.Uri;
@@ -309,8 +310,8 @@ public class PlayerFragment extends Fragment {
     }
 
     private void showPlayerView() {
-//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-//        mPlayerView.setVisibility(RelativeLayout.VISIBLE);
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        mPlayerView.setVisibility(RelativeLayout.VISIBLE);
 //        Point size = new Point();
 //        getActivity().getWindowManager().getDefaultDisplay().getSize(size);
         mPlayerView.setPlayerViewDimensions( mWidth, mHeight, 0, 0 );
@@ -326,12 +327,20 @@ public class PlayerFragment extends Fragment {
                 public void run() {
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
-                            Point size = new Point();
-                            getActivity().getWindowManager().getDefaultDisplay().getSize(size);
+                            Point size;
+                            if (getResources().getConfiguration().orientation ==
+                                    Configuration.ORIENTATION_PORTRAIT) {
+                                size = getScreenWithoutNavigationSize();
+                            } else {
+                                size = new Point();
+                                getActivity().getWindowManager().getDefaultDisplay().getSize(size);
+                                View decorView = getActivity().getWindow().getDecorView();
+                                int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+                                decorView.setSystemUiVisibility(uiOptions);
+                            }
+
                             mPlayerView.setPlayerViewDimensions(size.x, size.y, 0, 0);
-                            View decorView = getActivity().getWindow().getDecorView();
-                            int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-                            decorView.setSystemUiVisibility(uiOptions);
+
                         }
                     });
                 }
