@@ -94,10 +94,11 @@ public class PlayerFragment extends Fragment {
         // Inflate the layout for this fragment
         final View fragmentView = inflater.inflate(R.layout.fragment_player, container, false);
         final WebView browser=(WebView)fragmentView.findViewById(R.id.web_view);
-        browser.loadUrl("http://commonsware.com");
+        browser.loadUrl("http://knowledge.kaltura.com/kaltura-player-sdk-android");
+        browser.getSettings().setLoadWithOverviewMode(true);
+        browser.getSettings().setUseWideViewPort(true);
         mPlayerView = (PlayerViewController) fragmentView.findViewById(R.id.player);
-//        mHeight = mPlayerView.getHeight();
-//        mWidth = mPlayerView.getWidth();
+
         final ViewTreeObserver vto = mPlayerView.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
