@@ -106,7 +106,6 @@ public class PlayerFragment extends Fragment {
 
                 mPlayerView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 
-                Point p = getRealScreenSize();
                 defaultPlayerWidth = mPlayerView.getMeasuredWidth();
                 defaultPlayerHeight = mPlayerView.getMeasuredHeight();
                 showPlayerView();
