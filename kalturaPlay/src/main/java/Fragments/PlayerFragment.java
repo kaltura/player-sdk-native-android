@@ -176,47 +176,47 @@ public class PlayerFragment extends Fragment {
 
 
 
-            mPlayerView.setComponents(new RequestDataSource() {
+        mPlayerView.setComponents(new RequestDataSource() {
 
-                @Override
-                public String getWid() {
-                    return "_243342";
-                }
+            @Override
+            public String getWid() {
+                return "_1632032";
+            }
 
-                @Override
-                public String getUrid() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
+            @Override
+            public String getUrid() {
+                // TODO Auto-generated method stub
+                return null;
+            }
 
-                @Override
-                public String getUiConfId() {
-                    return "21384602";
-                }
+            @Override
+            public String getUiConfId() {
+                return "27997131";
+            }
 
-                @Override
-                public String getServerAddress() {
-                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
-                }
+            @Override
+            public String getServerAddress() {
+                return "http://kgit.html5video.org/tags/v2.28.rc4/mwEmbedFrame.php";
+            }
 
-                @Override
-                public KPPlayerConfig getFlashVars() {
-                    KPPlayerConfig playerConfig = new KPPlayerConfig();
-                    playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
-                    return playerConfig;
-                }
+            @Override
+            public KPPlayerConfig getFlashVars() {
+                KPPlayerConfig playerConfig = new KPPlayerConfig();
+                playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
+                return playerConfig;
+            }
 
-                @Override
-                public String getEntryId() {
-                    return "0_c0r624gh";
-                }
+            @Override
+            public String getEntryId() {
+                return "0_9x59fggg";
+            }
 
-                @Override
-                public String getCacheStr() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
-            });
+            @Override
+            public String getCacheStr() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+        });
 
 
         return fragmentView;
