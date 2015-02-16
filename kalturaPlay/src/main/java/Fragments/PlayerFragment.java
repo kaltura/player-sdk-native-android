@@ -129,8 +129,9 @@ public class PlayerFragment extends Fragment {
                     @Override
                     public void onKPlayerEvent(Object body) {
                         Log.d(TAG, "doPlay event called");
-//                        setFullScreen();
-//                        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT) {
+                            setFullScreen();
+                        }
                     }
 
                     @Override
@@ -172,9 +173,6 @@ public class PlayerFragment extends Fragment {
             }
 
         });
-
-
-
 
             mPlayerView.setComponents(new RequestDataSource() {
 
@@ -269,7 +267,7 @@ public class PlayerFragment extends Fragment {
         mPlayerView.setPlayerViewDimensions(size.x, size.y);
     }
 
-    private void setFullScreen (){
+    private void setFullScreen(){
 //        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             if(mPlayerView.getHeight() > defaultPlayerHeight){
