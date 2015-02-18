@@ -103,7 +103,7 @@ public class PlayerViewController extends RelativeLayout {
     final Runnable runnableUpdateDuration= new Runnable() {
         @Override
         public void run() {
-            notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
+            notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration*1000 });
         }
     };
 
@@ -549,7 +549,7 @@ public class PlayerViewController extends RelativeLayout {
                     }
                 }
 
-                int currentDuration = mVideoInterface.getDuration();
+                int currentDuration = getDuration();
                 if(currentDuration > mDuration){
                     mDuration = currentDuration;
                     mActivity.runOnUiThread(runnableUpdateDuration);
@@ -694,7 +694,7 @@ public class PlayerViewController extends RelativeLayout {
 
                                         if (params != null && params.size() > 1) {
                                             if (params.get(0).equals("currentTime")) {
-                                                int seekTo = Math.round(Float.parseFloat(params.get(1)));
+                                                int seekTo = (Integer.parseInt(params.get(1)));
                                                 Log.d(TAG,"    SEEK: To HLSPlayer:"+seekTo);
                                                 mVideoInterface.seek(seekTo);
                                             } else if (params.get(0).equals("src")) {
