@@ -90,6 +90,23 @@ public class PlayerViewController extends RelativeLayout {
 
     private boolean mWvMinimized = false;
 
+    // trigger timeupdate events
+    final Runnable runnableUpdatePlayhead = new Runnable() {
+        @Override
+        public void run() {
+
+            notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
+        }
+    };
+
+    // trigger timeupdate events
+    final Runnable runnableUpdateDuration= new Runnable() {
+        @Override
+        public void run() {
+            notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
+        }
+    };
+
     public PlayerViewController(Context context) {
         super(context);
         setupPlayerViewController( context );
@@ -515,22 +532,27 @@ public class PlayerViewController extends RelativeLayout {
                     }
                 });
 
-        // trigger timeupdate events
-        final Runnable runUpdatePlayehead = new Runnable() {
-            @Override
-            public void run() {
-                notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
-            }
-        };
+
 
         // listens for playhead update
         mVideoInterface.registerListener(new OnPlayheadUpdateListener() {
             @Override
             public void onPlayheadUpdated(int msec) {
+                Log.d(TAG, "SEEK: from HLS Player:" + msec);
                 double curSec = msec / 1000.0;
-                if (curSec <= mDuration && Math.abs(mCurSec - curSec) > 0.01) {
+                if (Math.abs(mCurSec - curSec) > 0.01) {
                     mCurSec = curSec;
-                    mActivity.runOnUiThread(runUpdatePlayehead);
+                    mActivity.runOnUiThread(runnableUpdatePlayhead);
+                    if(curSec - mDuration > 0.01){
+                        mDuration = curSec;
+                        mActivity.runOnUiThread(runnableUpdateDuration);
+                    }
+                }
+
+                int currentDuration = mVideoInterface.getDuration();
+                if(currentDuration > mDuration){
+                    mDuration = currentDuration;
+                    mActivity.runOnUiThread(runnableUpdateDuration);
                 }
                 //device is sleeping, pause player
                 if (!mPowerManager.isScreenOn()) {
@@ -672,7 +694,8 @@ public class PlayerViewController extends RelativeLayout {
 
                                         if (params != null && params.size() > 1) {
                                             if (params.get(0).equals("currentTime")) {
-                                                int seekTo = Math.round(Float.parseFloat(params.get(1)) * 1000);
+                                                int seekTo = Math.round(Float.parseFloat(params.get(1)));
+                                                Log.d(TAG,"    SEEK: To HLSPlayer:"+seekTo);
                                                 mVideoInterface.seek(seekTo);
                                             } else if (params.get(0).equals("src")) {
                                                 // remove " from the edges
@@ -810,6 +833,11 @@ public class PlayerViewController extends RelativeLayout {
                                                     mVideoInterface.play();
                                                 } else {
                                                     Log.w(TAG, "DoubleClick is not supported by this player");
+                                                }
+                                            }else if(params.get(0).equals("goLive")){
+                                                //temporary fix - waiting for an HLS api
+                                                if (params.get(1).equals("true") && mVideoInterface instanceof HLSPlayer){
+                                                    mVideoInterface.seek((int) (mDuration*1000));
                                                 }
                                             }
                                         }

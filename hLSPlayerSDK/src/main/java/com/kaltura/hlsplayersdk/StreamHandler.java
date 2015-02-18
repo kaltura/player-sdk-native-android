@@ -1,12 +1,5 @@
 package com.kaltura.hlsplayersdk;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Vector;
-
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -18,6 +11,13 @@ import com.kaltura.hlsplayersdk.manifest.ManifestPlaylist;
 import com.kaltura.hlsplayersdk.manifest.ManifestSegment;
 import com.kaltura.hlsplayersdk.manifest.ManifestStream;
 import com.kaltura.hlsplayersdk.types.TrackType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
 
 
 // This is the confusingly named "HLSIndexHandler" from the flash HLSPlugin
@@ -821,19 +821,20 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	// Returns duration in ms
 	public int getDuration()
 	{
-		double accum = 0.0f;
-		
+//		double accum = 0.0f;
+		int accum = 0;
 		if (manifest == null) return -1;
 		
 		Vector<ManifestSegment> segments = getSegmentsForQuality( lastQuality );
 		ManifestParser activeManifest = getManifestForQuality(lastQuality);
-		int i = segments.size() - 1;
-		if (i >= 0 && (activeManifest.allowCache || activeManifest.streamEnds))
-		{
-			accum = (segments.get(i).startTime + segments.get(i).duration) - lastKnownPlaylistStartTime;
-		}
+
+        accum = (int) segments.get(segments.size() -1).startTime;
+//		for(int i = 0; i < segments.size(); i++)
+//		{
+//			accum += (segments.get(i).startTime + segments.get(i).duration) - lastKnownPlaylistStartTime;
+//		}
 		
-		return (int) (accum * 1000);
+		return accum;
 		
 	}
 	

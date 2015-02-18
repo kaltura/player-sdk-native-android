@@ -196,7 +196,9 @@ public class PlayerFragment extends Fragment {
 
             @Override
             public String getServerAddress() {
-                return "http://kgit.html5video.org/tags/v2.28.rc4/mwEmbedFrame.php";
+//                return "http://kgit.html5video.org/tags/v2.28.rc4/mwEmbedFrame.php";
+                    return "http://10.0.21.71/html5.kaltura/mwEmbed/mwEmbedFrame.php";
+
             }
 
             @Override
