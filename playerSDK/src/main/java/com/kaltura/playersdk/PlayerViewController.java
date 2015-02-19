@@ -28,6 +28,7 @@ import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
+import com.kaltura.playersdk.events.OnDurationChangedListener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
@@ -100,7 +101,7 @@ public class PlayerViewController extends RelativeLayout {
     };
 
     // trigger timeupdate events
-    final Runnable runnableUpdateDuration= new Runnable() {
+    final Runnable runnableUpdateDuration = new Runnable() {
         @Override
         public void run() {
             notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
@@ -550,11 +551,11 @@ public class PlayerViewController extends RelativeLayout {
 //                    }
                 }
 
-                double currentDurationSec = getDurationSec();
-                if(currentDurationSec - mDurationSec > 0.1){
-                    mDurationSec = currentDurationSec;
-                    mActivity.runOnUiThread(runnableUpdateDuration);
-                }
+//                double currentDurationSec = getDurationSec();
+//                if(currentDurationSec - mDurationSec > 0.1){
+//                    mDurationSec = currentDurationSec;
+//                    mActivity.runOnUiThread(runnableUpdateDuration);
+//                }
                 //device is sleeping, pause player
                 if (!mPowerManager.isScreenOn()) {
                     mVideoInterface.pause();
@@ -581,6 +582,14 @@ public class PlayerViewController extends RelativeLayout {
                     notifyKPlayer("trigger", new Object[]{"error", error});
                 }
 
+            }
+        });
+
+        mVideoInterface.registerListener(new OnDurationChangedListener() {
+            @Override
+            public void OnDurationChanged(int mSec) {
+                mDurationSec = mSec / 1000.0;
+                mActivity.runOnUiThread(runnableUpdateDuration);
             }
         });
     }
@@ -836,9 +845,10 @@ public class PlayerViewController extends RelativeLayout {
                                                     Log.w(TAG, "DoubleClick is not supported by this player");
                                                 }
                                             }else if(params.get(0).equals("goLive")){
+                                                Log.d(TAG, "SEEK: GOTOLIVE");
                                                 //temporary fix - waiting for an HLS api
-                                                if (params.get(1).equals("true") && mVideoInterface instanceof HLSPlayer){
-                                                    mVideoInterface.seek((int) (mDurationSec*1000));
+                                                if (params.get(1).equals("true") && mVideoInterface instanceof LiveStreamInterface){
+                                                    ((LiveStreamInterface)mVideoInterface).switchToLive();
                                                 }
                                             }
                                         }
