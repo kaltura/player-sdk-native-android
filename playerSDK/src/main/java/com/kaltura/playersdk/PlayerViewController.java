@@ -71,7 +71,7 @@ public class PlayerViewController extends RelativeLayout {
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
-    private double mDuration = 0;
+    private double mDurationSec = 0;
     private OnToggleFullScreenListener mFSListener;
     private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
@@ -103,7 +103,7 @@ public class PlayerViewController extends RelativeLayout {
     final Runnable runnableUpdateDuration= new Runnable() {
         @Override
         public void run() {
-            notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration*1000 });
+            notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
         }
     };
 
@@ -372,11 +372,12 @@ public class PlayerViewController extends RelativeLayout {
      *
      * @return duration in seconds
      */
-    public int getDuration() {
-        int duration = 0;
-        if (mVideoInterface != null)
-            duration = mVideoInterface.getDuration() / 1000;
-
+    public double getDurationSec() {
+        double duration = 0;
+        if (mVideoInterface != null) {
+            duration = mVideoInterface.getDuration();
+        }
+        duration /= 1000;
         return duration;
     }
 
@@ -515,8 +516,8 @@ public class PlayerViewController extends RelativeLayout {
                     @Override
                     public void onStateChanged(PlayerStates state) {
                         if ( state == PlayerStates.START ) {
-                            mDuration = getDuration();
-                            notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
+                            mDurationSec = getDurationSec();
+                            notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
                             notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });
                         }
                         if ( state != mState ) {
@@ -543,15 +544,15 @@ public class PlayerViewController extends RelativeLayout {
                 if (Math.abs(mCurSec - curSec) > 0.01) {
                     mCurSec = curSec;
                     mActivity.runOnUiThread(runnableUpdatePlayhead);
-                    if(curSec - mDuration > 0.01){
-                        mDuration = curSec;
-                        mActivity.runOnUiThread(runnableUpdateDuration);
-                    }
+//                    if(curSec - mDuration > 0.01){
+//                        mDuration = curSec;
+//                        mActivity.runOnUiThread(runnableUpdateDuration);
+//                    }
                 }
 
-                int currentDuration = getDuration();
-                if(currentDuration > mDuration){
-                    mDuration = currentDuration;
+                double currentDurationSec = getDurationSec();
+                if(currentDurationSec - mDurationSec > 0.1){
+                    mDurationSec = currentDurationSec;
                     mActivity.runOnUiThread(runnableUpdateDuration);
                 }
                 //device is sleeping, pause player
@@ -837,7 +838,7 @@ public class PlayerViewController extends RelativeLayout {
                                             }else if(params.get(0).equals("goLive")){
                                                 //temporary fix - waiting for an HLS api
                                                 if (params.get(1).equals("true") && mVideoInterface instanceof HLSPlayer){
-                                                    mVideoInterface.seek((int) (mDuration*1000));
+                                                    mVideoInterface.seek((int) (mDurationSec*1000));
                                                 }
                                             }
                                         }
