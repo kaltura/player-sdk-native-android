@@ -1,5 +1,6 @@
 package com.kaltura.hlsplayersdk;
 
+import com.kaltura.hlsplayersdk.events.OnDurationChangedListener;
 import com.kaltura.hlsplayersdk.events.OnErrorListener;
 import com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener;
@@ -27,10 +28,12 @@ public interface VideoPlayerInterface {
 
     // events
     public void registerPlayerStateChange(OnPlayerStateChangeListener listener);
-
+    
     public void registerError(OnErrorListener listener);
 
     public void registerPlayheadUpdate(OnPlayheadUpdateListener listener);
+    
+    public void registerDurationChanged(OnDurationChangedListener listener);
 
     public void removePlayheadUpdateListener();
     

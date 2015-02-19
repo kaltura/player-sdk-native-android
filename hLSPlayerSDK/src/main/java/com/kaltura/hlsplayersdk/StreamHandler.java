@@ -1,5 +1,12 @@
 package com.kaltura.hlsplayersdk;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
+
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -11,13 +18,6 @@ import com.kaltura.hlsplayersdk.manifest.ManifestPlaylist;
 import com.kaltura.hlsplayersdk.manifest.ManifestSegment;
 import com.kaltura.hlsplayersdk.manifest.ManifestStream;
 import com.kaltura.hlsplayersdk.types.TrackType;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Vector;
 
 
 // This is the confusingly named "HLSIndexHandler" from the flash HLSPlugin
@@ -150,7 +150,10 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		String[] languages = new String[manifest.playLists.size()];
 		for (int i = 0; i < manifest.playLists.size(); ++i)
 		{
-			languages[i] = manifest.playLists.get(i).language;
+			String lang = manifest.playLists.get(i).language;
+			if (lang.length() == 0 )
+				lang = manifest.playLists.get(i).name;
+			languages[i] = lang;
 		}
 		return languages;
 	}
@@ -161,7 +164,11 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		List<String> languages = new ArrayList<String>();
 		for (int i = 0; i < manifest.playLists.size(); ++i)
 		{
-			languages.add(manifest.playLists.get(i).language);
+			String lang = manifest.playLists.get(i).language;
+			if (lang.length() == 0 )
+				lang = manifest.playLists.get(i).name;
+
+			languages.add(lang);
 		}
 		return languages;
 	}
@@ -341,6 +348,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 			HLSPlayerViewController.currentController.seekToCurrentPosition();
 		}
 		startReloadTimer();
+		HLSPlayerViewController.currentController.postDurationChanged();
 		
 	}
 	
@@ -821,20 +829,21 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 	// Returns duration in ms
 	public int getDuration()
 	{
-//		double accum = 0.0f;
-		int accum = 0;
+		double accum = 0.0f;
+		
 		if (manifest == null) return -1;
 		
 		Vector<ManifestSegment> segments = getSegmentsForQuality( lastQuality );
 		ManifestParser activeManifest = getManifestForQuality(lastQuality);
-
-        accum = (int) segments.get(segments.size() -1).startTime;
-//		for(int i = 0; i < segments.size(); i++)
-//		{
-//			accum += (segments.get(i).startTime + segments.get(i).duration) - lastKnownPlaylistStartTime;
-//		}
+		int i = segments.size() - 1;
 		
-		return accum;
+		// Test can be removed in future if there's no problems with returning duration all the time
+		//if (i >= 0 && (activeManifest.allowCache || activeManifest.streamEnds))  
+		{
+			accum = (segments.get(i).startTime + segments.get(i).duration) - lastKnownPlaylistStartTime;
+		}
+		
+		return (int) (accum * 1000);
 		
 	}
 	

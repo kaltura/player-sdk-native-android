@@ -118,7 +118,7 @@ public class SegmentCacheEntry {
 	
 	public void notifySegmentCached()
 	{
-		
+		if (waiting) HLSSegmentCache.postProgressUpdate(true);
 		waiting = false;
 		if (mSegmentCachedListener != null && mCallbackHandler != null)
 		{
@@ -182,10 +182,16 @@ public class SegmentCacheEntry {
 		totalSize = totalBytesExpected;
 		// If we have a callback handler, it pretty much means that we're not going to be
 		// in a wait state in the SegmentCache
-		if (mCallbackHandler != null)
+		if (mCallbackHandler != null && waiting && bytesWritten != totalBytesExpected)
 		{
-			HLSSegmentCache.postProgressUpdate(bytesWritten == totalBytesExpected);
+			HLSSegmentCache.postProgressUpdate(false);
 		}
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "SegmentCacheEntry(" + ((Object)this).hashCode() + ")[" + waiting + "]";
 	}
 
 }
