@@ -854,7 +854,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	
 	public void goToLive()
 	{
-		seek(StreamHandler.USE_DEFAULT_START);
+		seek(StreamHandler.USE_DEFAULT_START, false);
 	}
 	
 	/***
@@ -875,10 +875,15 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	 */
 	public void seekToCurrentPosition()
 	{
-		seek(mTimeMS);
+		seek(mTimeMS, false);
 	}
 	
-	public void seek(final int msec) {
+	public void seek(final int msec)
+	{
+		seek(msec, true);
+	}
+	
+	public void seek(final int msec, final boolean notify) {
 		HLSSegmentCache.cancelAllCacheEvents();
 		
 		targetSeekSet = true;
@@ -892,21 +897,28 @@ public class HLSPlayerViewController extends RelativeLayout implements
 				int state = GetState();
 				if (tss && state != STATE_STOPPED)
 				{
-					postPlayerStateChange(PlayerStates.SEEKING);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKING);
 					targetSeekSet = false;
 					targetSeekMS = 0;
-					SeekTo(((double)tsms) / 1000.0f);
-					postPlayerStateChange(PlayerStates.SEEKED);
+					if (tsms != StreamHandler.USE_DEFAULT_START)
+						SeekTo(((double)tsms) / 1000.0f);
+					else
+						SeekTo((double)tsms);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKED);
 				}
 				else if (tss && state == STATE_STOPPED && mRenderThreadState == THREAD_STATE_RUNNING)
 				{
 					Log.i("PlayerViewController.Seek().Runnable()", "Seeking while player is stopped.");
 					mStreamHandler.initialize(); // Need to restart the reload manifest process
-					postPlayerStateChange(PlayerStates.SEEKING);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKING);
 					targetSeekSet = false;
 					targetSeekMS = 0;
-					SeekTo(((double)tsms) / 1000.0f);
-					postPlayerStateChange(PlayerStates.SEEKED);
+					
+					if (tsms != StreamHandler.USE_DEFAULT_START)
+						SeekTo(((double)tsms) / 1000.0f);
+					else
+						SeekTo((double)tsms);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKED);
 				}
 				else
 				{

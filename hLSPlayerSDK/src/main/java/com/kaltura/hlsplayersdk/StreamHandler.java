@@ -24,6 +24,7 @@ import com.kaltura.hlsplayersdk.types.TrackType;
 // I'll change it, if anyone really hates the new name. It just makes more sense to me.
 public class StreamHandler implements ManifestParser.ReloadEventListener, SegmentCachedListener {
 	
+	private static final boolean SKIP_TO_END_OF_LIVE = true;
 	private class ErrorTimer
 	{
 		long mStartTime = 0;
@@ -696,8 +697,15 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		
 		if (time == USE_DEFAULT_START && !streamEnds())
 		{
-			lastSegmentIndex = Math.max(segments.size() - 2, 0);
-			return getSegmentForIndex(segments, lastSegmentIndex, quality);
+			if (SKIP_TO_END_OF_LIVE)
+			{
+				lastSegmentIndex = Math.max(segments.size() - 2, 0);
+				return getSegmentForIndex(segments, lastSegmentIndex, quality);
+			}
+			else
+			{
+				time = 0;
+			}
 		}
 		else if (time == USE_DEFAULT_START)
 		{
