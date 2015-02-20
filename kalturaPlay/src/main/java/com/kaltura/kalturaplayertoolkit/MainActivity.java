@@ -10,11 +10,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebView;
 
+import Fragments.FullscreenFragment;
 import Fragments.LoginFragment;
 import Fragments.PlayerFragment;
 
 
-public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener{
+public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
 	public static String TAG = MainActivity.class.getSimpleName();
 
     @SuppressLint("NewApi") @Override

@@ -3,10 +3,9 @@
 
     <string name="app_name">KalturaPlay</string>
     <string name="action_settings">Settings</string>
-    <string name="footer">Powered by Kaltura</string>
-    <string name="demo">Demo</string>
-    <string name="main_message">This player should be used with the Kaltura Player&lt;br/> You can learn more &lt;a href="http://player.kaltura.com/docs/NativeCallout">Here&lt;/a>.</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="footer">Powered by Kaltura &lt;a href="http://player.kaltura.com/docs/NativeCallout">Learn More&lt;/a>.</string>
+    <string name="demo">Try Our Demo!</string>
+    <string name="main_message">Use this app to view Kaltura video content</string>
     <string name="prop_iframe_url">iframeUrl</string>
 
 </resources>
