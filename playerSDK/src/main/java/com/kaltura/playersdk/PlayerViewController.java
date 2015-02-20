@@ -79,8 +79,6 @@ public class PlayerViewController extends RelativeLayout {
     private KPlayerJsCallbackReadyListener mJsReadyListener;
 
     public String host = DEFAULT_HOST;
-    public String html5Url = DEFAULT_HTML5_URL;
-    public String playerId = DEFAULT_PLAYER_ID;
 
     private String mVideoUrl;
     private String mVideoTitle = "";
@@ -95,7 +93,7 @@ public class PlayerViewController extends RelativeLayout {
     final Runnable runnableUpdatePlayhead = new Runnable() {
         @Override
         public void run() {
-
+            Log.d(TAG, "SEEK: Time Update: " + mCurSec);
             notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
         }
     };
@@ -104,6 +102,7 @@ public class PlayerViewController extends RelativeLayout {
     final Runnable runnableUpdateDuration = new Runnable() {
         @Override
         public void run() {
+            Log.d(TAG, "SEEK: Duration Change: " + mDurationSec);
             notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
         }
     };
@@ -540,7 +539,6 @@ public class PlayerViewController extends RelativeLayout {
         mVideoInterface.registerListener(new OnPlayheadUpdateListener() {
             @Override
             public void onPlayheadUpdated(int msec) {
-                Log.d(TAG, "SEEK: from HLS Player:" + msec);
                 double curSec = msec / 1000.0;
                 if (Math.abs(mCurSec - curSec) > 0.01) {
                     mCurSec = curSec;
@@ -705,7 +703,7 @@ public class PlayerViewController extends RelativeLayout {
                                         if (params != null && params.size() > 1) {
                                             if (params.get(0).equals("currentTime")) {
                                                 int seekTo = (Integer.parseInt(params.get(1)));
-                                                Log.d(TAG,"    SEEK: To HLSPlayer:"+seekTo);
+                                                Log.d(TAG,"SEEK: from JS To :" + seekTo);
                                                 mVideoInterface.seek(seekTo);
                                             } else if (params.get(0).equals("src")) {
                                                 // remove " from the edges
