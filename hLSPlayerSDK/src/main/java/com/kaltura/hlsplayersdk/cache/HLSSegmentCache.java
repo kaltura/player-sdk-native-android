@@ -24,7 +24,9 @@ public class HLSSegmentCache
 	public static AsyncHttpClient syncHttpClient = new SyncHttpClient();
 	
 	public static double lastDownloadDataRate = 0.0;
-	public static float lastBufferPct = 0;
+	public static float lastBufferPct = -1;
+	
+	public static void resetProgress() { lastBufferPct = -1; }
 	
 	protected static Context context = null;
 	
@@ -201,14 +203,14 @@ public class HLSSegmentCache
 	 * @param cryptoId
 	 * @param SegmentCachedListener
 	 */
-	static public void precache(final String segmentUri, int cryptoId, final SegmentCachedListener segmentCachedListener, Handler callbackHandler )
+	static public void precache(final String segmentUri, int cryptoId, boolean forceWait, final SegmentCachedListener segmentCachedListener, Handler callbackHandler )
 	{
 		precache(segmentUri, cryptoId);
 		synchronized (segmentCache)
 		{
 			SegmentCacheEntry sce = segmentCache.get(segmentUri);
 			sce.registerSegmentCachedListener(segmentCachedListener, callbackHandler);
-			sce.waiting = true;
+			sce.waiting = forceWait;
 			if (!sce.running)
 			{
 				HLSSegmentCache.postProgressUpdate(true);
@@ -276,6 +278,7 @@ public class HLSSegmentCache
 
 			int totalBytes = 0;
 			int curBytes = 0;
+			boolean segmentsWaiting = false;
 			synchronized (segmentCache)
 			{
 				Collection<SegmentCacheEntry> values = segmentCache.values();
@@ -286,12 +289,17 @@ public class HLSSegmentCache
 					{
 						totalBytes += v.totalSize;
 						curBytes += v.bytesDownloaded;
+						segmentsWaiting = true;
 					}
 				}
 			}
 			double pct = totalBytes != 0 ? ((double)curBytes / (double)totalBytes) * 100.0 : 0;
+			if (lastBufferPct == (float)pct)
+				return;
+
 			lastBufferPct = (float)pct;
-			HLSPlayerViewController.currentController.postProgressUpdate((int)pct);
+			
+			if (segmentsWaiting) HLSPlayerViewController.currentController.postProgressUpdate((int)pct);
 
 		}
 	}

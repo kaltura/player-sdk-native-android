@@ -5,8 +5,10 @@ import android.util.Log;
 import android.view.Gravity;
 
 import com.kaltura.hlsplayersdk.HLSPlayerViewController;
+import com.kaltura.hlsplayersdk.events.OnDurationChangedListener;
 import com.kaltura.hlsplayersdk.types.PlayerStates;
 import com.kaltura.playersdk.AlternateAudioTracksInterface;
+import com.kaltura.playersdk.LiveStreamInterface;
 import com.kaltura.playersdk.QualityTrack;
 import com.kaltura.playersdk.QualityTracksInterface;
 import com.kaltura.playersdk.TextTracksInterface;
@@ -27,7 +29,9 @@ public class HLSPlayer extends BasePlayerView implements
         com.kaltura.hlsplayersdk.events.OnAudioTracksListListener,
         com.kaltura.hlsplayersdk.events.OnAudioTrackSwitchingListener,
         com.kaltura.hlsplayersdk.events.OnQualityTracksListListener,
-        com.kaltura.hlsplayersdk.events.OnQualitySwitchingListener
+        com.kaltura.hlsplayersdk.events.OnQualitySwitchingListener,
+        OnDurationChangedListener,
+        LiveStreamInterface
 {
 
     private static final String TAG = HLSPlayer.class.getSimpleName();
@@ -165,6 +169,10 @@ public class HLSPlayer extends BasePlayerView implements
 
     }
 
+    @Override
+    public void switchToLive() {
+        mPlayer.goToLive();
+    }
     /////////////////////////////////////////////////////////
     //
     //      HlsPlayerSDK Listeners
@@ -248,6 +256,7 @@ public class HLSPlayer extends BasePlayerView implements
         list.add(Listener.EventType.AUDIO_TRACKS_LIST_LISTENER_TYPE);
         list.add(Listener.EventType.QUALITY_SWITCHING_LISTENER_TYPE);
         list.add(Listener.EventType.QUALITY_TRACKS_LIST_LISTENER_TYPE);
+        list.add(Listener.EventType.DURATION_CHANGED_LISTENER_TYPE);
         return list;
     }
 
@@ -312,6 +321,8 @@ public class HLSPlayer extends BasePlayerView implements
             case KPLAYER_EVENT_LISTENER_TYPE:
 
                 break;
+            case DURATION_CHANGED_LISTENER_TYPE:
+                mPlayer.registerDurationChanged(shouldRegister ? this : null);
         }
     }
 
@@ -340,4 +351,11 @@ public class HLSPlayer extends BasePlayerView implements
     public void onQualitySwitchingEnd(int newTrackIndex) {
 
     }
+
+    @Override
+    public void onDurationChanged(int msec) {
+        mListenerExecutor.executeOnDurationChanged(msec);
+    }
+
+
 }

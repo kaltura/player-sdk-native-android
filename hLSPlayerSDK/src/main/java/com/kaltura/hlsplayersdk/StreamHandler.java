@@ -24,6 +24,7 @@ import com.kaltura.hlsplayersdk.types.TrackType;
 // I'll change it, if anyone really hates the new name. It just makes more sense to me.
 public class StreamHandler implements ManifestParser.ReloadEventListener, SegmentCachedListener {
 	
+	private static final boolean SKIP_TO_END_OF_LIVE = true;
 	private class ErrorTimer
 	{
 		long mStartTime = 0;
@@ -150,7 +151,10 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		String[] languages = new String[manifest.playLists.size()];
 		for (int i = 0; i < manifest.playLists.size(); ++i)
 		{
-			languages[i] = manifest.playLists.get(i).language;
+			String lang = manifest.playLists.get(i).language;
+			if (lang.length() == 0 )
+				lang = manifest.playLists.get(i).name;
+			languages[i] = lang;
 		}
 		return languages;
 	}
@@ -161,7 +165,11 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		List<String> languages = new ArrayList<String>();
 		for (int i = 0; i < manifest.playLists.size(); ++i)
 		{
-			languages.add(manifest.playLists.get(i).language);
+			String lang = manifest.playLists.get(i).language;
+			if (lang.length() == 0 )
+				lang = manifest.playLists.get(i).name;
+
+			languages.add(lang);
 		}
 		return languages;
 	}
@@ -341,6 +349,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 			HLSPlayerViewController.currentController.seekToCurrentPosition();
 		}
 		startReloadTimer();
+		HLSPlayerViewController.currentController.postDurationChanged();
 		
 	}
 	
@@ -688,8 +697,15 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		
 		if (time == USE_DEFAULT_START && !streamEnds())
 		{
-			lastSegmentIndex = Math.max(segments.size() - 2, 0);
-			return getSegmentForIndex(segments, lastSegmentIndex, quality);
+			if (SKIP_TO_END_OF_LIVE)
+			{
+				lastSegmentIndex = Math.max(segments.size() - 2, 0);
+				return getSegmentForIndex(segments, lastSegmentIndex, quality);
+			}
+			else
+			{
+				time = 0;
+			}
 		}
 		else if (time == USE_DEFAULT_START)
 		{
@@ -828,7 +844,9 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Segmen
 		Vector<ManifestSegment> segments = getSegmentsForQuality( lastQuality );
 		ManifestParser activeManifest = getManifestForQuality(lastQuality);
 		int i = segments.size() - 1;
-		if (i >= 0 && (activeManifest.allowCache || activeManifest.streamEnds))
+		
+		// Test can be removed in future if there's no problems with returning duration all the time
+		//if (i >= 0 && (activeManifest.allowCache || activeManifest.streamEnds))  
 		{
 			accum = (segments.get(i).startTime + segments.get(i).duration) - lastKnownPlaylistStartTime;
 		}

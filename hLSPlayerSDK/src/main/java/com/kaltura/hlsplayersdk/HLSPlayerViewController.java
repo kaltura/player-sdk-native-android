@@ -23,6 +23,7 @@ import com.kaltura.hlsplayersdk.cache.HLSSegmentCache;
 import com.kaltura.hlsplayersdk.cache.SegmentCachedListener;
 import com.kaltura.hlsplayersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.hlsplayersdk.events.OnAudioTracksListListener;
+import com.kaltura.hlsplayersdk.events.OnDurationChangedListener;
 import com.kaltura.hlsplayersdk.events.OnErrorListener;
 import com.kaltura.hlsplayersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener;
@@ -119,13 +120,13 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 		if (seg.altAudioSegment != null)
 		{
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), getInterfaceThreadHandler());
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 			HLSSegmentCache.precache(seg.altAudioSegment.uri, seg.altAudioSegment.cryptoId);
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
 		}
 		else
 		{
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), getInterfaceThreadHandler());
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, null, -1, seg.startTime, seg.cryptoId, -1);
 		}
 	}
@@ -146,13 +147,13 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		
 		if (seg.altAudioSegment != null)
 		{
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), getInterfaceThreadHandler());
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 			HLSSegmentCache.precache(seg.altAudioSegment.uri, seg.altAudioSegment.cryptoId);
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
 		}
 		else
 		{
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, currentController.getStreamHandler(), getInterfaceThreadHandler());
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, null, -1, seg.startTime, seg.cryptoId, -1);
 		}
 
@@ -567,6 +568,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	public void reset()
 	{
 		mTimeMS = 0;
+		HLSSegmentCache.resetProgress();
 	}
 
 	/**
@@ -648,7 +650,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			// supply the event handler to the segment cache. In the case where the segment is already in the cache, the
 			// event handler can be called immediately.
 			FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, this, getInterfaceThreadHandler());
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, true, this, getInterfaceThreadHandler());
 			postAudioTrackSwitchingStart(-1, seg.altAudioSegment.altAudioIndex);
 			postAudioTrackSwitchingEnd(seg.altAudioSegment.altAudioIndex);
 		}
@@ -658,7 +660,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			// supply the event handler to the segment cache. In the case where the segment is already in the cache, the
 			// event handler can be called immediately.
 			FeedSegment(seg.uri, seg.quality, seg.continuityEra, null, -1, seg.startTime, seg.cryptoId, -1);
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, this, getInterfaceThreadHandler());
+			HLSSegmentCache.precache(seg.uri, seg.cryptoId, true, this, getInterfaceThreadHandler());
 		}
 		
 		// Kick off render thread.
@@ -667,6 +669,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			mRenderThread = new Thread(renderRunnable, "RenderThread");
 			mRenderThread.start();
 		}
+		
+		postDurationChanged();
 		
 	}
 	
@@ -848,6 +852,10 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private int targetSeekMS = 0;
 	private boolean targetSeekSet = false;
 	
+	public void goToLive()
+	{
+		seek(StreamHandler.USE_DEFAULT_START, false);
+	}
 	
 	/***
 	 * seekToCurrentPosition()
@@ -867,10 +875,15 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	 */
 	public void seekToCurrentPosition()
 	{
-		seek(mTimeMS);
+		seek(mTimeMS, false);
 	}
 	
-	public void seek(final int msec) {
+	public void seek(final int msec)
+	{
+		seek(msec, true);
+	}
+	
+	public void seek(final int msec, final boolean notify) {
 		HLSSegmentCache.cancelAllCacheEvents();
 		
 		targetSeekSet = true;
@@ -884,21 +897,28 @@ public class HLSPlayerViewController extends RelativeLayout implements
 				int state = GetState();
 				if (tss && state != STATE_STOPPED)
 				{
-					postPlayerStateChange(PlayerStates.SEEKING);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKING);
 					targetSeekSet = false;
 					targetSeekMS = 0;
-					SeekTo(((double)tsms) / 1000.0f);
-					postPlayerStateChange(PlayerStates.SEEKED);
+					if (tsms != StreamHandler.USE_DEFAULT_START)
+						SeekTo(((double)tsms) / 1000.0f);
+					else
+						SeekTo((double)tsms);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKED);
 				}
 				else if (tss && state == STATE_STOPPED && mRenderThreadState == THREAD_STATE_RUNNING)
 				{
 					Log.i("PlayerViewController.Seek().Runnable()", "Seeking while player is stopped.");
 					mStreamHandler.initialize(); // Need to restart the reload manifest process
-					postPlayerStateChange(PlayerStates.SEEKING);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKING);
 					targetSeekSet = false;
 					targetSeekMS = 0;
-					SeekTo(((double)tsms) / 1000.0f);
-					postPlayerStateChange(PlayerStates.SEEKED);
+					
+					if (tsms != StreamHandler.USE_DEFAULT_START)
+						SeekTo(((double)tsms) / 1000.0f);
+					else
+						SeekTo((double)tsms);
+					if (notify) postPlayerStateChange(PlayerStates.SEEKED);
 				}
 				else
 				{
@@ -1042,6 +1062,28 @@ public class HLSPlayerViewController extends RelativeLayout implements
 				}
 				
 			});
+		}
+	}
+	
+	private OnDurationChangedListener mDurationChangedListener = null;
+	
+	@Override
+	public void registerDurationChanged(OnDurationChangedListener listener)
+	{
+		mDurationChangedListener = listener;		
+	}
+	
+	public void postDurationChanged()
+	{
+		if (mDurationChangedListener != null)
+		{
+			post( new Runnable()
+			{
+				@Override
+				public void run() {
+					mDurationChangedListener.onDurationChanged(getDuration());
+				}
+			} );
 		}
 	}
 	
@@ -1430,4 +1472,5 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		if (mStreamHandler != null) return mStreamHandler.lastQuality;
 		return 0;
 	}
+
 }

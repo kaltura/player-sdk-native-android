@@ -28,6 +28,7 @@ import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
+import com.kaltura.playersdk.events.OnDurationChangedListener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
@@ -71,15 +72,13 @@ public class PlayerViewController extends RelativeLayout {
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
-    private double mDuration = 0;
+    private double mDurationSec = 0;
     private OnToggleFullScreenListener mFSListener;
     private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
     private KPlayerJsCallbackReadyListener mJsReadyListener;
 
     public String host = DEFAULT_HOST;
-    public String html5Url = DEFAULT_HTML5_URL;
-    public String playerId = DEFAULT_PLAYER_ID;
 
     private String mVideoUrl;
     private String mVideoTitle = "";
@@ -89,6 +88,24 @@ public class PlayerViewController extends RelativeLayout {
     private PowerManager mPowerManager;
 
     private boolean mWvMinimized = false;
+
+    // trigger timeupdate events
+    final Runnable runnableUpdatePlayhead = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "SEEK: Time Update: " + mCurSec);
+            notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
+        }
+    };
+
+    // trigger timeupdate events
+    final Runnable runnableUpdateDuration = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "SEEK: Duration Change: " + mDurationSec);
+            notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
+        }
+    };
 
     public PlayerViewController(Context context) {
         super(context);
@@ -355,11 +372,12 @@ public class PlayerViewController extends RelativeLayout {
      *
      * @return duration in seconds
      */
-    public int getDuration() {
-        int duration = 0;
-        if (mVideoInterface != null)
-            duration = mVideoInterface.getDuration() / 1000;
-
+    public double getDurationSec() {
+        double duration = 0;
+        if (mVideoInterface != null) {
+            duration = mVideoInterface.getDuration();
+        }
+        duration /= 1000;
         return duration;
     }
 
@@ -498,8 +516,8 @@ public class PlayerViewController extends RelativeLayout {
                     @Override
                     public void onStateChanged(PlayerStates state) {
                         if ( state == PlayerStates.START ) {
-                            mDuration = getDuration();
-                            notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
+                            mDurationSec = getDurationSec();
+                            notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
                             notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });
                         }
                         if ( state != mState ) {
@@ -515,23 +533,27 @@ public class PlayerViewController extends RelativeLayout {
                     }
                 });
 
-        // trigger timeupdate events
-        final Runnable runUpdatePlayehead = new Runnable() {
-            @Override
-            public void run() {
-                notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
-            }
-        };
+
 
         // listens for playhead update
         mVideoInterface.registerListener(new OnPlayheadUpdateListener() {
             @Override
             public void onPlayheadUpdated(int msec) {
                 double curSec = msec / 1000.0;
-                if (curSec <= mDuration && Math.abs(mCurSec - curSec) > 0.01) {
+                if (Math.abs(mCurSec - curSec) > 0.01) {
                     mCurSec = curSec;
-                    mActivity.runOnUiThread(runUpdatePlayehead);
+                    mActivity.runOnUiThread(runnableUpdatePlayhead);
+//                    if(curSec - mDuration > 0.01){
+//                        mDuration = curSec;
+//                        mActivity.runOnUiThread(runnableUpdateDuration);
+//                    }
                 }
+
+//                double currentDurationSec = getDurationSec();
+//                if(currentDurationSec - mDurationSec > 0.1){
+//                    mDurationSec = currentDurationSec;
+//                    mActivity.runOnUiThread(runnableUpdateDuration);
+//                }
                 //device is sleeping, pause player
                 if (!mPowerManager.isScreenOn()) {
                     mVideoInterface.pause();
@@ -558,6 +580,14 @@ public class PlayerViewController extends RelativeLayout {
                     notifyKPlayer("trigger", new Object[]{"error", error});
                 }
 
+            }
+        });
+
+        mVideoInterface.registerListener(new OnDurationChangedListener() {
+            @Override
+            public void OnDurationChanged(int mSec) {
+                mDurationSec = mSec / 1000.0;
+                mActivity.runOnUiThread(runnableUpdateDuration);
             }
         });
     }
@@ -672,7 +702,8 @@ public class PlayerViewController extends RelativeLayout {
 
                                         if (params != null && params.size() > 1) {
                                             if (params.get(0).equals("currentTime")) {
-                                                int seekTo = Math.round(Float.parseFloat(params.get(1)) * 1000);
+                                                int seekTo = (Integer.parseInt(params.get(1)));
+                                                Log.d(TAG,"SEEK: from JS To :" + seekTo);
                                                 mVideoInterface.seek(seekTo);
                                             } else if (params.get(0).equals("src")) {
                                                 // remove " from the edges
@@ -810,6 +841,12 @@ public class PlayerViewController extends RelativeLayout {
                                                     mVideoInterface.play();
                                                 } else {
                                                     Log.w(TAG, "DoubleClick is not supported by this player");
+                                                }
+                                            }else if(params.get(0).equals("goLive")){
+                                                Log.d(TAG, "SEEK: GOTOLIVE");
+                                                //temporary fix - waiting for an HLS api
+                                                if (params.get(1).equals("true") && mVideoInterface instanceof LiveStreamInterface){
+                                                    ((LiveStreamInterface)mVideoInterface).switchToLive();
                                                 }
                                             }
                                         }

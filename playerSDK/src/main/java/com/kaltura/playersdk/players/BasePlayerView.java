@@ -13,6 +13,7 @@ import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.playersdk.events.OnAudioTracksListListener;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
+import com.kaltura.playersdk.events.OnDurationChangedListener;
 import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
@@ -266,6 +267,12 @@ public abstract class BasePlayerView extends FrameLayout {
             OnWebViewMinimizeListener.WebViewMinimizeInputObject input = new OnWebViewMinimizeListener.WebViewMinimizeInputObject();
             input.minimize = minimize;
             BasePlayerView.this.executeListener(Listener.EventType.WEB_VIEW_MINIMIZE_LISTENER_TYPE, input);
+        }
+
+        void executeOnDurationChanged(int mSec){
+            OnDurationChangedListener.DurationChangedInputObject input = new OnDurationChangedListener.DurationChangedInputObject();
+            input.msec = mSec;
+            BasePlayerView.this.executeListener(Listener.EventType.DURATION_CHANGED_LISTENER_TYPE, input);
         }
     }
 
