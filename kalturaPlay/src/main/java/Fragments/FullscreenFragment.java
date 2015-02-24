@@ -3,7 +3,6 @@ package Fragments;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
@@ -150,8 +149,7 @@ public class FullscreenFragment extends Fragment{
 
         showPlayerView();
 
-        Intent intent = getActivity().getIntent();
-        String iFrameUrl = intent.getStringExtra(getString(R.string.prop_iframe_url));
+        String iFrameUrl = getArguments().getString(getString(R.string.prop_iframe_url));
         if (iFrameUrl != null){
             mPlayerView.setComponents(iFrameUrl);
         }else{

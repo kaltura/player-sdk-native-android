@@ -2,7 +2,6 @@ package Fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -11,7 +10,6 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +17,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.kaltura.kalturaplayertoolkit.R;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -72,29 +67,7 @@ public class LoginFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate(R.layout.fragment_login, container, false);
-        Intent intent = getActivity().getIntent();
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        // check if this intent is started via browser
-        //TODO: logic should move to activity
-        if (Intent.ACTION_VIEW.equals( intent.getAction())) {
-            Uri uri = intent.getData();
-            String[] params = null;
-            try {
-                params = URLDecoder.decode(uri.toString(), "UTF-8").split(":=");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            if (params !=null && params.length > 1) {
-                String iframeUrl = params[1];
-                intent.putExtra(getString(R.string.prop_iframe_url), iframeUrl);
-                FullscreenFragment newFragment = new FullscreenFragment();
-                loadFragment(false, newFragment);
-            } else {
-                Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
-            }
-
-        }
-
 
         TextView infoMsg = (TextView)fragmentView.findViewById(R.id.powered);
         Spanned spanned = Html.fromHtml(getString(R.string.footer));
@@ -115,25 +88,6 @@ public class LoginFragment extends Fragment {
         return fragmentView;
     }
 
-    private void loadFragment(boolean addToBackStack , Fragment newFragment){
-        // Create fragment and give it an argument specifying the article it should show
-
-        Bundle args = new Bundle();
-        newFragment.setArguments(args);
-
-// Replace whatever is in the fragment_container view with this fragment,
-// and add the transaction to the back stack so the user can navigate back
-
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, newFragment);
-
-        if(addToBackStack) {
-            transaction.addToBackStack(null);
-        }
-
-// Commit the transaction
-        transaction.commit();
-    }
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
