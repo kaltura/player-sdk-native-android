@@ -2,17 +2,24 @@ package com.kaltura.kalturaplayertoolkit;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Fragment;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebView;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 import Fragments.FullscreenFragment;
 import Fragments.LoginFragment;
 import Fragments.PlayerFragment;
+import Utilities.FragmentUtilities;
 
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
@@ -28,23 +35,42 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-        
+
+        Intent intent = getIntent();
+        Fragment firstFragment = new LoginFragment();
+        Bundle extras = intent.getExtras();
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
-        LoginFragment firstFragment = new LoginFragment();
 
-        // In case this activity was started with special instructions from an
-        // Intent, pass the Intent's extras to the fragment as arguments
-
-        firstFragment.setArguments(getIntent().getExtras());
-
-        // Add the fragment to the 'fragment_container' FrameLayout
-        getFragmentManager().beginTransaction()
-                .add(R.id.fragment_container, firstFragment).commit();
-
+        FragmentUtilities.loadFragment(false, firstFragment, extras, getFragmentManager());
     }
-    
 
-    
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (Intent.ACTION_VIEW.equals( intent.getAction())) {
+            Uri uri = intent.getData();
+            String[] params = null;
+            try {
+                params = URLDecoder.decode(uri.toString(), "UTF-8").split(":=");
+            } catch (UnsupportedEncodingException e) {
+                Log.w(TAG, "couldn't decode/split intent url");
+                e.printStackTrace();
+            }
+            if (params != null && params.length > 1) {
+                String iframeUrl = params[1];
+                Bundle extras = intent.getExtras();
+                extras.putString(getString(R.string.prop_iframe_url), iframeUrl);
+                Fragment fullscreenFragment = new FullscreenFragment();
+                FragmentUtilities.loadFragment(false, fullscreenFragment, extras, getFragmentManager());
+            } else {
+                Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
+            }
+
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

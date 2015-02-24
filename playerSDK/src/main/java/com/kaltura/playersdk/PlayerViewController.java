@@ -543,18 +543,8 @@ public class PlayerViewController extends RelativeLayout {
                 if (Math.abs(mCurSec - curSec) > 0.01) {
                     mCurSec = curSec;
                     mActivity.runOnUiThread(runnableUpdatePlayhead);
-//                    if(curSec - mDuration > 0.01){
-//                        mDuration = curSec;
-//                        mActivity.runOnUiThread(runnableUpdateDuration);
-//                    }
                 }
 
-//                double currentDurationSec = getDurationSec();
-//                if(currentDurationSec - mDurationSec > 0.1){
-//                    mDurationSec = currentDurationSec;
-//                    mActivity.runOnUiThread(runnableUpdateDuration);
-//                }
-                //device is sleeping, pause player
                 if (!mPowerManager.isScreenOn()) {
                     mVideoInterface.pause();
                 }
