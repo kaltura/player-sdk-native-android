@@ -28,7 +28,6 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     @SuppressLint("NewApi") @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         
         setContentView(R.layout.activity_main);
         
@@ -36,40 +35,9 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
-        loadFragment();
-
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 
-
-    }
-
-    private void loadFragment(){
-        Intent intent = getIntent();
-        Fragment fragment = new LoginFragment();
-        Bundle extras = intent.getExtras();
-
-        if (Intent.ACTION_VIEW.equals( intent.getAction())) {
-            Uri uri = intent.getData();
-            String[] params = null;
-            try {
-                params = URLDecoder.decode(uri.toString(), "UTF-8").split(":=");
-            } catch (UnsupportedEncodingException e) {
-                Log.w(TAG, "couldn't decode/split intent url");
-                e.printStackTrace();
-            }
-            if (params != null && params.length > 1) {
-                String iframeUrl = params[1];
-
-                extras.putString(getString(R.string.prop_iframe_url), iframeUrl);
-                fragment = new FullscreenFragment();
-
-            } else {
-                Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
-            }
-
-        }
-
-        FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
+        loadFragment();
     }
 
     @Override
@@ -101,5 +69,34 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    private void loadFragment(){
+        Intent intent = getIntent();
+        Fragment fragment = new LoginFragment();
+        Bundle extras = intent.getExtras();
+
+        if (Intent.ACTION_VIEW.equals( intent.getAction())) {
+            Uri uri = intent.getData();
+            String[] params = null;
+            try {
+                params = URLDecoder.decode(uri.toString(), "UTF-8").split(":=");
+            } catch (UnsupportedEncodingException e) {
+                Log.w(TAG, "couldn't decode/split intent url");
+                e.printStackTrace();
+            }
+            if (params != null && params.length > 1) {
+                String iframeUrl = params[1];
+
+                extras.putString(getString(R.string.prop_iframe_url), iframeUrl);
+                fragment = new FullscreenFragment();
+
+            } else {
+                Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
+            }
+
+        }
+
+        FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
 }

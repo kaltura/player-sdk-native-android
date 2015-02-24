@@ -85,6 +85,7 @@ public class LoginFragment extends Fragment {
                 startActivity(i);
             }
         });
+
         return fragmentView;
     }
 
