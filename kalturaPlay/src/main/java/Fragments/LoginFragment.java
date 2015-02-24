@@ -75,13 +75,13 @@ public class LoginFragment extends Fragment {
         Intent intent = getActivity().getIntent();
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         // check if this intent is started via browser
+        //TODO: logic should move to activity
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
             String[] params = null;
             try {
                 params = URLDecoder.decode(uri.toString(), "UTF-8").split(":=");
             } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             if (params !=null && params.length > 1) {
@@ -106,8 +106,10 @@ public class LoginFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                PlayerFragment newFragment = new PlayerFragment();
-                loadFragment(true, newFragment);
+                String url = "http://player.kaltura.com/docs/?forceKalturaNativeComponentPlayer";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
             }
         });
         return fragmentView;
