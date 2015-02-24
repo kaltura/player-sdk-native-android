@@ -36,19 +36,18 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
-        Intent intent = getIntent();
-        Fragment firstFragment = new LoginFragment();
-        Bundle extras = intent.getExtras();
+        loadFragment();
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 
-        FragmentUtilities.loadFragment(false, firstFragment, extras, getFragmentManager());
+
     }
 
+    private void loadFragment(){
+        Intent intent = getIntent();
+        Fragment fragment = new LoginFragment();
+        Bundle extras = intent.getExtras();
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
             String[] params = null;
@@ -60,15 +59,24 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             }
             if (params != null && params.length > 1) {
                 String iframeUrl = params[1];
-                Bundle extras = intent.getExtras();
+
                 extras.putString(getString(R.string.prop_iframe_url), iframeUrl);
-                Fragment fullscreenFragment = new FullscreenFragment();
-                FragmentUtilities.loadFragment(false, fullscreenFragment, extras, getFragmentManager());
+                fragment = new FullscreenFragment();
+
             } else {
                 Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
             }
 
         }
+
+        FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        loadFragment();
     }
 
     @Override
