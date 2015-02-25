@@ -287,7 +287,7 @@ public class PlayerViewController extends RelativeLayout {
         if (!iframeUrl.startsWith("js-frame:")){
             iframeUrl += "js-frame:";
         }
-        mWebView.loadUrl(iframeUrl);
+        mWebView.loadUrl(iframeUrl + KPPlayerConfig.nativeVersion(this.getContext()));
         mWebView.setBackgroundColor(0);
     }
 
