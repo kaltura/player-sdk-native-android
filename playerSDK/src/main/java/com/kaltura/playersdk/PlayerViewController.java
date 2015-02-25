@@ -22,6 +22,7 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
+import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
@@ -495,25 +496,25 @@ public class PlayerViewController extends RelativeLayout {
     private void setPlayerListeners() {
         // notify player state change events
         mVideoInterface.registerListener(new OnPlayerStateChangeListener() {
-                    @Override
-                    public void onStateChanged(PlayerStates state) {
-                        if ( state == PlayerStates.START ) {
-                            mDuration = getDuration();
-                            notifyKPlayer("trigger", new Object[]{ "durationchange", mDuration });
-                            notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });
-                        }
-                        if ( state != mState ) {
-                            mState = state;
+            @Override
+            public void onStateChanged(PlayerStates state) {
+                if (state == PlayerStates.START) {
+                    mDuration = getDuration();
+                    notifyKPlayer("trigger", new Object[]{"durationchange", mDuration});
+                    notifyKPlayer("trigger", new Object[]{"loadedmetadata"});
+                }
+                if (state != mState) {
+                    mState = state;
 
-                            if (mState != PlayerStates.LOAD) {
-                                final String eventName = state.toString();
-                                notifyKPlayer("trigger", new String[] { eventName });
-                            }
-                        }
-
-                        return;
+                    if (mState != PlayerStates.LOAD) {
+                        final String eventName = state.toString();
+                        notifyKPlayer("trigger", new String[]{eventName});
                     }
-                });
+                }
+
+                return;
+            }
+        });
 
         // trigger timeupdate events
         final Runnable runUpdatePlayehead = new Runnable() {
@@ -811,6 +812,8 @@ public class PlayerViewController extends RelativeLayout {
                                                 } else {
                                                     Log.w(TAG, "DoubleClick is not supported by this player");
                                                 }
+                                            } else if (params.get(0).equals("nativeAction")) {
+                                                doNativeAction(params.get(1));
                                             }
                                         }
                                     } else if (action.equals("notifyKPlayerEvent")) {
@@ -925,6 +928,28 @@ public class PlayerViewController extends RelativeLayout {
             return false;
         }
 
+    }
+
+    private void doNativeAction(String params) {
+        Log.d("NativeAction", params);
+        try {
+            JSONObject actionObj = new JSONObject(params);
+            if (actionObj.get("actionType").equals("share")) {
+                share(actionObj);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void share(JSONObject shareParams) {
+        ShareManager shareManager = new ShareManager(shareParams, mActivity);
+        shareManager.shareWithCompletion(new ShareManager.KPShareCompletionBlock() {
+            @Override
+            public void completion(ShareManager.KPShareResult result) {
+
+            }
+        });
     }
 
 
