@@ -250,6 +250,36 @@ public class HLSPlayer extends BasePlayerView implements
     }
 
     @Override
+    public void onAudioSwitchingStart(int oldTrackIndex, int newTrackIndex) {
+        mListenerExecutor.executeOnAudioSwitchingStart(oldTrackIndex, newTrackIndex);
+    }
+
+    @Override
+    public void onAudioSwitchingEnd(int newTrackIndex) {
+        mListenerExecutor.executeonAudioSwitchingEnd(newTrackIndex);
+    }
+
+    @Override
+    public void OnAudioTracksList(List<String> list, int defaultTrackIndex) {
+        mListenerExecutor.executeOnAudioTracksList(list,defaultTrackIndex);
+    }
+
+    @Override
+    public void onQualitySwitchingStart(int oldTrackIndex, int newTrackIndex) {
+
+    }
+
+    @Override
+    public void onQualitySwitchingEnd(int newTrackIndex) {
+
+    }
+
+    @Override
+    public void onDurationChanged(int msec) {
+        mListenerExecutor.executeOnDurationChanged(msec);
+    }
+
+    @Override
     protected List<Listener.EventType> getCompatibleListenersList() {
         List<Listener.EventType> list = super.getCompatibleListenersList();
         list.add(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE);
@@ -325,37 +355,4 @@ public class HLSPlayer extends BasePlayerView implements
                 mPlayer.registerDurationChanged(shouldRegister ? this : null);
         }
     }
-
-
-    @Override
-    public void onAudioSwitchingStart(int oldTrackIndex, int newTrackIndex) {
-        mListenerExecutor.executeOnAudioSwitchingStart(oldTrackIndex, newTrackIndex);
-    }
-
-    @Override
-    public void onAudioSwitchingEnd(int newTrackIndex) {
-        mListenerExecutor.executeonAudioSwitchingEnd(newTrackIndex);
-    }
-
-    @Override
-    public void OnAudioTracksList(List<String> list, int defaultTrackIndex) {
-        mListenerExecutor.executeOnAudioTracksList(list,defaultTrackIndex);
-    }
-
-    @Override
-    public void onQualitySwitchingStart(int oldTrackIndex, int newTrackIndex) {
-
-    }
-
-    @Override
-    public void onQualitySwitchingEnd(int newTrackIndex) {
-
-    }
-
-    @Override
-    public void onDurationChanged(int msec) {
-        mListenerExecutor.executeOnDurationChanged(msec);
-    }
-
-
 }
