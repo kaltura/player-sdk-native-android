@@ -301,10 +301,10 @@ public class PlayerViewController extends RelativeLayout {
         if (Build.VERSION.SDK_INT >= 11) {
             mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
-        if (!iframeUrl.startsWith("js-frame:")){
-            iframeUrl += "js-frame:";
-        }
-        mWebView.loadUrl(RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext()));
+
+        iframeUrl = RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext());
+        
+        mWebView.loadUrl(iframeUrl);
         mWebView.setBackgroundColor(0);
     }
 
