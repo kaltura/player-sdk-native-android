@@ -266,7 +266,7 @@ public class PlayerViewController extends RelativeLayout {
         mBackgroundRL = new RelativeLayout(getContext());
         mBackgroundRL.setBackgroundColor(Color.BLACK);
         this.addView(mBackgroundRL,currLP);
-//itay: maybe remove
+        //TODO: Maybe remove this automatic instantization
         KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
         LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
         this.addView(kalturaPlayer, lp);
@@ -287,7 +287,7 @@ public class PlayerViewController extends RelativeLayout {
         if (!iframeUrl.startsWith("js-frame:")){
             iframeUrl += "js-frame:";
         }
-        mWebView.loadUrl(iframeUrl + KPPlayerConfig.nativeVersion(this.getContext()));
+        mWebView.loadUrl(RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext()));
         mWebView.setBackgroundColor(0);
     }
 

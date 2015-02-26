@@ -1,8 +1,11 @@
 package com.kaltura.playersdk;
 
-import java.util.Map;
-
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+
+import java.util.Map;
 
 public class RequestHandler {
 	private static final String KP_PLAYER_ADATA_SOURCE_WidKey = "wid";
@@ -53,5 +56,20 @@ public class RequestHandler {
 
 	    return builder.build().toString().replace("%5B", "[").replace("%5D", "]");
 	}
+
+    public static String getIframeUrlWithNativeVersion(String iframeUrl, Context context) {
+        if(iframeUrl == null || iframeUrl.length() == 0){
+            return null;
+        }
+
+        String version = "";
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            version = packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return iframeUrl + "&flashvars[nativeVersion]=" + "Android_" + version;
+    }
 	
 }

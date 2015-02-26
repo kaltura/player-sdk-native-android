@@ -1,11 +1,5 @@
 package com.kaltura.playersdk;
 
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-
-import com.example.kplayersdk.BuildConfig;
-
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,17 +48,6 @@ public class KPPlayerConfig {
 		
 		return flashVarsArray;
 	}
-
-    static public String nativeVersion(Context context) {
-        String version = "";
-        try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            version = packageInfo.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return "&flashvars[nativeVersion]=" + "Android_" + version;
-    }
 
 	private void addDefaultFlags(){
 		if (mFlashvarsDict != null){
