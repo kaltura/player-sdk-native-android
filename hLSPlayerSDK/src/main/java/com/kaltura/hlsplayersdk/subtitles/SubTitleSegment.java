@@ -19,14 +19,15 @@ public class SubTitleSegment {
 	}
 
 	public Vector<TextTrackCue> textTrackCues = new Vector<TextTrackCue>();
-	public double startTime = -1;
-	public double endTime = -1;
 	public double segmentTimeWindowStart = -1;
 	public double segmentTimeWindowDuration = -1;
 	public int id = 0;
 	
 	private String _url;
-	private boolean _isLoaded = false;;
+	private boolean _isLoaded = false;
+	private double _mpegts = 0;
+	private double _localts = 0;
+	private double _tsmod = 0;
 	
 	
 	
@@ -83,6 +84,22 @@ public class SubTitleSegment {
 		HLSSegmentCache.precache(_url, -1);
 	}
 	
+	public void setTimeWindowStart(double time)
+	{
+		segmentTimeWindowStart = time;
+		
+		// Now we need to modify the cues so that they match the start time
+		// We'll subtract the difference between _tsmod and start time from the start and end of each segment
+		
+		double diff = _tsmod - segmentTimeWindowStart;
+		for (int i = 0; i < textTrackCues.size(); ++i)
+		{
+			textTrackCues.get(i).startTime -= diff;
+			textTrackCues.get(i).endTime -= diff;
+		}
+		
+	}
+	
 	
 	public void parse(String input)
 	{
@@ -101,6 +118,10 @@ public class SubTitleSegment {
 		
 		ParseState state = ParseState.PARSE_HEADERS;
 		TextTrackCue textTrackCue = null;
+
+		// set up our offset
+		double tsdiff = 0.0f;
+
 		
 		// Process each line
 		
@@ -120,6 +141,11 @@ public class SubTitleSegment {
 			case PARSE_HEADERS:
 				// Only support region headers for now
 				if (line.indexOf("Region:") == 0) regions.add(WebVTTRegion.fromString(line));
+				if (line.indexOf("X-TIMESTAMP-MAP") == 0)
+				{
+					parseTimeStampMap(line);
+					tsdiff = _tsmod - segmentTimeWindowStart;
+				}
 				break;
 				
 			case IDLE:
@@ -136,6 +162,8 @@ public class SubTitleSegment {
 				
 			case PARSE_CUE_SETTINGS:
 				textTrackCue.parse(line);
+				textTrackCue.startTime += (_tsmod - tsdiff);
+				textTrackCue.endTime += (_tsmod - tsdiff);
 				textTrackCue.buffer += line;
 				state = ParseState.PARSE_CUE_TEXT;
 				break;
@@ -152,19 +180,39 @@ public class SubTitleSegment {
 		// And one last cue, just in case there wasn't an empty line
 		if (textTrackCue != null) textTrackCues.add(textTrackCue);
 		
-		TextTrackCue firstElement = textTrackCues.size() > 0 ? textTrackCues.get(0) : null;
-		TextTrackCue lastElement = textTrackCues.size() > 1 ?textTrackCues.get(textTrackCues.size() - 1) : firstElement;
-		
-		// Set start and end times for this file
-		if (firstElement != null)
-		{
-			startTime = firstElement.startTime;
-			endTime = lastElement.endTime;
-		}
-		
 		_isLoaded = true;
 		
 		postSubtitleParseComplete(this);
+	}
+	
+	private void parseTimeStampMap(String input)
+	{
+		long mpegts = 0;
+		String[] keyPair = input.split("=");
+		if (keyPair[0].equals("X-TIMESTAMP-MAP"))
+		{
+			String[] values = keyPair[1].split(",");
+			
+			for (int i = 0; i < values.length; ++i)
+			{
+				if (values[i].startsWith("MPEGTS:"))
+				{
+					mpegts = Long.parseLong(values[i].substring("MPEGTS:".length()));
+					
+				}
+				else if (values[i].startsWith("LOCAL:"))
+				{
+					_localts = parseTimeStamp(values[i].substring("LOCAL:".length()));
+				}
+			}
+		}
+		
+		Log.i("SubTitleParser.parseTimeStampMap", "Input: " + input + " | MPEGTS=" + mpegts + ", LOCAL=" + _localts);
+		
+		_tsmod = (double)(mpegts / 90000); // Convert it to seconds
+		
+		_tsmod -= _localts; // Since _localts and _tsmod should be equivalent times, subtract _localts from _tsmod so that we know our offset
+	
 	}
 	
 	public static double parseTimeStamp(String input)
@@ -183,7 +231,6 @@ public class SubTitleSegment {
 		{
 			minutes = Integer.parseInt(units[0]);
 			secondValues = units[1];
-			//secondUnits = units[1].split(".");
 		}
 		else
 		{

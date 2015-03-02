@@ -2,7 +2,7 @@ package com.kaltura.hlsplayersdk.manifest;
 
 import java.nio.ByteBuffer;
 import com.kaltura.hlsplayersdk.cache.HLSSegmentCache;
-import com.kaltura.hlsplayersdk.cache.SegmentCacheEntry;
+import com.kaltura.hlsplayersdk.cache.SegmentCacheItem;
 
 import android.util.Log;
 
@@ -82,7 +82,7 @@ public class ManifestSegment extends BaseManifestItem
 
 		byte[] iv = hexStringToByteArray(ivStr);
 
-		cryptoId = SegmentCacheEntry.allocAESCryptoState(keyBytes.array(), iv);
+		cryptoId = SegmentCacheItem.allocAESCryptoState(keyBytes.array(), iv);
 		Log.i("Crypto", "Got crypto ID " + cryptoId);
 	}
 
