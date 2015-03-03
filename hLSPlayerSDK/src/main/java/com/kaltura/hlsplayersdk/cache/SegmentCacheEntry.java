@@ -1,102 +1,214 @@
 package com.kaltura.hlsplayersdk.cache;
 
+import java.util.Map;
+
 import android.os.Handler;
 import android.util.Log;
 
 import com.kaltura.hlsplayersdk.HLSPlayerViewController;
 import com.kaltura.hlsplayersdk.events.OnErrorListener;
-import com.loopj.android.http.*;
+import com.loopj.android.http.AsyncHttpClient;
 
-public class SegmentCacheEntry {
-	public String uri;
-	public byte[] data;
-	public boolean running;
-	public boolean waiting;
-	public long lastTouchedMillis;
-	public long downloadStartTime = 0;
+
+/*
+ *  The SegmentCacheEntry is a container of SegmentCacheItems. Each SegmentCacheItem
+ *  is its own individual download. The SegmentCacheEntry is identified by the primary
+ *  url (the first item in the submitted array) when posting events.
+ *  
+ */
+
+
+
+public class SegmentCacheEntry
+{
+	private SegmentCacheItem [] mItems = null;
+	private SegmentCacheEntry selfRef = this;
+
+	public SegmentCacheEntry(String [] uris)
+	{
+		mItems = new SegmentCacheItem[uris.length];
+		for (int i = 0; i < uris.length; ++i)
+		{
+			mItems[i] = new SegmentCacheItem(this);
+			mItems[i].uri = uris[i];			
+		}
+		
+		registerSegmentCachedListener(null, null);
+	}
+	
+	public void setCryptoIds(int [] cryptoIds)
+	{
+		if (cryptoIds.length != mItems.length) return;
+		for (int i = 0; i < cryptoIds.length; ++i)
+			mItems[i].cryptoHandle = cryptoIds[i];
+	}
+	
+	public long lastTouchedMillis = 0;
 	public long downloadCompletedTime = 0;
-	public long forceSize = -1;
-
-	// If >= 0, ID of a crypto context on the native side.
-	protected int cryptoHandle = -1;
-
-	// All bytes < decryptHighWaterMark are descrypted; all >=  are still 
-	// encrypted. This allows us to avoid duplicating every segment.
-	protected long decryptHighWaterMark = 0;
-	private boolean fullyDecrypted = false;
-	
-	// We will retry 3 times before giving up
-	private static final int maxRetries = 3;
-	private int curRetries = 0;
+	public long downloadStartTime = 0;
 	
 	
-	public static native int allocAESCryptoState(byte[] key, byte[] iv);
-	public static native void freeCryptoState(int id);
-	public static native long decrypt(int cryptoHandle, byte[] data, long start, long length);
 	
-	public RequestHandle request = null;
 	
-	private Handler mCallbackHandler = null;
-	
-	public int bytesDownloaded = 0;
-	public int totalSize = 0;
-	
-	SegmentCacheEntry selfRef = this;
+	public void clear()
+	{
+		for (int i = 0; i < mItems.length; ++i)
+			mItems[i].data = null;
+	}
 	
 	public void cancel()
 	{
-		if (running)
+		for (int i = 0; i < mItems.length; ++i)
+			mItems[i].cancel();
+	}
+	
+	public void removeMe(Map<String, SegmentCacheEntry> segmentCache)
+	{
+		for (int i = 0; i < mItems.length; ++i)
+			segmentCache.remove(mItems[i].uri);
+	}
+	
+	public boolean matchUri(String uri)
+	{
+		for (int i = 0; i < mItems.length; ++i)
+			if (mItems[i].uri.equals(uri)) return true;
+		return false;
+	}
+	
+	public SegmentCacheItem getItem(String uri)
+	{
+		for (int i = 0; i < mItems.length; ++i)
+			if (mItems[i].uri.equals(uri)) return mItems[i];
+		return null;
+	}
+	
+	public void initiateDownload()
+	{
+		lastTouchedMillis = System.currentTimeMillis();
+		downloadStartTime = lastTouchedMillis;
+		for (int i = 0; i < mItems.length; ++i)
 		{
-			Log.i("HLS Cache", "Cancelling " + uri);
-			registerSegmentCachedListener(null, null);
-			running = false;
-			waiting = false;
+			final SegmentCacheItem sci = mItems[i];
+			initiateDownload(sci);
 		}
-		
 	}
 	
-	public boolean hasCrypto()
+	private void initiateDownload(final SegmentCacheItem sci)
 	{
-		return (cryptoHandle != -1);
-	}
-
-	public void setCryptoHandle(int handle)
-	{
-		// If we already have a crypto handle, I don't think we want to reset it
-		if (cryptoHandle == -1)
-			cryptoHandle = handle;
-		else if (handle != cryptoHandle)
-			Log.i("setCryptoHandle", "Tried to change an existing cryptoHandle (" + cryptoHandle + ") to (" + handle + ")");
-	}
-
-	public void ensureDecryptedTo(long offset)
-	{
-		if(cryptoHandle == -1)
-			return;
-//		if (offset == 188)
-//		{
-//			Log.i("HLS Cache", "Decrypting " + uri);
-//			Log.i("HLS Cache", "  to " + offset);
-//			Log.i("HLS Cache", "  first bytes = " + data[0] + data[1] + data[2] + data[3] + data[4]);
-//		}
-		long delta = offset - decryptHighWaterMark;
-//		if (offset == 188)
-//			Log.i("HLS Cache", "  delta = " + delta + " | HighWaterMark = " + decryptHighWaterMark);
+		sci.running = true;
+		sci.downloadStartTime = System.currentTimeMillis();
 		
-		if (delta > 0)
-			decryptHighWaterMark = decrypt(cryptoHandle, data, decryptHighWaterMark, delta);
-//		if (offset == 188)
-//		{
-//			Log.i("HLS Cache", "Decrypted to " + decryptHighWaterMark);
-//			Log.i("HLS Cache", "  first bytes = " + data[0] + data[1] + data[2] + data[3] + data[4]);
-//		}
-	}
+		HLSPlayerViewController.postToHTTPResponseThread( new Runnable()
+		{
+			@Override
+			public void run() {
+				AsyncHttpClient httpClient = HLSSegmentCache.httpClient();
+				
+				if (httpClient == HLSSegmentCache.syncHttpClient) Log.i("HLS Cache", "Using Synchronous HTTP CLient");
+				else Log.i("HLS Cache", "Using Asynchronous HTTP Client");
+				
+				httpClient.setMaxRetriesAndTimeout(0, httpClient.getConnectTimeout());
+				sci.request = httpClient.get(HLSSegmentCache.context, sci.uri, new SegmentBinaryResponseHandler(sci));
 
-	public boolean isFullyDecrypted()
-	{
-		return (decryptHighWaterMark == data.length);
+			}
+		});
 	}
 	
+	public void retry(SegmentCacheItem sce)
+	{
+		try {
+			Thread.sleep(100);
+			Thread.yield();
+		} catch (InterruptedException e) {
+			// Don't care.
+		}
+		Log.i("SegmentCacheEntry.retry", "retry: " + sce.uri);
+		initiateDownload(sce);
+	}
+	
+	public boolean isRunning()
+	{
+		if (mItems == null) return false;
+		
+		for (int i = 0; i < mItems.length; ++i)
+		{
+			if (mItems[i].running)
+				return true;
+		}
+		return false;		
+	}
+	
+	public boolean isWaiting()
+	{
+		if (mItems == null) return false;
+		
+		for (int i = 0; i < mItems.length; ++i)
+		{
+			if (mItems[i].waiting)
+				return true;
+		}
+		return false;
+	}
+	
+	public void setWaiting(boolean waiting)
+	{
+		for (int i = 0; i < mItems.length; ++i)
+			mItems[i].waiting = true;
+	}
+	
+	public void setWaiting(String uri, boolean waiting)
+	{
+		for (int i = 0; i < mItems.length; ++i)
+		{
+			if (mItems[i].uri.equals(uri))
+				mItems[i].waiting = waiting;
+		}
+	}
+	
+	public int expectedSize()
+	{
+		int size = 0;
+		for (int i = 0; i < mItems.length; ++i)
+			size += mItems[i].expectedSize;
+		return size;
+	}
+	
+	public int bytesDownloaded()
+	{
+		int size = 0;
+		for (int i = 0; i < mItems.length; ++i)
+			size += mItems[i].bytesDownloaded;
+		return size;
+	}
+	
+	public int dataSize()
+	{
+		int ds = 0;
+		for (int i = 0; i < mItems.length; ++i)
+		{
+			if (mItems[i].data != null)
+				ds += mItems[i].data.length;
+		}
+		return ds;
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("Count=" + mItems.length);
+		for (int i = 0; i < mItems.length; ++i)
+		{
+			sb.append(" | ");
+			sb.append(mItems[i]);
+			
+		}
+		sb.append( " | " + dataSize());
+		return sb.toString();			
+	}
+	
+	
+	private Handler mCallbackHandler = null;
 	private SegmentCachedListener mSegmentCachedListener = null;
 	public void registerSegmentCachedListener(SegmentCachedListener listener, Handler callbackHandler)
 	{
@@ -118,8 +230,8 @@ public class SegmentCacheEntry {
 	
 	public void notifySegmentCached()
 	{
-		if (waiting) HLSSegmentCache.postProgressUpdate(true);
-		waiting = false;
+		if (isWaiting()) HLSSegmentCache.postProgressUpdate(true);
+		setWaiting(false);
 		if (mSegmentCachedListener != null && mCallbackHandler != null)
 		{
 			mCallbackHandler.post(new Runnable() {
@@ -127,71 +239,51 @@ public class SegmentCacheEntry {
 				{
 					synchronized (selfRef)
 					{
-						if (mSegmentCachedListener != null) mSegmentCachedListener.onSegmentCompleted(uri);
+						if (mSegmentCachedListener != null) mSegmentCachedListener.onSegmentCompleted(mItems[0].uri);
 					}
 				}
 			});
 		}
 	}
 	
-	private boolean retry()
-	{
-		++curRetries;
-		if (curRetries >= maxRetries) return false;
-		return true;
-	}
-	
-	public void postOnSegmentFailed(int statusCode)
-	{
-		if (retry())
-		{
-			Log.i("SegmentCacheEntry.postOnSegmentFailed", "Segment download failed. Retrying: " + uri + " : " + statusCode);
-			HLSSegmentCache.retry(this);
-		}
-		else
-		{
-			Log.i("SegmentCacheEntry.postOnSegmentFailed", "Segment download failed. No More Retries Left: " + uri + " : " + statusCode);
-			running = false;
-			if (mSegmentCachedListener != null)
-				mSegmentCachedListener.onSegmentFailed(uri, statusCode);
-			HLSPlayerViewController.currentController.postError(OnErrorListener.MEDIA_ERROR_IO, uri + "(" + statusCode + ")");
-		}
-	}
-	
-	public void postSegmentSucceeded(int statusCode, byte[] responseData)
+	public void postItemSucceeded(SegmentCacheItem item, int statusCode)
 	{
 		if (statusCode == 200)
 		{
-			downloadCompletedTime = System.currentTimeMillis();
-			Log.i("SegmentCacheEntry.postSegmentSucceeded", "Got " + uri);
-			HLSSegmentCache.store(uri, responseData);
+			// We're good
+			if (!isRunning())
+			{
+				// We're all done, too!
+				downloadCompletedTime = System.currentTimeMillis();
+				HLSSegmentCache.notifyStored(this);
+			}
 		}
 		else
 		{
-			Log.i("SegmentCacheEntry.postSegmentSucceeded", "statusCode " + "[" + statusCode + "]" + uri);
+			Log.i("SegmentCacheEntry.postItemSucceeded", "status code " + "[" + statusCode + "]" + item.uri);
 			if (mSegmentCachedListener != null)
-				mSegmentCachedListener.onSegmentFailed(uri, statusCode);
-			HLSPlayerViewController.currentController.postError(OnErrorListener.MEDIA_ERROR_IO, uri + "(" + statusCode + ")");
+				mSegmentCachedListener.onSegmentFailed(item.uri, statusCode);
+			HLSPlayerViewController.currentController.postError(OnErrorListener.MEDIA_ERROR_IO, item.uri + "(" + statusCode + ")");
+			
 		}
 	}
 	
-	public void updateProgress(int bytesWritten, int totalBytesExpected)
+	
+	public void postItemFailed(SegmentCacheItem item, int statusCode)
 	{
-		
-		bytesDownloaded = bytesWritten;
-		totalSize = totalBytesExpected;
+		if (mSegmentCachedListener != null)
+			mSegmentCachedListener.onSegmentFailed(item.uri, statusCode);
+		HLSPlayerViewController.currentController.postError(OnErrorListener.MEDIA_ERROR_IO, item.uri + "(" + statusCode + ")");
+
+	}
+	
+	public void updateProgress()
+	{
 		// If we have a callback handler, it pretty much means that we're not going to be
-		// in a wait state in the SegmentCache
-		if (mCallbackHandler != null && waiting && bytesWritten != totalBytesExpected)
+		// in a wait state in the SegmentCache <-- does this comment make sense?
+		if (mCallbackHandler != null && isWaiting() && bytesDownloaded() != expectedSize())
 		{
 			HLSSegmentCache.postProgressUpdate(false);
 		}
 	}
-	
-	@Override
-	public String toString()
-	{
-		return "SegmentCacheEntry(" + ((Object)this).hashCode() + ")[" + waiting + "]";
-	}
-
 }

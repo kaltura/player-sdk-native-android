@@ -1,9 +1,5 @@
 package com.kaltura.hlsplayersdk;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -40,6 +36,10 @@ import com.kaltura.hlsplayersdk.manifest.events.OnParseCompleteListener;
 import com.kaltura.hlsplayersdk.subtitles.SubtitleHandler;
 import com.kaltura.hlsplayersdk.subtitles.TextTrackCue;
 import com.kaltura.hlsplayersdk.types.PlayerStates;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * Main class for HLS video playback on the Java side.
@@ -120,8 +120,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 		if (seg.altAudioSegment != null)
 		{
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
-			HLSSegmentCache.precache(seg.altAudioSegment.uri, seg.altAudioSegment.cryptoId);
+			HLSSegmentCache.precache(new String[] {seg.uri, seg.altAudioSegment.uri}, new int [] { seg.cryptoId, seg.altAudioSegment.cryptoId }, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
 		}
 		else
@@ -143,12 +142,14 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		
 		ManifestSegment seg = currentController.getStreamHandler().getFileForTime(time, mQualityLevel);
 		if(seg == null)
+		{
+			Log.i("HLSPlayerViewController.requestSegmentForTime", "Did not recieve a segment. StreamHandler.isStalled() = " + currentController.getStreamHandler().isStalled());
 			return 0;
+		}
 		
 		if (seg.altAudioSegment != null)
 		{
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
-			HLSSegmentCache.precache(seg.altAudioSegment.uri, seg.altAudioSegment.cryptoId);
+			HLSSegmentCache.precache(new String[] {seg.uri, seg.altAudioSegment.uri}, new int [] { seg.cryptoId, seg.altAudioSegment.cryptoId }, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
 		}
 		else
@@ -279,6 +280,50 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		}
 	}
 	
+	// HTTPResponse thread
+	static class HTTPResponseThread extends HandlerThread
+	{
+		private Handler mHandler = null;
+		
+		HTTPResponseThread()
+		{
+			super("HTTPResponseThread");
+			start();
+			setHandler(new Handler(getLooper()));
+		}
+
+		public Handler getHandler() {
+			return mHandler;
+		}
+
+		private void setHandler(Handler mHandler) {
+			this.mHandler = mHandler;
+		}
+	}
+	
+	private HTTPResponseThread mHTTPResponseThread = null;
+	
+	public static HTTPResponseThread getHTTPResponseThread()
+	{
+		return currentController != null ? currentController.mHTTPResponseThread : null;
+	}
+	
+	public static void postToHTTPResponseThread(Runnable runnable)
+	{
+		Handler handler = getHTTPResponseThreadHandler();
+		if (handler != null)
+		{
+			handler.post(runnable);
+		}
+	}
+	
+	public static Handler getHTTPResponseThreadHandler()
+	{
+		return (getHTTPResponseThread() != null) ? getHTTPResponseThread().getHandler() : null;
+	}
+	
+	
+	
 	// Interface thread
 	static class InterfaceThread extends HandlerThread
 	{
@@ -298,7 +343,6 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		private void setHandler(Handler mHandler) {
 			this.mHandler = mHandler;
 		}
-		
 	}
 	
 	private InterfaceThread mInterfaceThread = null;
@@ -370,7 +414,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 				int state = GetState();
 				if (state == STATE_PLAYING || state == STATE_FOUND_DISCONTINUITY || state == STATE_WAITING_FOR_DATA) {
 					int rval = NextFrame();
-					if (rval >= 0) mTimeMS = rval;
+					if (rval >= 0) { mTimeMS = rval; Log.i("RunThread", "mTimeMS = " + mTimeMS); }
 					if (rval < 0 && state != lastState)
 					{
 						Log.i("videoThread", "State Changed -- NextFrame() returned " + rval + " : state = " + 
@@ -398,14 +442,14 @@ public class HLSPlayerViewController extends RelativeLayout implements
 					
 					if (mSubtitleHandler != null)
 					{
-						double time = ( (double)mTimeMS / 1000.0);
-						Vector<TextTrackCue> cues = mSubtitleHandler.update(time, mSubtitleLanguage);
+						double timeSecs = ( (double)mTimeMS / 1000.0);
+						Vector<TextTrackCue> cues = mSubtitleHandler.update(timeSecs, mSubtitleLanguage);
 						if (cues != null && mSubtitleTextListener != null)
 						{
 							for (int i = 0; i < cues.size(); ++i)
 							{
 								TextTrackCue cue = cues.get(i);
-								postTextTrackText(cue.startTime, cue.endTime - cue.startTime, cue.buffer);
+								postTextTrackText(cue.startTime, cue.endTime - cue.startTime, cue.lineAlignment, cue.text);
 							}
 						}
 					}
@@ -471,6 +515,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			System.loadLibrary("HLSPlayerSDK");
 			InitNativeDecoder();
 			mInterfaceThread = new InterfaceThread();
+			mHTTPResponseThread = new HTTPResponseThread();
 			
 
 		} catch (Exception e) {
@@ -496,6 +541,11 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		{ 
 			mInterfaceThread.interrupt();
 			mInterfaceThread = null;
+		}
+		if (mHTTPResponseThread != null)
+		{
+			mHTTPResponseThread.interrupt();
+			mHTTPResponseThread = null;
 		}
 		CloseNativeDecoder();
 		if (mStreamHandler != null)
@@ -650,7 +700,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			// supply the event handler to the segment cache. In the case where the segment is already in the cache, the
 			// event handler can be called immediately.
 			FeedSegment(seg.uri, seg.quality, seg.continuityEra, seg.altAudioSegment.uri, seg.altAudioSegment.altAudioIndex, seg.startTime, seg.cryptoId, seg.altAudioSegment.cryptoId);
-			HLSSegmentCache.precache(seg.uri, seg.cryptoId, true, this, getInterfaceThreadHandler());
+			HLSSegmentCache.precache(new String[] {seg.uri, seg.altAudioSegment.uri}, new int [] { seg.cryptoId, seg.altAudioSegment.cryptoId }, true, this, getInterfaceThreadHandler());
 			postAudioTrackSwitchingStart(-1, seg.altAudioSegment.altAudioIndex);
 			postAudioTrackSwitchingEnd(seg.altAudioSegment.altAudioIndex);
 		}
@@ -1188,7 +1238,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		mSubtitleTextListener = listener;
 	}
-	private void postTextTrackText(final double startTime, final double length, final String buffer)
+	private void postTextTrackText(final double startTime, final double length, final String align, final String buffer)
 	{
 		if (mSubtitleTextListener != null)
 		{
@@ -1196,7 +1246,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mSubtitleTextListener.onSubtitleText(startTime, length, buffer);					
+					mSubtitleTextListener.onSubtitleText(startTime, length, align, buffer);					
 				}
 			});
 		}
@@ -1268,6 +1318,23 @@ public class HLSPlayerViewController extends RelativeLayout implements
 				postAudioTrackSwitchingStart( getStreamHandler().getAltAudioCurrentIndex(), newIndex);
 				
 				boolean success = getStreamHandler().setAltAudioTrack(newIndex);
+				
+				if (!success) return; // Don't bother trying to change when there's nothing to change to
+				
+				while (getStreamHandler() != null && getStreamHandler().waitingForAudioReload)
+				{
+					try
+					{
+						Thread.sleep(30);
+					}
+					catch (InterruptedException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+				if (getStreamHandler() == null) return; // don't seek if the app has exited while waiting for reload.
 				
 				seekToCurrentPosition();
 

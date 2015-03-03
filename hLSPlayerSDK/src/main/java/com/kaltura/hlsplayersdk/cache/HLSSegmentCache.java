@@ -24,11 +24,11 @@ public class HLSSegmentCache
 	public static AsyncHttpClient syncHttpClient = new SyncHttpClient();
 	
 	public static double lastDownloadDataRate = 0.0;
-	public static float lastBufferPct = -1;
+	public static int lastBufferPct = -1;
 	
 	public static void resetProgress() { lastBufferPct = -1; }
 	
-	protected static Context context = null;
+	public static Context context = null;
 	
 	public static AsyncHttpClient httpClient()
 	{
@@ -57,8 +57,9 @@ public class HLSSegmentCache
 			SegmentCacheEntry sce = segmentCache.get(segmentUri);
 			if (sce != null)
 			{
-				Log.i("getCryptoId", "Found Id (" + sce.cryptoHandle + ") for URI: " + segmentUri );
-				return sce.cryptoHandle;
+				SegmentCacheItem sci = sce.getItem(segmentUri);
+				Log.i("getCryptoId", "Found Id (" + sci.cryptoHandle + ") for URI: " + segmentUri );
+				return sci.cryptoHandle;
 			}
 			else
 			{
@@ -68,88 +69,56 @@ public class HLSSegmentCache
 		}
 	}
 	
-	static public SegmentCacheEntry populateCache(final String segmentUri)
+	static public SegmentCacheEntry populateCache(String [] segmentUris)
 	{
+		if (segmentUris == null || segmentUris.length == 0)
+		{
+			Log.e("HLS Cache", "Tried to populate with a null or empty uri array");
+			return null;
+		}
+		SegmentCacheEntry sce = null;
 		synchronized (segmentCache)
 		{
-			// Hit the cache first.
-			SegmentCacheEntry existing = segmentCache.get(segmentUri);
-			if(existing != null)
+			SegmentCacheEntry existing = segmentCache.get(segmentUris[0]);
+			if (existing != null)
 			{
-				if (existing.running || existing.data != null)
+				if (existing.isRunning() || existing.dataSize() != 0)
 				{
 					existing.lastTouchedMillis = System.currentTimeMillis();
 					return existing;
 				}
 			}
 			
-			// Populate a cache entry and initiate the request.
-			Log.i("HLS Cache", "Miss on " + segmentUri + ", populating..");
-			final SegmentCacheEntry sce = (existing != null) ? existing : new SegmentCacheEntry();
-			sce.uri = segmentUri;
+			// Populate a cache entry and initiate the requests
+			Log.i("HLS Cache", "Miss on " + segmentUris[0] + ", populating..");
+			sce = (existing != null) ? existing : new SegmentCacheEntry(segmentUris);
 			
-			initiateDownload(sce);
-
-			segmentCache.put(segmentUri, sce);		
-			return sce;
+			// We're putting it in the map for every URI, so that it can be looked up by any of them
+			for (int i = 0; i < segmentUris.length; ++i)
+			{
+				segmentCache.put(segmentUris[i], sce);
+			}
 		}
-	}
-	
-	private static void initiateDownload(final SegmentCacheEntry sce)
-	{
-		Log.i("HLS Cache", "initiateDownload: " + sce.uri);
-		sce.running = true;
-		sce.lastTouchedMillis = System.currentTimeMillis();
-		sce.downloadStartTime = sce.lastTouchedMillis;
 		
-		// Issue HTTP request.
-
-		Thread t = new Thread()		
-		{		
-			public void run() {
-				httpClient().setMaxRetriesAndTimeout(0, httpClient().getConnectTimeout());
-				sce.request = httpClient().get(context, sce.uri, new SegmentBinaryResponseHandler(sce));
-			}		
-		};		
-		t.start();		
-
+		if (sce != null)
+		{
+			sce.initiateDownload();
+		}
+		return sce;
 	}
 	
-	static public void store(String segmentUri, byte[] data)
+	static public void notifyStored(SegmentCacheEntry sce)
 	{
-		SegmentCacheEntry sce = null;
 		synchronized (segmentCache)
 		{
-			Log.i("HLS Cache", "Storing result of " + data.length + " for " + segmentUri);
-			
-			// Look up the cache entry.
-			sce = segmentCache.get(segmentUri);
-			if(sce == null)
-			{
-				Log.e("HLS Cache", "Lost entry for " + segmentUri + "!");
-				return;
-			}
-			
-			if (sce.data != null)
-			{
-				Log.i("HLS Cache", "Segment already has data. Ignoring new data.");
-				data = null;
-				return;
-			}
-			
-			// Store the data.
-			sce.data = data;
-						
-			// All done!
 			sce.lastTouchedMillis = System.currentTimeMillis();
-			//sce.notifySegmentCached();
-			sce.running = false;
 		}
 		
+		
 		sce.notifySegmentCached();
-
+		
 		if (sce.downloadCompletedTime != 0 && sce.downloadStartTime != 0 && sce.downloadCompletedTime != sce.downloadStartTime)
-			lastDownloadDataRate = (double)sce.data.length / (sce.downloadCompletedTime - sce.downloadStartTime);
+			lastDownloadDataRate = (double)sce.dataSize() / (sce.downloadCompletedTime - sce.downloadStartTime);
 		
 		expire();
 	}
@@ -165,18 +134,6 @@ public class HLSSegmentCache
 		}
 	}
 	
-	public static void retry(SegmentCacheEntry sce)
-	{
-		try {
-			Thread.sleep(100);
-			Thread.yield();
-		} catch (InterruptedException e) {
-			// Don't care.
-		}
-		Log.i("HLS Cache", "retry: " + sce.uri);
-		initiateDownload(sce);
-	}
-	
 	/**
 	 * Hint we will soon be wanting data from this segment and that we should 
 	 * initiate the download.
@@ -187,13 +144,13 @@ public class HLSSegmentCache
 	static public void precache(String segmentUri, int cryptoId)
 	{
 		initialize();
-		populateCache(segmentUri);
+		
+		populateCache( new String [] { segmentUri } );
 
-		SegmentCacheEntry sce = segmentCache.get(segmentUri);
-		sce.setCryptoHandle(cryptoId);
+		SegmentCacheEntry sce = segmentCache.get( segmentUri );
+		SegmentCacheItem sci = sce.getItem(segmentUri);
+		sci.setCryptoHandle(cryptoId);
 	}
-	
-
 	
 	/**
 	 * Hint we will soon be wanting data from this segment and that we should 
@@ -209,9 +166,28 @@ public class HLSSegmentCache
 		synchronized (segmentCache)
 		{
 			SegmentCacheEntry sce = segmentCache.get(segmentUri);
+			
 			sce.registerSegmentCachedListener(segmentCachedListener, callbackHandler);
-			sce.waiting = forceWait;
-			if (!sce.running)
+			sce.setWaiting(forceWait);
+			if (!sce.isRunning())
+			{
+				HLSSegmentCache.postProgressUpdate(true);
+				sce.notifySegmentCached();
+			}
+		}
+	}
+	
+	static public void precache(String [] segmentUris, int [] cryptoIds, boolean forceWait, SegmentCachedListener segmentCachedListener, Handler callbackHandler)
+	{
+		initialize();
+		
+		SegmentCacheEntry sce = populateCache(segmentUris);
+		synchronized (segmentCache)
+		{
+			sce.setCryptoIds(cryptoIds);
+			sce.registerSegmentCachedListener(segmentCachedListener, callbackHandler);
+			sce.setWaiting(true);
+			if (!sce.isRunning())
 			{
 				HLSSegmentCache.postProgressUpdate(true);
 				sce.notifySegmentCached();
@@ -260,13 +236,14 @@ public class HLSSegmentCache
 		if (sce == null)
 		{
 			// Do we have a cache entry for the segment? Populate if it doesn't exist.
-			sce = populateCache(segmentUri);
+			sce = populateCache( new String [] { segmentUri });
 		}
 		waitForLoad(sce);
-		if(sce.forceSize != -1)
-			return sce.forceSize;
-		if (sce.data == null) return 0;
-		return sce.data.length;
+		SegmentCacheItem sci = sce.getItem(segmentUri);
+		if(sci.forceSize != -1)
+			return sci.forceSize;
+		if (sci.data == null) return 0;
+		return sci.data.length;
 	}
 	
 	private static long lastTime = System.currentTimeMillis();
@@ -279,27 +256,34 @@ public class HLSSegmentCache
 			int totalBytes = 0;
 			int curBytes = 0;
 			boolean segmentsWaiting = false;
+			int segmentsWaitingCount = 0;
 			synchronized (segmentCache)
 			{
 				Collection<SegmentCacheEntry> values = segmentCache.values();
 
 				for(SegmentCacheEntry v : values)
 				{
-					if (v.waiting)
+					if (v.isRunning())
 					{
-						totalBytes += v.totalSize;
-						curBytes += v.bytesDownloaded;
+						Log.i("HLS Cache", "map value: " + v.toString());
+						totalBytes += v.expectedSize();
+						curBytes += v.bytesDownloaded();
 						segmentsWaiting = true;
+						++segmentsWaitingCount;
 					}
 				}
 			}
 			double pct = totalBytes != 0 ? ((double)curBytes / (double)totalBytes) * 100.0 : 0;
-			if (lastBufferPct == (float)pct)
+			if (lastBufferPct == (int)pct)
 				return;
 
-			lastBufferPct = (float)pct;
+			lastBufferPct = (int)pct;
 			
-			if (segmentsWaiting) HLSPlayerViewController.currentController.postProgressUpdate((int)pct);
+			if (segmentsWaiting)
+			{
+				Log.i("HLS Cache", "Progress=" + (int)pct + " (" + curBytes +"/" + totalBytes + ") seg count=" + segmentsWaitingCount);
+				HLSPlayerViewController.currentController.postProgressUpdate((int)pct);
+			}
 
 		}
 	}
@@ -309,8 +293,7 @@ public class HLSSegmentCache
 		synchronized (segmentCache)
 		{
 			Log.i("HLS Cache", "Cancelling downloads");
-//			syncHttpClient.cancelRequests(context, true);
-//			asyncHttpClient.cancelRequests(context, true);
+
 			// Get all the values in the set.
 			Collection<SegmentCacheEntry> values = segmentCache.values();
 
@@ -322,14 +305,14 @@ public class HLSSegmentCache
 	static private void waitForLoad(SegmentCacheEntry sce)
 	{
 		// Wait for data, if required...
-		if(!sce.running)
+		if(!sce.isRunning())
 			return;
 		
-		Log.i("HLS Cache", "Waiting on request: " + sce.uri);
+		Log.i("HLS Cache", "Waiting on request: " + sce);
 		long timerStart = System.currentTimeMillis();
 
-		sce.waiting = true;
-		while(sce.running)
+		sce.setWaiting(true);
+		while(sce.isRunning())
 		{
 			postProgressUpdate(false);
 			try {
@@ -339,10 +322,10 @@ public class HLSSegmentCache
 				// Don't care.
 			}
 		}
-		sce.waiting = false;
+		sce.setWaiting(false);
 		long timerElapsed = System.currentTimeMillis() - timerStart;
-		if (sce.data != null) Log.i("HLS Cache", "Request finished, " + (sce.data.length/1024) + "kb in " + timerElapsed + "ms");
-		else Log.i("HLS Cache", "sce.data is null - request must have been canceled");
+		if (sce.dataSize() > 0) Log.i("HLS Cache", "Request finished, " + (sce.dataSize()/1024) + "kb in " + timerElapsed + "ms");
+		else Log.i("HLS Cache", "sce.data is 0 - request must have been canceled");
 	}
 	
 	static public String readFileAsString(String segmentUri)
@@ -383,7 +366,7 @@ public static String bytesToHex(ByteBuffer bytes) {
 		initialize();
 		
 		// Do we have a cache entry for the segment? Populate if it doesn't exist.
-		SegmentCacheEntry sce = populateCache(segmentUri);
+		SegmentCacheEntry sce = populateCache( new String[] { segmentUri });
 		
 		// Sanity check.
 		if(sce == null)
@@ -394,7 +377,7 @@ public static String bytesToHex(ByteBuffer bytes) {
 		
 		waitForLoad(sce);
 		
-		if (sce.data == null || sce.data.length == 0)
+		if (sce.dataSize() == 0)
 		{
 			Log.e("HLS Cache", "Segment Data is nonexistant or empty");
 			return 0;
@@ -402,12 +385,13 @@ public static String bytesToHex(ByteBuffer bytes) {
 		
 		synchronized(segmentCache)
 		{
+			SegmentCacheItem sci = sce.getItem(segmentUri);
 
 			// How many bytes can we serve?
-			if(offset + size > sce.data.length)
+			if(offset + size > sci.data.length)
 			{
-				long newSize = sce.data.length - offset;
-				Log.i("HLS Cache", "Adjusting size to " + newSize + " from " + size + " offset=" + offset + " data.length=" + sce.data.length + " for file:" + sce.uri);
+				long newSize = sci.data.length - offset;
+				Log.i("HLS Cache", "Adjusting size to " + newSize + " from " + size + " offset=" + offset + " data.length=" + sci.data.length + " for file:" + sci.uri);
 				size = newSize;
 				adjusted = true;
 			}
@@ -419,18 +403,18 @@ public static String bytesToHex(ByteBuffer bytes) {
 			}
 
 			// Ensure decrypted.
-			sce.ensureDecryptedTo(offset + size);
+			sci.ensureDecryptedTo(offset + size);
 
 			// If we have decrypted to the end, look for padding and adjust length.
-			if(sce.isFullyDecrypted() && sce.hasCrypto() && sce.forceSize == -1)
+			if(sci.isFullyDecrypted() && sci.hasCrypto() && sci.forceSize == -1)
 			{
 				// Look for padding.
-				byte padByte = sce.data[sce.data.length - 1];
+				byte padByte = sci.data[sci.data.length - 1];
 
 				boolean isPadded = true;
-				for(int i=sce.data.length-padByte; i<sce.data.length; i++)
+				for(int i=sci.data.length-padByte; i<sci.data.length; i++)
 				{
-					if(sce.data[i] == padByte)
+					if(sci.data[i] == padByte)
 						continue;
 
 					isPadded = false;
@@ -440,23 +424,23 @@ public static String bytesToHex(ByteBuffer bytes) {
 				if(isPadded)
 				{
 					// Note new size.
-					sce.forceSize = sce.data.length - padByte;
-					Log.i("HLS Cache", "Forcing segment size to " + sce.forceSize);
+					sci.forceSize = sci.data.length - padByte;
+					Log.i("HLS Cache", "Forcing segment size to " + sci.forceSize);
 				}
 			} 
 			
 			// Truncate length based on forced size.
-			if(sce.forceSize != -1)
+			if(sci.forceSize != -1)
 			{
-				if(offset + size >= sce.forceSize)
+				if(offset + size >= sci.forceSize)
 				{
-					size = sce.forceSize - offset;
+					size = sci.forceSize - offset;
 					Log.i("HLS Cache", "Truncating size due to padding to " + size);
 				}
 			}
 			
 			// Copy the available bytes.
-			output.put(sce.data, (int)offset, (int)size);
+			output.put(sci.data, (int)offset, (int)size);
 			
 //			if(adjusted)
 //			{
@@ -488,8 +472,7 @@ public static String bytesToHex(ByteBuffer bytes) {
 			// First, determine total size.
 			long totalSize = 0;
 			for(SegmentCacheEntry v : values)
-				if(v.data != null)
-					totalSize += v.data.length;
+				totalSize += v.dataSize();
 			
 			Log.i("HLS Cache", "size=" + (totalSize/1024) + "kb  threshold=" + (targetSize/1024) + "kb");
 			
@@ -512,14 +495,14 @@ public static String bytesToHex(ByteBuffer bytes) {
 			long entryAge = System.currentTimeMillis() - oldestTime;
 			if(entryAge < minimumExpireAge)
 			{
-				Log.i("HLS Cache", "Tried to purge segment that is less than " + minimumExpireAge/1000 + " seconds old. Ignoring... (" + oldestSce.uri + ", " + entryAge/1000 + ")");
+				Log.i("HLS Cache", "Tried to purge segment that is less than " + minimumExpireAge/1000 + " seconds old. Ignoring... (" + oldestSce.toString() + ", " + entryAge/1000 + ")");
 				return;
 			}
 			
 			// We're over cache target, delete that one.
-			Log.i("HLS Cache", "Purging " + oldestSce.uri + ", freeing " + (oldestSce.data.length/1024) + "kb, age " + (entryAge/1000) + "sec");
-			oldestSce.data = null;
-			segmentCache.remove(oldestSce.uri);
+			Log.i("HLS Cache", "Purging " + oldestSce.toString() + ", freeing " + (oldestSce.dataSize()/1024) + "kb, age " + (entryAge/1000) + "sec");
+			oldestSce.clear();
+			oldestSce.removeMe(segmentCache);
 		}
 	}
 }
