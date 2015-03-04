@@ -1,9 +1,14 @@
 package com.kaltura.playersdk.actionHandlers.ShareStrategies;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Bundle;
 
+import com.example.kplayersdk.R;
 import com.kaltura.playersdk.BrowserActivity;
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 
@@ -17,21 +22,30 @@ import java.util.ArrayList;
  */
 public class facebookStrategy implements ShareManager.KPShareStrategy {
 
+
     @Override
-    public void share(JSONObject shareParams, Activity activity, ShareManager.KPShareCompletionBlock completionBlock) {
-        Intent fbIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("fb://publish/?text=www.domain.com"));
-        activity.startActivity(fbIntent);
-//        Intent intent = new Intent(activity, BrowserActivity.class);
-//        try {
-//            String shareURL = (String)((JSONObject)shareParams.get("shareNetwork")).get("template");
-////            ArrayList<String> redirectURIs = (ArrayList<String>)shareParams.get("");
-//            intent.putExtra("ShareURL", shareURL);
-//            activity.startActivity(intent);
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
+    public void share(JSONObject shareParams, Activity activity) {
+        String sharePrefix = "";
+        String videoLink = "";
+        String videoName = "";
+        String barColor = "";
+        try {
+            sharePrefix = ((String)((JSONObject)shareParams.get("shareNetwork")).get("template")).replace("{share.shareURL}", "");
+            videoLink = (String)shareParams.get("sharedLink");
+            videoName = (String)shareParams.get("videoName");
+            barColor = (String)((JSONObject)shareParams.get("shareNetwork")).get("barColor");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        String shareScheme = sharePrefix + videoLink;
+        Intent shareIntent = new Intent(activity, BrowserActivity.class);
+        shareIntent.putExtra("ShareLink", shareScheme);
+        shareIntent.putExtra("VideoName", videoName);
+        shareIntent.putExtra("BarColor", barColor);
 
-
+        activity.startActivity(shareIntent);
+        activity.overridePendingTransition(R.anim.trans_left_in, R.anim.trans_left_out);
     }
 }
+
 

@@ -944,12 +944,7 @@ public class PlayerViewController extends RelativeLayout {
 
     private void share(JSONObject shareParams) {
         ShareManager shareManager = new ShareManager(shareParams, mActivity);
-        shareManager.shareWithCompletion(new ShareManager.KPShareCompletionBlock() {
-            @Override
-            public void completion(ShareManager.KPShareResult result) {
-
-            }
-        });
+        shareManager.share();
     }
 
 

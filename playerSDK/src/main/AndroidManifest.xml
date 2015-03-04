@@ -3,7 +3,7 @@
     package="com.example.kplayersdk"
     android:versionCode="1"
     android:versionName="1.4" >
-
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-sdk
         android:minSdkVersion="15"
         android:targetSdkVersion="19" />

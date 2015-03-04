@@ -22,13 +22,13 @@ public class ShareManager {
         this.presentingActivity = activity;
     }
 
-    public void shareWithCompletion(KPShareCompletionBlock completionBlock) {
+    public void share() {
         try {
             String className = (String)datasource.get("id");
             if (className != null && className.length() > 0) {
                 try {
                     strategy = (KPShareStrategy)Class.forName("com.kaltura.playersdk.actionHandlers.ShareStrategies." + className + "Strategy").newInstance();
-                    strategy.share(this.datasource, this.presentingActivity,completionBlock);
+                    strategy.share(this.datasource, this.presentingActivity);
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                 } catch (IllegalAccessException e) {
@@ -43,19 +43,8 @@ public class ShareManager {
     }
 
 
-
-    public enum KPShareResult {
-        Success,
-        Failed,
-        Cancel
-    }
-
-    public interface KPShareCompletionBlock {
-        void completion(KPShareResult result);
-    }
-
     public interface KPShareStrategy {
-        public void share(JSONObject shareParams, Activity activity,KPShareCompletionBlock completionBlock);
+        public void share(JSONObject shareParams, Activity activity);
     }
 
 
