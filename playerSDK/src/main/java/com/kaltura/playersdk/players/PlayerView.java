@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
+import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
@@ -43,7 +44,7 @@ public class PlayerView extends BasePlayerView {
 
     public PlayerView(Context context) {
         super(context);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((LayoutParams.MATCH_PARENT), (LayoutParams.MATCH_PARENT));
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         mVideoView = new VideoView(getContext());
         addView(mVideoView, lp);
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -204,5 +205,3 @@ public class PlayerView extends BasePlayerView {
         return mVideoView.canPause();
     }
 }
-
-

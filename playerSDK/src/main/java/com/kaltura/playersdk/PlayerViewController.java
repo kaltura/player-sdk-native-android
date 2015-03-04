@@ -228,14 +228,14 @@ public class PlayerViewController extends RelativeLayout {
             updateViewLayout(v, vlp);
         }
 
-        if ( mVideoInterface!=null && (mVideoInterface instanceof View) && ((View)mVideoInterface).getParent() == this ) {
+        if ( mVideoInterface != null && mVideoInterface.getParent() == this ) {
             LayoutParams plp = (LayoutParams) ((View)mVideoInterface).getLayoutParams();
-            if ( xPadding==0 && yPadding==0 ) {
+            if(xPadding == 0 && yPadding == 0) {
                 plp.addRule(CENTER_IN_PARENT);
             } else {
                 plp.addRule(CENTER_IN_PARENT, 0);
             }
-            updateViewLayout(((View)mVideoInterface), plp);
+            updateViewLayout(mVideoInterface, plp);
         }
 
         invalidate();
