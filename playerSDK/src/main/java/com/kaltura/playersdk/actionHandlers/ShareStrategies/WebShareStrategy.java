@@ -1,12 +1,7 @@
 package com.kaltura.playersdk.actionHandlers.ShareStrategies;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Bundle;
 
 import com.example.kplayersdk.R;
 import com.kaltura.playersdk.BrowserActivity;
@@ -15,14 +10,10 @@ import com.kaltura.playersdk.actionHandlers.ShareManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-
 /**
- * Created by nissopa on 2/24/15.
+ * Created by itayi on 3/5/15.
  */
-public class facebookStrategy implements ShareManager.KPShareStrategy {
-
-
+public class WebShareStrategy implements ShareManager.KPShareStrategy {
     @Override
     public void share(JSONObject shareParams, Activity activity) {
         String sharePrefix = "";
@@ -47,5 +38,3 @@ public class facebookStrategy implements ShareManager.KPShareStrategy {
         activity.overridePendingTransition(R.anim.trans_left_in, R.anim.trans_left_out);
     }
 }
-
-

@@ -943,8 +943,7 @@ public class PlayerViewController extends RelativeLayout {
     }
 
     private void share(JSONObject shareParams) {
-        ShareManager shareManager = new ShareManager(shareParams, mActivity);
-        shareManager.share();
+        ShareManager.share(shareParams, mActivity);
     }
 
 

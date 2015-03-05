@@ -12,7 +12,7 @@ import org.json.JSONObject;
 /**
  * Created by nissopa on 3/3/15.
  */
-public class smsStrategy implements ShareManager.KPShareStrategy {
+public class SmsShareStrategy implements ShareManager.KPShareStrategy {
     @Override
     public void share(JSONObject shareParams, Activity activity) {
         String videoLink = "";

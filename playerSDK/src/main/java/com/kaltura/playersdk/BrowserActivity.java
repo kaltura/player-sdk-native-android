@@ -1,20 +1,18 @@
 package com.kaltura.playersdk;
 
 import android.app.ActionBar;
-import android.content.Intent;
+import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.example.kplayersdk.R;
 
-public class BrowserActivity extends ActionBarActivity {
+public class BrowserActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,11 +25,13 @@ public class BrowserActivity extends ActionBarActivity {
             webView.setWebViewClient(new WebViewClient());
             webView.loadUrl(shareLink);
         }
-        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setTitle(extras.getString("VideoName"));
-        actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(extras.getString("BarColor"))));
+        ActionBar actionBar = getActionBar();
+        if(actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(extras.getString("VideoName"));
+            actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(extras.getString("BarColor"))));
+        }
 
     }
 
