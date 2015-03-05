@@ -13,7 +13,7 @@ import org.json.JSONObject;
 public class LinkedinShareStrategy extends WebShareStrategy {
     @Override
     public void share(JSONObject shareParams, Activity activity) {
-        if(Utilities.isPackageExisted("com.linkedin.android", activity))
+        if(Utilities.doesPackageExist("com.linkedin.android", activity))
         {
             String shareText = "";//TODO: parse shareParams
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
