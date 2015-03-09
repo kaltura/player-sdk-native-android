@@ -15,9 +15,10 @@ public abstract class OnTextTrackTextListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         TextTrackTextInputObject input = (TextTrackTextInputObject) inputObject;
         onSubtitleText(input.startTime, input.length, input.buffer);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

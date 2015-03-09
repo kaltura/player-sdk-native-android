@@ -7,9 +7,10 @@ public abstract class OnWebViewMinimizeListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         WebViewMinimizeInputObject input = (WebViewMinimizeInputObject)inputObject;
         setMinimize(input.minimize);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

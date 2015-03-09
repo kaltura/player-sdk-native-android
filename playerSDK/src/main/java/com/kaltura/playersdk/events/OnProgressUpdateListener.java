@@ -10,9 +10,10 @@ public abstract class OnProgressUpdateListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         ProgressInputObject input = (ProgressInputObject) inputObject;
         onProgressUpdate(input.progress);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

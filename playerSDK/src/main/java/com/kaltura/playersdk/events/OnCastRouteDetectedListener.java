@@ -12,8 +12,9 @@ public abstract class OnCastRouteDetectedListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         onCastRouteDetected();
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

@@ -9,9 +9,10 @@ public abstract class OnTextTracksListListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         TextTracksListInputObject input = (TextTracksListInputObject) inputObject;
         onTextTracksList(input.list, input.defaultTrackIndex);
+        return true;
     }
 
     @Override

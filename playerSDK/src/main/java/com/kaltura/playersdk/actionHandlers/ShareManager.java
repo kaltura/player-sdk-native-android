@@ -21,10 +21,10 @@ public class ShareManager {
     }
 
     public interface KPShareStrategy {
-        public void share(JSONObject shareParams, Activity activity);
+        public void share(JSONObject dataSource, Activity activity);
     }
 
-    public static enum SharingKey{
+    public static enum SharingType{
         SHARE_FACEBOOK("Facebook"),
         SHARE_TWITTER("Twitter"),
         SHARE_LINKEDIN("Linkedin"),
@@ -34,7 +34,7 @@ public class ShareManager {
 
         private String label;
 
-        private SharingKey(String str) {
+        private SharingType(String str) {
             this.label = str;
         }
 
@@ -42,9 +42,9 @@ public class ShareManager {
             return this.label;
         }
 
-        public static SharingKey fromString(String label) {
+        public static SharingType fromString(String label) {
             if (label != null) {
-                for (SharingKey sharingKey : SharingKey.values()) {
+                for (SharingType sharingKey : SharingType.values()) {
                     if (label.equalsIgnoreCase(sharingKey.label)) {
                         return sharingKey;
                     }

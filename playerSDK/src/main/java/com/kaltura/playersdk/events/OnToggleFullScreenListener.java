@@ -10,8 +10,9 @@ public abstract class OnToggleFullScreenListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         onToggleFullScreen();
+        return true;
     }
 
     @Override

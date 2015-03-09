@@ -21,15 +21,9 @@ public class ShareStrategyFactory {
 
 
     public static ShareManager.KPShareStrategy getStrategy(JSONObject dataSource){
-        String strategyName;
-        try {
-            strategyName = dataSource.getString("id");
-        } catch (JSONException e) {
-            Log.w(TAG, "Error parsing Json object");
-            return null;
-        }
 
-        ShareManager.SharingKey sharingKeyEnum = ShareManager.SharingKey.fromString(strategyName);
+        ShareManager.SharingType sharingKeyEnum = getType(dataSource);
+
         if(sharingKeyEnum != null) {
 
             switch (sharingKeyEnum) {
@@ -53,7 +47,19 @@ public class ShareStrategyFactory {
             }
         }
 
-        Log.w(TAG, "couldn't find a strategy for " + strategyName);
+        Log.w(TAG, "couldn't find a strategy");
         return null;
+    }
+
+    public static ShareManager.SharingType getType(JSONObject dataSource){
+        String strategyName;
+        try {
+            strategyName = dataSource.getString("id");
+        } catch (JSONException e) {
+            Log.w(TAG, "Error parsing Json object");
+            return null;
+        }
+
+        return ShareManager.SharingType.fromString(strategyName);
     }
 }

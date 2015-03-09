@@ -11,9 +11,10 @@ public abstract class OnQualityTracksListListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         QualityTracksListInputObject input = (QualityTracksListInputObject)inputObject;
         OnQualityTracksList(input.list,input.defaultTrackIndex);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

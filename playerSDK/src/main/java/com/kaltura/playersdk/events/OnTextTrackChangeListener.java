@@ -7,9 +7,10 @@ public abstract class OnTextTrackChangeListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         TextTrackChangedInputObject input = (TextTrackChangedInputObject) inputObject;
         onTextTrackChanged(input.newTrackIndex);
+        return true;
     }
 
     @Override
