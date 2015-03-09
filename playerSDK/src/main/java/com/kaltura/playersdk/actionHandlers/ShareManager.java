@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.actionHandlers;
 
 import android.app.Activity;
-import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -25,5 +24,36 @@ public class ShareManager {
         public void share(JSONObject shareParams, Activity activity);
     }
 
+    public static enum SharingKey{
+        SHARE_FACEBOOK("Facebook"),
+        SHARE_TWITTER("Twitter"),
+        SHARE_LINKEDIN("Linkedin"),
+        SHARE_EMAIL("Email"),
+        SHARE_SMS("Sms"),
+        SHARE_GOOGLE_PLUS("Googleplus");
+
+        private String label;
+
+        private SharingKey(String str) {
+            this.label = str;
+        }
+
+        public String toString() {
+            return this.label;
+        }
+
+        public static SharingKey fromString(String label) {
+            if (label != null) {
+                for (SharingKey sharingKey : SharingKey.values()) {
+                    if (label.equalsIgnoreCase(sharingKey.label)) {
+                        return sharingKey;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+    }
 
 }

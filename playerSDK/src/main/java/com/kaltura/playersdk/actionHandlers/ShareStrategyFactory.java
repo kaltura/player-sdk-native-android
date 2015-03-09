@@ -29,24 +29,28 @@ public class ShareStrategyFactory {
             return null;
         }
 
-        switch(strategyName){
-            case "facebook":
-                return new FacebookShareStrategy();
+        ShareManager.SharingKey sharingKeyEnum = ShareManager.SharingKey.fromString(strategyName);
+        if(sharingKeyEnum != null) {
 
-            case "email":
-                return new EmailShareStrategy();
+            switch (sharingKeyEnum) {
+                case SHARE_FACEBOOK:
+                    return new FacebookShareStrategy();
 
-            case "twitter":
-                return new TwitterShareStrategy();
+                case SHARE_EMAIL:
+                    return new EmailShareStrategy();
 
-            case "googleplus":
-                return new GooglePlusShareStrategy();
+                case SHARE_TWITTER:
+                    return new TwitterShareStrategy();
 
-            case "linkedin":
-                return new LinkedinShareStrategy();
+                case SHARE_GOOGLE_PLUS:
+                    return new GooglePlusShareStrategy();
 
-            case "sms":
-                return new SmsShareStrategy();
+                case SHARE_LINKEDIN:
+                    return new LinkedinShareStrategy();
+
+                case SHARE_SMS:
+                    return new SmsShareStrategy();
+            }
         }
 
         Log.w(TAG, "couldn't find a strategy for " + strategyName);
