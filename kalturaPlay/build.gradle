@@ -8,6 +8,8 @@ android {
         applicationId "com.kaltura.kalturaplayertoolkit"
         minSdkVersion 15
         targetSdkVersion 21
+        versionCode 1
+        versionName "0.7"
     }
 
     buildTypes {

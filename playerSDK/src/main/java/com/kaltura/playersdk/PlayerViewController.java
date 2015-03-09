@@ -22,6 +22,7 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
+import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
@@ -230,7 +231,7 @@ public class PlayerViewController extends RelativeLayout {
 
         if ( mVideoInterface != null && mVideoInterface.getParent() == this ) {
             LayoutParams plp = (LayoutParams) ((View)mVideoInterface).getLayoutParams();
-            if(xPadding == 0 && yPadding == 0) {
+            if ( xPadding==0 && yPadding==0 ) {
                 plp.addRule(CENTER_IN_PARENT);
             } else {
                 plp.addRule(CENTER_IN_PARENT, 0);
@@ -513,25 +514,25 @@ public class PlayerViewController extends RelativeLayout {
     private void setPlayerListeners() {
         // notify player state change events
         mVideoInterface.registerListener(new OnPlayerStateChangeListener() {
-                    @Override
-                    public void onStateChanged(PlayerStates state) {
-                        if ( state == PlayerStates.START ) {
+            @Override
+            public void onStateChanged(PlayerStates state) {
+                if (state == PlayerStates.START) {
                             mDurationSec = getDurationSec();
                             notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
-                            notifyKPlayer("trigger", new Object[]{ "loadedmetadata" });
-                        }
-                        if ( state != mState ) {
-                            mState = state;
+                    notifyKPlayer("trigger", new Object[]{"loadedmetadata"});
+                }
+                if (state != mState) {
+                    mState = state;
 
-                            if (mState != PlayerStates.LOAD) {
-                                final String eventName = state.toString();
-                                notifyKPlayer("trigger", new String[] { eventName });
-                            }
-                        }
-
-                        return;
+                    if (mState != PlayerStates.LOAD) {
+                        final String eventName = state.toString();
+                        notifyKPlayer("trigger", new String[]{eventName});
                     }
-                });
+                }
+
+                return;
+            }
+        });
 
 
 
@@ -838,6 +839,8 @@ public class PlayerViewController extends RelativeLayout {
                                                 if (params.get(1).equals("true") && mVideoInterface instanceof LiveStreamInterface){
                                                     ((LiveStreamInterface)mVideoInterface).switchToLive();
                                                 }
+                                            } else if (params.get(0).equals("nativeAction")) {
+                                                doNativeAction(params.get(1));
                                             }
                                         }
                                     } else if (action.equals("notifyKPlayerEvent")) {
@@ -952,6 +955,22 @@ public class PlayerViewController extends RelativeLayout {
             return false;
         }
 
+    }
+
+    private void doNativeAction(String params) {
+        Log.d("NativeAction", params);
+        try {
+            JSONObject actionObj = new JSONObject(params);
+            if (actionObj.get("actionType").equals("share")) {
+                share(actionObj);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void share(JSONObject shareParams) {
+        ShareManager.share(shareParams, mActivity);
     }
 
 
