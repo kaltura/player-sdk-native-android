@@ -10,16 +10,17 @@ public abstract class Listener {
     private static String TAG;
     protected EventType mEventType;
 
-    final public void executeCallback(InputObject inputObject)
+    final public boolean executeCallback(InputObject inputObject)
     {
         if(checkValidInputObjectType(inputObject)){
-            executeInternalCallback(inputObject);
+            return executeInternalCallback(inputObject);
         }else{
             Log.e(TAG, "Recieved wrong inputObject type");
         }
+        return false;
     }
 
-    abstract protected void executeInternalCallback(InputObject inputObject);
+    abstract protected boolean executeInternalCallback(InputObject inputObject);
     abstract protected boolean checkValidInputObjectType(InputObject inputObject);
 
     public EventType getEventType(){
@@ -55,6 +56,7 @@ public abstract class Listener {
         TOGGLE_FULLSCREEN_LISTENER_TYPE,
         WEB_VIEW_MINIMIZE_LISTENER_TYPE,
         KPLAYER_EVENT_LISTENER_TYPE,
-        DURATION_CHANGED_LISTENER_TYPE
+        DURATION_CHANGED_LISTENER_TYPE,
+        SHARE_LISTENER_TYPE
     }
 }

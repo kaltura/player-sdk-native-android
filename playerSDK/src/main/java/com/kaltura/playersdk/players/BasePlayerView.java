@@ -122,11 +122,13 @@ public abstract class BasePlayerView extends FrameLayout {
         }
     }
 
-    protected void executeListener(Listener.EventType eventType, Listener.InputObject inputObject){
+    protected boolean executeListener(Listener.EventType eventType, Listener.InputObject inputObject){
         Listener listener = mEventTypeListenerMap.get(eventType);
         if (listener != null){
-            listener.executeCallback(inputObject);
+            return listener.executeCallback(inputObject);
         }
+
+        return false;
     }
     /**
      * Set starting point in milliseconds for the next play
@@ -146,133 +148,134 @@ public abstract class BasePlayerView extends FrameLayout {
 
     protected class ListenersExecutor {
 
-        void executeOnKPlayerEvent(Object body){
+        boolean executeOnKPlayerEvent(Object body){
             KPlayerEventListener.KPlayerInputObject input = new KPlayerEventListener.KPlayerInputObject();
             input.body = body;
-            BasePlayerView.this.executeListener(Listener.EventType.KPLAYER_EVENT_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.KPLAYER_EVENT_LISTENER_TYPE, input);
         }
 
-        void executeJsCallbackReady(){
+        boolean executeJsCallbackReady(){
             KPlayerJsCallbackReadyListener.JsCallbackReadyInputObject input = new KPlayerJsCallbackReadyListener.JsCallbackReadyInputObject();
-            BasePlayerView.this.executeListener(Listener.EventType.JS_CALLBACK_READY_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.JS_CALLBACK_READY_LISTENER_TYPE, input);
         }
 
-        void executeOnAudioTracksList( List<String> list, int defaultTrackIndex ){
+        boolean executeOnAudioTracksList( List<String> list, int defaultTrackIndex ){
             OnAudioTracksListListener.AudioTracksListInputObject input = new OnAudioTracksListListener.AudioTracksListInputObject();
             input.list = list;
             input.defaultTrackIndex = defaultTrackIndex;
-            BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACKS_LIST_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACKS_LIST_LISTENER_TYPE, input);
         }
 
-        void executeOnAudioSwitchingStart( int oldTrackIndex, int newTrackIndex ){
+        boolean executeOnAudioSwitchingStart( int oldTrackIndex, int newTrackIndex ){
             OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject input =  new OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject();
             input.newTrackIndex = newTrackIndex;
             input.oldTrackIndex = oldTrackIndex;
             input.methodChoice = OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject.MethodChoice.START;
-            BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE, input);
         }
 
-        void executeonAudioSwitchingEnd( int newTrackIndex ){
+        boolean executeonAudioSwitchingEnd( int newTrackIndex ){
             OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject input =  new OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject();
             input.newTrackIndex = newTrackIndex;
             input.methodChoice = OnAudioTrackSwitchingListener.AudioTrackSwitchingInputObject.MethodChoice.END;
-            BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.AUDIO_TRACK_SWITCH_LISTENER_TYPE, input);
         }
 
-        void executeonCastDeviceChange(CastDevice oldDevice, CastDevice newDevice){
+        boolean executeonCastDeviceChange(CastDevice oldDevice, CastDevice newDevice){
             OnCastDeviceChangeListener.CastDeviceChangeInputObject input = new OnCastDeviceChangeListener.CastDeviceChangeInputObject();
             input.newDevice = newDevice;
             input.oldDevice = oldDevice;
-            BasePlayerView.this.executeListener(Listener.EventType.CAST_DEVICE_CHANGE_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.CAST_DEVICE_CHANGE_LISTENER_TYPE, input);
         }
 
-        void executeonCastRouteDetected(){
+        boolean executeonCastRouteDetected(){
             OnCastRouteDetectedListener.CastRouteDetectedInputObject input = new OnCastRouteDetectedListener.CastRouteDetectedInputObject();
-            BasePlayerView.this.executeListener(Listener.EventType.CAST_ROUTE_DETECTED_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.CAST_ROUTE_DETECTED_LISTENER_TYPE, input);
         }
 
-        void executeOnError(int errorCode, String errorMessage){
+        boolean executeOnError(int errorCode, String errorMessage){
             OnErrorListener.ErrorInputObject input = new OnErrorListener.ErrorInputObject();
             input.errorMessage = errorMessage;
             input.errorCode = errorCode;
-            BasePlayerView.this.executeListener(Listener.EventType.ERROR_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.ERROR_LISTENER_TYPE, input);
         }
 
-        void executeOnStateChanged(PlayerStates state){
+        boolean executeOnStateChanged(PlayerStates state){
             OnPlayerStateChangeListener.PlayerStateChangeInputObject inputObject = new OnPlayerStateChangeListener.PlayerStateChangeInputObject();
             inputObject.state = state;
-            BasePlayerView.this.executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
+            return BasePlayerView.this.executeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE, inputObject);
         }
 
-        void executeOnPlayheadUpdated(int msec){
+        boolean executeOnPlayheadUpdated(int msec){
             OnPlayheadUpdateListener.PlayheadUpdateInputObject input = new OnPlayheadUpdateListener.PlayheadUpdateInputObject();
             input.msec = msec;
-            BasePlayerView.this.executeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE, input);
-        }
-        void executeOnProgressUpdate(int progress){
-            OnProgressUpdateListener.ProgressInputObject input = new OnProgressUpdateListener.ProgressInputObject();
-            input.progress = progress;
-            BasePlayerView.this.executeListener(Listener.EventType.PROGRESS_UPDATE_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE, input);
         }
 
-        void executeOnQualitySwitchingStart( int oldTrackIndex, int newTrackIndex ){
+        boolean executeOnProgressUpdate(int progress){
+            OnProgressUpdateListener.ProgressInputObject input = new OnProgressUpdateListener.ProgressInputObject();
+            input.progress = progress;
+            return BasePlayerView.this.executeListener(Listener.EventType.PROGRESS_UPDATE_LISTENER_TYPE, input);
+        }
+
+        boolean executeOnQualitySwitchingStart( int oldTrackIndex, int newTrackIndex ){
             OnQualitySwitchingListener.QualitySwitchingInputObject input = new OnQualitySwitchingListener.QualitySwitchingInputObject();
             input.methodChoice = OnQualitySwitchingListener.QualitySwitchingInputObject.MethodChoice.START;
             input.oldTrackIndex = oldTrackIndex;
             input.newTrackIndex = newTrackIndex;
-            BasePlayerView.this.executeListener(Listener.EventType.QUALITY_SWITCHING_LISTENER_TYPE,input);
+            return BasePlayerView.this.executeListener(Listener.EventType.QUALITY_SWITCHING_LISTENER_TYPE,input);
         }
 
-        void executeOnQualitySwitchingEnd( int newTrackIndex ){
+        boolean executeOnQualitySwitchingEnd( int newTrackIndex ){
             OnQualitySwitchingListener.QualitySwitchingInputObject input = new OnQualitySwitchingListener.QualitySwitchingInputObject();
             input.methodChoice = OnQualitySwitchingListener.QualitySwitchingInputObject.MethodChoice.END;
             input.newTrackIndex = newTrackIndex;
-            BasePlayerView.this.executeListener(Listener.EventType.QUALITY_SWITCHING_LISTENER_TYPE,input);
+            return BasePlayerView.this.executeListener(Listener.EventType.QUALITY_SWITCHING_LISTENER_TYPE,input);
         }
 
-        void executeOnQualityTracksList( List<QualityTrack> list, int defaultTrackIndex ){
+        boolean executeOnQualityTracksList( List<QualityTrack> list, int defaultTrackIndex ){
             OnQualityTracksListListener.QualityTracksListInputObject input = new OnQualityTracksListListener.QualityTracksListInputObject();
             input.list = list;
             input.defaultTrackIndex = defaultTrackIndex;
-            BasePlayerView.this.executeListener(Listener.EventType.QUALITY_TRACKS_LIST_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.QUALITY_TRACKS_LIST_LISTENER_TYPE, input);
         }
 
-        void executeOnTextTrackChanged( int newTrackIndex ){
+        boolean executeOnTextTrackChanged( int newTrackIndex ){
             OnTextTrackChangeListener.TextTrackChangedInputObject input = new OnTextTrackChangeListener.TextTrackChangedInputObject();
             input.newTrackIndex = newTrackIndex;
-            BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_CHANGE_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_CHANGE_LISTENER_TYPE, input);
         }
 
-        void executeOnTextTracksList( List<String> list, int defaultTrackIndex ){
+        boolean executeOnTextTracksList( List<String> list, int defaultTrackIndex ){
             OnTextTracksListListener.TextTracksListInputObject input = new OnTextTracksListListener.TextTracksListInputObject();
             input.list = list;
             input.defaultTrackIndex = defaultTrackIndex;
-            BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_LIST_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_LIST_LISTENER_TYPE, input);
         }
 
-        void executeOnSubtitleText(double startTime, double length, String buffer){
+        boolean executeOnSubtitleText(double startTime, double length, String buffer){
             OnTextTrackTextListener.TextTrackTextInputObject input = new OnTextTrackTextListener.TextTrackTextInputObject();
             input.startTime = startTime;
             input.length = length;
             input.buffer = buffer;
-            BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_TEXT_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_TEXT_LISTENER_TYPE, input);
         }
 
-        void executeOnToggleFullScreen(){
+        boolean executeOnToggleFullScreen(){
             OnToggleFullScreenListener.ToggleFullScreenInputObject input = new OnToggleFullScreenListener.ToggleFullScreenInputObject();
-            BasePlayerView.this.executeListener(Listener.EventType.TOGGLE_FULLSCREEN_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.TOGGLE_FULLSCREEN_LISTENER_TYPE, input);
         }
 
-        void executeSetMinimize( boolean minimize ){
+        boolean executeSetMinimize( boolean minimize ){
             OnWebViewMinimizeListener.WebViewMinimizeInputObject input = new OnWebViewMinimizeListener.WebViewMinimizeInputObject();
             input.minimize = minimize;
-            BasePlayerView.this.executeListener(Listener.EventType.WEB_VIEW_MINIMIZE_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.WEB_VIEW_MINIMIZE_LISTENER_TYPE, input);
         }
 
-        void executeOnDurationChanged(int mSec){
+        boolean executeOnDurationChanged(int mSec){
             OnDurationChangedListener.DurationChangedInputObject input = new OnDurationChangedListener.DurationChangedInputObject();
             input.msec = mSec;
-            BasePlayerView.this.executeListener(Listener.EventType.DURATION_CHANGED_LISTENER_TYPE, input);
+            return BasePlayerView.this.executeListener(Listener.EventType.DURATION_CHANGED_LISTENER_TYPE, input);
         }
     }
 

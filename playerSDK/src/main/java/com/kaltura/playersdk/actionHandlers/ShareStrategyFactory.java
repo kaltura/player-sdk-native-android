@@ -21,6 +21,37 @@ public class ShareStrategyFactory {
 
 
     public static ShareManager.KPShareStrategy getStrategy(JSONObject dataSource){
+
+        ShareManager.SharingType sharingKeyEnum = getType(dataSource);
+
+        if(sharingKeyEnum != null) {
+
+            switch (sharingKeyEnum) {
+                case SHARE_FACEBOOK:
+                    return new FacebookShareStrategy();
+
+                case SHARE_EMAIL:
+                    return new EmailShareStrategy();
+
+                case SHARE_TWITTER:
+                    return new TwitterShareStrategy();
+
+                case SHARE_GOOGLE_PLUS:
+                    return new GooglePlusShareStrategy();
+
+                case SHARE_LINKEDIN:
+                    return new LinkedinShareStrategy();
+
+                case SHARE_SMS:
+                    return new SmsShareStrategy();
+            }
+        }
+
+        Log.w(TAG, "couldn't find a strategy");
+        return null;
+    }
+
+    public static ShareManager.SharingType getType(JSONObject dataSource){
         String strategyName;
         try {
             strategyName = dataSource.getString("id");
@@ -29,27 +60,6 @@ public class ShareStrategyFactory {
             return null;
         }
 
-        switch(strategyName){
-            case "facebook":
-                return new FacebookShareStrategy();
-
-            case "email":
-                return new EmailShareStrategy();
-
-            case "twitter":
-                return new TwitterShareStrategy();
-
-            case "googleplus":
-                return new GooglePlusShareStrategy();
-
-            case "linkedin":
-                return new LinkedinShareStrategy();
-
-            case "sms":
-                return new SmsShareStrategy();
-        }
-
-        Log.w(TAG, "couldn't find a strategy for " + strategyName);
-        return null;
+        return ShareManager.SharingType.fromString(strategyName);
     }
 }

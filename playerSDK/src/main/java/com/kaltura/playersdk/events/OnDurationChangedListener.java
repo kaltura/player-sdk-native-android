@@ -10,10 +10,11 @@ public abstract class OnDurationChangedListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         DurationChangedInputObject input = (DurationChangedInputObject)inputObject;
         int mSec = input.msec;
         OnDurationChanged(mSec);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

@@ -9,9 +9,10 @@ public abstract class OnErrorListener extends Listener{
     }
 
     @Override
-    final  protected void executeInternalCallback(InputObject inputObject){
+    final  protected boolean executeInternalCallback(InputObject inputObject){
         ErrorInputObject input = (ErrorInputObject)inputObject;
         onError(input.errorCode, input.errorMessage);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

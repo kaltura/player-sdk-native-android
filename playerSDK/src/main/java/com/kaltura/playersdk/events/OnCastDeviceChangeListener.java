@@ -9,9 +9,10 @@ public abstract class OnCastDeviceChangeListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         CastDeviceChangeInputObject input = (CastDeviceChangeInputObject)inputObject;
         onCastDeviceChange(input.oldDevice, input.newDevice);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

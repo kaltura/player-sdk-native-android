@@ -7,7 +7,7 @@ public abstract class OnQualitySwitchingListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         QualitySwitchingInputObject input = (QualitySwitchingInputObject) inputObject;
         switch (input.methodChoice){
             case START:
@@ -17,6 +17,8 @@ public abstract class OnQualitySwitchingListener extends Listener{
                 onQualitySwitchingEnd(input.newTrackIndex);
                 break;
         }
+
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

@@ -8,9 +8,11 @@ public abstract class KPlayerEventListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         Object body = ((KPlayerInputObject)inputObject).body;
         onKPlayerEvent(body);
+
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

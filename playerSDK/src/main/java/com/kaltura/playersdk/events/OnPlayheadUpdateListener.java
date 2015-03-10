@@ -10,9 +10,10 @@ public abstract class OnPlayheadUpdateListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         PlayheadUpdateInputObject input = (PlayheadUpdateInputObject) inputObject;
         onPlayheadUpdated(input.msec);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

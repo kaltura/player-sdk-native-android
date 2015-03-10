@@ -9,11 +9,12 @@ public abstract class OnAudioTracksListListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         AudioTracksListInputObject input = (AudioTracksListInputObject)inputObject;
         List<String> list = input.list;
         int defaultTrackIndex = input.defaultTrackIndex;
         OnAudioTracksList(list, defaultTrackIndex);
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

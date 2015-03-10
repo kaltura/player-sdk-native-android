@@ -7,8 +7,10 @@ public abstract class KPlayerJsCallbackReadyListener  extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         jsCallbackReady();
+
+        return true;
     }
 
     final protected boolean checkValidInputObjectType(InputObject inputObject){

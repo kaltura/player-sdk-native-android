@@ -23,6 +23,7 @@ import android.widget.RelativeLayout;
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
 import com.kaltura.playersdk.actionHandlers.ShareManager;
+import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
@@ -34,6 +35,7 @@ import com.kaltura.playersdk.events.OnErrorListener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.events.OnProgressUpdateListener;
+import com.kaltura.playersdk.events.OnShareListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.players.BasePlayerView;
@@ -75,6 +77,7 @@ public class PlayerViewController extends RelativeLayout {
     private Activity mActivity;
     private double mDurationSec = 0;
     private OnToggleFullScreenListener mFSListener;
+    private OnShareListener mShareListener;
     private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
     private KPlayerJsCallbackReadyListener mJsReadyListener;
@@ -187,6 +190,11 @@ public class PlayerViewController extends RelativeLayout {
     public void setOnFullScreenListener(OnToggleFullScreenListener listener) {
         mFSListener = listener;
     }
+
+    public void setOnShareListener(OnShareListener listener) {
+        mShareListener = listener;
+    }
+
     private void setVolumeLevel(double percent) {//Itay
         AudioManager mgr = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
         if (percent > 0.01) {
@@ -970,11 +978,19 @@ public class PlayerViewController extends RelativeLayout {
     }
 
     private void share(JSONObject shareParams) {
-        ShareManager.share(shareParams, mActivity);
-    }
-
-
-    public static enum KPlayerEventTypes{
-
+        if(mShareListener != null){
+            try {
+                String videoUrl = (String)shareParams.get("sharedLink");
+                String videoName = (String)shareParams.get("videoName");
+                ShareManager.SharingType type = ShareStrategyFactory.getType(shareParams);
+                if (!mShareListener.onShare(videoUrl, type, videoName)){
+                    ShareManager.share(shareParams, mActivity);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }else {
+            ShareManager.share(shareParams, mActivity);
+        }
     }
 }

@@ -12,9 +12,10 @@ public abstract class OnPlayerStateChangeListener extends Listener{
     }
 
     @Override
-    final protected void executeInternalCallback(InputObject inputObject){
+    final protected boolean executeInternalCallback(InputObject inputObject){
         PlayerStateChangeInputObject input = (PlayerStateChangeInputObject)inputObject;
         onStateChanged(input.state);
+        return true;
     }
 
     @Override
