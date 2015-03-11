@@ -189,7 +189,7 @@ public class PlayerFragment extends Fragment {
 
                 @Override
                 public boolean isSpecificVersionTemplate() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -199,8 +199,8 @@ public class PlayerFragment extends Fragment {
 
                 @Override
                 public String getServerAddress() {
-//                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
-                    return "http://cdnapi.kaltura.com";
+                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.28/mwEmbedFrame.php";
+//                    return "http://cdnapi.kaltura.com";
                 }
 
                 @Override
