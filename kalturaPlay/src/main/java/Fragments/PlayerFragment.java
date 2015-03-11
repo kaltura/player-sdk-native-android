@@ -178,7 +178,7 @@ public class PlayerFragment extends Fragment {
 
                 @Override
                 public String getWid() {
-                    return "_243342";
+                    return "243342";
                 }
 
                 @Override
@@ -188,13 +188,19 @@ public class PlayerFragment extends Fragment {
                 }
 
                 @Override
+                public boolean isSpecificVersionTemplate() {
+                    return false;
+                }
+
+                @Override
                 public String getUiConfId() {
                     return "21384602";
                 }
 
                 @Override
                 public String getServerAddress() {
-                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
+//                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
+                    return "http://cdnapi.kaltura.com";
                 }
 
                 @Override
