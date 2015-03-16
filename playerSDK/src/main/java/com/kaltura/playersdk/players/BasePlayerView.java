@@ -48,6 +48,8 @@ public abstract class BasePlayerView extends FrameLayout {
 
     protected final ListenersExecutor mListenerExecutor = new ListenersExecutor();
 
+    private int mCurrentPosition = 0;
+
     public BasePlayerView(Context context) {
         super(context);
         initListeners();
@@ -68,6 +70,10 @@ public abstract class BasePlayerView extends FrameLayout {
     public abstract void setVideoUrl(String url);
 
     public abstract int getDuration();
+
+    public int getCurrentPosition(){
+        return mCurrentPosition;
+    }
 
     public abstract void play();
 
@@ -207,6 +213,7 @@ public abstract class BasePlayerView extends FrameLayout {
         }
 
         boolean executeOnPlayheadUpdated(int msec){
+            mCurrentPosition = msec;
             OnPlayheadUpdateListener.PlayheadUpdateInputObject input = new OnPlayheadUpdateListener.PlayheadUpdateInputObject();
             input.msec = msec;
             return BasePlayerView.this.executeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE, input);
