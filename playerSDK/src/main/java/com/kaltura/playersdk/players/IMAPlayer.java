@@ -19,6 +19,7 @@ import com.google.ads.interactivemedia.v3.api.AdsManager;
 import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
+import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.exoplayer.ExoPlayer;
@@ -28,7 +29,6 @@ import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlaye
 import com.google.android.libraries.mediaframework.layeredvideo.Util;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.Listener;
-import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
@@ -351,9 +351,9 @@ public class IMAPlayer extends BasePlayerView {
 	}
 	
 	private void addContentPlayerView() {
-		if ( mContentPlayer instanceof View ) {			
+		if ( mContentPlayer instanceof View ) {
 			LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER);
-			addView( (View) mContentPlayer, lp );	
+			addView( (View) mContentPlayer, lp );
 		}
 	}
 
@@ -446,7 +446,7 @@ public class IMAPlayer extends BasePlayerView {
 				true);
 
 		mIsInSequence = true;
-		
+
 		mAdPlayer.addPlaybackListener( mPlaybackListener );
 
 		// Move the ad player's surface layer to the foreground so that it is overlaid on the content
@@ -481,7 +481,16 @@ public class IMAPlayer extends BasePlayerView {
 		adDisplayContainer.setAdContainer(mAdUiContainer);
 		AdsRequest request = ImaSdkFactory.getInstance().createAdsRequest();
 		request.setAdTagUrl(tagUrl);
-
+        request.setContentProgressProvider(new ContentProgressProvider() {
+            @Override
+            public VideoProgressUpdate getContentProgress() {
+                if (mContentPlayer != null && !mIsInSequence && mContentPlayer.isPlaying() && mContentPlayer.getDuration() > 0) {
+                    return new VideoProgressUpdate(mContentPlayer.getCurrentPosition(), mContentPlayer.getDuration());
+                } else {
+                    return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
+                }
+            }
+        });
 		request.setAdDisplayContainer(adDisplayContainer);
 		return request;
 	}
@@ -563,15 +572,14 @@ public class IMAPlayer extends BasePlayerView {
 			VideoProgressUpdate vpu = null;
 
 			if ( mIsInSequence ) {
-				if ( mAdPlayer!=null ) 
+				if ( mAdPlayer != null )
 					vpu = new VideoProgressUpdate(mAdPlayer.getCurrentPosition(),
 						mAdPlayer.getDuration());
 				else 
 					vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
 			} else {
-				if ( mContentPlayer!=null ) 
-					vpu = new VideoProgressUpdate(mContentCurrentPosition,
-							mContentPlayer.getDuration());
+				if ( mContentPlayer != null )
+					vpu = new VideoProgressUpdate(mContentCurrentPosition, mContentPlayer.getDuration());
 				else 
 					vpu = VideoProgressUpdate.VIDEO_TIME_NOT_READY;
 			}
@@ -612,7 +620,7 @@ public class IMAPlayer extends BasePlayerView {
                 mAdRequestProgress = false;
             }
 			// If there is an error in ad playback, log the error and resume the content.
-			Log.w(this.getClass().getSimpleName(), adErrorEvent.getError().getMessage());
+			Log.w(TAG, "error: " + adErrorEvent.getError().getMessage());
 			notifyAdError();
 
 		}
