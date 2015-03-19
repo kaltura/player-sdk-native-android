@@ -2,6 +2,8 @@ package com.kaltura.hlsplayersdk.subtitles;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import com.kaltura.hlsplayersdk.manifest.ManifestParser;
@@ -9,14 +11,24 @@ import com.kaltura.hlsplayersdk.manifest.ManifestPlaylist;
 
 import android.util.Log;
 
-public class SubtitleHandler implements OnSubtitleParseCompleteListener {
+public class SubtitleHandler implements OnSubtitleParseCompleteListener, ManifestParser.ReloadEventListener {
 
 	private ManifestParser mManifest;
 	private double mLastTime = 0;
+	private int lastLanguage = 0;
 	
 	public SubtitleHandler(ManifestParser baseManifest)
 	{
 		mManifest = baseManifest;
+	}
+	
+	public void initialize()
+	{
+		ManifestParser man = getManifestForLanguage(lastLanguage);
+		if (man != null && !man.streamEnds && man.segments.size() > 0)
+		{
+			
+		}
 	}
 	
 	public boolean hasSubtitles()
@@ -106,18 +118,7 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener {
 			return null;
 		}
 
-		ManifestParser mp = null;
-		if (mManifest.subtitlePlayLists.size() > language)
-		{
-			
-			ManifestPlaylist mpl = mManifest.subtitlePlayLists.get(language);
-			if (mpl.manifest != null && mpl.manifest.subtitles.size() > 0)
-				mp = mpl.manifest;
-		}
-		else if (mManifest.subtitles.size() > 0)
-		{
-			mp = mManifest;
-		}
+		ManifestParser mp = getManifestForLanguage(language);
 		
 		if (mp == null)
 		{
@@ -139,9 +140,109 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener {
 		return null;
 
 	}
+	
+	ManifestParser getManifestForLanguage(int language)
+	{
+		if (language < 0) return null;
+		
+		ManifestParser mp = null;
+		if (mManifest.subtitlePlayLists.size() > language)
+		{
+			
+			ManifestPlaylist mpl = mManifest.subtitlePlayLists.get(language);
+			if (mpl.manifest != null && mpl.manifest.subtitles.size() > 0)
+				mp = mpl.manifest;
+		}
+		else if (mManifest.subtitles.size() > 0)
+		{
+			mp = mManifest;
+		}
+		return mp;
+	}
 
 	@Override
 	public void onSubtitleParserComplete(SubTitleSegment parser) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/****************************************
+	
+	RELOADING
+	
+	*****************************************/
+	
+	private ManifestParser reloadingManifest = null;
+	private Timer reloadTimer = null;
+	private int reloadingLanguage = -1;
+	private boolean closed = false;
+	private long mTimerDelay = 10000;
+	
+	public void stopReloads()
+	{
+		if (reloadingManifest != null)
+		{
+			reloadingManifest.setReloadEventListener(null);
+			reloadingManifest = null;
+		}
+		killTimer();
+	}
+	
+	public void close()
+	{
+		closed = true;
+	}
+	
+	private void killTimer()
+	{
+		if (reloadTimer != null)
+		{
+			reloadTimer.cancel();
+			reloadTimer = null;
+		}
+	}
+	
+	private void reload(int language, ManifestParser manifest)
+	{
+		if (closed) return;
+		killTimer(); // In case the timer is active - don't want to do another reload in the middle of it
+		
+		reloadingLanguage = language;
+		
+		ManifestParser manToReload = manifest != null ? manifest : getManifestForLanguage(reloadingLanguage);
+		if (manToReload != null)
+		{
+			manToReload.reload(this);
+		}
+	}
+	
+	private void startReloadTimer(final int language)
+	{
+		if (closed) return;
+		killTimer();
+		
+		reloadTimer = new Timer();
+		reloadTimer.schedule(new TimerTask()
+		{
+			public void run()
+			{
+				Log.i("SubtitleHandler.reloadTimerComplete.run", "Reload Timer Complete!");
+				reload(language, null);
+			}
+		}, mTimerDelay);
+	}
+	
+
+	@Override
+	public void onReloadComplete(ManifestParser parser)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onReloadFailed(ManifestParser parser)
+	{
 		// TODO Auto-generated method stub
 		
 	}

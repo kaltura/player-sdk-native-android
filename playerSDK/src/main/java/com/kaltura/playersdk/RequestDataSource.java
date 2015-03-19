@@ -12,5 +12,6 @@ public interface RequestDataSource {
 	public String getEntryId();
 	public KPPlayerConfig getFlashVars();
 	public String getUrid();
+    public boolean isSpecificVersionTemplate();
 	
 }

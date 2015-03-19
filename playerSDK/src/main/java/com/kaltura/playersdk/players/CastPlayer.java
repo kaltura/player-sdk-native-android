@@ -1,7 +1,4 @@
-package com.kaltura.playersdk.chromecast;
-
-import java.util.Timer;
-import java.util.TimerTask;
+package com.kaltura.playersdk.players;
 
 import android.content.Context;
 import android.database.ContentObserver;
@@ -17,14 +14,16 @@ import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.NoConnectionException;
 import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
-import com.kaltura.playersdk.VideoPlayerInterface;
-import com.kaltura.playersdk.events.OnErrorListener;
+import com.kaltura.playersdk.chromecast.ChromecastHandler;
+import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressListener;
+import com.kaltura.playersdk.events.OnProgressUpdateListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
-public class CastPlayer implements VideoPlayerInterface {
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class CastPlayer extends BasePlayerView {
 	
 	private String mVideoUrl;
 	private MediaInfo mMediaInfo;
@@ -34,16 +33,13 @@ public class CastPlayer implements VideoPlayerInterface {
 	private VideoCastManager mCastManager;
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
 
-    private OnPlayerStateChangeListener mPlayerStateListener;
-    private OnPlayheadUpdateListener mPlayheadUpdateListener;
-    private OnProgressListener mProgressListener;
-    private OnErrorListener mErrorListener;
     private Timer mTimer;
     private int mStartPos = 0;
     private SettingsContentObserver mSettingsContentObserver;
 	
 	public CastPlayer( Context context, String title, String subtitle, String studio, String thumbUrl, String videoUrl) {
-		mContext = context;
+		super(context);
+        mContext = context;
 		mCastManager = ChromecastHandler.getVideoCastManager(context);
 		mVideoUrl = videoUrl;
 	 	mMovieMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
@@ -140,21 +136,19 @@ public class CastPlayer implements VideoPlayerInterface {
                 		int newPos = getCurrentPosition();
                 		if ( newPos > 0 ) 
                 		{
-                			if ( mPlayheadUpdateListener != null ){
-                				mPlayheadUpdateListener.onPlayheadUpdated(newPos);                				
-                			}
+                            mListenerExecutor.executeOnProgressUpdate(newPos);
                 			if ( newPos >= getDuration() ) {
-                    			mPlayerStateListener.onStateChanged(PlayerStates.END);
+                                mListenerExecutor.executeOnStateChanged(PlayerStates.END);
                     		}
                 		}	
 	                }
 	            }, 0, PLAYHEAD_UPDATE_INTERVAL);
-				mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
-//		    	mCastManager.startCastControllerActivity(mContext, mMediaInfo,
-//		       			0, true);
+
+                mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
+
 			} else if ( mCastManager.getPlaybackStatus() == MediaStatus.PLAYER_STATE_PAUSED ) {
 				mCastManager.play();
-				mPlayerStateListener.onStateChanged(PlayerStates.PLAY);
+                mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
 			}
 
 	
@@ -169,7 +163,7 @@ public class CastPlayer implements VideoPlayerInterface {
 		try {
 			if ( mCastManager.isRemoteMediaLoaded() && !mCastManager.isRemoteMoviePaused() ) {
 				mCastManager.pause();
-				mPlayerStateListener.onStateChanged(PlayerStates.PAUSE);
+                mListenerExecutor.executeOnStateChanged(PlayerStates.PAUSE);
 			}
 
 		} catch (CastException e) {
@@ -247,33 +241,6 @@ public class CastPlayer implements VideoPlayerInterface {
 
 		return false;
 	}
-
-	 @Override
-	    public void registerPlayerStateChange( OnPlayerStateChangeListener listener) {
-	        mPlayerStateListener = listener;
-	    }
-
-	    @Override
-	    public void registerError(OnErrorListener listener) {
-	    	//TODO
-	    	mErrorListener = listener;
-
-	    }
-
-	    @Override
-	    public void registerPlayheadUpdate( OnPlayheadUpdateListener listener ) {
-	        mPlayheadUpdateListener = listener;
-	    }
-	    
-	    @Override
-	    public void removePlayheadUpdateListener() {
-	    	mPlayheadUpdateListener = null;
-	    }
-
-	    @Override
-	    public void registerProgressUpdate ( OnProgressListener listener ) {
-	        mProgressListener = listener;
-	    }
 	    
 	    
 	    

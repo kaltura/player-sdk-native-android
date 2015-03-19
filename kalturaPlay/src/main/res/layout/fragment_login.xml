@@ -1,0 +1,70 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="Fragments.LoginFragment"
+    android:orientation="vertical"
+    android:configChanges="orientation|screenSize"
+    android:id="@+id/fragment_login"
+    android:background="@color/white">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="11"
+        android:id="@+id/main_content">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="300dp"
+            android:layout_height="100dp"
+            android:src="@drawable/logo"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="100dp"/>
+
+        <TextView
+            android:id="@+id/infoMsg"
+            android:layout_width="250dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="15dp"
+            android:layout_below="@+id/imageView"
+            android:layout_centerHorizontal="true"
+            android:text="@string/main_message"
+            android:textColorLink="#00c9ea"
+            android:textColor="#ff286780"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+        <Button
+            android:layout_width="200dp"
+            android:layout_height="40dp"
+            android:text="@string/demo"
+            android:id="@+id/demoBtn"
+            android:background="@drawable/demo_btn_up"
+            android:layout_marginTop="15dp"
+            android:layout_below="@+id/infoMsg"
+            android:layout_centerHorizontal="true"
+            android:textColor="#ffffff"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:id="@+id/footerr"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <TextView
+            android:id="@+id/powered"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/footer"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#ff2b7188"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+        </RelativeLayout>
+
+
+</LinearLayout>

@@ -24,5 +24,9 @@ public interface OnErrorListener {
 	/** profile is incompatible to hardware */
 	public static final int MEDIA_INCOMPATIBLE_PROFILE = -106;
 	    
+	/** Called when an error occurred, but playback can proceed */
 	public void onError(int errorCode, String errorMessage);
+	
+	/** Called when an error occurred, and playback has stopped */
+	public void onFatalError(int errorCode, String errorMessage);
 }

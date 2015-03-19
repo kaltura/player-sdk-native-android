@@ -48,7 +48,7 @@ public class KPPlayerConfig {
 		
 		return flashVarsArray;
 	}
-	
+
 	private void addDefaultFlags(){
 		if (mFlashvarsDict != null){
 			mFlashvarsDict.put(Key.KP_PLAYER_CONFIG_NATIVE_AD_ID_KEY, ""); //TODO:define value for advertiser id

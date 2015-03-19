@@ -72,6 +72,7 @@ public class ManifestPlaylist extends BaseManifestItem {
 		else if (propertyName.equals("NAME"))
 		{
 			this.name = value;
+			if (this.language.length() == 0) this.language = value;
 		}
 		else if (propertyName.equals("AUTOSELECT"))
 		{

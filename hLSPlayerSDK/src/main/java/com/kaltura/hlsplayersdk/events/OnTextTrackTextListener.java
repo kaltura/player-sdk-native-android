@@ -9,5 +9,5 @@ package com.kaltura.hlsplayersdk.events;
  */
 
 public interface OnTextTrackTextListener {
-	void onSubtitleText(double startTime, double length, String buffer);
+	void onSubtitleText(double startTime, double length, String align, String buffer);
 }
