@@ -122,7 +122,6 @@ public class PlayerViewController extends RelativeLayout {
     public PlayerViewController(Context context) {
         super(context);
         setupPlayerViewController( context );
-
     }
 
     public PlayerViewController(Context context, AttributeSet attrs) {
@@ -143,7 +142,9 @@ public class PlayerViewController extends RelativeLayout {
     public void releaseAndSavePosition() {
         savePlaybackPosition();
         if ( mVideoInterface!= null )
+        {
             mVideoInterface.release();
+        }
     }
 
     /**
@@ -151,7 +152,7 @@ public class PlayerViewController extends RelativeLayout {
      * This method should be called when the main activity is resumed.
      */
     public void resumePlayer() {
-        if ( mVideoInterface!= null )
+        if ( mVideoInterface != null )
             mVideoInterface.recoverRelease();
     }
 
@@ -263,7 +264,7 @@ public class PlayerViewController extends RelativeLayout {
         }
 
         this.setLayoutParams(lp);
-        for ( int i=0; i< this.getChildCount(); i++ ) {
+        for ( int i = 0; i < this.getChildCount(); i++ ) {
 
             View v = getChildAt(i);
             if( v == mVideoInterface )
@@ -766,9 +767,9 @@ public class PlayerViewController extends RelativeLayout {
 
                                         if (params != null && params.size() > 1) {
                                             if (params.get(0).equals("currentTime")) {
-                                                int seekTo = (Integer.parseInt(params.get(1)));
+                                                float seekTo = (Float.parseFloat(params.get(1)));
                                                 Log.d(TAG,"SEEK: from JS To :" + seekTo);
-                                                mVideoInterface.seek(seekTo);
+                                                mVideoInterface.seek((int)(seekTo*1000));
                                             } else if (params.get(0).equals("src")) {
                                                 // remove " from the edges
                                                 mVideoUrl = params.get(1);
