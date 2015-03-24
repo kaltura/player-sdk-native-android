@@ -77,7 +77,7 @@ public class PlayerViewController extends RelativeLayout {
     private BasePlayerView mVideoInterface;
     //Original VideoPlayerInterface that was created by "addComponents"
     private BasePlayerView mOriginalVideoInterface;
-    private WebView mWebView;
+    private WebView mWebView = null;
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
@@ -93,6 +93,7 @@ public class PlayerViewController extends RelativeLayout {
     private String mVideoUrl;
     private String mVideoTitle = "";
     private String mThumbUrl = "";
+    private String mIframeUrl = null;
 
     private PlayerStates mState = PlayerStates.START;
     private PowerManager mPowerManager;
@@ -141,7 +142,7 @@ public class PlayerViewController extends RelativeLayout {
      */
     public void releaseAndSavePosition() {
         savePlaybackPosition();
-        if ( mVideoInterface!= null )
+        if ( mVideoInterface != null )
         {
             mVideoInterface.release();
         }
@@ -152,8 +153,9 @@ public class PlayerViewController extends RelativeLayout {
      * This method should be called when the main activity is resumed.
      */
     public void resumePlayer() {
-        if ( mVideoInterface != null )
+        if ( mVideoInterface != null ) {
             mVideoInterface.recoverRelease();
+        }
     }
 
     private void setupPlayerViewController( final Context context) {
@@ -349,38 +351,40 @@ public class PlayerViewController extends RelativeLayout {
      * param iFrameUrl- String url
      */
     public void setComponents(String iframeUrl) {
-        mWebView = new WebView(getContext());
-        mCurSec = 0;
-        ViewGroup.LayoutParams currLP = getLayoutParams();
-        LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
+        if(mWebView == null) {
+            mWebView = new WebView(getContext());
 
-        mBackgroundRL = new RelativeLayout(getContext());
-        mBackgroundRL.setBackgroundColor(Color.BLACK);
-        this.addView(mBackgroundRL,currLP);
-        //TODO: Maybe remove this automatic instantization
-        KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
-        LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-        this.addView(kalturaPlayer, lp);
+            mCurSec = 0;
+            ViewGroup.LayoutParams currLP = getLayoutParams();
+            LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
-        mOriginalVideoInterface = kalturaPlayer;
-        createPlayerInstance();
+            mBackgroundRL = new RelativeLayout(getContext());
+            mBackgroundRL.setBackgroundColor(Color.BLACK);
+            this.addView(mBackgroundRL, currLP);
+            //TODO: Maybe remove this automatic instantization
+            KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
+            LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
+            this.addView(kalturaPlayer, lp);
 
-        this.addView(mWebView, wvLp);
-        mWebView.getSettings().setJavaScriptEnabled(true);
-        mWebView.addJavascriptInterface(this, "android");
-        mWebView.setWebViewClient(new CustomWebViewClient());
-        mWebView.setWebChromeClient(new WebChromeClient());
-        mWebView.getSettings().setUserAgentString(
-                mWebView.getSettings().getUserAgentString()
-                        + " kalturaNativeCordovaPlayer");
-        if (Build.VERSION.SDK_INT >= 11) {
+            mOriginalVideoInterface = kalturaPlayer;
+            createPlayerInstance();
+
+            this.addView(mWebView, wvLp);
+            mWebView.getSettings().setJavaScriptEnabled(true);
+            mWebView.addJavascriptInterface(this, "android");
+            mWebView.setWebViewClient(new CustomWebViewClient());
+            mWebView.setWebChromeClient(new WebChromeClient());
+            mWebView.getSettings().setUserAgentString( mWebView.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer" );
             mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            mWebView.setBackgroundColor(0);
         }
 
         iframeUrl = RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext());
-        
-        mWebView.loadUrl(iframeUrl);
-        mWebView.setBackgroundColor(0);
+        if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) )
+        {
+            mIframeUrl = iframeUrl;
+            mWebView.loadUrl(iframeUrl);
+        }
     }
 
     /**
