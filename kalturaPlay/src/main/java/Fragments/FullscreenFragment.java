@@ -16,7 +16,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.kaltura.kalturaplayertoolkit.R;
@@ -30,8 +29,6 @@ import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import java.lang.reflect.Method;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import Utilities.FragmentUtilities;
 
 /**
  * Created by itayi on 2/12/15.
@@ -90,13 +87,7 @@ public class FullscreenFragment extends Fragment{
         if(mFragmentView == null) {
             mFragmentView = inflater.inflate(R.layout.fragment_fullscreen, container, false);
         }
-        Button btn= (Button) mFragmentView.findViewById(R.id.frag_btn);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentUtilities.loadFragment(true, new LoginFragment(),null,getFragmentManager());
-            }
-        });
+        
         mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
         mPlayerView.setActivity(getActivity());
         mPlayerView.setOnFullScreenListener(new OnToggleFullScreenListener() {
