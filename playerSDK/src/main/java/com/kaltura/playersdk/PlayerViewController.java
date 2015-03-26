@@ -838,7 +838,7 @@ public class PlayerViewController extends RelativeLayout {
                                                 if (!(mVideoInterface instanceof PlayerView)) {
 
                                                     ViewGroup.LayoutParams currLP = getLayoutParams();
-                                                    PlayerView playerView = new PlayerView(mActivity);
+                                                    PlayerView playerView = new PlayerView(mActivity, true);
                                                     LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
                                                     if (mVideoInterface instanceof View) {
                                                         replacePlayerViewChild(playerView, (View) mVideoInterface);
