@@ -23,6 +23,10 @@ public class PlayerView extends BasePlayerView {
     private boolean mShouldResumePlayback = false;
     private VideoView mVideoView;
 
+    private boolean mShouldWaitForLoadSignal = false;
+    //this extra boolean will necessary when switching sources and needing autoplay - on a playlist for instance
+    private boolean mShouldPlayOnDrmLoadSignal = false;
+
     private Handler mHandler;
     final private Runnable runnable = new Runnable() {
  	   @Override
@@ -42,11 +46,13 @@ public class PlayerView extends BasePlayerView {
 
 
 
-    public PlayerView(Context context) {
+    public PlayerView(Context context, final boolean shouldWaitForLoadSignal) {
         super(context);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         mVideoView = new VideoView(getContext());
         addView(mVideoView, lp);
+        mShouldWaitForLoadSignal = shouldWaitForLoadSignal;
+
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
@@ -67,11 +73,21 @@ public class PlayerView extends BasePlayerView {
                         mListenerExecutor.executeOnStateChanged(PlayerStates.SEEKED);
                     }
                 });
+                if(mShouldWaitForLoadSignal){
+                    mShouldWaitForLoadSignal = false;
+                    if(mShouldPlayOnDrmLoadSignal)
+                    {
+                        mShouldPlayOnDrmLoadSignal = false;
+                        play();
+                    }
+                }
+
+
 
                 mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int progress) {
-                        mListenerExecutor.executeOnProgressUpdate(progress);
+//                        mListenerExecutor.executeOnProgressUpdate(progress);
                     }
                 });
             }
@@ -107,8 +123,6 @@ public class PlayerView extends BasePlayerView {
 
     }
 
-
-
     @Override
     public void setStartingPoint(int point) {
         mStartPos = point;
@@ -137,18 +151,25 @@ public class PlayerView extends BasePlayerView {
     
     @Override
     public void play() {
-    	if ( !this.isPlaying() ) {
-            mVideoView.start();
-            if ( mStartPos != 0 ) {
-                mVideoView.seekTo(mStartPos);
-            	mStartPos = 0;
+        if(mShouldWaitForLoadSignal)
+        {
+            mShouldPlayOnDrmLoadSignal = true;
+            return;
+        }else{
+            if ( !this.isPlaying() ) {
+                mVideoView.start();
+                if ( mStartPos != 0 ) {
+                    mVideoView.seekTo(mStartPos);
+                    mStartPos = 0;
+                }
+                if ( mHandler == null ) {
+                    mHandler = new Handler();
+                    mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
+                }
+                mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
             }
-            if ( mHandler == null ) {
-            	mHandler = new Handler();
-            	mHandler.postDelayed(runnable, PLAYHEAD_UPDATE_INTERVAL);
-            }
-            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
-    	}
+        }
+
     }
 
     @Override
