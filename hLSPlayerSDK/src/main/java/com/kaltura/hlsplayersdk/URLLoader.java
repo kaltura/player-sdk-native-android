@@ -219,10 +219,10 @@ public class URLLoader extends AsyncHttpResponseHandler
 		logLoaderStates();
 		final URLLoader thisLoader = this;
 
-		for (int i = 0; i < headers.length; ++i)
-		{
-			Log.v("URLLoader [" + myUrlHandle + "].success", "Header: " + headers[i].getName() + ": " + headers[i].getValue());
-		}
+//		for (int i = 0; i < headers.length; ++i)
+//		{
+//			Log.v("URLLoader [" + myUrlHandle + "].success", "Header: " + headers[i].getName() + ": " + headers[i].getValue());
+//		}
 	
 		if (mDownloadEventListener == null)
 		{

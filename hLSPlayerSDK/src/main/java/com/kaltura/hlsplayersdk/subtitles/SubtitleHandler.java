@@ -6,12 +6,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import com.kaltura.hlsplayersdk.cache.HLSSegmentCache;
 import com.kaltura.hlsplayersdk.manifest.ManifestParser;
 import com.kaltura.hlsplayersdk.manifest.ManifestPlaylist;
+import com.kaltura.hlsplayersdk.manifest.ManifestReloader.ManifestGetHandler;
 
 import android.util.Log;
 
-public class SubtitleHandler implements OnSubtitleParseCompleteListener, ManifestParser.ReloadEventListener {
+public class SubtitleHandler implements OnSubtitleParseCompleteListener, ManifestParser.ReloadEventListener, ManifestGetHandler {
 
 	private ManifestParser mManifest;
 	private double mLastTime = 0;
@@ -20,15 +22,30 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener, Manifes
 	public SubtitleHandler(ManifestParser baseManifest)
 	{
 		mManifest = baseManifest;
+		initialize();
 	}
 	
 	public void initialize()
 	{
-		ManifestParser man = getManifestForLanguage(lastLanguage);
-		if (man != null && !man.streamEnds && man.segments.size() > 0)
-		{
-			
-		}
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run()
+			{
+				ManifestParser man = getManifestForLanguage(lastLanguage);
+				if (man != null && !man.streamEnds && man.subtitles.size() > 0)
+				{
+					double accum = 0.0;
+					man.subtitles.get(0).load();
+					for (int m = 0; m < man.subtitles.size(); ++m)
+					{
+						accum = man.subtitles.get(m).setTimeWindowStart(accum);
+						accum += man.subtitles.get(m).segmentTimeWindowDuration;
+					}
+				}
+			}
+		}, "Subtitle Initialize Thread");
+		t.start();
+
 	}
 	
 	public boolean hasSubtitles()
@@ -99,6 +116,9 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener, Manifes
 				precacheSegmentAtTime(time + 10, language);
 			}
 			
+			for (TextTrackCue cue : cues)
+				Log.i("SubtitleHandler.update", "Returning:" + cue);
+			
 			return cues;
 		}
 		return null;
@@ -107,7 +127,10 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener, Manifes
 	public void precacheSegmentAtTime(double time, int language)
 	{
 		SubTitleSegment ntsp = getSegmentForTime(time, language);
-		if (ntsp != null) ntsp.precache();
+		if (ntsp != null)
+		{
+			ntsp.precache();
+		}
 	}
 	
 	private SubTitleSegment getSegmentForTime(double time, int language)
@@ -131,8 +154,9 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener, Manifes
 			SubTitleSegment stp = mp.subtitles.get(i);
 			if (stp != null)
 			{
-				if (time >= stp.segmentTimeWindowStart && time <= stp.segmentTimeWindowStart + stp.segmentTimeWindowDuration)
+				if ( stp.timeInSegment(time))
 				{
+					//Log.i("SubtitleHandler.getSegmentForTime", "Returning segment " + i + " for time " + time + ". Window = " + stp.segmentTimeWindowStart + "-->" + (stp.segmentTimeWindowStart + stp.segmentTimeWindowDuration));
 					return stp;
 				}
 			}
@@ -151,18 +175,51 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener, Manifes
 			
 			ManifestPlaylist mpl = mManifest.subtitlePlayLists.get(language);
 			if (mpl.manifest != null && mpl.manifest.subtitles.size() > 0)
+			{
 				mp = mpl.manifest;
+				mp.quality = language;
+			}
 		}
 		else if (mManifest.subtitles.size() > 0)
 		{
 			mp = mManifest;
+			mp.quality = language;
 		}
 		return mp;
 	}
+	
+	private void mergeManifests(ManifestParser manifest, ManifestParser newManifest)
+	{
+		SubTitleSegment lastSeg = manifest.subtitles.get(manifest.subtitles.size() - 1);
+		
+		for (SubTitleSegment seg : newManifest.subtitles)
+		{
+			if (seg.id > lastSeg.id)
+			{
+				seg.setTimeWindowStart(lastSeg.segmentTimeWindowStart + lastSeg.segmentTimeWindowDuration);
+				manifest.subtitles.add(seg);
+				lastSeg = seg;
+			}
+		}
+	}
+	
+	private void updateManifestForLanguage(ManifestParser manifest, int language)
+	{
+		if (language < 0) return; // no point.
+		
+		if (mManifest.subtitlePlayLists.size() > language)
+		{
+			ManifestPlaylist mpl = mManifest.subtitlePlayLists.get(language);
+			ManifestParser oldMan = mpl.manifest;
+			if (oldMan != null && manifest != null)
+			{
+				mergeManifests(oldMan, manifest);
+			}
+		}
+	}
 
 	@Override
-	public void onSubtitleParserComplete(SubTitleSegment parser) {
-		// TODO Auto-generated method stub
+	public void onSubtitleParserComplete(SubTitleSegment segment) {
 		
 	}
 	
@@ -236,8 +293,12 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener, Manifes
 	@Override
 	public void onReloadComplete(ManifestParser parser)
 	{
-		// TODO Auto-generated method stub
+		if (parser == null || parser.getReloadChild() == null)
+			return; // A strange failure of the reloader
 		
+		ManifestParser newMan = parser.getReloadChild();
+		
+		updateManifestForLanguage(newMan, newMan.quality);
 	}
 
 	@Override
@@ -245,5 +306,26 @@ public class SubtitleHandler implements OnSubtitleParseCompleteListener, Manifes
 	{
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public ManifestParser getVideoManifestToReload()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ManifestParser getAltAudioManifestToReload()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ManifestParser getSubtitleManifestToReload()
+	{
+		// TODO Auto-generated method stub
+		return getManifestForLanguage(lastLanguage);
 	}
 }

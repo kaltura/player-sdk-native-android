@@ -3,11 +3,13 @@ package com.kaltura.hlsplayersdk.subtitles;
 
 import java.util.Vector;
 
+import com.kaltura.hlsplayersdk.HLSPlayerViewController;
 import com.kaltura.hlsplayersdk.cache.HLSSegmentCache;
+import com.kaltura.hlsplayersdk.cache.SegmentCachedListener;
 
 import android.util.Log;
 
-public class SubTitleSegment {
+public class SubTitleSegment implements SegmentCachedListener {
 	public Vector<WebVTTRegion> regions = new Vector<WebVTTRegion>();
 	
 	enum ParseState
@@ -19,15 +21,22 @@ public class SubTitleSegment {
 	}
 
 	public Vector<TextTrackCue> textTrackCues = new Vector<TextTrackCue>();
-	public double segmentTimeWindowStart = -1;
+	public double segmentTimeWindowStart = 0;
 	public double segmentTimeWindowDuration = -1;
 	public int id = 0;
 	
-	private String _url;
+	public String _url;
 	private boolean _isLoaded = false;
 	private double _mpegts = 0;
 	private double _localts = 0;
 	private double _tsmod = 0;
+	private boolean _precacheRequested = false;
+	
+	@Override
+	public String toString()
+	{
+		return "SubTitleSegment (" + _url + " | Loaded:" + _isLoaded + " | cueCount:" + textTrackCues.size() + " | timeWindowStart:" + segmentTimeWindowStart + " | timeWindowDuration:" + segmentTimeWindowDuration + " | _tsmod:"+ _tsmod +")"; 
+	}
 	
 	
 	
@@ -44,6 +53,11 @@ public class SubTitleSegment {
 	public void setUrl(String url)
 	{
 		_url = url;
+	}
+	
+	public boolean timeInSegment(double time)
+	{
+		return (time >= segmentTimeWindowStart && time < (segmentTimeWindowStart + segmentTimeWindowDuration) );
 	}
 	
 	public boolean inPrecacheWindow(double time, double windowSize)
@@ -68,6 +82,11 @@ public class SubTitleSegment {
 		return result;
 	}
 	
+	public void setLoaded()
+	{
+		_isLoaded = true;
+	}
+	
 	public boolean isLoaded()
 	{
 		return _isLoaded;
@@ -75,29 +94,40 @@ public class SubTitleSegment {
 	
 	public void load()
 	{
+		Log.i("SubTitleSegment.precache", "Loading " + this);
 		String file = HLSSegmentCache.readFileAsString(_url);
 		parse(file);
+		Log.i("SubTitleSegment.precache", "Loaded " + this);
 	}
 	
 	public void precache()
 	{
+		if (_precacheRequested) return;
+		//HLSSegmentCache.precache(_url, -1, false, this, HLSPlayerViewController.getHTTPResponseThreadHandler()); //(_url, -1, );
+		Log.i("SubTitleSegment.precache", "Precaching " + this);
 		HLSSegmentCache.precache(_url, -1);
+		_precacheRequested = true;
 	}
 	
-	public void setTimeWindowStart(double time)
+	public double setTimeWindowStart(double time)
 	{
-		segmentTimeWindowStart = time;
-		
-		// Now we need to modify the cues so that they match the start time
-		// We'll subtract the difference between _tsmod and start time from the start and end of each segment
-		
-		double diff = _tsmod - segmentTimeWindowStart;
-		for (int i = 0; i < textTrackCues.size(); ++i)
+		if (!_isLoaded)
 		{
-			textTrackCues.get(i).startTime -= diff;
-			textTrackCues.get(i).endTime -= diff;
+			Log.i("SubTitleSegment.setTimeWindowStart", "Setting start time (" + time + ") for " + this);
+			segmentTimeWindowStart = time;
+			
+			// Now we need to modify the cues so that they match the start time
+			// We'll subtract the difference between _tsmod and start time from the start and end of each segment
+			
+			for (int i = 0; i < textTrackCues.size(); ++i)
+			{
+	//			textTrackCues.get(i).startTime += _tsmod;
+	//			textTrackCues.get(i).endTime += _tsmod;
+				if (i == 0) segmentTimeWindowStart = textTrackCues.get(i).startTime;
+				if (i == textTrackCues.size() - 1) segmentTimeWindowDuration = textTrackCues.get(i).endTime - segmentTimeWindowStart; 
+			}
 		}
-		
+		return segmentTimeWindowStart;
 	}
 	
 	
@@ -119,10 +149,6 @@ public class SubTitleSegment {
 		ParseState state = ParseState.PARSE_HEADERS;
 		TextTrackCue textTrackCue = null;
 
-		// set up our offset
-		double tsdiff = 0.0f;
-
-		
 		// Process each line
 		
 		for (int i = 1; i < lines.length; ++i)
@@ -144,7 +170,6 @@ public class SubTitleSegment {
 				if (line.indexOf("X-TIMESTAMP-MAP") == 0)
 				{
 					parseTimeStampMap(line);
-					tsdiff = _tsmod - segmentTimeWindowStart;
 				}
 				break;
 				
@@ -162,8 +187,8 @@ public class SubTitleSegment {
 				
 			case PARSE_CUE_SETTINGS:
 				textTrackCue.parse(line);
-				textTrackCue.startTime += (_tsmod - tsdiff);
-				textTrackCue.endTime += (_tsmod - tsdiff);
+				textTrackCue.startTime += _tsmod;
+				textTrackCue.endTime += _tsmod;
 				textTrackCue.buffer += line;
 				state = ParseState.PARSE_CUE_TEXT;
 				break;
@@ -180,6 +205,7 @@ public class SubTitleSegment {
 		// And one last cue, just in case there wasn't an empty line
 		if (textTrackCue != null) textTrackCues.add(textTrackCue);
 		
+		setTimeWindowStart(segmentTimeWindowStart);
 		_isLoaded = true;
 		
 		postSubtitleParseComplete(this);
@@ -209,7 +235,7 @@ public class SubTitleSegment {
 		
 		Log.i("SubTitleParser.parseTimeStampMap", "Input: " + input + " | MPEGTS=" + mpegts + ", LOCAL=" + _localts);
 		
-		_tsmod = (double)(mpegts / 90000); // Convert it to seconds
+		_tsmod = (double)((double)mpegts / (double)90000); // Convert it to seconds
 		
 		_tsmod -= _localts; // Since _localts and _tsmod should be equivalent times, subtract _localts from _tsmod so that we know our offset
 	
@@ -257,6 +283,23 @@ public class SubTitleSegment {
 	public void postSubtitleParseComplete(final SubTitleSegment parser)
 	{
 		if (mOnParseCompleteListener != null) mOnParseCompleteListener.onSubtitleParserComplete(parser);
+	}
+
+	@Override
+	public void onSegmentCompleted(String[] uri)
+	{
+		if (!uri[0].equals(_url))
+			Log.e("SubTitleSegment.onSegmentCompleted", "uri != _url : " + uri[0] + " | " + _url);
+		
+		parse(HLSSegmentCache.readFileAsString(_url));
+		
+	}
+
+	@Override
+	public void onSegmentFailed(String uri, int errorCode)
+	{
+		// TODO Auto-generated method stub
+		
 	}
 	
 

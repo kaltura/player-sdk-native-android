@@ -117,13 +117,13 @@ public class PlayerView extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		Log.i("PlayerView", "**** Surface created.");
+		Log.i("PlayerView.surfaceCreated", "**** Surface created.");
 		mOwner.SetSurface(this.getHolder().getSurface());
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		Log.i("PlayerView", "**** Surface destroyed.");
+		Log.i("PlayerView.surfaceDestroyed", "**** Surface destroyed.");
 		mOwner.SetSurface(null);
 	}
 }
