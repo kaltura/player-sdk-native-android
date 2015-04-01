@@ -33,6 +33,12 @@ public class TextTrackCue {
 		
 	}
 	
+	@Override
+	public String toString()
+	{
+		return "Cue: " + startTime + "-->" + endTime + " :: " + text;
+	}
+	
 	public void parse(String input)
 	{
 		int position = 0;

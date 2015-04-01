@@ -1,6 +1,8 @@
 package com.kaltura.hlsplayersdk.manifest;
 
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Vector;
 
 import android.util.Log;
@@ -17,6 +19,19 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 	private static int instanceCounter = 0;
 	private int instanceCount = 0;
 	public int instance() { return instanceCount; }
+	
+	class BandwidthComparator implements Comparator<ManifestStream>
+	{
+
+		@Override
+		public int compare(ManifestStream arg0, ManifestStream arg1)
+		{
+			if (arg0.bandwidth == arg1.bandwidth) return 0;
+			if (arg0.bandwidth < arg1.bandwidth) return -1;
+			return 1;
+		}
+		
+	}
 	
 	public ManifestParser()
 	{
@@ -39,6 +54,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 	public boolean allowCache;
 	public double targetDuration;
 	public boolean streamEnds = false;
+	public int quality = -1;
 	public Vector<ManifestPlaylist> playLists = new Vector<ManifestPlaylist>();
 	public Vector<ManifestStream> streams = new Vector<ManifestStream>();
 	public Vector<ManifestSegment> segments = new Vector<ManifestSegment>();
@@ -125,7 +141,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 	
 	public static String getNormalizedUrl( String baseUrl, String uri)
 	{
-		return ( uri.substring(0, 5).equals("http:") || uri.substring(0, 6).equals("https:") || uri.substring(0, 5).equals("file:")) ? uri : baseUrl + uri;
+		return ( uri.startsWith("http:") || uri.startsWith("https:") || uri.startsWith("file:")) ? uri : baseUrl + uri;
 	}
 	
 	public static <T> T as(Class<T> t, Object o) {
@@ -341,6 +357,12 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 			}
 		}
 		
+		Collections.sort(streams, new BandwidthComparator());
+		
+		for (ManifestStream stream : streams)
+			Log.i("ManifestParser.parse", "Stream Bandwidth: " + stream.bandwidth);
+		
+		
 		// Process any other manifests referenced
 		Vector<BaseManifestItem> manifestItems = new Vector<BaseManifestItem>();
 		manifestItems.addAll(streams);
@@ -363,7 +385,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		{
 			segments.get(m).id = mediaSequence + m; // set the id based on the media sequence
 			segments.get(m).startTime = timeAccum;
-			Log.i("ManifestParser(" + instanceCount + ").foundSegment", "SegmentURI=" + segments.get(m).uri);
+			//Log.i("ManifestParser(" + instanceCount + ").foundSegment", "SegmentURI=" + segments.get(m).uri);
 			timeAccum += segments.get(m).duration;
 		}
 		
@@ -425,6 +447,13 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 			if (playLists.get(i).manifest == null)
 				playLists.remove(i);
 		}
+		
+		// Set the qualities
+		for (int i = 0; i < playLists.size(); ++i)
+			playLists.get(i).manifest.quality = i;
+		
+		for (int i = 0; i < streams.size(); ++i)
+			streams.get(i).manifest.quality = i;
 	}
 	
 	private void linkBackupStreams(int startIndex, int count)
@@ -524,6 +553,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		
 		mReloadingManifest = new ManifestParser(); // This is creating the child that will be used to actually parse the update
 		mReloadingManifest.type = type;
+		mReloadingManifest.quality = quality;
 		mReloadingManifest.setReloadEventListener(reloadListener);
 		mReloadingManifest.reload(this);
 	}
@@ -623,6 +653,12 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		if (mOnParseCompleteListener != null) mOnParseCompleteListener.onParserComplete(parser);
 	}
 	
+	
+	public void logSegments()
+	{
+		for (ManifestSegment s : segments)
+			Log.i("Manifest[" + instance() + "]", "Segment: " + s);
+	}
 	
 	
 	public ManifestSegment findSegmentByID(int id)
