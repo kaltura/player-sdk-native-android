@@ -73,6 +73,11 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private final int STARTUP_STATE_WAITING_TO_START = 4;
 
 	// Native methods
+	public native void SetSurface(Surface surface);
+	public native boolean AllowAllProfiles();
+	public native void SetSegmentCountToBuffer(int segmentCount);
+	public native int GetSegmentCountToBuffer();
+	
 	private native int GetState();
 	private native void InitNativeDecoder();
 	private native void CloseNativeDecoder();
@@ -80,14 +85,11 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private native void PlayFile(double timeInSeconds);
 	private native void StopPlayer();
 	private native void Pause(boolean pause);
-	public native void SetSurface(Surface surface);
 	private native int NextFrame();
 	private native void FeedSegment(String url, int quality, int continuityEra, String altAudioURL, int altAudioIndex, double startTime, int cryptoId, int altCryptoId);
 	private native void SeekTo(double timeInSeconds);
 	private native void ApplyFormatChange();
-	public native void SetSegmentCountToBuffer(int segmentCount);
 	private native int DroppedFramesPerSecond();
-	public native boolean AllowAllProfiles();
 
 	// Static interface.
 	// TODO Allow multiple active PlayerViewController instances.
@@ -101,7 +103,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 	public static String getVersion()
 	{
-		return "v0.0.4";
+		return "v0.0.8";
 	}
 
 	/**
@@ -642,7 +644,11 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		noMoreSegments = false;
 		Log.i(this.getClass().getName() + ".onParserComplete", "Entered");
 		mStreamHandler = new StreamHandler(parser);
-		mStreamHandler.EDGE_BUFFER_SEGMENT_COUNT = parser.segments.size() - edgeBufferSegmentCount >= 0 ? edgeBufferSegmentCount : parser.segments.size(); // prevent this from being larger than the number of available segments
+		ManifestParser p = mStreamHandler.getManifestForQuality(0);
+		StreamHandler.EDGE_BUFFER_SEGMENT_COUNT = p.segments.size() - edgeBufferSegmentCount > 0 ? edgeBufferSegmentCount : p.segments.size() - 1; // prevent this from being larger than the number of available segments
+
+		setBufferTime(mTimeToBuffer);
+
 		mSubtitleHandler = new SubtitleHandler(parser);
 		
 		final HLSPlayerViewController self = this;
@@ -1105,7 +1111,6 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			Toast.makeText(getContext(), "Not connnected to network; video may not play.", Toast.LENGTH_LONG).show();
 		}
 		
-
 		setStartupState(STARTUP_STATE_LOADING);
 		
 
@@ -1509,22 +1514,19 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		edgeBufferSegmentCount = segments;
 	}
 	
-	private int mTimeToBuffer = 10;
+	private int mTimeToBuffer = 30;
 	private int SetSegmentsToBuffer()
 	{
 		ManifestParser m = mStreamHandler.getManifestForQuality(mQualityLevel);
-		int segments = 1;
+		int segments = 2;
 		if (m != null)
 		{
 			segments = mTimeToBuffer / (int)m.targetDuration;
 			int rem = mTimeToBuffer % (int)m.targetDuration;
 			if (rem != 0) ++segments;
-			if (segments > 1) segments = 1;
-			SetSegmentCountToBuffer(segments);
-			
+			if (segments < 1) segments = 1;
 		}
-		else
-			SetSegmentCountToBuffer(segments);
+		SetSegmentCountToBuffer(segments);			
 		
 		return segments;
 	}
