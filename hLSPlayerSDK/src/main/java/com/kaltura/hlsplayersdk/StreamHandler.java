@@ -583,7 +583,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		else
 		{
 			Log.i("StreamHandler.onReloadComplete", "Setting quality to " + newManifest.quality);
-			newManifest.logSegments();
+			newManifest.logSegments("StreamHandler.onReloadComplete");
 			if (baseManifest.streams.size() > 0)
 			{
 				baseManifest.streams.get(newManifest.quality).manifest = newManifest;
@@ -999,6 +999,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		if (segments.size() > 0 && lastSequence < segments.get(0).id)
 		{
 			Log.i("StreamHandler.getNextFile", "Reseting too low sequence " + lastSequence + " to " + segments.get(0).id);
+			parser.logSegments("StreamHandler.getNextFile");
 			lastSequence = segments.get(0).id;
 		}
 		

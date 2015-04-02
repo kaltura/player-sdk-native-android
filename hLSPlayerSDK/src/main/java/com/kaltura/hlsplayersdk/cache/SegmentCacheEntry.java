@@ -95,6 +95,7 @@ public class SegmentCacheEntry
 	
 	private void initiateDownload(final SegmentCacheItem sci)
 	{
+		if (dataSize() != 0) return; // We don't want to initiate a completed download
 		sci.running = true;
 		sci.downloadStartTime = System.currentTimeMillis();
 		

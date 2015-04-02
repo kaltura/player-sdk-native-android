@@ -85,7 +85,7 @@ public class HLSSegmentCache
 			SegmentCacheEntry existing = segmentCache.get(segmentUris[0]);
 			if (existing != null)
 			{
-				if (existing.isRunning() || existing.dataSize() != 0)
+				if (existing.isRunning() || existing.dataSize(segmentUris[0]) != 0)
 				{
 					existing.lastTouchedMillis = System.currentTimeMillis();
 					return existing;
