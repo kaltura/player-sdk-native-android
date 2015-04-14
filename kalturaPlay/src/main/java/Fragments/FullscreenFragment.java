@@ -148,9 +148,9 @@ public class FullscreenFragment extends Fragment{
         });
 
         showPlayerView();
-
-        String iFrameUrl = getArguments().getString(getString(R.string.prop_iframe_url));
-        if (iFrameUrl != null){
+        Bundle bundle = getArguments();
+        String iFrameUrl;
+        if (bundle != null && (iFrameUrl = bundle.getString(getString(R.string.prop_iframe_url))) != null){
             mPlayerView.setComponents(iFrameUrl);
         }else{
             mPlayerView.setComponents(new RequestDataSource() {
