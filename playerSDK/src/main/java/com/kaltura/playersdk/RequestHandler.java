@@ -53,6 +53,8 @@ public class RequestHandler {
             }
         }
 
+        builder.appendQueryParameter("iframeembed", "true");
+
         return builder.build().toString().replace("%5B", "[").replace("%5D", "]");
     }
 
