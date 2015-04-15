@@ -254,18 +254,21 @@ public class SegmentCacheEntry
 				
 				public void run()
 				{
-					synchronized (selfRef)
-					{
-						if (listener != null) 
-						{
-							String [] uris = new String[mItems.length];
-							for (int i = 0; i < mItems.length; ++i)
-							{
-								uris[i] = mItems[i].uri;
-							}
-							listener.onSegmentCompleted(uris);
-						}
-					}
+                    synchronized (HLSSegmentCache.segmentCache)
+                    {
+                        synchronized (selfRef)
+                        {
+                            if (listener != null)
+                            {
+                                String [] uris = new String[mItems.length];
+                                for (int i = 0; i < mItems.length; ++i)
+                                {
+                                    uris[i] = mItems[i].uri;
+                                }
+                                listener.onSegmentCompleted(uris);
+                            }
+                        }
+                    }
 				}
 			});
 		}

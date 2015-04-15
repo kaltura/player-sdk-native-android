@@ -34,11 +34,12 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 	private static final boolean SKIP_TO_END_OF_LIVE = true;
 	
 	public static int EDGE_BUFFER_SEGMENT_COUNT = 3;	// The number of segments to keep between playback and live edge.
-	
+
+    private int mKnowledgePrepId = -1;
 	private KnowledgePrepHandler mKnowledgePrepHandler = null;
 	public interface KnowledgePrepHandler
 	{
-		public void knowledgePrefetchComplete();
+		public void knowledgePrefetchComplete( int playId );
 	}
 
 	private class ErrorTimer
@@ -162,8 +163,9 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		}
 	}
 	
-	public void doKnowledgePrep(KnowledgePrepHandler prepHandler)
+	public void doKnowledgePrep(KnowledgePrepHandler prepHandler, int id)
 	{
+        mKnowledgePrepId = id;
 		mKnowledgePrepHandler = prepHandler;
 		if (streamEnds())
 		{
@@ -1308,8 +1310,9 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 			
 			if (mKnowledgePrepHandler != null)
 			{
-				mKnowledgePrepHandler.knowledgePrefetchComplete();
+				mKnowledgePrepHandler.knowledgePrefetchComplete(mKnowledgePrepId);
 				mKnowledgePrepHandler = null;
+                mKnowledgePrepId = -1;
 			}
 			stopListeningToCompletedBestEffortDownloads();
 		}

@@ -21,7 +21,11 @@ public class HLSSegmentCache
 	protected static long targetSize = 16*1024*1024; // 16mb segment cache.
 	protected static long minimumExpireAge = 5000; // Keep everything touched in last 5 seconds.
 	private static final int minimumTimeBetweenProgressNotifications = 100; // Keep us from spamming progress notifications
-	
+
+    /**
+     * Map storing segments. Note that you must ALWAYS lock this before you
+     * lock an individual SegmentCacheEntry.
+     */
 	protected static Map<String, SegmentCacheEntry> segmentCache = null;
 	public static AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
 	public static AsyncHttpClient syncHttpClient = new SyncHttpClient();
@@ -143,7 +147,9 @@ public class HLSSegmentCache
 		{
 			Log.i("HLS Cache", "Initializing concurrent hash map.");
 			segmentCache = new ConcurrentHashMap<String, SegmentCacheEntry>();
-			context = HLSPlayerViewController.currentController.getContext();
+			context = null;
+			if(HLSPlayerViewController.currentController != null)
+				context = HLSPlayerViewController.currentController.getContext();
 			if (context == null) Log.e("HLS Cache", "Context is null!!!");
 		}
 	}
@@ -313,7 +319,8 @@ public class HLSSegmentCache
 			if (segmentsWaiting)
 			{
 				Log.i("HLS Cache", "Progress=" + (int)pct + " (" + curBytes +"/" + totalBytes + ") seg count=" + segmentsWaitingCount);
-				HLSPlayerViewController.currentController.postProgressUpdate((int)pct);
+				if(HLSPlayerViewController.currentController != null)
+					HLSPlayerViewController.currentController.postProgressUpdate((int)pct);
 			}
 
 		}
