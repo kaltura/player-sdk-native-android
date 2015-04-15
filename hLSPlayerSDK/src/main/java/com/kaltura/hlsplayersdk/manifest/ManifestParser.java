@@ -534,6 +534,12 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		}
 		else
 		{
+            if(manifestParsers.contains(parser) == false)
+            {
+                Log.e("ManifestParser.onParserComplete(" + instanceCount + ")", "didn't find completed parser in our list, aborting to avoid infinite loop.");
+                return;
+            }
+
 			manifestParsers.remove(parser);
 			announceIfComplete();
 		}

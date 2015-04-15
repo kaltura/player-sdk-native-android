@@ -62,10 +62,10 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private final int STATE_FOUND_DISCONTINUITY = 6;
 	private final int STATE_WAITING_FOR_DATA = 7;
 	private final int STATE_CUE_STOP = 8;
-	
+
 	private final int THREAD_STATE_STOPPED = 0;
 	private final int THREAD_STATE_RUNNING = 1;
-	
+
 	private final int STARTUP_STATE_STARTED = 0;
 	private final int STARTUP_STATE_LOADING = 1;
 	private final int STARTUP_STATE_LOADED = 2;
@@ -77,7 +77,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	public native boolean AllowAllProfiles();
 	public native void SetSegmentCountToBuffer(int segmentCount);
 	public native int GetSegmentCountToBuffer();
-	
+
 	private native int GetState();
 	private native void InitNativeDecoder();
 	private native void CloseNativeDecoder();
@@ -97,22 +97,22 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private static int mQualityLevel = 0;
 	private static int mSubtitleLanguage = 0;
 	private static int mAltAudioIndex = 0;
-	
+
 	private static boolean noMoreSegments = false;
 	private static int videoPlayId = 0;
 
 	public static String getVersion()
 	{
-		return "v0.0.8";
+		return "v0.0.9";
 	}
 
 	/**
 	 * Get the next segment in the stream.
 	 */
-	public static void requestNextSegment() {
+	private static void requestNextSegment() {
 		if (currentController == null)
 			return;
-		
+
 		ManifestSegment seg = currentController.getStreamHandler().getNextFile(mQualityLevel);
 		if(seg == null)
 		{
@@ -121,9 +121,9 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			Log.i("HLSPlayerViewController.requestNextSegment", "---- Did not receive a valid segment ----- ");
 			return;
 		}
-		
+
 		Log.i("HLSPlayerViewController.requestNextSegment", "---- Feeding segment '" + seg.uri + "'");
-			
+
 
 		HLSSegmentCache.precache(seg, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 		if (seg.altAudioSegment != null)
@@ -141,18 +141,18 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	 * @param time The time in seconds to request.
 	 * @return Offset into the segment to get to exactly the requested time.
 	 */
-	public static double requestSegmentForTime(double time) {
+	private static double requestSegmentForTime(double time) {
 		Log.i("PlayerViewController.requestSegmentForTime", "Requested Segment Time: " + time);
 		if(currentController == null)
 			return 0;
-		
+
 		ManifestSegment seg = currentController.getStreamHandler().getFileForTime(time, mQualityLevel);
 		if(seg == null)
 		{
 			Log.i("HLSPlayerViewController.requestSegmentForTime", "Did not recieve a segment. StreamHandler.isStalled() = " + currentController.getStreamHandler().isStalled());
 			return 0;
 		}
-		
+
 		HLSSegmentCache.precache(seg, false, currentController.getStreamHandler(), getInterfaceThreadHandler());
 		if (seg.altAudioSegment != null)
 		{
@@ -163,7 +163,6 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			currentController.FeedSegment(seg.uri, seg.quality, seg.continuityEra, null, -1, seg.startTime, seg.cryptoId, -1);
 		}
 
-
 		return seg.startTime;
 	}
 
@@ -171,29 +170,27 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	 * Internal helper. Creates a SurfaceView with proper parameters for display.
 	 * This is needed for compatibility with older devices. When the surface is
 	 * ready, SetSurface() is called back from the SurfaceView.
-	 * 
+	 *
 	 * @param enablePushBuffers Use the PUSH_BUFFERS surface type?
 	 * @param w Desired surface width.
 	 * @param h Desired surface height.
 	 * @param colf Desired color format.
 	 */
-	public static void enableHWRendererMode(boolean enablePushBuffers, int w,
+	private static void enableHWRendererMode(boolean enablePushBuffers, int w,
 			int h, int colf) {
 
-		final boolean epb = enablePushBuffers;
-
-		
 		Log.i("PlayerViewController", "Initializing hw surface.");
-		
+        final boolean epb = enablePushBuffers;
+
 		currentController.post(new Runnable() {
 			@Override
 			public void run() {
 				currentController.SetSurface(null);
-				
+
 				if (currentController.mPlayerView != null) {
 					currentController.removeView(currentController.mPlayerView);
 				}
-		
+
 				@SuppressWarnings("deprecation")
 				LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
 						ViewGroup.LayoutParams.FILL_PARENT);
@@ -202,17 +199,15 @@ public class HLSPlayerViewController extends RelativeLayout implements
 						currentController.getContext(), currentController,
 						epb);
 				currentController.addView(currentController.mPlayerView, lp);
-		
+
 				Log.w("addComponents", "Surface Holder is " + currentController.mPlayerView.getHolder());
 				if (currentController.mPlayerView.getHolder() != null)
 					Log.w("addComponents", "Surface Holder is " + currentController.mPlayerView.getHolder().getSurface());
-		
+
 				// Preserve resolution info for layout.
 				setVideoResolution(currentController.mVideoWidth, currentController.mVideoHeight);
-
 			}
 		});
-		
 	}
 
 	/**
@@ -223,58 +218,56 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	public static void setVideoResolution(int w, int h) {
 		final int ww = w;
 		final int hh = h;
-		if (currentController != null) 
+		if (currentController != null)
 		{
 			currentController.post(new Runnable() {
 				@Override
 				public void run() {
 					currentController.mVideoWidth = ww;
 					currentController.mVideoHeight = hh;
-					
+
 					if(currentController.mPlayerView != null)
 					{
 						currentController.mPlayerView.mVideoWidth = ww;
 						currentController.mPlayerView.mVideoHeight = hh;
 						currentController.mPlayerView.requestLayout();
-		
 					}
-			
+
 					currentController.requestLayout();
 				}
 			});
 		}
 	}
-	
+
 	/**
 	 *  Provides a method for the native code to notify us that a format change event has occurred
 	 */
-	public static void notifyAudioTrackChangeComplete(int audioTrack)
+	private static void notifyAudioTrackChangeComplete(int audioTrack)
 	{
 		if (currentController != null)
 		{
 			currentController.postAudioTrackSwitchingEnd(audioTrack);
-				
 		}
 	}
-	
+
 	/**
 	 *  Provides a method for the native code to notify us that a format change event has occurred
 	 */
-	public static void notifyFormatChangeComplete(int qualityLevel)
+    private static void notifyFormatChangeComplete(int qualityLevel)
 	{
 		if (currentController != null)
 		{
 			currentController.postQualityTrackSwitchingEnd(qualityLevel);
 		}
 	}
-	
+
 	/**
 	 * Provides a method for the native code to notify us of errors
-	 * 
+	 *
 	 * @param error - These are the codes from the OnErrorListener
 	 * @param msg
 	 */
-	public static void postNativeError(int error, boolean fatal, String msg)
+    private static void postNativeError(int error, boolean fatal, String msg)
 	{
 		if (currentController != null)
 		{
@@ -284,35 +277,14 @@ public class HLSPlayerViewController extends RelativeLayout implements
 				currentController.postFatalError(error, msg);
 		}
 	}
-	
-	// HTTPResponse thread
-	static class HTTPResponseThread extends HandlerThread
-	{
-		private Handler mHandler = null;
-		
-		HTTPResponseThread()
-		{
-			super("HTTPResponseThread");
-			start();
-			setHandler(new Handler(getLooper()));
-		}
 
-		public Handler getHandler() {
-			return mHandler;
-		}
+    private HLSUtilityThread mHTTPResponseThread = null;
 
-		private void setHandler(Handler mHandler) {
-			this.mHandler = mHandler;
-		}
-	}
-	
-	private HTTPResponseThread mHTTPResponseThread = null;
-	
-	public static HTTPResponseThread getHTTPResponseThread()
+	public static HLSUtilityThread getHTTPResponseThread()
 	{
 		return currentController != null ? currentController.mHTTPResponseThread : null;
 	}
-	
+
 	public static void postToHTTPResponseThread(Runnable runnable)
 	{
 		Handler handler = getHTTPResponseThreadHandler();
@@ -321,42 +293,19 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			handler.post(runnable);
 		}
 	}
-	
+
 	public static Handler getHTTPResponseThreadHandler()
 	{
 		return (getHTTPResponseThread() != null) ? getHTTPResponseThread().getHandler() : null;
 	}
-	
-	
-	
-	// Interface thread
-	static class InterfaceThread extends HandlerThread
-	{
-		private Handler mHandler = null;
-		
-		InterfaceThread()
-		{
-			super("InterfaceThread");
-			start();
-			setHandler(new Handler(getLooper()));
-		}
 
-		public Handler getHandler() {
-			return mHandler;
-		}
+	private HLSUtilityThread mInterfaceThread = null;
 
-		private void setHandler(Handler mHandler) {
-			this.mHandler = mHandler;
-		}
-	}
-	
-	private InterfaceThread mInterfaceThread = null;
-	
-	public static InterfaceThread getInterfaceThread()
+	public static HLSUtilityThread getInterfaceThread()
 	{
 		return currentController != null ? currentController.mInterfaceThread : null;
 	}
-	
+
 	public static void postToInterfaceThread(Runnable runnable)
 	{
 		Handler handler = getInterfaceThreadHandler();
@@ -365,7 +314,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			handler.post(runnable);
 		}
 	}
-	
+
 	public static Handler getInterfaceThreadHandler()
 	{
 		return (getInterfaceThread() != null) ? getInterfaceThread().getHandler() : null;
@@ -379,7 +328,6 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private URLLoader manifestLoader;
 	private StreamHandler mStreamHandler = null;
 	private SubtitleHandler mSubtitleHandler = null;
-
 
 	private OnPlayheadUpdateListener mPlayheadUpdateListener = null;
 	private OnProgressListener mOnProgressListener = null;
@@ -404,99 +352,18 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	private boolean stopVideoThread = false;
 	private int mRenderThreadState = THREAD_STATE_STOPPED;
 	private Thread mRenderThread;
-	private Runnable renderRunnable = new Runnable() {
-		private int lastState = STATE_STOPPED;
-		private int lastTimeStamp = -1;
-		public void run() {
-			mRenderThreadState = THREAD_STATE_RUNNING;
-			while (mRenderThreadState == THREAD_STATE_RUNNING) {
-				if (stopVideoThread)
-				{
-					Log.i("videoThread", "Stopping video render thread");
-					mRenderThreadState = THREAD_STATE_STOPPED;
-					continue;
-				}
-				int state = GetState();
-				if (state == STATE_PLAYING || state == STATE_FOUND_DISCONTINUITY || state == STATE_WAITING_FOR_DATA) {
-					int rval = NextFrame();
-					if (rval >= 0) { mTimeMS = rval; /* Log.i("RunThread", "mTimeMS = " + mTimeMS); */ }
-					if (rval < 0 && state != lastState)
-					{
-						Log.i("videoThread", "State Changed -- NextFrame() returned " + rval + " : state = " + 
-								(state == STATE_PLAYING ? "STATE_PLAYING" : 
-								(state == STATE_FOUND_DISCONTINUITY ? "STATE_FOUND_DISCONTINUITY" : 
-								(state == STATE_WAITING_FOR_DATA ? "STATE_WAITING_FOR_DATA" : "UNKNOWN STATE"))));
-					}
-					lastState = state;
-					if (rval == -1 && noMoreSegments) currentController.stop();
-					if (rval == -1013) // INFO_DISCONTINUITY
-					{
-						Log.i("videoThread", "Ran into a discontinuity (INFO_DISCONTINUITY)");
-						HandleFormatChange();
-					}
-					else
-					{
-						if (lastTimeStamp != mTimeMS)
-						{
-							postPlayheadUpdate(mTimeMS);
-							lastTimeStamp = mTimeMS;
-						}
-					}
-
-					// SUBTITLES!
-					
-					if (mSubtitleHandler != null)
-					{
-						double timeSecs = ( (double)mTimeMS / 1000.0);
-						Vector<TextTrackCue> cues = mSubtitleHandler.update(timeSecs, mSubtitleLanguage);
-						if (cues != null && mSubtitleTextListener != null)
-						{
-							for (int i = 0; i < cues.size(); ++i)
-							{
-								TextTrackCue cue = cues.get(i);
-								postTextTrackText(cue.startTime, cue.endTime - cue.startTime, cue.lineAlignment, cue.text);
-							}
-						}
-					}
-					
-					try {
-						Thread.yield();
-					} catch (Exception e) {
-						Log.i("video run", "Video thread sleep interrupted!");
-					}
-					
-					//Log.i("PlayerViewController", "Dropped Frames Per Sec: " + DroppedFramesPerSecond());
-
-				} 
-				else if (state == STATE_CUE_STOP)
-				{
-					stop();
-				}
-				else
-				{
-					try {
-						Thread.sleep(30);
-					} catch (InterruptedException ie) {
-						Log.i("video run", "Video thread sleep interrupted!");
-					}
-				}
-
-			}
-			stopVideoThread = false;
-		}
-	};
+	private Runnable renderRunnable = new VideoRenderRunnable();
 	
 	// Handle discontinuity/format change
 	public void HandleFormatChange()
 	{
-		post(new Runnable()
-			{
-				public void run() {
-					Log.i("HandleFormatChange", "UI Thread calling ApplyFormatChange()");
-					ApplyFormatChange();
-				}
-			}
-		);
+		post(new Runnable() {
+                 public void run() {
+                     Log.i("HandleFormatChange", "UI Thread calling ApplyFormatChange()");
+                     ApplyFormatChange();
+                 }
+             }
+        );
 	}
 
 	public HLSPlayerViewController(Context context) {
@@ -519,17 +386,14 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		try {
 			System.loadLibrary("HLSPlayerSDK");
 			InitNativeDecoder();
-			mInterfaceThread = new InterfaceThread();
-			mHTTPResponseThread = new HTTPResponseThread();
-			
-
+			mInterfaceThread = new HLSUtilityThread("Interface");
+			mHTTPResponseThread = new HLSUtilityThread("HTTPResponse");
 		} catch (Exception e) {
 			Log.e("PlayerViewController", "Failed to initialize native video library.");
 		}
-		
+
 		// Note the active controller.
 		currentController = this;
-
 	}
 
 	/**
@@ -542,8 +406,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			mRenderThread.interrupt();
 			mRenderThread = null;
 		}
-		if (mInterfaceThread != null) 
-		{ 
+		if (mInterfaceThread != null)
+		{
 			mInterfaceThread.interrupt();
 			mInterfaceThread = null;
 		}
@@ -559,12 +423,11 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			mStreamHandler = null;
 		}
 		currentController = null;
-		
 	}
 	
 	@Override
-	public void release() {
-		
+	public void release()
+    {
 		SharedPreferences sp = getContext().getSharedPreferences("hlsplayersdk", Context.MODE_PRIVATE);
 		Editor spe = sp.edit();
 		spe.clear();
@@ -575,13 +438,15 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		spe.putInt("initialaudiotrack", mStreamHandler != null ? mStreamHandler.altAudioIndex : 0);
 		spe.putInt("initialsubtitletrack", mSubtitleLanguage);
 		spe.commit();
-		
+
 		close();
-		
+
 		// Serialize position, playstate, and url
 	}
+
 	@Override
-	public void recoverRelease() {
+	public void recoverRelease()
+    {
 		// Deserialize postion, playstate, and url
 		SharedPreferences sp = getContext().getSharedPreferences("hlsplayersdk", Context.MODE_PRIVATE);
 		mLastUrl = sp.getString("lasturl", "");
@@ -590,10 +455,10 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		mInitialQualityLevel = sp.getInt("initialquality", 0);
 		mInitialAudioTrack = sp.getInt("initialaudiotrack", 0);
 		mInitialSubtitleTrack = sp.getInt("initialsubtitletrack", 0);
-		
+
 		if (mStartingMS > 0)
 			mRestoringState = true;
-		
+
 		if (mRestoringState)
 		{
 			// we need to resume, somehow
@@ -601,22 +466,16 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					
+
 					Log.i("VideoPlayer UI", " -----> Play " + mLastUrl);
 		            setVideoUrl(mLastUrl);
 		        	setVisibility(View.VISIBLE);
 		        	play();
 				}
-				
 			});
 		}
-		
 	}
 
-
-
-
-	
 	/**
 	 *  Reset any state that we have
 	 */
@@ -630,18 +489,22 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	 * Called when the manifest parser is complete. Once this is done, play can
 	 * actually start.
 	 */
-	public void onParserComplete(ManifestParser parser) {
+	public void onParserComplete(final ManifestParser parser) {
 		if (parser == null || parser.hasSegments() == false)
 		{
 			Log.w("PlayerViewController", "Manifest is null. Ending playback.");
 			postFatalError(OnErrorListener.MEDIA_ERROR_NOT_VALID, "No Valid Manifest");
 			return;
 		}
-		
+
 		// If we're not on the currently requested video play - bail out. No need to start anything up.
-		if (parser.videoPlayId != videoPlayId) return;
-		
-		noMoreSegments = false;
+        if (parser.videoPlayId != videoPlayId)
+        {
+            Log.i("HLSPlayerViewController.onParserComplete.run", "video play id invalid, ignoring");
+            return;
+        }
+
+        noMoreSegments = false;
 		Log.i(this.getClass().getName() + ".onParserComplete", "Entered");
 		mStreamHandler = new StreamHandler(parser);
 		ManifestParser p = mStreamHandler.getManifestForQuality(0);
@@ -650,24 +513,40 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		setBufferTime(mTimeToBuffer);
 
 		mSubtitleHandler = new SubtitleHandler(parser);
-		
+
 		final HLSPlayerViewController self = this;
-		Thread t = new Thread() {
+		Thread t = new Thread("KnowledgePrepThread") {
 			public void run()
 			{
-				mStreamHandler.doKnowledgePrep(self);
+                if (parser.videoPlayId != videoPlayId)
+                {
+                    Log.i("HLSPlayerViewController.onParserComplete.run", "video play id invalid, ignoring");
+                    return;
+                }
+
+				mStreamHandler.doKnowledgePrep(self, parser.videoPlayId);
 			}
 		};
-		
+
 		t.start();
-		
 	}
 	
-	// knowledgePrefetchComplete() is the completion of the code path that begins in onParserComplete() 
+	// knowledgePrefetchComplete() is the completion of the code path that begins in onParserComplete()
 	@Override
-	public void knowledgePrefetchComplete()
+	public void knowledgePrefetchComplete(int vpId)
 	{
-		double startTime = StreamHandler.USE_DEFAULT_START; // This is a trigger to let getFileForTime know to start a live stream 
+        if (vpId != videoPlayId)
+        {
+            Log.i("HLSPlayerViewController.onParserComplete.run", "video play id invalid, ignoring");
+            return;
+        }
+        if(getStreamHandler() == null)
+        {
+            Log.i("HLSPlayerViewController.knowledgePrefetchComplete", "Ran without a valid stream handler, aborting...");
+            return;
+        }
+
+		double startTime = StreamHandler.USE_DEFAULT_START; // This is a trigger to let getFileForTime know to start a live stream
 		int subtitleIndex = 0;
 		int qualityLevel = mQualityLevel = 0;
 		int textTrackIndex = mSubtitleHandler.hasSubtitles() ? mSubtitleHandler.getDefaultLanguageIndex() : 0;
@@ -678,7 +557,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			qualityLevel = mInitialQualityLevel;
 			textTrackIndex = mInitialSubtitleTrack;
 		}
-		
+
 		ManifestSegment seg = getStreamHandler().getFileForTime(startTime, qualityLevel);
 		if (seg == null)
 		{
@@ -686,17 +565,17 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			Log.w("PlayerViewController", "Manifest is not valid. There aren't any segments. Ending playback.");
 			return;
 		}
-		
-		if (startTime == StreamHandler.USE_DEFAULT_START) startTime = seg.startTime; // If our time isn't set for us (ie. on a resume), 
-																					 // we'll be starting at the front of the segment, 
-																					 // so use that time when feeding the segment and
-																					 // getting text tracks.
-		
-	
+
+        // If our time isn't set for us (ie. on a resume), we'll be starting at
+        // the front of the segment, so use that time when feeding the segment and
+        // getting text tracks.
+        if (startTime == StreamHandler.USE_DEFAULT_START)
+            startTime = seg.startTime;
+
 		if (mSubtitleHandler.hasSubtitles())
 		{
 			postTextTracksList(mSubtitleHandler.getLanguageList(), textTrackIndex);
-			
+
 			mSubtitleLanguage = textTrackIndex;
 			mSubtitleHandler.precacheSegmentAtTime(startTime, mSubtitleLanguage );
 			postTextTrackChanged(mSubtitleLanguage);
@@ -705,9 +584,9 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		{
 			mSubtitleHandler = null;
 			postTextTracksList(new ArrayList<String>(), -1);
-			
+
 		}
-		
+
 		if (mStreamHandler.hasAltAudio())
 		{
 			postAudioTracksList(mStreamHandler.getAltAudioLanguageList(), mStreamHandler.getAltAudioDefaultIndex());
@@ -716,9 +595,9 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		{
 			postAudioTracksList(new ArrayList<String>(), -1);
 		}
-		
+
 		postQualityTracksList(mStreamHandler.getQualityTrackList(), 0);
-		
+
 
 		if (seg.altAudioSegment != null)
 		{
@@ -738,15 +617,15 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			FeedSegment(seg.uri, seg.quality, seg.continuityEra, null, -1, seg.startTime, seg.cryptoId, -1);
 			HLSSegmentCache.precache(seg, true, this, getInterfaceThreadHandler());
 		}
-		
+
 		// Kick off render thread.
 		if (mRenderThreadState == THREAD_STATE_STOPPED);
 		{
 			mRenderThread = new Thread(renderRunnable, "RenderThread");
 			mRenderThread.start();
 		}
-		
-		postDurationChanged();	
+
+		postDurationChanged();
 	}
 	
 	@Override
@@ -758,9 +637,9 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			Log.e("HLSPlayerViewController.onSegmentCompleted", "Unexpected empty uri list. Aborting.");
 			return;
 		}
-		
+
 		postPlayerStateChange(PlayerStates.START);
-		
+
 		if (mStartupState == STARTUP_STATE_PLAY_QUEUED)
 			initiatePlay();
 		else
@@ -772,7 +651,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 		HLSSegmentCache.cancelCacheEvent(uri);
 		setStartupState(STARTUP_STATE_WAITING_TO_START);
-		
+
 	}
 
 	@Override
@@ -807,7 +686,6 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	}
 
 	public void initialize() {
-		//mActivity = activity;
 		setBackgroundColor(0xFF000000);
 		initializeNative();
 	}
@@ -818,7 +696,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		Log.i("PlayerViewController.onSizeChanged", "Set size to " + w + "x" + h);
 	}
 
-	public void destroy() 
+	public void destroy()
 	{
 		Log.i("PlayerViewController", "Destroying...");
 
@@ -831,12 +709,22 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 	public void incrementQuality()
 	{
-		switchQualityTrack(mQualityLevel + 1); 
+        postToInterfaceThread(new Runnable() {
+                 @Override
+                 public void run() {
+                     switchQualityTrack(mQualityLevel + 1);
+                 }
+             });
 	}
 	
 	public void decrementQuality()
 	{
-		switchQualityTrack(mQualityLevel - 1); 
+        postToInterfaceThread(new Runnable() {
+            @Override
+            public void run() {
+                switchQualityTrack(mQualityLevel - 1);
+            }
+        });
 	}
 
 	// /////////////////////////////////////////////////////////////////////////////////////////////
@@ -858,6 +746,12 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	
 	private void initiatePlay()
 	{
+        if(getStreamHandler() == null)
+        {
+            Log.i("HLSPlayerViewController.initiatePlay", "null stream handler, aborting.");
+            return;
+        }
+
 		setStartupState(STARTUP_STATE_STARTED);
 		mStreamHandler.initialize(mSubtitleHandler);
 		PlayFile(((double)mStartingMS) / 1000.0f);
@@ -869,64 +763,69 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				pause();
 			}
-			
+
 			// Reset so that the next video doesn't start in the middle
-			mStartingMS = 0; 
+			mStartingMS = 0;
 			mRestoringState = false;
 		}
-
-		
-		
 	}
-	
-	
 
 	public void play() {
-		int state = GetState();
-		if (state == STATE_PAUSED)
-		{
-			postToInterfaceThread(new Runnable() {
-				public void run()
-				{
-					Pause(false);
-					int state = GetState();
-					if (state == STATE_PAUSED) postPlayerStateChange(PlayerStates.PAUSE);
-					else if (state == STATE_PLAYING) postPlayerStateChange(PlayerStates.PLAY);
-				}
-			});
-			return;			
-		}
-		
-		
-		if (mStartupState == STARTUP_STATE_LOADED)
-			initiatePlay();
-		else if (mStartupState != STARTUP_STATE_STARTED)
-			setStartupState(STARTUP_STATE_PLAY_QUEUED);
+
+        postToInterfaceThread(new Runnable()
+        {
+            public void run()
+            {
+                int state = GetState();
+                if (state == STATE_PAUSED)
+                {
+                    postToInterfaceThread(new Runnable() {
+                        public void run()
+                        {
+                            Pause(false);
+                            int state = GetState();
+                            if (state == STATE_PAUSED) postPlayerStateChange(PlayerStates.PAUSE);
+                            else if (state == STATE_PLAYING) postPlayerStateChange(PlayerStates.PLAY);
+                        }
+                    });
+                    return;
+                }
+
+                if (mStartupState == STARTUP_STATE_LOADED)
+                    initiatePlay();
+                else if (mStartupState != STARTUP_STATE_STARTED)
+                    setStartupState(STARTUP_STATE_PLAY_QUEUED);
+            }
+        });
+
 	}
 
 	public void pause() {
 		postToInterfaceThread(new Runnable() {
-			public void run()
-			{
-				Pause(true);
-				int state = GetState();
-				if (state == STATE_PAUSED) postPlayerStateChange(PlayerStates.PAUSE);
-				else if (state == STATE_PLAYING) postPlayerStateChange(PlayerStates.PLAY);
-			}
-		});
+            public void run() {
+                Pause(true);
+                int state = GetState();
+                if (state == STATE_PAUSED) postPlayerStateChange(PlayerStates.PAUSE);
+                else if (state == STATE_PLAYING) postPlayerStateChange(PlayerStates.PLAY);
+            }
+        });
 	}
 
 	public void stop() {
-		HLSSegmentCache.cancelDownloads();
-		if (mStreamHandler != null) mStreamHandler.stopReloads();
-		StopPlayer();
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		postPlayerStateChange(PlayerStates.END);
+        postToInterfaceThread(new Runnable() {
+            public void run() {
+                HLSSegmentCache.cancelDownloads();
+                if (mStreamHandler != null) mStreamHandler.stopReloads();
+                StopPlayer();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                postPlayerStateChange(PlayerStates.END);
+            }
+        });
 	}
 
 	public int getCurrentPosition() {
@@ -943,19 +842,19 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	
 	/***
 	 * seekToCurrentPosition()
-	 * 
+	 *
 	 * It's pretty obvious what it does. However, why it exists
 	 * probably isn't clear.
-	 * 
+	 *
 	 * When we switch between backup streams, we need to seek to the
 	 * last known position instead of waiting for the player to just run
 	 * into the new segment, due to the chance that the new segment from
 	 * the alternate stream might not match exactly with the original stream.
-	 * 
+	 *
 	 * Unfortunately, because backup streams are of the same quality level as
 	 * the primary stream, the native player won't notice a discontinuity, and
 	 * won't reset everything for the new stream unless we do the seek.
-	 * 
+	 *
 	 */
 	public void seekToCurrentPosition()
 	{
@@ -968,17 +867,18 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	}
 	
 	public void seek(final int msec, final boolean notify) {
-		HLSSegmentCache.cancelAllCacheEvents();
-		
-		targetSeekSet = true;
-		targetSeekMS = msec;	
-				
 		postToInterfaceThread( new Runnable() {
 			public void run()
 			{
+                HLSSegmentCache.cancelAllCacheEvents();
+
+                targetSeekSet = true;
+                targetSeekMS = msec;
+
 				boolean tss = targetSeekSet;
 				int tsms = targetSeekMS;
 				int state = GetState();
+
 				if (tss && state != STATE_STOPPED)
 				{
 					if (notify) postPlayerStateChange(PlayerStates.SEEKING);
@@ -997,7 +897,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 					if (notify) postPlayerStateChange(PlayerStates.SEEKING);
 					targetSeekSet = false;
 					targetSeekMS = 0;
-					
+
 					if (tsms != StreamHandler.USE_DEFAULT_START)
 						SeekTo(((double)tsms) / 1000.0f);
 					else
@@ -1014,7 +914,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 
 	// Helper to check network status.
 	public boolean isOnline() {
-	    ConnectivityManager connMgr = (ConnectivityManager) 
+	    ConnectivityManager connMgr = (ConnectivityManager)
 	            getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 	    NetworkInfo networkInfo = null;
 	    try
@@ -1082,46 +982,54 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	
 	public void setVideoUrl(String url) {
 		Log.i("PlayerView.setVideoUrl", url);
-		if (manifestLoader != null)
-		{
-			manifestLoader.setDownloadEventListener(null);
-			manifestLoader = null;
-		}
-		if (mManifest != null)
-		{
-			Log.i("PlayerViewController.setVideoURL", "Manifest is not NULL. Killing the old one and starting a new one.");
-			mManifest.setOnParseCompleteListener(null);
-			mManifest = null;
-		}
+
+        final HLSPlayerViewController self = this;
+        final String lUrl = url;
+
+        postToInterfaceThread(new Runnable() {
+            @Override
+            public void run() {
+                if (manifestLoader != null)
+                {
+                    manifestLoader.setDownloadEventListener(null);
+                    manifestLoader = null;
+                }
+                if (mManifest != null)
+                {
+                    Log.i("PlayerViewController.setVideoURL", "Manifest is not NULL. Killing the old one and starting a new one.");
+                    mManifest.setOnParseCompleteListener(null);
+                    mManifest = null;
+                }
+
+                HLSSegmentCache.cancelAllCacheEvents();
+                HLSSegmentCache.cancelDownloads();
+                targetSeekMS = 0;
+                targetSeekSet = false;
+                stopAndReset();
+
+                mLastUrl = lUrl;
+
+                postPlayerStateChange(PlayerStates.LOAD);
+
+                // Confirm network is ready to go.
+                if(!isOnline())
+                {
+                    Toast.makeText(getContext(), "Not connnected to network; video may not play.", Toast.LENGTH_LONG).show();
+                }
+
+                setStartupState(STARTUP_STATE_LOADING);
 
 
-		HLSSegmentCache.cancelAllCacheEvents();
-		HLSSegmentCache.cancelDownloads();
-		targetSeekMS = 0;
-		targetSeekSet = false;
-		stopAndReset();
-		
-		mLastUrl = url;
+                // Incrementing the videoPlayId. This will keep us from starting videos delayed
+                // by slow manifest downloads when the user tries to start a new video (meaning
+                // that we'll only start the latest request once the parsers are finished).
+                ++videoPlayId;
 
-		postPlayerStateChange(PlayerStates.LOAD);
-
-		// Confirm network is ready to go.
-		if(!isOnline())
-		{
-			Toast.makeText(getContext(), "Not connnected to network; video may not play.", Toast.LENGTH_LONG).show();
-		}
-		
-		setStartupState(STARTUP_STATE_LOADING);
-		
-
-		// Incrementing the videoPlayId. This will keep us from starting videos delayed
-		// by slow manifest downloads when the user tries to start a new video (meaning
-		// that we'll only start the latest request once the parsers are finished).
-		++videoPlayId;
-		
-		// Init loading.
-		manifestLoader = new URLLoader("HLSPlayerViewController.setVideoUrl", this, null, videoPlayId);
-		manifestLoader.get(url);
+                // Init loading.
+                manifestLoader = new URLLoader("HLSPlayerViewController.setVideoUrl", self, null, videoPlayId);
+                manifestLoader.get(lUrl);
+            }
+        });
 	}
 
 
@@ -1138,12 +1046,10 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		{
 			post(new Runnable()
 			{
-
 				@Override
 				public void run() {
-					mPlayerStateChangeListener.onStateChanged(state);					
+					mPlayerStateChangeListener.onStateChanged(state);
 				}
-				
 			});
 		}
 	}
@@ -1153,7 +1059,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	@Override
 	public void registerDurationChanged(OnDurationChangedListener listener)
 	{
-		mDurationChangedListener = listener;		
+		mDurationChangedListener = listener;
 	}
 	
 	public void postDurationChanged()
@@ -1183,14 +1089,14 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mPlayheadUpdateListener.onPlayheadUpdated(msec);					
+					mPlayheadUpdateListener.onPlayheadUpdated(msec);
 				}
-				
+
 			});
 		}
 	}
 
-	
+
 	@Override
 	public void registerProgressUpdate(OnProgressListener listener) {
 		mOnProgressListener = listener;
@@ -1204,9 +1110,9 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mOnProgressListener.onProgressUpdate(progress);					
+					mOnProgressListener.onProgressUpdate(progress);
 				}
-				
+
 			});
 		}
 	}
@@ -1215,7 +1121,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	@Override
 	public void registerError(OnErrorListener listener) {
 		mErrorListener = listener;
-		
+
 	}
 	
 	public void postFatalError(final int errorCode, final String errorMessage)
@@ -1252,7 +1158,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	public void removePlayheadUpdateListener() {
 		if (mPlayheadUpdateListener != null)
 			mPlayheadUpdateListener = null;
-		
+
 	}
 	
 	@Override
@@ -1275,13 +1181,12 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	{
 		if (mSubtitleTextListener != null)
 		{
-			post(new Runnable()
-			{
-				@Override
-				public void run() {
-					mSubtitleTextListener.onSubtitleText(startTime, length, align, buffer);					
-				}
-			});
+			post(new Runnable() {
+                @Override
+                public void run() {
+                    mSubtitleTextListener.onSubtitleText(startTime, length, align, buffer);
+                }
+            });
 		}
 	}
 	
@@ -1292,12 +1197,12 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			mSubtitleLanguage = newIndex;
 			postTextTrackChanged(mSubtitleLanguage);
 		}
-		
+
 	}
 
 	@Override
 	public void registerTextTracksList(OnTextTracksListListener listener) {
-		mOnTextTracksListListener = listener;		
+		mOnTextTracksListListener = listener;
 	}
 	private void postTextTracksList(final List<String> list, final int defaultTrackIndex)
 	{
@@ -1307,8 +1212,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mOnTextTracksListListener.OnTextTracksList(list, defaultTrackIndex);					
-				}				
+					mOnTextTracksListListener.OnTextTracksList(list, defaultTrackIndex);
+				}
 			});
 		}
 	}
@@ -1325,8 +1230,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mOnTextTrackChangeListener.onOnTextTrackChanged(newTrackIndex);					
-				}				
+					mOnTextTrackChangeListener.onOnTextTrackChanged(newTrackIndex);
+				}
 			});
 		}
 	}
@@ -1337,23 +1242,22 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	
 	@Override
 	public void hardSwitchAudioTrack(int newAudioIndex) {
-		if (getStreamHandler() == null)
-		{
-			postError(OnErrorListener.MEDIA_ERROR_NOT_VALID, "The media is not yet ready.");
-			return; // We haven't started yet
-		}
-		
 		final int newIndex = newAudioIndex;
-		
+
 		postToInterfaceThread(new Runnable() {
-			public void run()
-			{
-				postAudioTrackSwitchingStart( getStreamHandler().getAltAudioCurrentIndex(), newIndex);
-				
-				getStreamHandler().setAltAudioTrack(newIndex);
-			}
-		});
-		
+            public void run() {
+                if (getStreamHandler() == null)
+                {
+                    postError(OnErrorListener.MEDIA_ERROR_NOT_VALID, "The media is not yet ready.");
+                    return; // We haven't started yet
+                }
+
+                postAudioTrackSwitchingStart(getStreamHandler().getAltAudioCurrentIndex(), newIndex);
+
+                getStreamHandler().setAltAudioTrack(newIndex);
+            }
+        });
+
 	}
 	
 	@Override
@@ -1365,8 +1269,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		}
 
 		postAudioTrackSwitchingStart( getStreamHandler().getAltAudioCurrentIndex(), newAudioIndex);
-		
-		getStreamHandler().setAltAudioTrack(newAudioIndex); 
+
+		getStreamHandler().setAltAudioTrack(newAudioIndex);
 
 	}
 	
@@ -1383,8 +1287,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mOnAudioTracksListListener.OnAudioTracksList(list, defaultTrackIndex);					
-				}				
+					mOnAudioTracksListListener.OnAudioTracksList(list, defaultTrackIndex);
+				}
 			});
 		}
 	}
@@ -1403,8 +1307,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mOnAudioTrackSwitchingListener.onAudioSwitchingStart(oldTrackIndex, newTrackIndex);					
-				}				
+					mOnAudioTrackSwitchingListener.onAudioSwitchingStart(oldTrackIndex, newTrackIndex);
+				}
 			});
 		}
 	}
@@ -1417,8 +1321,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mOnAudioTrackSwitchingListener.onAudioSwitchingEnd(newTrackIndex);					
-				}				
+					mOnAudioTrackSwitchingListener.onAudioSwitchingEnd(newTrackIndex);
+				}
 			});
 		}
 	}
@@ -1438,7 +1342,19 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				postQualityTrackSwitchingStart(mQualityLevel, newIndex);
 				mQualityLevel = newIndex;
-				mStreamHandler.initiateQualityChange(mQualityLevel);
+
+				postToInterfaceThread(new Runnable() {
+					public void run()
+					{
+                        if(mStreamHandler == null)
+                        {
+                            Log.i("HLSPlayerViewController.switchQualityTrack", "Went to initiate quality change but got null stream handler, aborting...");
+                            return;
+                        }
+						mStreamHandler.initiateQualityChange(mQualityLevel);
+					}
+				});
+
 			}
 			else
 			{
@@ -1450,7 +1366,7 @@ public class HLSPlayerViewController extends RelativeLayout implements
 	@Override
 	public void setAutoSwitch(boolean autoSwitch) {
 		postError(OnErrorListener.MEDIA_ERROR_UNSUPPORTED, "setAutoSwitch");
-		
+
 	}
 	
 	private OnQualityTracksListListener mOnQualityTracksListListener = null;
@@ -1467,13 +1383,13 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			{
 				@Override
 				public void run() {
-					mOnQualityTracksListListener.OnQualityTracksList(list, defaultTrackIndex);					
-				}				
+					mOnQualityTracksListListener.OnQualityTracksList(list, defaultTrackIndex);
+				}
 			});
 		}
 	}
 	
-	
+
 	private OnQualitySwitchingListener mOnQualitySwitchingListener = null;
 	@Override
 	public void registerQualitySwitchingChange( OnQualitySwitchingListener listener) {
@@ -1526,8 +1442,8 @@ public class HLSPlayerViewController extends RelativeLayout implements
 			if (rem != 0) ++segments;
 			if (segments < 1) segments = 1;
 		}
-		SetSegmentCountToBuffer(segments);			
-		
+		SetSegmentCountToBuffer(segments);
+
 		return segments;
 	}
 	
@@ -1556,4 +1472,115 @@ public class HLSPlayerViewController extends RelativeLayout implements
 		if (mStreamHandler != null) return mStreamHandler.lastQuality;
 		return 0;
 	}
+
+    /**
+     * Responsible for managing video playback state; this is done async to keep
+     * UI responsive and handle blocking activities.
+     */
+    private class VideoRenderRunnable implements Runnable {
+        private int lastState = STATE_STOPPED;
+        private int lastTimeStamp = -1;
+
+        public void run() {
+            mRenderThreadState = THREAD_STATE_RUNNING;
+            while (mRenderThreadState == THREAD_STATE_RUNNING)
+            {
+                if (stopVideoThread)
+                {
+                    Log.i("videoThread", "Stopping video render thread");
+                    mRenderThreadState = THREAD_STATE_STOPPED;
+                    continue;
+                }
+
+                int state = GetState();
+                if (state == STATE_PLAYING
+                        || state == STATE_FOUND_DISCONTINUITY
+                        || state == STATE_WAITING_FOR_DATA) {
+
+                    // Trigger next frame in native.
+                    int rval = 0;
+                    try
+                    {
+                        rval = NextFrame();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.i("NextFrame", e.getMessage());
+                        rval = mTimeMS; // Just going to set it to the last known timestamp
+                    }
+
+                    // Handle various return states.
+                    if (rval >= 0) { mTimeMS = rval; /* Log.i("RunThread", "mTimeMS = " + mTimeMS); */ }
+                    if (rval < 0 && state != lastState)
+                    {
+                        Log.i("videoThread", "State Changed -- NextFrame() returned " + rval + " : state = " +
+                                (state == STATE_PLAYING ? "STATE_PLAYING" :
+                                (state == STATE_FOUND_DISCONTINUITY ? "STATE_FOUND_DISCONTINUITY" :
+                                (state == STATE_WAITING_FOR_DATA ? "STATE_WAITING_FOR_DATA" : "UNKNOWN STATE"))));
+                    }
+                    lastState = state;
+
+                    // Stop if we hit end of stream.
+                    if (rval == -1 && noMoreSegments) currentController.stop();
+
+                    // Process discontinuities.
+                    if (rval == -1013) // INFO_DISCONTINUITY
+                    {
+                        Log.i("videoThread", "Ran into a discontinuity (INFO_DISCONTINUITY)");
+                        HandleFormatChange();
+                    }
+                    else
+                    {
+                        // Otherwise, we can handle playhead updates.
+                        if (lastTimeStamp != mTimeMS)
+                        {
+                            postPlayheadUpdate(mTimeMS);
+                            lastTimeStamp = mTimeMS;
+                        }
+                    }
+
+                    // Trigger any subtitles for the time we just processed.
+                    if (mSubtitleHandler != null)
+                    {
+                        double timeSecs = ( (double)mTimeMS / 1000.0);
+                        Vector<TextTrackCue> cues = mSubtitleHandler.update(timeSecs, mSubtitleLanguage);
+                        if (cues != null && mSubtitleTextListener != null)
+                        {
+                            for (int i = 0; i < cues.size(); ++i)
+                            {
+                                TextTrackCue cue = cues.get(i);
+                                postTextTrackText(cue.startTime, cue.endTime - cue.startTime, cue.lineAlignment, cue.text);
+                            }
+                        }
+                    }
+
+                    // Give other things a shot at the CPU.
+                    try {
+                        Thread.yield();
+                    } catch (Exception e) {
+                        Log.i("video run", "Video thread sleep interrupted!");
+                    }
+
+                    //Log.i("PlayerViewController", "Dropped Frames Per Sec: " + DroppedFramesPerSecond());
+                }
+                else if (state == STATE_CUE_STOP)
+                {
+                    // We're done playing.
+                    stop();
+                }
+                else
+                {
+                    // Really yield CPU as we're not doing anything right now.
+                    try {
+                        Thread.sleep(30);
+                    } catch (InterruptedException ie) {
+                        Log.i("video run", "Video thread sleep interrupted!");
+                    }
+                }
+            }
+
+            // Log the thread as stopped.
+            stopVideoThread = false;
+        }
+    }
 }
