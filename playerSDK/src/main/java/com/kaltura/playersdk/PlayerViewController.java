@@ -1,20 +1,25 @@
 package com.kaltura.playersdk;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -51,6 +56,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,7 +77,7 @@ public class PlayerViewController extends RelativeLayout {
     private BasePlayerView mVideoInterface;
     //Original VideoPlayerInterface that was created by "addComponents"
     private BasePlayerView mOriginalVideoInterface;
-    private WebView mWebView;
+    private WebView mWebView = null;
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
@@ -87,11 +93,14 @@ public class PlayerViewController extends RelativeLayout {
     private String mVideoUrl;
     private String mVideoTitle = "";
     private String mThumbUrl = "";
+    private String mIframeUrl = null;
 
     private PlayerStates mState = PlayerStates.START;
     private PowerManager mPowerManager;
 
     private boolean mWvMinimized = false;
+
+    private int newWidth, newHeight;
 
     // trigger timeupdate events
     final Runnable runnableUpdatePlayhead = new Runnable() {
@@ -114,7 +123,6 @@ public class PlayerViewController extends RelativeLayout {
     public PlayerViewController(Context context) {
         super(context);
         setupPlayerViewController( context );
-
     }
 
     public PlayerViewController(Context context, AttributeSet attrs) {
@@ -134,8 +142,10 @@ public class PlayerViewController extends RelativeLayout {
      */
     public void releaseAndSavePosition() {
         savePlaybackPosition();
-        if ( mVideoInterface!= null )
+        if ( mVideoInterface != null )
+        {
             mVideoInterface.release();
+        }
     }
 
     /**
@@ -143,8 +153,9 @@ public class PlayerViewController extends RelativeLayout {
      * This method should be called when the main activity is resumed.
      */
     public void resumePlayer() {
-        if ( mVideoInterface!= null )
+        if ( mVideoInterface != null ) {
             mVideoInterface.recoverRelease();
+        }
     }
 
     private void setupPlayerViewController( final Context context) {
@@ -202,7 +213,34 @@ public class PlayerViewController extends RelativeLayout {
                 percent *= 10;
             }
         }
-        mgr.setStreamVolume(AudioManager.STREAM_MUSIC, (int)percent, 0);
+        mgr.setStreamVolume(AudioManager.STREAM_MUSIC, (int) percent, 0);
+    }
+    @SuppressLint("NewApi") private Point getRealScreenSize(){
+        Display display = mActivity.getWindowManager().getDefaultDisplay();
+        int realWidth = 0;
+        int realHeight = 0;
+
+        if (Build.VERSION.SDK_INT >= 17){
+            //new pleasant way to get real metrics
+            DisplayMetrics realMetrics = new DisplayMetrics();
+            display.getRealMetrics(realMetrics);
+            realWidth = realMetrics.widthPixels;
+            realHeight = realMetrics.heightPixels;
+
+        } else {
+            try {
+                Method mGetRawH = Display.class.getMethod("getRawHeight");
+                Method mGetRawW = Display.class.getMethod("getRawWidth");
+                realWidth = (Integer) mGetRawW.invoke(display);
+                realHeight = (Integer) mGetRawH.invoke(display);
+            } catch (Exception e) {
+                realWidth = display.getWidth();
+                realHeight = display.getHeight();
+                Log.e("Display Info", "Couldn't use reflection to get the real display metrics.");
+            }
+
+        }
+        return new Point(realWidth,realHeight);
     }
 
 
@@ -216,8 +254,8 @@ public class PlayerViewController extends RelativeLayout {
      */
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
         setPadding(xPadding, yPadding, 0, 0);
-        int newWidth = width + xPadding;
-        int newHeight = height + yPadding;
+        newWidth = width + xPadding;
+        newHeight = height + yPadding;
 
         ViewGroup.LayoutParams lp = getLayoutParams();
         if ( lp == null ) {
@@ -228,26 +266,55 @@ public class PlayerViewController extends RelativeLayout {
         }
 
         this.setLayoutParams(lp);
-        for ( int i=0; i< this.getChildCount(); i++ ) {
+        for ( int i = 0; i < this.getChildCount(); i++ ) {
+
             View v = getChildAt(i);
+            if( v == mVideoInterface )
+            {
+                continue;
+            }
             ViewGroup.LayoutParams vlp = v.getLayoutParams();
             vlp.width = newWidth;
-            if ( !mWvMinimized || !v.equals( mWebView) )
+            if ( (!mWvMinimized || !v.equals( mWebView)) ) {//
                 vlp.height = newHeight;
+            }
             updateViewLayout(v, vlp);
         }
 
-        if ( mVideoInterface != null && mVideoInterface.getParent() == this ) {
-            LayoutParams plp = (LayoutParams) ((View)mVideoInterface).getLayoutParams();
-            if ( xPadding==0 && yPadding==0 ) {
-                plp.addRule(CENTER_IN_PARENT);
-            } else {
-                plp.addRule(CENTER_IN_PARENT, 0);
-            }
-            updateViewLayout(mVideoInterface, plp);
-        }
 
+        if(mWebView != null) {
+            mWebView.loadUrl("javascript:android.onData(NativeBridge.videoPlayer.getControlBarHeight())");
+        }
         invalidate();
+    }
+
+    @JavascriptInterface
+    public void onData(String value) {
+        if ( mVideoInterface != null && mVideoInterface.getParent() == this ) {
+            LayoutParams wvLp = (LayoutParams) ((View) mVideoInterface).getLayoutParams();
+
+            if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
+                wvLp.addRule(CENTER_IN_PARENT);
+            } else {
+                wvLp.addRule(CENTER_IN_PARENT, 0);
+            }
+
+            int controlBarHeight = Integer.parseInt(value) + 5;
+            float scale = mActivity.getResources().getDisplayMetrics().density;
+            controlBarHeight = (int) (controlBarHeight * scale + 0.5f);
+            wvLp.height = newHeight - controlBarHeight;
+            wvLp.width = newWidth;
+            wvLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            final LayoutParams lp = wvLp;
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateViewLayout(mVideoInterface, lp);
+                    invalidate();
+                }
+            });
+
+        }
     }
 
     /**
@@ -284,37 +351,40 @@ public class PlayerViewController extends RelativeLayout {
      * param iFrameUrl- String url
      */
     public void setComponents(String iframeUrl) {
-        mWebView = new WebView(getContext());
-        mCurSec = 0;
-        ViewGroup.LayoutParams currLP = getLayoutParams();
-        LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
+        if(mWebView == null) {
+            mWebView = new WebView(getContext());
 
-        mBackgroundRL = new RelativeLayout(getContext());
-        mBackgroundRL.setBackgroundColor(Color.BLACK);
-        this.addView(mBackgroundRL,currLP);
-        //TODO: Maybe remove this automatic instantization
-        KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
-        LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-        this.addView(kalturaPlayer, lp);
+            mCurSec = 0;
+            ViewGroup.LayoutParams currLP = getLayoutParams();
+            LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
-        mOriginalVideoInterface = kalturaPlayer;
-        createPlayerInstance();
+            mBackgroundRL = new RelativeLayout(getContext());
+            mBackgroundRL.setBackgroundColor(Color.BLACK);
+            this.addView(mBackgroundRL, currLP);
+            //TODO: Maybe remove this automatic instantization
+            KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
+            LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
+            this.addView(kalturaPlayer, lp);
 
-        this.addView(mWebView, wvLp);
-        mWebView.getSettings().setJavaScriptEnabled(true);
-        mWebView.setWebViewClient(new CustomWebViewClient());
-        mWebView.setWebChromeClient(new WebChromeClient());
-        mWebView.getSettings().setUserAgentString(
-                mWebView.getSettings().getUserAgentString()
-                        + " kalturaNativeCordovaPlayer");
-        if (Build.VERSION.SDK_INT >= 11) {
+            mOriginalVideoInterface = kalturaPlayer;
+            createPlayerInstance();
+
+            this.addView(mWebView, wvLp);
+            mWebView.getSettings().setJavaScriptEnabled(true);
+            mWebView.addJavascriptInterface(this, "android");
+            mWebView.setWebViewClient(new CustomWebViewClient());
+            mWebView.setWebChromeClient(new WebChromeClient());
+            mWebView.getSettings().setUserAgentString( mWebView.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer" );
             mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            mWebView.setBackgroundColor(0);
         }
 
         iframeUrl = RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext());
-        
-        mWebView.loadUrl(iframeUrl);
-        mWebView.setBackgroundColor(0);
+        if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) )
+        {
+            mIframeUrl = iframeUrl;
+            mWebView.loadUrl(iframeUrl);
+        }
     }
 
     /**
@@ -471,7 +541,7 @@ public class PlayerViewController extends RelativeLayout {
     public void asyncEvaluate(String expression, KPlayerEventListener listener) {
         String callbackName = listener.getCallbackName();
         mKplayerEvaluatedMap.put(callbackName, listener);
-        notifyKPlayer("asyncEvaluate", new String[] { expression, callbackName });
+        notifyKPlayer("asyncEvaluate", new String[]{expression, callbackName});
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -490,20 +560,20 @@ public class PlayerViewController extends RelativeLayout {
                 String values = "";
 
                 if (eventValues != null) {
-                    for ( int i=0; i< eventValues.length; i++ ) {
-                        if ( eventValues[i] instanceof String ) {
+                    for (int i = 0; i < eventValues.length; i++) {
+                        if (eventValues[i] instanceof String) {
                             values += "'" + eventValues[i] + "'";
                         } else {
                             values += eventValues[i].toString();
                         }
-                        if ( i < eventValues.length - 1 ) {
+                        if (i < eventValues.length - 1) {
                             values += ", ";
                         }
                     }
                     // values = TextUtils.join("', '", eventValues);
                 }
-                if ( mWebView != null ) {
-                    Log.d(TAG,"NotifyKplayer: " + values);
+                if (mWebView != null) {
+                    Log.d(TAG, "NotifyKplayer: " + values);
                     mWebView.loadUrl("javascript:NativeBridge.videoPlayer."
                             + action + "(" + values + ");");
                 }
@@ -701,9 +771,9 @@ public class PlayerViewController extends RelativeLayout {
 
                                         if (params != null && params.size() > 1) {
                                             if (params.get(0).equals("currentTime")) {
-                                                int seekTo = (Integer.parseInt(params.get(1)));
+                                                float seekTo = (Float.parseFloat(params.get(1)));
                                                 Log.d(TAG,"SEEK: from JS To :" + seekTo);
-                                                mVideoInterface.seek(seekTo);
+                                                mVideoInterface.seek((int)(seekTo*1000));
                                             } else if (params.get(0).equals("src")) {
                                                 // remove " from the edges
                                                 mVideoUrl = params.get(1);
@@ -768,7 +838,7 @@ public class PlayerViewController extends RelativeLayout {
                                                 if (!(mVideoInterface instanceof PlayerView)) {
 
                                                     ViewGroup.LayoutParams currLP = getLayoutParams();
-                                                    PlayerView playerView = new PlayerView(mActivity);
+                                                    PlayerView playerView = new PlayerView(mActivity, true);
                                                     LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
                                                     if (mVideoInterface instanceof View) {
                                                         replacePlayerViewChild(playerView, (View) mVideoInterface);

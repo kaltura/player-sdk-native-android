@@ -37,6 +37,7 @@ public class FullscreenFragment extends Fragment{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = FullscreenFragment.class.getSimpleName();
+    private View mFragmentView = null;
 //    private static final String ARG_PARAM1 = "param1";
 //    private static final String ARG_PARAM2 = "param2";
 
@@ -83,8 +84,11 @@ public class FullscreenFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View fragmentView = inflater.inflate(R.layout.fragment_fullscreen, container, false);
-        mPlayerView = (PlayerViewController) fragmentView.findViewById(R.id.player);
+        if(mFragmentView == null) {
+            mFragmentView = inflater.inflate(R.layout.fragment_fullscreen, container, false);
+        }
+        
+        mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
         mPlayerView.setActivity(getActivity());
         mPlayerView.setOnFullScreenListener(new OnToggleFullScreenListener() {
 
@@ -147,6 +151,7 @@ public class FullscreenFragment extends Fragment{
 
         });
 
+
         showPlayerView();
         Bundle bundle = getArguments();
         String iFrameUrl;
@@ -203,7 +208,7 @@ public class FullscreenFragment extends Fragment{
             });
         }
 
-        return fragmentView;
+        return mFragmentView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

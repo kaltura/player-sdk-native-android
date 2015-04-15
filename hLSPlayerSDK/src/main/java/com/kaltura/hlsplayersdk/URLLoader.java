@@ -92,7 +92,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 		{
 			HLSPlayerViewController.currentController.postError(OnErrorListener.ERROR_UNKNOWN, "URL Get Failed: " + e.getMessage());
 		}
-		Log.i("URLLoader [" + myUrlHandle + "].get[" + mTag + "]", "reqHandle.isCancelled: " + reqHandle.isCancelled());
+		Log.i("URLLoader [" + myUrlHandle + "].get[" + mTag + "]", "reqHandle.isCancelled: " + (reqHandle != null ? reqHandle.isCancelled() : "null"));
 	}
 	
 	private boolean retrying()
@@ -219,10 +219,10 @@ public class URLLoader extends AsyncHttpResponseHandler
 		logLoaderStates();
 		final URLLoader thisLoader = this;
 
-		for (int i = 0; i < headers.length; ++i)
-		{
-			Log.v("URLLoader [" + myUrlHandle + "].success", "Header: " + headers[i].getName() + ": " + headers[i].getValue());
-		}
+//		for (int i = 0; i < headers.length; ++i)
+//		{
+//			Log.v("URLLoader [" + myUrlHandle + "].success", "Header: " + headers[i].getName() + ": " + headers[i].getValue());
+//		}
 	
 		if (mDownloadEventListener == null)
 		{

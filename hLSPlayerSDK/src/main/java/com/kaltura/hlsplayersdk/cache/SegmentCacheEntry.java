@@ -95,6 +95,7 @@ public class SegmentCacheEntry
 	
 	private void initiateDownload(final SegmentCacheItem sci)
 	{
+		if (dataSize() != 0) return; // We don't want to initiate a completed download
 		sci.running = true;
 		sci.downloadStartTime = System.currentTimeMillis();
 		
@@ -153,7 +154,7 @@ public class SegmentCacheEntry
 	public void setWaiting(boolean waiting)
 	{
 		for (int i = 0; i < mItems.length; ++i)
-			mItems[i].waiting = true;
+			mItems[i].waiting = waiting;
 	}
 	
 	public void setWaiting(String uri, boolean waiting)
@@ -179,6 +180,20 @@ public class SegmentCacheEntry
 		for (int i = 0; i < mItems.length; ++i)
 			size += mItems[i].bytesDownloaded;
 		return size;
+	}
+	
+	public int dataSize(String uri)
+	{
+		for (SegmentCacheItem item : mItems)
+		{
+			if (item.uri.equals(uri))
+			{
+				if (item.data != null)
+					return item.data.length;
+				return 0;
+			}
+		}
+		return 0;
 	}
 	
 	public int dataSize()
@@ -216,7 +231,7 @@ public class SegmentCacheEntry
 		{
 			if (mSegmentCachedListener != listener)
 			{
-				Log.i("SegmentCacheEntry", "Setting the SegmentCachedListener to a new value: " + listener);
+				Log.i("SegmentCacheEntry", "Setting the SegmentCachedListener to a new value: " + listener + " Old Value: " + mSegmentCachedListener);
 				mSegmentCachedListener = listener;
 				mCallbackHandler = callbackHandler;
 			}
@@ -230,17 +245,30 @@ public class SegmentCacheEntry
 	
 	public void notifySegmentCached()
 	{
-		if (isWaiting()) HLSSegmentCache.postProgressUpdate(true);
+		HLSSegmentCache.postProgressUpdate(true);
 		setWaiting(false);
 		if (mSegmentCachedListener != null && mCallbackHandler != null)
 		{
 			mCallbackHandler.post(new Runnable() {
+				SegmentCachedListener listener = mSegmentCachedListener;
+				
 				public void run()
 				{
-					synchronized (selfRef)
-					{
-						if (mSegmentCachedListener != null) mSegmentCachedListener.onSegmentCompleted(mItems[0].uri);
-					}
+                    synchronized (HLSSegmentCache.segmentCache)
+                    {
+                        synchronized (selfRef)
+                        {
+                            if (listener != null)
+                            {
+                                String [] uris = new String[mItems.length];
+                                for (int i = 0; i < mItems.length; ++i)
+                                {
+                                    uris[i] = mItems[i].uri;
+                                }
+                                listener.onSegmentCompleted(uris);
+                            }
+                        }
+                    }
 				}
 			});
 		}
@@ -277,13 +305,17 @@ public class SegmentCacheEntry
 
 	}
 	
-	public void updateProgress()
+	public void updateProgress(boolean force)
 	{
 		// If we have a callback handler, it pretty much means that we're not going to be
 		// in a wait state in the SegmentCache <-- does this comment make sense?
 		if (mCallbackHandler != null && isWaiting() && bytesDownloaded() != expectedSize())
 		{
 			HLSSegmentCache.postProgressUpdate(false);
+		}
+		else if (mCallbackHandler != null && force)
+		{
+			HLSSegmentCache.postProgressUpdate(true);
 		}
 	}
 }
