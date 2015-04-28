@@ -303,12 +303,12 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		}
 		
 		// No match, dump to aid debug
-		Log.i("StreamHandler.getSegmentContainingTime", "Looking for time: " + time);
-		for (int i = 0; i < segments.size(); ++i)
-		{
-			ManifestSegment seg = segments.get(i);
-			Log.i("StreamHandler.getSegmentContainingTime", "#" + i + " id=" + seg.id + " start=" + seg.startTime + " end=" + (seg.startTime + seg.duration) + " Segment=" + seg);
-		}
+//		Log.i("StreamHandler.getSegmentContainingTime", "Looking for time: " + time);
+//		for (int i = 0; i < segments.size(); ++i)
+//		{
+//			ManifestSegment seg = segments.get(i);
+//			Log.i("StreamHandler.getSegmentContainingTime", "#" + i + " id=" + seg.id + " start=" + seg.startTime + " end=" + (seg.startTime + seg.duration) + " Segment=" + seg);
+//		}
 		
 		return null;
 	}
@@ -1058,13 +1058,24 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		if (baseManifest == null) return -1;
 
 		Vector<ManifestSegment> segments = getSegmentsForQuality( lastQuality );
-		updateSegmentTimes(segments);
-		int i = segments.size() - 1;
-
-		accum = (segments.get(i).startTime + segments.get(i).duration) - lastKnownPlaylistStartTime;
+		if (segments.size() > 0)
+		{
+			updateSegmentTimes(segments);
+			int i = segments.size() - 1;
+	
+			accum = (segments.get(i).startTime + segments.get(i).duration) - segments.get(0).startTime;
+		}
 
 		return (int) (accum * 1000);
 
+	}
+	
+	public int getTimeWindowStart()
+	{
+		Vector<ManifestSegment> segments = getSegmentsForQuality( lastQuality );
+		if (segments.size() > 0)
+			return (int) (segments.get(0).startTime * 1000);
+		return 0;
 	}
 
 	public int getQualityLevels()

@@ -36,6 +36,10 @@ public class URLLoader extends AsyncHttpResponseHandler
 	
 	/// END LOADER STATE DEBUG INFO
 	
+	private static final boolean mLogLoaderProgress = true; // This should be false for release builds
+	
+	
+	private boolean mComplete = false;
 	
 	private static int getNextHandle()
 	{
@@ -44,6 +48,8 @@ public class URLLoader extends AsyncHttpResponseHandler
 	}
 	
 	private int myUrlHandle = 0;
+	
+	public int getHandle() { return myUrlHandle; }
 	
 	public BaseManifestItem manifestItem = null;
 	public String uri;
@@ -162,7 +168,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 	@Override
 	public void onProgress(int bytes, int totalSize)
 	{
-		
+		if (mLogLoaderProgress) Log.i("URLLoader [" + myUrlHandle + "].onProgress", "Downloaded: " + bytes + "/" + totalSize);
 	}
 	
 	@Override
@@ -188,6 +194,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 		Log.i("URLLoader [" + myUrlHandle + "].failure[" + mTag + "]", uri + "StatusCode (" + statusCode + ")");
 		logLoaderStates();
 		if (retrying()) return;
+		mComplete = true;
 		final URLLoader thisLoader = this;
 		final int sc = statusCode;
 		String m = "";
@@ -224,11 +231,6 @@ public class URLLoader extends AsyncHttpResponseHandler
 //			Log.v("URLLoader [" + myUrlHandle + "].success", "Header: " + headers[i].getName() + ": " + headers[i].getValue());
 //		}
 	
-		if (mDownloadEventListener == null)
-		{
-			Log.e("URLLoader [" + myUrlHandle + "].success", "No event listener set - returning!");
-			return;
-		}
 
 		if (uri.lastIndexOf(".m3u8") == uri.length() - 5)
 		{
@@ -241,6 +243,7 @@ public class URLLoader extends AsyncHttpResponseHandler
 				}
 			}
 		}
+
 		
 		String s = null;
 		try
@@ -254,10 +257,10 @@ public class URLLoader extends AsyncHttpResponseHandler
 		}
 		final String response = s;
 		
-				
+		mComplete = true;
 		if (mDownloadEventListener != null)
 		{
-			Log.i("URLLoader [" + myUrlHandle + "].success[" + mTag + "]", "Posting To Interface Thread: " + uri);
+			Log.i("URLLoader [" + myUrlHandle + "].success[" + mTag + "]", "Posting To http response Thread: " + uri);
 			
 			// Post back to main thread to avoid re-entrancy problems
 			HLSPlayerViewController.postToHTTPResponseThread(new Runnable()
@@ -268,6 +271,15 @@ public class URLLoader extends AsyncHttpResponseHandler
 					mDownloadEventListener.onDownloadComplete(thisLoader, response==null?"null" : response);
 				}
 			});
-		}		
+		}
+		else
+		{
+			Log.e("URLLoader [" + myUrlHandle + "].success", "No event listener set - returning!");
+		}
+	}
+	
+	public boolean isComplete()
+	{
+		return mComplete;
 	}
 }

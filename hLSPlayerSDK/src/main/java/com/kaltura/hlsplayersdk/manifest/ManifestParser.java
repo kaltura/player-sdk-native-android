@@ -3,6 +3,8 @@ package com.kaltura.hlsplayersdk.manifest;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import android.util.Log;
@@ -19,6 +21,11 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 	private static int instanceCounter = 0;
 	private int instanceCount = 0;
 	public int instance() { return instanceCount; }
+	
+	private boolean complete = false;
+	
+	private Timer timeoutTimer = null;
+	private final int timeOutDelay = 30000;
 	
 	class BandwidthComparator implements Comparator<ManifestStream>
 	{
@@ -165,6 +172,8 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 		lastHint = null;
 		fullUrl = _fullUrl;
 		baseUrl = _fullUrl.substring(0, _fullUrl.lastIndexOf('/') + 1);
+		
+		Log.i("ManifestParser.parse[" + instance() + "]", "Parsing: " + _fullUrl);
 		
 		// Normalize line endings
 		input = input.replace("\r\n", "\n");
@@ -398,7 +407,37 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 			timeAccum += subtitles.get(m).segmentTimeWindowDuration;
 		}
 		
-		if (manifestLoaders.size() == 0) postParseComplete(this);
+		if (manifestLoaders.size() == 0)
+		{
+			postParseComplete(this);
+			
+		}
+		else
+		{
+			timeoutTimer = new Timer();
+			timeoutTimer.schedule(new TimerTask()
+			{
+				public void run()
+				{
+					Vector<URLLoader> failedLoaders = new Vector<URLLoader>();
+					
+					for (int i = 0; i < manifestLoaders.size(); ++i)
+					{
+						if (manifestLoaders.get(i).isComplete() == false)
+						{
+							manifestLoaders.get(i).setDownloadEventListener(null);
+							failedLoaders.add(manifestLoaders.get(i));
+						}
+					}
+					
+					for (int i = 0; i < failedLoaders.size(); ++i)
+					{
+						onDownloadFailed(failedLoaders.get(i), "ManifestParser subItem download timeout");
+					}
+				}
+				
+			}, timeOutDelay);
+		}
 			
 	}
 	
@@ -656,7 +695,15 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
 	private OnParseCompleteListener mOnParseCompleteListener;
 	public void postParseComplete(ManifestParser parser)
 	{
+		if (timeoutTimer != null) timeoutTimer.cancel();
+		timeoutTimer = null;
+		complete = true;
 		if (mOnParseCompleteListener != null) mOnParseCompleteListener.onParserComplete(parser);
+	}
+	
+	public boolean isComplete()
+	{
+		return complete;
 	}
 	
 	
