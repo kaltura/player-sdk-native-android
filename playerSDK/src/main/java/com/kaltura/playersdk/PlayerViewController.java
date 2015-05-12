@@ -779,7 +779,7 @@ public class PlayerViewController extends RelativeLayout {
                                                 mVideoUrl = params.get(1);
                                                 //check for hls
                                                 int lastIndex = mVideoUrl.indexOf("?") != -1 ? mVideoUrl.indexOf("?") : mVideoUrl.length();
-                                                String videoUrl = mVideoUrl.substring(0, lastIndex);
+                                                String videoUrl = mVideoUrl;
                                                 String extension = videoUrl.substring(videoUrl.lastIndexOf(".") + 1);
 
                                                 BasePlayerView tmpPlayer = null;
