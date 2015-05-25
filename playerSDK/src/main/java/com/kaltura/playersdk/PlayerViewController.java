@@ -382,6 +382,7 @@ public class PlayerViewController extends RelativeLayout {
         iframeUrl = RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext());
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) )
         {
+            iframeUrl = iframeUrl + "&iframeembed=true";
             mIframeUrl = iframeUrl;
             mWebView.loadUrl(iframeUrl);
         }
