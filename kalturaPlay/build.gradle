@@ -12,12 +12,28 @@ android {
         versionName "0.7"
     }
 
+    signingConfigs {
+        release {
+            storeFile System.getenv('KSTORE_FILE') ? file(System.getenv('KSTORE_FILE')) : null
+            keyAlias System.getenv('KSTORE_ALIAS')
+            storePassword System.getenv('KSTORE_PASS')
+            keyPassword System.getenv('KSTORE_PASS')
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            
+            // If storeFile is defined, use it. Otherwide don't sign.
+            if (signingConfigs.release.storeFile != null) {
+                setSigningConfig(signingConfigs.release);
+            }
         }
     }
+    
+    
 }
 
 dependencies {
