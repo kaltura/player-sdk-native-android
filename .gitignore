@@ -34,3 +34,4 @@ proguard/
 
 .idea/workspace.xml
 .gradle
+/hLSPlayerSDK/tools/temp
