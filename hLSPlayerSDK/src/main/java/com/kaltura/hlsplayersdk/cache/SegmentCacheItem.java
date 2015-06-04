@@ -156,7 +156,11 @@ public class SegmentCacheItem {
 	@Override
 	public String toString()
 	{
-		return "SegmentCacheItem(" + ((Object)this).hashCode() + ")[" + waiting + "]" + uri.substring(uri.lastIndexOf('/'));
+		String sw = "waiting";
+		if (!waiting) sw = "not " + sw;
+		String sr = "running";
+		if (!running) sr = "not " + sr;
+		return "SegmentCacheItem(" + ((Object)this).hashCode() + ")[" + sw + "][" + sr + "]" + uri;
 	}
 
 }

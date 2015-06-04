@@ -98,8 +98,9 @@ public class SegmentCacheEntry
 		if (dataSize() != 0) return; // We don't want to initiate a completed download
 		sci.running = true;
 		sci.downloadStartTime = System.currentTimeMillis();
+		Log.i("SegmentCacheEntry", "Requesting: " + sci.uri );
 		
-		HLSPlayerViewController.postToHTTPResponseThread( new Runnable()
+		HLSSegmentCache.postToCacheRequestThread( new Runnable()
 		{
 			@Override
 			public void run() {
@@ -110,6 +111,7 @@ public class SegmentCacheEntry
 				
 				httpClient.setMaxRetriesAndTimeout(0, httpClient.getConnectTimeout());
 				sci.request = httpClient.get(HLSSegmentCache.context, sci.uri, new SegmentBinaryResponseHandler(sci));
+				Log.i("SegmentCacheEntry", "Requested: " + sci.uri );
 
 			}
 		});
