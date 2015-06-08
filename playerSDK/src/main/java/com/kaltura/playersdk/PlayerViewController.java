@@ -27,6 +27,7 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
+import com.kaltura.playersdk.Helpers.KStringUtilities;
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
@@ -66,7 +67,7 @@ import java.util.List;
 /**
  * Created by michalradwantzor on 9/24/13.
  */
-public class PlayerViewController extends RelativeLayout {
+public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient {
     public static String TAG = "PlayerViewController";
     public static String DEFAULT_HOST = "http://kgit.html5video.org/";
     public static String DEFAULT_HTML5_URL = "/tags/v2.23.rc4/mwEmbedFrame.php";
@@ -77,7 +78,7 @@ public class PlayerViewController extends RelativeLayout {
     private BasePlayerView mVideoInterface;
     //Original VideoPlayerInterface that was created by "addComponents"
     private BasePlayerView mOriginalVideoInterface;
-    private WebView mWebView = null;
+    private KControlsView mWebView = null;
     private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
@@ -283,39 +284,67 @@ public class PlayerViewController extends RelativeLayout {
 
 
         if(mWebView != null) {
-            mWebView.loadUrl("javascript:android.onData(NativeBridge.videoPlayer.getControlBarHeight())");
+//            mWebView.loadUrl("javascript:android.onData(NativeBridge.videoPlayer.getControlBarHeight())");
+            mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
+                @Override
+                public void fetchHeight(int controlBarHeight) {
+                    if ( mVideoInterface != null && mVideoInterface.getParent() == PlayerViewController.this ) {
+                        LayoutParams wvLp = (LayoutParams) ((View) mVideoInterface).getLayoutParams();
+
+                        if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
+                            wvLp.addRule(CENTER_IN_PARENT);
+                        } else {
+                            wvLp.addRule(CENTER_IN_PARENT, 0);
+                        }
+                        float scale = mActivity.getResources().getDisplayMetrics().density;
+                        controlBarHeight = (int) (controlBarHeight * scale + 0.5f);
+                        wvLp.height = newHeight - controlBarHeight;
+                        wvLp.width = newWidth;
+                        wvLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                        final LayoutParams lp = wvLp;
+                        mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateViewLayout(mVideoInterface, lp);
+                                invalidate();
+                            }
+                        });
+
+                    }
+                }
+            });
         }
         invalidate();
     }
 
-    @JavascriptInterface
-    public void onData(String value) {
-        if ( mVideoInterface != null && mVideoInterface.getParent() == this ) {
-            LayoutParams wvLp = (LayoutParams) ((View) mVideoInterface).getLayoutParams();
-
-            if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
-                wvLp.addRule(CENTER_IN_PARENT);
-            } else {
-                wvLp.addRule(CENTER_IN_PARENT, 0);
-            }
-
-            int controlBarHeight = Integer.parseInt(value) + 5;
-            float scale = mActivity.getResources().getDisplayMetrics().density;
-            controlBarHeight = (int) (controlBarHeight * scale + 0.5f);
-            wvLp.height = newHeight - controlBarHeight;
-            wvLp.width = newWidth;
-            wvLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-            final LayoutParams lp = wvLp;
-            mActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    updateViewLayout(mVideoInterface, lp);
-                    invalidate();
-                }
-            });
-
-        }
-    }
+//    @JavascriptInterface
+//    public void onData(String value) {
+//        if ( mVideoInterface != null && mVideoInterface.getParent() == this ) {
+//            LayoutParams wvLp = (LayoutParams) ((View) mVideoInterface).getLayoutParams();
+//
+//            if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
+//                wvLp.addRule(CENTER_IN_PARENT);
+//            } else {
+//                wvLp.addRule(CENTER_IN_PARENT, 0);
+//            }
+//
+//            int controlBarHeight = Integer.parseInt(value) + 5;
+//            float scale = mActivity.getResources().getDisplayMetrics().density;
+//            controlBarHeight = (int) (controlBarHeight * scale + 0.5f);
+//            wvLp.height = newHeight - controlBarHeight;
+//            wvLp.width = newWidth;
+//            wvLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+//            final LayoutParams lp = wvLp;
+//            mActivity.runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    updateViewLayout(mVideoInterface, lp);
+//                    invalidate();
+//                }
+//            });
+//
+//        }
+//    }
 
     /**
      * Sets the player's dimensions. Should be called for any player redraw
@@ -352,7 +381,8 @@ public class PlayerViewController extends RelativeLayout {
      */
     public void setComponents(String iframeUrl) {
         if(mWebView == null) {
-            mWebView = new WebView(getContext());
+            mWebView = new KControlsView(getContext());
+            mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
             ViewGroup.LayoutParams currLP = getLayoutParams();
@@ -370,13 +400,6 @@ public class PlayerViewController extends RelativeLayout {
             createPlayerInstance();
 
             this.addView(mWebView, wvLp);
-            mWebView.getSettings().setJavaScriptEnabled(true);
-            mWebView.addJavascriptInterface(this, "android");
-            mWebView.setWebViewClient(new CustomWebViewClient());
-            mWebView.setWebChromeClient(new WebChromeClient());
-            mWebView.getSettings().setUserAgentString( mWebView.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer" );
-            mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-            mWebView.setBackgroundColor(0);
         }
 
         iframeUrl = RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext());
@@ -662,6 +685,16 @@ public class PlayerViewController extends RelativeLayout {
         });
     }
 
+    @Override
+    public void handleHtml5LibCall(String functionName, int callbackId, ArrayList<String> args) {
+
+    }
+
+    @Override
+    public void openURL(String url) {
+
+    }
+
     private static class ErrorBuilder {
         String errorMessage;
         int errorId;
@@ -712,8 +745,8 @@ public class PlayerViewController extends RelativeLayout {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url != null) {
                 Log.d(TAG, "shouldOverrideUrlLoading::url to load: " + url);
-
-                if ( url.startsWith("js-frame:") || url.contains("mwEmbedFrame.php")) {
+                KStringUtilities urlUtil = new KStringUtilities(url);
+                if ( urlUtil.isJSFrame() || url.contains("mwEmbedFrame.php")) {
                     String[] arr = url.split(":");
                     if (arr != null && arr.length > 1) {
                         String action = arr[1];
