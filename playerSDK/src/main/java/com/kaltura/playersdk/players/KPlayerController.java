@@ -143,7 +143,7 @@ public class KPlayerController implements KPlayerListener{
         return this.player.getCurrentPlaybackTime();
     }
 
-    public void setCurrentPlaybackTime(int currentPlaybackTime) {
+    public void setCurrentPlaybackTime(float currentPlaybackTime) {
         this.player.setCurrentPlaybackTime(currentPlaybackTime);
     }
 
