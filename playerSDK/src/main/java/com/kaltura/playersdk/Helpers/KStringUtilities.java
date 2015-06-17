@@ -1,6 +1,8 @@
 package com.kaltura.playersdk.Helpers;
 
 import org.json.JSONArray;
+
+import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 
@@ -32,16 +34,28 @@ public class KStringUtilities {
         return this.string.contains("mwEmbedFrame.php");
     }
 
-    public ArrayList<String> fetchArgs() {
+    public boolean isPlay() {
+        return this.string.equals("play");
+    }
+
+    public boolean isSeeked() {
+        return this.string.equals("seeked");
+    }
+
+    public boolean canPlay() {
+        return this.string.equals("canplay");
+    }
+
+    public String[] fetchArgs() {
         if (this.argsString != null && this.argsString.length() > 3) {
             try {
                 String value = URLDecoder.decode(this.argsString, "UTF-8");
                 if (value != null && value.length() > 2) {
                     JSONArray jsonArr = new JSONArray(value);
 
-                    ArrayList<String> params = new ArrayList<String>();
+                    String[] params = new String[jsonArr.length()];
                     for (int i = 0; i < jsonArr.length(); i++) {
-                        params.add(jsonArr.getString(i));
+                        params[i] = jsonArr.getString(i);
                     }
                     return params;
                 }
@@ -52,15 +66,23 @@ public class KStringUtilities {
         return null;
     }
 
+    public String getArgsString() {
+        return this.argsString;
+    }
+
     public String getAction() {
         String[] arr = this.string.split(":");
         if (arr.length > 1) {
             if (arr.length > 3) {
-                this.argsString = arr[3];
+                this.argsString = arr[3].equals("%5B%5D") ? null : arr[3];
             }
             return arr[1];
         }
         return null;
+    }
+
+    public enum Attribute {
+        src, currentTime, visible, wvServerKey, nativeAction, doubleClickRequestAds, language, textTrackSelected;
     }
 
     static public String addEventListener(String event) {
@@ -91,6 +113,26 @@ public class KStringUtilities {
         return JSMethod(SendNotification, "\"" + notificationName + "\"," + params);
     }
 
+    static public String[] fetchArgs(String jsonString) {
+        if (jsonString != null && jsonString.length() > 3) {
+            try {
+                String value = URLDecoder.decode(jsonString, "UTF-8");
+                if (value != null && value.length() > 2) {
+                    JSONArray jsonArr = new JSONArray(value);
+
+                    String[] params = new String[jsonArr.length()];
+                    for (int i = 0; i < jsonArr.length(); i++) {
+                        params[i] = jsonArr.getString(i);
+                    }
+                    return params;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
     static private String JSMethod(String action, String params) {
         return JavaScriptPrefix + action +"(" + params + ")";
     }
@@ -103,4 +145,18 @@ public class KStringUtilities {
         return JavaScriptPrefix + action + "(" + param1 + "," + param2 + "," + param3 +")";
     }
 
+    static public Method isMethodImplemented(Object obj, String methodName) {
+        Method[] methods = obj.getClass().getDeclaredMethods();
+        for (Method m : methods) {
+            if (m.getName().contains(methodName)) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+
+    static public Attribute attributeEnumFromString(String value) {
+        return Attribute.valueOf(value);
+    }
 }

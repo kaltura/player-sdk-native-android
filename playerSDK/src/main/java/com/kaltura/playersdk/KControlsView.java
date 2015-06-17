@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class KControlsView extends WebView {
 
     public interface KControlsViewClient {
-        public void handleHtml5LibCall(String functionName, int callbackId, ArrayList<String> args);
+        public void handleHtml5LibCall(String functionName, int callbackId, String args);
         public void openURL(String url);
     }
 
@@ -109,7 +109,7 @@ public class KControlsView extends WebView {
             }
             KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
-                KControlsView.this.controlsViewClient.handleHtml5LibCall(urlUtil.getAction(), 1, urlUtil.fetchArgs());
+                KControlsView.this.controlsViewClient.handleHtml5LibCall(urlUtil.getAction(), 1, urlUtil.getArgsString());
                 return false;
             } else if (!urlUtil.isEmbedFrame()) {
                 KControlsView.this.controlsViewClient.openURL(url);
