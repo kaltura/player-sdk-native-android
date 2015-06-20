@@ -63,7 +63,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     static protected String EndedKey = "ended";
     static protected String SeekedKey = "seeked";
     static protected String CanPlayKey = "canplay";
-    static protected String PostrollEndedKey = "postEnded";
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -107,6 +106,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         if ( mIsReady ) {
             mSeeking = true;
 //            mListenerExecutor.executeOnStateChanged(PlayerStates.SEEKING);
+            this.listener.eventWithValue(this, KPlayer.SeekedKey, null);
             mExoPlayer.seekTo( (int)(currentPlaybackTime * 1000) );
         }
     }
@@ -234,7 +234,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public boolean isKPlayer() {
-        return false;
+        return true;
     }
     // Exo Player listener events
     @Override
@@ -288,10 +288,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         }
         //TODO: this if doesn't make a whole lot of sense
         //notify initial play
-        if ( state == PlayerStates.START && playWhenReady ) {
-//            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
-//            this.listener.eventWithValue(this, KPlayer.PlayKey, null);
-        }
+//        if ( state == PlayerStates.START && playWhenReady ) {
+////            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
+////            this.listener.eventWithValue(this, KPlayer.PlayKey, null);
+//        }
     }
 
     @Override
@@ -336,7 +336,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-
+        if ( mShouldResumePlayback ) {
+            play();
+        }
+        mShouldResumePlayback = false;
     }
 
     @Override

@@ -23,9 +23,7 @@ import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
-import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnErrorListener;
-import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
 /**

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.os.Build;
@@ -28,19 +27,11 @@ import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
 import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
-import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
-import com.kaltura.playersdk.events.OnDurationChangedListener;
-import com.kaltura.playersdk.events.OnErrorListener;
-import com.kaltura.playersdk.events.OnPlayerStateChangeListener;
-import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
-import com.kaltura.playersdk.events.OnProgressUpdateListener;
 import com.kaltura.playersdk.events.OnShareListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.players.BasePlayerView;
-import com.kaltura.playersdk.players.CastPlayer;
-import com.kaltura.playersdk.players.HLSPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.types.PlayerStates;
 
@@ -50,7 +41,6 @@ import org.json.JSONObject;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * Created by michalradwantzor on 9/24/13.
@@ -69,7 +59,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private KPlayerController playerController;
     private KControlsView mWebView = null;
-    private RelativeLayout mBackgroundRL;
     private double mCurSec;
     private Activity mActivity;
     private double mDurationSec = 0;
@@ -95,22 +84,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private int newWidth, newHeight;
 
     // trigger timeupdate events
-    final Runnable runnableUpdatePlayhead = new Runnable() {
-        @Override
-        public void run() {
-            Log.d(TAG, "SEEK: Time Update: " + mCurSec);
-            notifyKPlayer( "trigger", new Object[]{ "timeupdate", mCurSec});
-        }
-    };
-
-    // trigger timeupdate events
-    final Runnable runnableUpdateDuration = new Runnable() {
-        @Override
-        public void run() {
-            Log.d(TAG, "SEEK: Duration Change: " + mDurationSec);
-            notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
-        }
-    };
 
     public PlayerViewController(Context context) {
         super(context);
@@ -167,7 +140,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                                     } else {
                                         notifyKPlayer("trigger", new String[] { "chromecastDeviceDisConnected" });
                                     }
-                                    createPlayerInstance();
+//                                    createPlayerInstance();
                                 }
                             },
                             new OnCastRouteDetectedListener(){
@@ -308,34 +281,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         invalidate();
     }
 
-//    @JavascriptInterface
-//    public void onData(String value) {
-//        if ( mVideoInterface != null && mVideoInterface.getParent() == this ) {
-//            LayoutParams wvLp = (LayoutParams) ((View) mVideoInterface).getLayoutParams();
-//
-//            if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
-//                wvLp.addRule(CENTER_IN_PARENT);
-//            } else {
-//                wvLp.addRule(CENTER_IN_PARENT, 0);
-//            }
-//
-//            int controlBarHeight = Integer.parseInt(value) + 5;
-//            float scale = mActivity.getResources().getDisplayMetrics().density;
-//            controlBarHeight = (int) (controlBarHeight * scale + 0.5f);
-//            wvLp.height = newHeight - controlBarHeight;
-//            wvLp.width = newWidth;
-//            wvLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-//            final LayoutParams lp = wvLp;
-//            mActivity.runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    updateViewLayout(mVideoInterface, lp);
-//                    invalidate();
-//                }
-//            });
-//
-//        }
-//    }
 
     /**
      * Sets the player's dimensions. Should be called for any player redraw
@@ -378,18 +323,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mCurSec = 0;
             ViewGroup.LayoutParams currLP = getLayoutParams();
             LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
-//
-//            mBackgroundRL = new RelativeLayout(getContext());
-//            mBackgroundRL.setBackgroundColor(Color.BLACK);
-//            this.addView(mBackgroundRL, currLP);
-            //TODO: Maybe remove this automatic instantization
-//            KalturaPlayer kalturaPlayer = new KalturaPlayer(mActivity);
-//            LayoutParams lp = new LayoutParams(currLP.width, currLP.height);
-//            this.addView(kalturaPlayer, lp);
 
-//            mOriginalVideoInterface = kalturaPlayer;
-
-//            createPlayerInstance();
             this.playerController = new KPlayerController(KPlayerController.KPlayerClassName, mActivity);
             this.playerController.addPlayerToController(this);
             this.playerController.setListener(this);
@@ -412,21 +346,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     /**
      * create PlayerView / CastPlayer instance according to cast status
      */
-    private void createPlayerInstance() {
-        if ( mVideoInterface != null ) {
-            mVideoInterface.removeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE);
-            if ( mVideoInterface instanceof CastPlayer )
-                mVideoInterface.stop();
-        }
-
-        if ( ChromecastHandler.selectedDevice != null ) {
-            mVideoInterface = new CastPlayer(getContext(), mVideoTitle, null, null, mThumbUrl, mVideoUrl);
-        } else {
-            mVideoInterface = mOriginalVideoInterface;
-        }
-        mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
-        setPlayerListeners();
-    }
 
     private void replacePlayerViewChild( View newChild, View oldChild ) {
         if ( oldChild.getParent().equals( this ) ) {
@@ -490,29 +409,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         return url;
     }
 
-//    public void play() {
-//        if (mVideoInterface != null) {
-//            mVideoInterface.play();
-//        }
-//    }
-//
-//    public void pause() {
-//        if (mVideoInterface != null) {
-//            mVideoInterface.pause();
-//        }
-//    }
-//
-//    public void stop() {
-//        if (mVideoInterface != null) {
-//            mVideoInterface.stop();
-//        }
-//    }
-
-//    public void seek(int msec) {
-//        if (mVideoInterface != null) {
-//            mVideoInterface.seek(msec);
-//        }
-//    }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // Kaltura Player external API
@@ -604,84 +500,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         });
     }
 
-    private void removePlayerListeners() {
-        mVideoInterface.removeListener(Listener.EventType.PLAYER_STATE_CHANGE_LISTENER_TYPE);
-        mVideoInterface.removeListener(Listener.EventType.PLAYHEAD_UPDATE_LISTENER_TYPE);
-        mVideoInterface.removeListener(Listener.EventType.PROGRESS_UPDATE_LISTENER_TYPE);
-        mVideoInterface.removeListener(Listener.EventType.ERROR_LISTENER_TYPE);
-    }
-
-    private void setPlayerListeners() {
-        // notify player state change events
-        mVideoInterface.registerListener(new OnPlayerStateChangeListener() {
-            @Override
-            public void onStateChanged(PlayerStates state) {
-                if (state == PlayerStates.START) {
-                            mDurationSec = getDurationSec();
-                            notifyKPlayer("trigger", new Object[]{ "durationchange", mDurationSec });
-                    notifyKPlayer("trigger", new Object[]{"loadedmetadata"});
-                }
-                if (state != mState) {
-                    mState = state;
-
-                    if (mState != PlayerStates.LOAD) {
-                        final String eventName = state.toString();
-                        notifyKPlayer("trigger", new String[]{eventName});
-                    }
-                }
-
-                return;
-            }
-        });
-
-
-
-        // listens for playhead update
-        mVideoInterface.registerListener(new OnPlayheadUpdateListener() {
-            @Override
-            public void onPlayheadUpdated(int msec) {
-                double curSec = msec / 1000.0;
-                if (Math.abs(mCurSec - curSec) > 0.01) {
-                    mCurSec = curSec;
-                    mActivity.runOnUiThread(runnableUpdatePlayhead);
-                }
-
-                if (!mPowerManager.isScreenOn()) {
-                    mVideoInterface.pause();
-                }
-            }
-        });
-
-        // listens for progress events and notify javascript
-        mVideoInterface.registerListener(new OnProgressUpdateListener() {
-            @Override
-            public void onProgressUpdate(int progress) {
-                double percent = progress / 100.0;
-                notifyKPlayer("trigger", new Object[]{"progress", percent});
-
-            }
-        });
-
-        mVideoInterface.registerListener(new OnErrorListener() {
-            @Override
-            public void onError(int errorCode, String errorMessage) {
-                Log.d(TAG, "Error Code: " + String.valueOf(errorCode) + " : " + errorMessage);
-                if (mVideoInterface.getClass().equals(HLSPlayer.class)) {
-                    ErrorBuilder.ErrorObject error = new ErrorBuilder().setErrorId(errorCode).setErrorMessage(errorMessage).build();
-                    notifyKPlayer("trigger", new Object[]{"error", error});
-                }
-
-            }
-        });
-
-        mVideoInterface.registerListener(new OnDurationChangedListener() {
-            @Override
-            public void OnDurationChanged(int mSec) {
-                mDurationSec = mSec / 1000.0;
-                mActivity.runOnUiThread(runnableUpdateDuration);
-            }
-        });
-    }
 
     @Override
     public void handleHtml5LibCall(String functionName, int callbackId, String args) {
@@ -1026,9 +844,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
          *            string
          * @return given string without its first and last characters
          */
-        private String getStrippedString(String input) {
-            return input.substring(1, input.length() - 1);
-        }
+
 
         /**
          * Notify the matching listener that event has occured
@@ -1117,7 +933,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setSrc(attributeValue);
                     break;
                 case currentTime:
-                    this.playerController.setCurrentPlaybackTime(Integer.parseInt(attributeValue));
+                    this.playerController.setCurrentPlaybackTime(Float.parseFloat(attributeValue));
                     break;
                 case visible:
                     this.triggerEvent("visible", attributeValue);
