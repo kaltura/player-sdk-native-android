@@ -24,9 +24,8 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
+import com.kaltura.playersdk.PlayerUtilities.KPlayerParams;
 import com.kaltura.playersdk.types.PlayerStates;
-
-import java.util.jar.Attributes;
 
 /**
  * Created by nissopa on 6/15/15.
@@ -39,11 +38,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     public static int BUFFER_WAIT_INTERVAL = 200;
     private static final int BUFFER_COUNTER_MAX = 5;
     private volatile ExoPlayer mExoPlayer;
-    private String mVideoUrl = null;
     private int mBufferWaitCounter = 0;
 
     protected KPlayerListener listener;
-    protected String mPlayerSource;
+    protected String mPlayerSource = null;
     protected boolean mIsReady = false;
     protected int mStartPos = 0;
     protected int mPrevProgress = 0;
@@ -63,8 +61,14 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     static protected String EndedKey = "ended";
     static protected String SeekedKey = "seeked";
     static protected String CanPlayKey = "canplay";
+    static protected String ErrorKey = "error";
+    static protected PlaybackState playerState;
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
+
+    protected enum PlaybackState {
+        UNKNOWN, PAUSED, PLAYING, READY
+    }
 
     public KPlayer(Context context) {
         super(context);
@@ -81,22 +85,20 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         this.listener = listener;
     }
 
-    @Override
-    public KPlayerListener getPlayerListener() {
-        return this.listener;
-    }
 
-    @Override
+
     public void setPlayerSource(String playerSource) {
-        if ( !playerSource.equals(mVideoUrl) ) {
-            removePlayer();
-            mVideoUrl = playerSource;
+        if (mPlayerSource == null) {
+            if (mExoPlayer != null) {
+                mExoPlayer.release();
+            }
+            mPlayerSource = playerSource;
 //            mListenerExecutor.executeOnPlayheadUpdated(0);
             preparePlayer();
         }
     }
 
-    @Override
+
     public String getPlayerSource() {
         return this.mPlayerSource;
     }
@@ -122,19 +124,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         return (float)(mExoPlayer.getDuration() / 1000);
     }
 
-    @Override
-    public void initWithParentView(RelativeLayout parentView) {
-        ViewGroup.LayoutParams currLP = parentView.getLayoutParams();
-
-        // Add background view
-        mBackgroundRL = new RelativeLayout(parentView.getContext());
-        mBackgroundRL.setBackgroundColor(Color.BLACK);
-        parentView.addView(mBackgroundRL, currLP);
-
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        parentView.addView(this, lp);
-
-    }
 
     @Override
     public void play() {
@@ -171,7 +160,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
                         mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
                     }
-
                 }
             });
 
@@ -183,6 +171,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                             int progress = mExoPlayer.getBufferedPercentage();
                             if (progress != 0 && mPrevProgress != progress) {
 //                                mListenerExecutor.executeOnProgressUpdate(progress);
+                                KPlayer.this.listener.eventWithValue(KPlayer.this, KPlayer.ProgressKey, Integer.toString(progress / 1000));
                                 mPrevProgress = progress;
                             }
 
@@ -209,7 +198,14 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         }
     }
 
-    @Override
+    public void stop() {
+        if (isPlaying() && mExoPlayer != null) {
+            mExoPlayer.stop();
+        }
+    }
+
+
+
     public void changeSubtitleLanguage(String languageCode) {
 
     }
@@ -227,15 +223,8 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         mIsReady = false;
     }
 
-    @Override
-    public void setDRMKey(String drmKey) {
 
-    }
 
-    @Override
-    public boolean isKPlayer() {
-        return true;
-    }
     // Exo Player listener events
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
@@ -249,6 +238,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 state = PlayerStates.LOAD;
                 break;
             case ExoPlayer.STATE_READY:
+                playerState = PlaybackState.READY;
                 if ( !mIsReady ) {
                     state = PlayerStates.START;
                     mIsReady = true;
@@ -296,12 +286,12 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public void onPlayWhenReadyCommitted() {
-
+        Log.d("test", "test");
     }
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-
+        listener.eventWithValue(this, ErrorKey, error.toString());
     }
 
 
@@ -352,7 +342,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     }
 
-    private void preparePlayer() {
+    protected void preparePlayer() {
         mPrepared = true;
         mPrevProgress = 0;
 
@@ -360,7 +350,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         mExoPlayer.addListener(this);
         mExoPlayer.seekTo(0);
 
-        SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
+        SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mPlayerSource), null, NUM_OF_RENFERERS);
         Handler handler = new Handler(Looper.getMainLooper());
         TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 50);
         TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);

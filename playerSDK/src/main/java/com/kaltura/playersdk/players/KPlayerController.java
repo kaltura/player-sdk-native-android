@@ -1,79 +1,102 @@
 package com.kaltura.playersdk.players;
 
 import android.content.Context;
-import android.text.StaticLayout;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.google.ads.interactivemedia.v3.api.AdEvent;
+import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
+import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
+import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.kaltura.playersdk.Helpers.KStringUtilities;
+import com.kaltura.playersdk.PlayerUtilities.KIMAHandler;
+import com.kaltura.playersdk.PlayerUtilities.KPlayerIMAManager;
+import com.kaltura.playersdk.PlayerUtilities.KPlayerParams;
 
-import java.util.Objects;
+import java.util.HashMap;
 
 
 /**
  * Created by nissopa on 6/14/15.
  */
-public class KPlayerController implements KPlayerListener{
-    private KPlayer player;
-    private KPlayerControllerListener listener;
-    private String playerClassName;
-    private String src;
-    private String adTagURL;
+public class KPlayerController implements KPlayerListener {
+    private KPlayer mPlayer;
+    private KPlayerListener listener;
     private float currentPlaybackTime;
     private int adPlayerHeight;
     private String locale;
-    private RelativeLayout parentViewController;
-    private String key;
-    private float currentTime;
-    private boolean isSeeked;
-    private boolean contentEnded;
     private Context context;
+    private RelativeLayout mParentView;
+    private KPlayerParams mPlayerParams;
 
-    public static String KPlayerClassName = "com.kaltura.playersdk.players.KPlayer";
-    public static String KWVPlayerClassName = "KWVPlayer";
-    public static String KCCPlayerClassName = "KCCPlayer";
+
+
+
 
     public interface KPlayer {
         public void setPlayerListener(KPlayerListener listener);
-        public KPlayerListener getPlayerListener();
-        public void setPlayerSource(String playerSource);
-        public String getPlayerSource();
         public void setCurrentPlaybackTime(float currentPlaybackTime);
         public float getCurrentPlaybackTime();
         public float getDuration();
-        public void initWithParentView(RelativeLayout parentView);
         public void play();
         public void pause();
-        public void changeSubtitleLanguage(String languageCode);
         public void removePlayer();
-        public void setDRMKey(String drmKey);
-        public boolean isKPlayer();
+        public void setPlayerSource(String source);
     }
 
-
-    public interface KPlayerControllerListener extends KPlayerListener {
-        public void allAdsCompleted();
-    }
-
-    public KPlayerController(String className, Context context) {
-        this.playerClassName = className;
+    public KPlayerController(KPlayer player, Context context, RelativeLayout parentView) {
+        mPlayer = player;
+        mPlayer.setPlayerListener(this);
         this.context = context;
+        addPlayerToController(parentView);
     }
 
     public void addPlayerToController(RelativeLayout playerViewController) {
-        this.parentViewController = playerViewController;
-        if (this.getPlayer() == null) {
-            Log.d("ERROR", "NO PLAYER CREATED");
-        } else {
-            this.player.setDRMKey(this.key);
-        }
+        mParentView = playerViewController;
+        ViewGroup.LayoutParams currLP = playerViewController.getLayoutParams();
+
+        // Add background view
+        RelativeLayout mBackgroundRL = new RelativeLayout(playerViewController.getContext());
+        mBackgroundRL.setBackgroundColor(Color.BLACK);
+        playerViewController.addView(mBackgroundRL, currLP);
+
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+        playerViewController.addView((View) mPlayer, lp);
     }
 
-    public void switchPlayer(String playerClassName, String key) {
-        this.playerClassName = playerClassName;
-        this.key = key;
+    public void switchPlayer(KPlayer newPlayer) {
+        if (((View)mPlayer).getParent().equals(mParentView)) {
+            mParentView.removeView((View)mPlayer);
+        }
+        if (mParentView.getChildCount() > 1) {
+            mParentView.addView((View)newPlayer, mParentView.getChildCount() - 1, ((View)mPlayer).getLayoutParams());
+        }
+        mPlayer.setPlayerListener(null);
+        mPlayer = newPlayer;
+        mPlayer.setPlayerListener(this);
     }
+
+    public void setSource(String source) {
+        playerParams().setSourceURL(source);
+        mPlayer.setPlayerSource(source);
+    }
+
+    public KPlayerParams playerParams() {
+        if (mPlayerParams == null) {
+            mPlayerParams = new KPlayerParams();
+        }
+        return mPlayerParams;
+    }
+
+    public KPlayer getPlayer() {
+        return mPlayer;
+    }
+
+
 
     public void changeSubtitleLanguage(String isoCode) {
 
@@ -83,68 +106,41 @@ public class KPlayerController implements KPlayerListener{
 
     }
 
-    public void setPlayer(KPlayer player) {
-        this.player = player;
-    }
 
-    public KPlayer getPlayer() {
-        if (this.player == null && this.playerClassName != null && this.playerClassName.length() > 0) {
-            try {
-                Class _class = Class.forName(this.playerClassName);
-                if (_class != null) {
-                    Object player = _class.getDeclaredConstructor(Context.class).newInstance(this.context);
-                    if (player instanceof KPlayer) {
-                        this.player = (KPlayer)player;
-                        this.player.initWithParentView(this.parentViewController);
-                        this.player.setPlayerListener(this);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return this.player;
-    }
+//    public KPlayer getPlayer() {
+//        if (this.player == null && this.playerClassName != null && this.playerClassName.length() > 0) {
+//            try {
+//                Class _class = Class.forName(this.playerClassName);
+//                if (_class != null) {
+//                    Object player = _class.getDeclaredConstructor(Context.class).newInstance(this.context);
+//                    if (player instanceof KPlayer) {
+//                        this.player = (KPlayer)player;
+//                        this.player.initWithParentView(this.parentViewController);
+//                        this.player.setPlayerListener(this);
+//                    }
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return this.player;
+//    }
 
-    public void setListener(KPlayerControllerListener listener) {
+    public void setListener(KPlayerListener listener) {
         this.listener = listener;
     }
 
-    public KPlayerControllerListener getListener() {
+    public KPlayerListener getListener() {
         return this.listener;
     }
 
-    public void setPlayerClassName(String playerClassName) {
-        this.playerClassName = playerClassName;
-    }
-
-    public String getPlayerClassName() {
-        return this.playerClassName;
-    }
-
-    public String getSrc() {
-        return src;
-    }
-
-    public void setSrc(String src) {
-        this.src = src;
-        this.player.setPlayerSource(src);
-    }
-
-    public String getAdTagURL() {
-        return adTagURL;
-    }
-
-    public void setAdTagURL(String adTagURL) {
-        this.adTagURL = adTagURL;
-    }
 
     public float getCurrentPlaybackTime() {
-        return this.player.getCurrentPlaybackTime();
+        return mPlayer.getCurrentPlaybackTime();
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        this.player.setCurrentPlaybackTime(currentPlaybackTime);
+        mPlayer.setCurrentPlaybackTime(currentPlaybackTime);
     }
 
     public int getAdPlayerHeight() {
@@ -163,26 +159,11 @@ public class KPlayerController implements KPlayerListener{
         this.locale = locale;
     }
 
+
+    // KPlayerListener Methods
     @Override
     public void eventWithValue(KPlayer currentPlayer, String eventName, String eventValue) {
-        KStringUtilities event = new KStringUtilities(eventName);
-        if (this.key != null && currentPlayer.isKPlayer() && (event.isPlay() || event.isSeeked())) {
-            this.currentTime = this.player.getCurrentPlaybackTime();
-            this.player.removePlayer();
-            this.player = null;
-            this.addPlayerToController(this.parentViewController);
-            this.setSrc(this.src);
-            this.isSeeked = event.isSeeked();
-        } else if (!currentPlayer.isKPlayer() && event.canPlay()) {
-            if (this.currentTime > 0) {
-                this.player.setCurrentPlaybackTime(this.currentTime);
-            }
-            if (!this.isSeeked) {
-                this.player.play();
-            }
-        } else {
-            this.listener.eventWithValue(currentPlayer, eventName, eventValue);
-        }
+        this.listener.eventWithValue(currentPlayer, eventName, eventValue);
     }
 
     @Override
@@ -192,7 +173,7 @@ public class KPlayerController implements KPlayerListener{
 
     @Override
     public void contentCompleted(KPlayer currentPlayer) {
-        this.contentEnded = true;
+
     }
 
 }

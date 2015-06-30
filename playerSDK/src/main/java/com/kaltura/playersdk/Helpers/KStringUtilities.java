@@ -46,6 +46,10 @@ public class KStringUtilities {
         return this.string.equals("canplay");
     }
 
+    public boolean isError() {
+        return this.string.equals("error");
+    }
+
     public String[] fetchArgs() {
         if (this.argsString != null && this.argsString.length() > 3) {
             try {

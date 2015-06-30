@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
@@ -32,7 +33,10 @@ import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnShareListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.players.BasePlayerView;
+import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
+import com.kaltura.playersdk.players.KPlayerListener;
+import com.kaltura.playersdk.players.KWVPlayer;
 import com.kaltura.playersdk.types.PlayerStates;
 
 import org.json.JSONException;
@@ -45,7 +49,7 @@ import java.util.HashMap;
 /**
  * Created by michalradwantzor on 9/24/13.
  */
-public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerController.KPlayerControllerListener {
+public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerListener {
     public static String TAG = "PlayerViewController";
     public static String DEFAULT_HOST = "http://kgit.html5video.org/";
     public static String DEFAULT_HTML5_URL = "/tags/v2.23.rc4/mwEmbedFrame.php";
@@ -324,8 +328,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             ViewGroup.LayoutParams currLP = getLayoutParams();
             LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
-            this.playerController = new KPlayerController(KPlayerController.KPlayerClassName, mActivity);
-            this.playerController.addPlayerToController(this);
+            this.playerController = new KPlayerController(new KPlayer(getContext()), mActivity, this);
             this.playerController.setListener(this);
             this.addView(mWebView, wvLp);
         }
@@ -377,7 +380,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void savePlaybackPosition() {
         if ( mVideoInterface!= null ) {
-            mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
+            mVideoInterface.setStartingPoint((int) (mCurSec * 1000));
         }
     }
 
@@ -418,7 +421,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void sendNotification(String noteName, JSONObject noteBody) {
-        notifyKPlayer("sendNotification",  new String[] { noteName, noteBody.toString() });
+        notifyKPlayer("sendNotification", new String[]{noteName, noteBody.toString()});
     }
 
     public void addKPlayerEventListener(String eventName,
@@ -453,7 +456,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void setKDPAttribute(String hostName, String propName, Object value) {
-        notifyKPlayer("setKDPAttribute", new Object[] { hostName, propName, value });
+        notifyKPlayer("setKDPAttribute", new Object[]{hostName, propName, value});
     }
 
     public void asyncEvaluate(String expression, KPlayerEventListener listener) {
@@ -525,11 +528,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void openURL(String url) {
-
-    }
-
-    @Override
-    public void allAdsCompleted() {
 
     }
 
@@ -930,7 +928,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             final String attributeValue = args[1];
             switch (KStringUtilities.attributeEnumFromString(attributeName)) {
                 case src:
-                    this.playerController.setSrc(attributeValue);
+                    this.playerController.setSource(attributeValue);
                     break;
                 case currentTime:
                     this.playerController.setCurrentPlaybackTime(Float.parseFloat(attributeValue));
@@ -939,7 +937,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.triggerEvent("visible", attributeValue);
                     break;
                 case wvServerKey:
-                    this.playerController.switchPlayer(this.playerController.KWVPlayerClassName, attributeValue);
+                    this.playerController.switchPlayer(new KWVPlayer(getContext()));
                     break;
                 case nativeAction:
                     try {
@@ -952,13 +950,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
-                    this.mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
-                        @Override
-                        public void fetchHeight(int height) {
-                            PlayerViewController.this.playerController.setAdPlayerHeight(height);
-                            PlayerViewController.this.playerController.setAdTagURL(attributeValue);
-                        }
-                    });
+//                    PlayerViewController.this.playerController.activateIMA(attributeValue);
+//                    this.mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
+//                        @Override
+//                        public void fetchHeight(int height) {
+//                            PlayerViewController.this.playerController.setAdPlayerHeight(height);
+//                            PlayerViewController.this.playerController.setAdTagURL(attributeValue);
+//                        }
+//                    });
                     break;
             }
         }

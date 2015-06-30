@@ -60,7 +60,8 @@ public class KControlsView extends WebView {
 
     public void fetchControlsBarHeight(ControlsBarHeightFetcher fetcher) {
         this.fetcher = fetcher;
-        this.loadUrl("javascript:android.onData(NativeBridge.videoPlayer.getControlBarHeight())");
+        this.addJavascriptInterface(this, "android");
+        this.loadUrl("javascript:android.onData(NativeBridge.videoPlayer.getVideoHolderHeight())");
     }
 
     public void addEventListener(String event) {
