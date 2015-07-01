@@ -1,11 +1,14 @@
 package com.kaltura.playersdk.players;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.StaticLayout;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.kaltura.playersdk.Helpers.KIMAManager;
 import com.kaltura.playersdk.Helpers.KStringUtilities;
 
 import java.util.Objects;
@@ -28,26 +31,21 @@ public class KPlayerController implements KPlayerListener{
     private float currentTime;
     private boolean isSeeked;
     private boolean contentEnded;
-    private Context context;
+    private KIMAManager imaManager;
 
-    public static String KPlayerClassName = "com.kaltura.playersdk.players.KPlayer";
-    public static String KWVPlayerClassName = "KWVPlayer";
-    public static String KCCPlayerClassName = "KCCPlayer";
 
     public interface KPlayer {
         public void setPlayerListener(KPlayerListener listener);
-        public KPlayerListener getPlayerListener();
+        public void setPlayerCallback(KPlayerCallback callback);
         public void setPlayerSource(String playerSource);
         public String getPlayerSource();
         public void setCurrentPlaybackTime(float currentPlaybackTime);
         public float getCurrentPlaybackTime();
         public float getDuration();
-        public void initWithParentView(RelativeLayout parentView);
         public void play();
         public void pause();
         public void changeSubtitleLanguage(String languageCode);
         public void removePlayer();
-        public void setDRMKey(String drmKey);
         public boolean isKPlayer();
     }
 
@@ -56,18 +54,22 @@ public class KPlayerController implements KPlayerListener{
         public void allAdsCompleted();
     }
 
-    public KPlayerController(String className, Context context) {
-        this.playerClassName = className;
-        this.context = context;
+    public KPlayerController(KPlayer player) {
+        this.player = player;
+        this.player.setPlayerListener(this);
     }
 
     public void addPlayerToController(RelativeLayout playerViewController) {
         this.parentViewController = playerViewController;
-        if (this.getPlayer() == null) {
-            Log.d("ERROR", "NO PLAYER CREATED");
-        } else {
-            this.player.setDRMKey(this.key);
-        }
+        ViewGroup.LayoutParams currLP = playerViewController.getLayoutParams();
+
+        // Add background view
+        RelativeLayout mBackgroundRL = new RelativeLayout(playerViewController.getContext());
+        mBackgroundRL.setBackgroundColor(Color.BLACK);
+        playerViewController.addView(mBackgroundRL, currLP);
+
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+        playerViewController.addView((View) this.player, lp);
     }
 
     public void switchPlayer(String playerClassName, String key) {
@@ -88,21 +90,6 @@ public class KPlayerController implements KPlayerListener{
     }
 
     public KPlayer getPlayer() {
-        if (this.player == null && this.playerClassName != null && this.playerClassName.length() > 0) {
-            try {
-                Class _class = Class.forName(this.playerClassName);
-                if (_class != null) {
-                    Object player = _class.getDeclaredConstructor(Context.class).newInstance(this.context);
-                    if (player instanceof KPlayer) {
-                        this.player = (KPlayer)player;
-                        this.player.initWithParentView(this.parentViewController);
-                        this.player.setPlayerListener(this);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
         return this.player;
     }
 
@@ -131,12 +118,11 @@ public class KPlayerController implements KPlayerListener{
         this.player.setPlayerSource(src);
     }
 
-    public String getAdTagURL() {
-        return adTagURL;
-    }
 
-    public void setAdTagURL(String adTagURL) {
-        this.adTagURL = adTagURL;
+    public void initIMA(String adTagURL, ViewGroup adUIContainer, Context context) {
+        imaManager = new KIMAManager(context, player, adUIContainer, adTagURL);
+        imaManager.setPlayerListener(this);
+        imaManager.requestAds();
     }
 
     public float getCurrentPlaybackTime() {

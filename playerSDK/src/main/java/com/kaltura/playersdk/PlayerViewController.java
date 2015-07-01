@@ -32,6 +32,7 @@ import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnShareListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.players.BasePlayerView;
+import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.types.PlayerStates;
 
@@ -324,7 +325,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             ViewGroup.LayoutParams currLP = getLayoutParams();
             LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
-            this.playerController = new KPlayerController(KPlayerController.KPlayerClassName, mActivity);
+            this.playerController = new KPlayerController(new KPlayer(mActivity));
             this.playerController.addPlayerToController(this);
             this.playerController.setListener(this);
             this.addView(mWebView, wvLp);
@@ -939,7 +940,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.triggerEvent("visible", attributeValue);
                     break;
                 case wvServerKey:
-                    this.playerController.switchPlayer(this.playerController.KWVPlayerClassName, attributeValue);
+//                    this.playerController.switchPlayer(this.playerController.KWVPlayerClassName, attributeValue);
                     break;
                 case nativeAction:
                     try {
@@ -952,13 +953,18 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
-                    this.mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
-                        @Override
-                        public void fetchHeight(int height) {
-                            PlayerViewController.this.playerController.setAdPlayerHeight(height);
-                            PlayerViewController.this.playerController.setAdTagURL(attributeValue);
-                        }
-                    });
+//                    this.mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
+//                        @Override
+//                        public void fetchHeight(int height) {
+//                            PlayerViewController.this.playerController.setAdPlayerHeight(height);
+//                            PlayerViewController.this.playerController.setAdTagURL(attributeValue);
+//                        }
+//                    });
+                    RelativeLayout adUiControls = new RelativeLayout(getContext());
+                    ViewGroup.LayoutParams curLP = this.getLayoutParams();
+                    ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);
+                    this.addView(adUiControls, controlsLP);
+                    playerController.initIMA(attributeValue, adUiControls, mActivity);
                     break;
             }
         }

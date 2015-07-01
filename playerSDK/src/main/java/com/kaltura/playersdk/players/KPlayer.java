@@ -43,6 +43,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     private int mBufferWaitCounter = 0;
 
     protected KPlayerListener listener;
+    protected KPlayerCallback callback;
     protected String mPlayerSource;
     protected boolean mIsReady = false;
     protected int mStartPos = 0;
@@ -52,7 +53,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     protected boolean mPrepared = false;
     protected boolean mSeeking = false;
     protected boolean mShouldResumePlayback = false;
-    protected RelativeLayout mBackgroundRL;
 
     static protected String PlayKey = "play";
     static protected String PauseKey = "pause";
@@ -82,16 +82,16 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     }
 
     @Override
-    public KPlayerListener getPlayerListener() {
-        return this.listener;
+    public void setPlayerCallback(KPlayerCallback callback) {
+        this.callback = callback;
     }
+
 
     @Override
     public void setPlayerSource(String playerSource) {
         if ( !playerSource.equals(mVideoUrl) ) {
             removePlayer();
             mVideoUrl = playerSource;
-//            mListenerExecutor.executeOnPlayheadUpdated(0);
             preparePlayer();
         }
     }
@@ -122,19 +122,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         return (float)(mExoPlayer.getDuration() / 1000);
     }
 
-    @Override
-    public void initWithParentView(RelativeLayout parentView) {
-        ViewGroup.LayoutParams currLP = parentView.getLayoutParams();
 
-        // Add background view
-        mBackgroundRL = new RelativeLayout(parentView.getContext());
-        mBackgroundRL.setBackgroundColor(Color.BLACK);
-        parentView.addView(mBackgroundRL, currLP);
-
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        parentView.addView(this, lp);
-
-    }
 
     @Override
     public void play() {
@@ -168,10 +156,8 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                         } catch(IllegalStateException e){
                             e.printStackTrace();
                         }
-
                         mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
                     }
-
                 }
             });
 
@@ -194,9 +180,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                     }
                 }
             });
-
-//            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
-            this.listener.eventWithValue(this, KPlayer.PlayKey, null);
         }
     }
 
@@ -204,8 +187,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     public void pause() {
         if ( this.isPlaying() && mExoPlayer != null ) {
             setPlayWhenReady(false);
-//            mListenerExecutor.executeOnStateChanged(PlayerStates.PAUSE);
-            this.listener.eventWithValue(this, KPlayer.PauseKey, null);
         }
     }
 
@@ -227,10 +208,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         mIsReady = false;
     }
 
-    @Override
-    public void setDRMKey(String drmKey) {
-
-    }
 
     @Override
     public boolean isKPlayer() {
@@ -279,6 +256,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 updateStopState();
                 state = PlayerStates.END;
                 pause();
+                listener.contentCompleted(this);
+                if (callback != null) {
+                    callback.onCompleted();
+                }
                 break;
 
         }
@@ -296,12 +277,17 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public void onPlayWhenReadyCommitted() {
-
+        this.listener.eventWithValue(this, mExoPlayer.getPlayWhenReady() ? KPlayer.PlayKey : KPlayer.PauseKey, null);
+        if (callback != null && mExoPlayer.getPlayWhenReady()) {
+            callback.onPlay();
+        }
     }
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-
+        if (callback != null) {
+            callback.onError();
+        }
     }
 
 
@@ -356,9 +342,12 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         mPrepared = true;
         mPrevProgress = 0;
 
+
         mExoPlayer = ExoPlayer.Factory.newInstance(NUM_OF_RENFERERS);
         mExoPlayer.addListener(this);
         mExoPlayer.seekTo(0);
+
+
 
         SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
         Handler handler = new Handler(Looper.getMainLooper());
