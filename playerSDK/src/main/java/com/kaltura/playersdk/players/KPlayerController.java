@@ -1,23 +1,29 @@
 package com.kaltura.playersdk.players;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.StaticLayout;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
+import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.google.android.libraries.mediaframework.layeredvideo.Util;
 import com.kaltura.playersdk.Helpers.KIMAManager;
 import com.kaltura.playersdk.Helpers.KStringUtilities;
 
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 
 /**
  * Created by nissopa on 6/14/15.
  */
-public class KPlayerController implements KPlayerListener{
+public class KPlayerController implements KPlayerListener, ContentProgressProvider {
     private KPlayer player;
     private KPlayerControllerListener listener;
     private String playerClassName;
@@ -31,7 +37,9 @@ public class KPlayerController implements KPlayerListener{
     private float currentTime;
     private boolean isSeeked;
     private boolean contentEnded;
+    private boolean playerReady;
     private KIMAManager imaManager;
+    private WeakReference<Activity> mActivity;
 
 
     public interface KPlayer {
@@ -119,10 +127,30 @@ public class KPlayerController implements KPlayerListener{
     }
 
 
-    public void initIMA(String adTagURL, ViewGroup adUIContainer, Context context) {
-        imaManager = new KIMAManager(context, player, adUIContainer, adTagURL);
+    public void initIMA(String adTagURL, Activity activity) {
+        this.adTagURL = adTagURL;
+        mActivity = new WeakReference<Activity>(activity);
+//        addAdPlayer();
+    }
+
+    private void addAdPlayer() {
+
+        // Add adPlayer view
+        FrameLayout adPlayerContainer = new FrameLayout(mActivity.get());
+        ViewGroup.LayoutParams lp = parentViewController.getLayoutParams();
+        lp = new ViewGroup.LayoutParams(lp.width, lp.height);
+        parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1, lp);
+
+        // Add IMA UI controls view
+        RelativeLayout adUiControls = new RelativeLayout(parentViewController.getContext());
+        ViewGroup.LayoutParams curLP = parentViewController.getLayoutParams();
+        ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);
+        parentViewController.addView(adUiControls, controlsLP);
+
+        // Initialize IMA manager
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, adUiControls, adTagURL);
         imaManager.setPlayerListener(this);
-        imaManager.requestAds();
+        imaManager.requestAds(this);
     }
 
     public float getCurrentPlaybackTime() {
@@ -149,6 +177,7 @@ public class KPlayerController implements KPlayerListener{
         this.locale = locale;
     }
 
+    // [START KPlayerListener region]
     @Override
     public void eventWithValue(KPlayer currentPlayer, String eventName, String eventValue) {
         KStringUtilities event = new KStringUtilities(eventName);
@@ -169,16 +198,43 @@ public class KPlayerController implements KPlayerListener{
         } else {
             this.listener.eventWithValue(currentPlayer, eventName, eventValue);
         }
+
+        // Check if IMA was triggered
+        if (mActivity != null && event.canPlay()) {
+            playerReady = true;
+            addAdPlayer();
+        }
     }
 
     @Override
     public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
+        if (eventName.equals(KIMAManager.ContentPauseRequestedKey)) {
+            this.player.pause();
+        } else if (eventName.equals(KIMAManager.ContentResumeRequestedKey)) {
+            this.player.play();
+        }
         this.listener.eventWithJSON(player, eventName, jsonValue);
     }
 
     @Override
     public void contentCompleted(KPlayer currentPlayer) {
         this.contentEnded = true;
+        if (imaManager != null) {
+            imaManager.contentComplete();
+        } else {
+            listener.contentCompleted(player);
+        }
     }
+    // [END KPlayerListener region]
+
+    // [START ContentProgressProvider region]
+    @Override
+    public VideoProgressUpdate getContentProgress() {
+        if (player.getDuration() <= 0) {
+            return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
+        }
+        return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);
+    }
+    // [END ContentProgressProvider region]
 
 }

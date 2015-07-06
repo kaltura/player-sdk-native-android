@@ -547,7 +547,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void contentCompleted(KPlayerController.KPlayer currentPlayer) {
-
+        this.mWebView.triggerEvent(KPlayer.EndedKey, null);
     }
 
     private static class ErrorBuilder {
@@ -953,18 +953,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
-//                    this.mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
-//                        @Override
-//                        public void fetchHeight(int height) {
-//                            PlayerViewController.this.playerController.setAdPlayerHeight(height);
-//                            PlayerViewController.this.playerController.setAdTagURL(attributeValue);
-//                        }
-//                    });
-                    RelativeLayout adUiControls = new RelativeLayout(getContext());
-                    ViewGroup.LayoutParams curLP = this.getLayoutParams();
-                    ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);
-                    this.addView(adUiControls, controlsLP);
-                    playerController.initIMA(attributeValue, adUiControls, mActivity);
+                    playerController.initIMA(attributeValue, mActivity);
                     break;
             }
         }

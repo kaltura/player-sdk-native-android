@@ -59,8 +59,8 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     static protected String DurationChangedKey = "durationchange";
     static protected String LoadedMetaDataKey = "loadedmetadata";
     static protected String TimeUpdateKey = "timeupdate";
-    static protected String ProgressKey = "progress";
-    static protected String EndedKey = "ended";
+//    static protected String ProgressKey = "progress";
+    static public String EndedKey = "ended";
     static protected String SeekedKey = "seeked";
     static protected String CanPlayKey = "canplay";
 
@@ -161,25 +161,26 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 }
             });
 
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (mExoPlayer != null) {
-                        try {
-                            int progress = mExoPlayer.getBufferedPercentage();
-                            if (progress != 0 && mPrevProgress != progress) {
-//                                mListenerExecutor.executeOnProgressUpdate(progress);
-                                mPrevProgress = progress;
-                            }
-
-                        } catch (IllegalStateException e) {
-                            e.printStackTrace();
-                        }
-
-                        mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
-                    }
-                }
-            });
+//            mHandler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    if (mExoPlayer != null) {
+//                        try {
+//                            int progress = mExoPlayer.getBufferedPercentage();
+//                            if (progress != 0 && mPrevProgress != progress) {
+////                                mListenerExecutor.executeOnProgressUpdate(progress);
+//                                KPlayer.this.listener.eventWithValue(KPlayer.this, KPlayer.ProgressKey, Float.toString((float)progress));
+//                                mPrevProgress = progress;
+//                            }
+//
+//                        } catch (IllegalStateException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                        mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+//                    }
+//                }
+//            });
         }
     }
 
@@ -216,30 +217,30 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     // Exo Player listener events
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        PlayerStates state = null;
+//        PlayerStates state = null;
 
         Log.d(TAG, "PlayerStateChanged: " + playbackState);
 
         switch ( playbackState ) {
-            case ExoPlayer.STATE_PREPARING:
-            case ExoPlayer.STATE_BUFFERING:
-                state = PlayerStates.LOAD;
-                break;
+//            case ExoPlayer.STATE_PREPARING:
+//            case ExoPlayer.STATE_BUFFERING:
+//                state = PlayerStates.LOAD;
+//                break;
             case ExoPlayer.STATE_READY:
                 if ( !mIsReady ) {
-                    state = PlayerStates.START;
+//                    state = PlayerStates.START;
                     mIsReady = true;
                     this.listener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(this.getDuration()));
                     this.listener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
                     this.listener.eventWithValue(this, KPlayer.CanPlayKey, null);
                 } else if ( mSeeking ) {
-                    state = PlayerStates.SEEKED;
+//                    state = PlayerStates.SEEKED;
                     mSeeking = false;
                 }
                 break;
             case ExoPlayer.STATE_IDLE:
                 if ( mSeeking ) {
-                    state = PlayerStates.SEEKED;
+//                    state = PlayerStates.SEEKED;
                     mSeeking = false;
                 }
                 break;
@@ -253,20 +254,23 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                     Log.d(TAG, "state ended: seek to 0");
                     mExoPlayer.seekTo(0);
                 }
-                updateStopState();
-                state = PlayerStates.END;
-                pause();
-                listener.contentCompleted(this);
-                if (callback != null) {
-                    callback.onCompleted();
+//                state = PlayerStates.END;
+//                pause();
+                if (playWhenReady) {
+                    listener.contentCompleted(this);
+                    updateStopState();
+                    if (callback != null) {
+                        callback.onCompleted();
+                    }
                 }
+
                 break;
 
         }
 
-        if ( state != null ) {
+//        if ( state != null ) {
 //            mListenerExecutor.executeOnStateChanged(state);
-        }
+//        }
         //TODO: this if doesn't make a whole lot of sense
         //notify initial play
 //        if ( state == PlayerStates.START && playWhenReady ) {
@@ -294,7 +298,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     // MediaCodecVideoTrackRenderer event listener
     @Override
     public void onDroppedFrames(int count, long elapsed) {
-
+//        KPlayer.this.listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString(getCurrentPlaybackTime()));
     }
 
     @Override
@@ -351,9 +355,8 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
         SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
         Handler handler = new Handler(Looper.getMainLooper());
-        TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 50);
+        TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 1);
         TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
-
 
         Surface surface = mSurfaceView.getHolder().getSurface();
         if (videoRenderer == null || surface == null || !surface.isValid()) {
