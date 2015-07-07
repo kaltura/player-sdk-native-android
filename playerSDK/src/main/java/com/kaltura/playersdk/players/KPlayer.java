@@ -24,6 +24,7 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
+import com.kaltura.playersdk.Helpers.KPlayerParams;
 import com.kaltura.playersdk.types.PlayerStates;
 
 import java.util.jar.Attributes;
@@ -53,13 +54,13 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     protected boolean mPrepared = false;
     protected boolean mSeeking = false;
     protected boolean mShouldResumePlayback = false;
+    protected KPlayerParams mParams;
 
     static protected String PlayKey = "play";
     static protected String PauseKey = "pause";
     static protected String DurationChangedKey = "durationchange";
     static protected String LoadedMetaDataKey = "loadedmetadata";
     static protected String TimeUpdateKey = "timeupdate";
-//    static protected String ProgressKey = "progress";
     static public String EndedKey = "ended";
     static protected String SeekedKey = "seeked";
     static protected String CanPlayKey = "canplay";
@@ -105,7 +106,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if ( mIsReady ) {
             mSeeking = true;
-//            mListenerExecutor.executeOnStateChanged(PlayerStates.SEEKING);
             this.listener.eventWithValue(this, KPlayer.SeekedKey, null);
             mExoPlayer.seekTo( (int)(currentPlaybackTime * 1000) );
         }
@@ -149,8 +149,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                         try {
                             int position = mExoPlayer.getCurrentPosition();
                             if ( position != 0 && isPlaying() ) {
-//                                mListenerExecutor.executeOnPlayheadUpdated(position);
-//                                KPlayer.this.setCurrentPlaybackTime((float)position / 1000);
                                 KPlayer.this.listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float)position / 1000));
                             }
                         } catch(IllegalStateException e){
@@ -160,27 +158,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                     }
                 }
             });
-
-//            mHandler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    if (mExoPlayer != null) {
-//                        try {
-//                            int progress = mExoPlayer.getBufferedPercentage();
-//                            if (progress != 0 && mPrevProgress != progress) {
-////                                mListenerExecutor.executeOnProgressUpdate(progress);
-//                                KPlayer.this.listener.eventWithValue(KPlayer.this, KPlayer.ProgressKey, Float.toString((float)progress));
-//                                mPrevProgress = progress;
-//                            }
-//
-//                        } catch (IllegalStateException e) {
-//                            e.printStackTrace();
-//                        }
-//
-//                        mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
-//                    }
-//                }
-//            });
         }
     }
 
@@ -214,33 +191,37 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     public boolean isKPlayer() {
         return true;
     }
+
+//    @Override
+//    public void setPlayerParams(KPlayerParams params) {
+//        mParams = params;
+//    }
+//
+//    @Override
+//    public KPlayerParams getPlayerParams() {
+//        if (mParams == null) {
+//            mParams = new KPlayerParams();
+//        }
+//        return mParams;
+//    }
+
     // Exo Player listener events
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-//        PlayerStates state = null;
-
         Log.d(TAG, "PlayerStateChanged: " + playbackState);
-
         switch ( playbackState ) {
-//            case ExoPlayer.STATE_PREPARING:
-//            case ExoPlayer.STATE_BUFFERING:
-//                state = PlayerStates.LOAD;
-//                break;
             case ExoPlayer.STATE_READY:
                 if ( !mIsReady ) {
-//                    state = PlayerStates.START;
                     mIsReady = true;
                     this.listener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(this.getDuration()));
                     this.listener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
                     this.listener.eventWithValue(this, KPlayer.CanPlayKey, null);
                 } else if ( mSeeking ) {
-//                    state = PlayerStates.SEEKED;
                     mSeeking = false;
                 }
                 break;
             case ExoPlayer.STATE_IDLE:
                 if ( mSeeking ) {
-//                    state = PlayerStates.SEEKED;
                     mSeeking = false;
                 }
                 break;
@@ -254,8 +235,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                     Log.d(TAG, "state ended: seek to 0");
                     mExoPlayer.seekTo(0);
                 }
-//                state = PlayerStates.END;
-//                pause();
                 if (playWhenReady) {
                     listener.contentCompleted(this);
                     updateStopState();
@@ -263,20 +242,8 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                         callback.onCompleted();
                     }
                 }
-
                 break;
-
         }
-
-//        if ( state != null ) {
-//            mListenerExecutor.executeOnStateChanged(state);
-//        }
-        //TODO: this if doesn't make a whole lot of sense
-        //notify initial play
-//        if ( state == PlayerStates.START && playWhenReady ) {
-////            mListenerExecutor.executeOnStateChanged(PlayerStates.PLAY);
-////            this.listener.eventWithValue(this, KPlayer.PlayKey, null);
-//        }
     }
 
     @Override
@@ -298,7 +265,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     // MediaCodecVideoTrackRenderer event listener
     @Override
     public void onDroppedFrames(int count, long elapsed) {
-//        KPlayer.this.listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString(getCurrentPlaybackTime()));
+
     }
 
     @Override

@@ -77,6 +77,8 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 
 	public ManifestReloader reloader = new ManifestReloader();
 
+	// This constant is passed to getFileForTime as the time argument when the library is starting a stream
+	// and wants to use the default start time (0ms for VoD - near end of stream for live/DVR).
 	public static final int USE_DEFAULT_START = -999;
 
 	public int lastSequence = 0;
@@ -119,6 +121,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		
 		public BestEffortRequest(ManifestSegment seg, int segType)
 		{
+			Log.i("BestEffortRequest", "Making Best Effort Request for segment: " + seg);
 			segment = seg;
 			
 			type = segType;
@@ -148,9 +151,20 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 	private List<BestEffortRequest> _bestEffortRequests = new ArrayList<BestEffortRequest>(); // Active best effort requests
 
 
-	public StreamHandler(ManifestParser parser)
+	public StreamHandler(ManifestParser parser, int initialQuality)
 	{
 		baseManifest = parser;
+		if (initialQuality != 0)
+		{
+			if (baseManifest.streams.size() > 0 && initialQuality < baseManifest.streams.size())
+			{
+				ManifestParser p = getManifestForQuality(lastQuality);
+				p.quality = initialQuality;
+				lastQuality = initialQuality;
+			}
+			// else, lastQuality will be 0
+		}
+		
 		for (int i = 0; i < baseManifest.playLists.size(); ++i)
 		{
 			ManifestPlaylist mp = baseManifest.playLists.get(i);
@@ -201,7 +215,6 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 				continue;
 			
 			segments.get(i).startTime = startTimeWitnesses.get(segments.get(i).uri);
-			Log.i("StreamHandler.updateSegmentTimes", "Sentinal Segment=" + segments.get(i));
 			setSegments[i] = 1;
 		}
 		
@@ -604,6 +617,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 			}
 
 			reloader.start();
+			updateDuration();
 			HLSPlayerViewController.currentController.postDurationChanged();
 		}
 	}
@@ -1050,25 +1064,31 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		return null;
 	}
 	
-	// Returns duration in ms
-	public int getDuration()
-	{
-		double accum = 0.0f;
+    private double mDuration = 0.0;
+    public void updateDuration()
+    {
+        double accum = 0.0f;
 
-		if (baseManifest == null) return -1;
+        if (baseManifest == null) return;
 
-		Vector<ManifestSegment> segments = getSegmentsForQuality( lastQuality );
-		if (segments.size() > 0)
-		{
-			updateSegmentTimes(segments);
-			int i = segments.size() - 1;
-	
-			accum = (segments.get(i).startTime + segments.get(i).duration) - segments.get(0).startTime;
-		}
-
-		return (int) (accum * 1000);
-
+        Vector<ManifestSegment> segments = getSegmentsForQuality( lastQuality );
+        if (segments.size() > 0)
+        {
+            updateSegmentTimes(segments);
+            int i = segments.size() - 1;
+    
+            accum = (segments.get(i).startTime + segments.get(i).duration) - segments.get(0).startTime;
+        }
+        
+        mDuration = accum;
 	}
+	
+	// Returns duration in ms
+    public int getDuration()
+    {
+        if (baseManifest == null) return -1;
+        return (int) (mDuration * 1000);
+    }
 	
 	public int getTimeWindowStart()
 	{
@@ -1255,10 +1275,6 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 
 	private SegmentCachedListener bestEffortListener = new SegmentCachedListener()
 	{
-		
-
-		
-		
 		@Override
 		public void onSegmentCompleted(String [] uris)
 		{
@@ -1331,6 +1347,7 @@ public class StreamHandler implements ManifestParser.ReloadEventListener, Manife
 		@Override
 		public void onSegmentFailed(String uri, int errorCode)
 		{
+			Log.i("StreamHandler.bestEffortListener.onSegmentFailed", "Failed for URL[0]: " + uri + " _bestEffortRequests count = " + _bestEffortRequests.size());
 			// TODO: Not sure what to do here, yet...
 			synchronized(_bestEffortRequests)
 			{

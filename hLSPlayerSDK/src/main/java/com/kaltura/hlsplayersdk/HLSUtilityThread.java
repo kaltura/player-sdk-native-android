@@ -6,11 +6,11 @@ import android.os.HandlerThread;
 /**
 * Utility thread to allow queueing Runnables asynchronously.
 */
-class HLSUtilityThread extends HandlerThread
+public class HLSUtilityThread extends HandlerThread
 {
     private Handler mHandler = null;
 
-    HLSUtilityThread(String name)
+    public HLSUtilityThread(String name)
     {
         super(name);
         start();

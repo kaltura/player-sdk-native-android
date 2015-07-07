@@ -15,6 +15,12 @@ public class ManifestEncryptionKey {
 	public int startSegmentId = 0;
 	public int endSegmentId = Integer.MAX_VALUE;
 	
+	@Override
+	public String toString()
+	{
+		return "ManifestEncryptionKey[" + url + "][" + iv + "]";
+	}
+	
 	public ManifestEncryptionKey()
 	{
 		

@@ -42,8 +42,24 @@ public class KStringUtilities {
         return this.string.equals("seeked");
     }
 
+    public boolean isContentPauseRequested() {
+        return string.equals(KIMAManager.ContentPauseRequestedKey);
+    }
+
+    public boolean isContentResumeRequested() {
+        return string.equals(KIMAManager.ContentResumeRequestedKey);
+    }
+
+    public boolean isAllAdsCompleted() {
+        return string.equals(KIMAManager.AllAdsCompletedKey);
+    }
+
     public boolean canPlay() {
         return this.string.equals("canplay");
+    }
+
+    public static boolean isHLSSource(String src) {
+        return src.substring(src.lastIndexOf(".") + 1).equals("m3u8");
     }
 
     public String[] fetchArgs() {

@@ -32,6 +32,7 @@ import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnShareListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.players.BasePlayerView;
+import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.types.PlayerStates;
@@ -931,6 +932,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             final String attributeValue = args[1];
             switch (KStringUtilities.attributeEnumFromString(attributeName)) {
                 case src:
+                    if (KStringUtilities.isHLSSource(attributeValue)) {
+                        playerController.switchPlayer(new KHLSPlayer(mActivity));
+                    }
                     this.playerController.setSrc(attributeValue);
                     break;
                 case currentTime:

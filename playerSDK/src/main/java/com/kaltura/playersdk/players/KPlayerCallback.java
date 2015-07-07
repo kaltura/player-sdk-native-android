@@ -1,5 +1,7 @@
 package com.kaltura.playersdk.players;
 
+import com.kaltura.playersdk.types.KPlayerState;
+
 /**
  * Created by nissopa on 6/30/15.
  */
@@ -18,4 +20,7 @@ public interface KPlayerCallback {
      * Called when an error occurs during video playback.
      */
     void onError();
+
+    void playerStateChanged(KPlayerState state);
 }
+

@@ -80,9 +80,9 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
         playerViewController.addView((View) this.player, lp);
     }
 
-    public void switchPlayer(String playerClassName, String key) {
-        this.playerClassName = playerClassName;
-        this.key = key;
+    public void switchPlayer(KPlayer newPlayer) {
+//        this.playerClassName = playerClassName;
+//        this.key = key;
     }
 
     public void changeSubtitleLanguage(String isoCode) {

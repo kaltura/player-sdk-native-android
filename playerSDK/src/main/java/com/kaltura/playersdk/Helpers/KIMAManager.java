@@ -69,7 +69,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String AdLoadedKey = "adLoaded";
     private String AdStartKey = "adStart";
     private String AdCompletedKey = "adCompleted";
-    private String AllAdsCompletedKey = "allAdsCompleted";
+    static public String AllAdsCompletedKey = "allAdsCompleted";
     static public String ContentPauseRequestedKey = "contentPauseRequested";
     static public String ContentResumeRequestedKey = "contentResumeRequested";
     private String FirstQuartileKey = "firstQuartile";
