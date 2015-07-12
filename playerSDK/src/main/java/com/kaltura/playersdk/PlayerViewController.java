@@ -924,7 +924,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         String[] args = KStringUtilities.fetchArgs(argsString);
         if (args != null && args.length == 2) {
             String attributeName = args[0];
-            final String attributeValue = args[1];
+            String attributeValue = args[1];
             switch (KStringUtilities.attributeEnumFromString(attributeName)) {
                 case src:
                     if (KStringUtilities.isHLSSource(attributeValue)) {

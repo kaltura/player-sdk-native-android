@@ -206,7 +206,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 }
                 break;
             case SKIPPED:
-                mIMAPlayer.removeAd();
+//                mIMAPlayer.removeAd();
                 break;
             default:
                 break;

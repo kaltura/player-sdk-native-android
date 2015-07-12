@@ -35,7 +35,7 @@ import java.util.jar.Attributes;
 public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, SurfaceHolder.Callback {
 
     private int NUM_OF_RENFERERS = 2;
-    private static final String TAG = KalturaPlayer.class.getSimpleName();
+    private static final String TAG = KPlayer.class.getSimpleName();
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
     public static int BUFFER_WAIT_INTERVAL = 200;
     private static final int BUFFER_COUNTER_MAX = 5;

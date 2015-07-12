@@ -59,7 +59,7 @@ public class KStringUtilities {
     }
 
     public static boolean isHLSSource(String src) {
-        return src.substring(src.lastIndexOf(".") + 1).equals("m3u8");
+        return src.contains(".m3u8");
     }
 
     public String[] fetchArgs() {
