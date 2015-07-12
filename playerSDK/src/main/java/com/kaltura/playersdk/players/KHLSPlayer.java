@@ -1,6 +1,8 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -45,6 +47,14 @@ public class KHLSPlayer extends FrameLayout implements
         mPlayer = new HLSPlayerViewController(activity);
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
+        mPlayer.registerDurationChanged(this);
+        mPlayer.registerPlayerStateChange(this);
+        mPlayer.registerPlayheadUpdate(this);
+        mPlayer.registerAudioSwitchingChange(this);
+        mPlayer.registerError(this);
+        mPlayer.registerAudioTracksList(this);
+        mPlayer.registerQualitySwitchingChange(this);
+        mPlayer.registerQualityTracksList(this);
         mPlayer.initialize();
     }
 
@@ -88,12 +98,16 @@ public class KHLSPlayer extends FrameLayout implements
 
     @Override
     public void play() {
-        mPlayer.play();
+        if (!mPlayer.isPlaying()) {
+            mPlayer.play();
+        }
     }
 
     @Override
     public void pause() {
-        mPlayer.pause();
+        if (mPlayer.isPlaying()) {
+            mPlayer.pause();
+        }
     }
 
     @Override
@@ -192,22 +206,23 @@ public class KHLSPlayer extends FrameLayout implements
     public boolean onStateChanged(PlayerStates state) {
         switch (state) {
             case START:
+                mListener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
                 mListener.eventWithValue(this, KPlayer.CanPlayKey, null);
+//                mPlayer.registerProgressUpdate(this);
+//                mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
                 break;
             case LOAD:
-                mListener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
+
                 break;
             case PLAY:
                 mListener.eventWithValue(this, KPlayer.PlayKey, null);
                 break;
             case PAUSE:
-                mListener.eventWithValue(this, KPlayer.PlayKey, null);
+                mListener.eventWithValue(this, KPlayer.PauseKey, null);
                 break;
             case END:
                 mListener.contentCompleted(this);
-                if (mCallback != null) {
-                    mCallback.onCompleted();
-                }
+//                mCallback.playerStateChanged(KPlayerController.ENDED);
                 break;
             case SEEKED:
                 mListener.eventWithValue(this, KPlayer.SeekedKey, null);
@@ -222,7 +237,7 @@ public class KHLSPlayer extends FrameLayout implements
     //region com.kaltura.hlsplayersdk.events.OnProgressListener
     @Override
     public void onProgressUpdate(int progress) {
-        mListener.eventWithValue(this, KPlayer.TimeUpdateKey, Float.toString((float)progress / 1000));
+        mListener.eventWithValue(this, KPlayer.ProgressKey, Float.toString((float)progress / mPlayer.getDuration()));
     }
     //endregion
 

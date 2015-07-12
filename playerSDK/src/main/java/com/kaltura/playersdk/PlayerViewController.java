@@ -35,6 +35,7 @@ import com.kaltura.playersdk.players.BasePlayerView;
 import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
+import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
 import org.json.JSONException;
@@ -47,7 +48,7 @@ import java.util.HashMap;
 /**
  * Created by michalradwantzor on 9/24/13.
  */
-public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerController.KPlayerControllerListener {
+public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerListener {
     public static String TAG = "PlayerViewController";
     public static String DEFAULT_HOST = "http://kgit.html5video.org/";
     public static String DEFAULT_HTML5_URL = "/tags/v2.23.rc4/mwEmbedFrame.php";
@@ -326,9 +327,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             ViewGroup.LayoutParams currLP = getLayoutParams();
             LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
-            this.playerController = new KPlayerController(new KPlayer(mActivity));
+            this.playerController = new KPlayerController(new KPlayer(mActivity), this);
             this.playerController.addPlayerToController(this);
-            this.playerController.setListener(this);
             this.addView(mWebView, wvLp);
         }
 
@@ -527,11 +527,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void openURL(String url) {
-
-    }
-
-    @Override
-    public void allAdsCompleted() {
 
     }
 

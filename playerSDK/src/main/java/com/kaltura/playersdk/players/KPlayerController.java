@@ -23,9 +23,8 @@ import java.util.Objects;
 /**
  * Created by nissopa on 6/14/15.
  */
-public class KPlayerController implements KPlayerListener, ContentProgressProvider {
+public class KPlayerController implements KPlayerCallback, ContentProgressProvider {
     private KPlayer player;
-    private KPlayerControllerListener listener;
     private String playerClassName;
     private String src;
     private String adTagURL;
@@ -40,7 +39,14 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
     private boolean playerReady;
     private KIMAManager imaManager;
     private WeakReference<Activity> mActivity;
+    private KPlayer switchedPlayer = null;
+    private KPlayerListener playerListener;
 
+
+    public static final int CAN_PLAY = 1;
+    public static final int SHOULD_PAUSE = 2;
+    public static final int SHOULD_PLAY = 3;
+    public static final int ENDED = 4;
 
     public interface KPlayer {
         public void setPlayerListener(KPlayerListener listener);
@@ -58,13 +64,11 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
     }
 
 
-    public interface KPlayerControllerListener extends KPlayerListener {
-        public void allAdsCompleted();
-    }
-
-    public KPlayerController(KPlayer player) {
+    public KPlayerController(KPlayer player, KPlayerListener listener) {
         this.player = player;
-        this.player.setPlayerListener(this);
+        playerListener = listener;
+        this.player.setPlayerListener(listener);
+        this.player.setPlayerCallback(this);
     }
 
     public void addPlayerToController(RelativeLayout playerViewController) {
@@ -83,6 +87,16 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
     public void switchPlayer(KPlayer newPlayer) {
 //        this.playerClassName = playerClassName;
 //        this.key = key;
+        player.setPlayerListener(null);
+        player.setPlayerCallback(null);
+        parentViewController.removeView((View) player);
+        player = newPlayer;
+        ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+        ((View)player).setBackgroundColor(Color.RED);
+        parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
+        player.setPlayerCallback(this);
+        player.setPlayerListener(playerListener);
     }
 
     public void changeSubtitleLanguage(String isoCode) {
@@ -101,13 +115,6 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
         return this.player;
     }
 
-    public void setListener(KPlayerControllerListener listener) {
-        this.listener = listener;
-    }
-
-    public KPlayerControllerListener getListener() {
-        return this.listener;
-    }
 
     public void setPlayerClassName(String playerClassName) {
         this.playerClassName = playerClassName;
@@ -149,7 +156,8 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
 
         // Initialize IMA manager
         imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, adUiControls, adTagURL);
-        imaManager.setPlayerListener(this);
+        imaManager.setPlayerListener(playerListener);
+        imaManager.setPlayerCallback(this);
         imaManager.requestAds(this);
     }
 
@@ -178,53 +186,53 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
     }
 
     // [START KPlayerListener region]
-    @Override
-    public void eventWithValue(KPlayer currentPlayer, String eventName, String eventValue) {
-        KStringUtilities event = new KStringUtilities(eventName);
-        if (this.key != null && currentPlayer.isKPlayer() && (event.isPlay() || event.isSeeked())) {
-            this.currentTime = this.player.getCurrentPlaybackTime();
-            this.player.removePlayer();
-            this.player = null;
-            this.addPlayerToController(this.parentViewController);
-            this.setSrc(this.src);
-            this.isSeeked = event.isSeeked();
-        } else if (!currentPlayer.isKPlayer() && event.canPlay()) {
-            if (this.currentTime > 0) {
-                this.player.setCurrentPlaybackTime(this.currentTime);
-            }
-            if (!this.isSeeked) {
-                this.player.play();
-            }
-        } else {
-            this.listener.eventWithValue(currentPlayer, eventName, eventValue);
-        }
-
-        // Check if IMA was triggered
-        if (mActivity != null && event.canPlay()) {
-            playerReady = true;
-            addAdPlayer();
-        }
-    }
-
-    @Override
-    public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
-        if (eventName.equals(KIMAManager.ContentPauseRequestedKey)) {
-            this.player.pause();
-        } else if (eventName.equals(KIMAManager.ContentResumeRequestedKey)) {
-            this.player.play();
-        }
-        this.listener.eventWithJSON(player, eventName, jsonValue);
-    }
-
-    @Override
-    public void contentCompleted(KPlayer currentPlayer) {
-        this.contentEnded = true;
-        if (imaManager != null) {
-            imaManager.contentComplete();
-        } else {
-            listener.contentCompleted(player);
-        }
-    }
+//    @Override
+//    public void eventWithValue(KPlayer currentPlayer, String eventName, String eventValue) {
+//        KStringUtilities event = new KStringUtilities(eventName);
+//        if (this.key != null && currentPlayer.isKPlayer() && (event.isPlay() || event.isSeeked())) {
+//            this.currentTime = this.player.getCurrentPlaybackTime();
+//            this.player.removePlayer();
+//            this.player = null;
+//            this.addPlayerToController(this.parentViewController);
+//            this.setSrc(this.src);
+//            this.isSeeked = event.isSeeked();
+//        } else if (!currentPlayer.isKPlayer() && event.canPlay()) {
+//            if (this.currentTime > 0) {
+//                this.player.setCurrentPlaybackTime(this.currentTime);
+//            }
+//            if (!this.isSeeked) {
+//                this.player.play();
+//            }
+//        } else {
+//            this.listener.eventWithValue(currentPlayer, eventName, eventValue);
+//        }
+//
+//        // Check if IMA was triggered
+//        if (mActivity != null && event.canPlay()) {
+//            playerReady = true;
+//            addAdPlayer();
+//        }
+//    }
+//
+//    @Override
+//    public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
+//        if (eventName.equals(KIMAManager.ContentPauseRequestedKey)) {
+//            this.player.pause();
+//        } else if (eventName.equals(KIMAManager.ContentResumeRequestedKey)) {
+//            this.player.play();
+//        }
+//        this.listener.eventWithJSON(player, eventName, jsonValue);
+//    }
+//
+//    @Override
+//    public void contentCompleted(KPlayer currentPlayer) {
+//        this.contentEnded = true;
+//        if (imaManager != null) {
+//            imaManager.contentComplete();
+//        } else {
+//            listener.contentCompleted(player);
+//        }
+//    }
     // [END KPlayerListener region]
 
     // [START ContentProgressProvider region]
@@ -236,5 +244,37 @@ public class KPlayerController implements KPlayerListener, ContentProgressProvid
         return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);
     }
     // [END ContentProgressProvider region]
+
+    @Override
+    public void playerStateChanged(int state) {
+        switch (state) {
+            case KPlayerController.CAN_PLAY:
+                if (mActivity != null) {
+                    addAdPlayer();
+                }
+                if (switchedPlayer != null) {
+//                    parentViewController.removeView((View)player);
+//                    player.setPlayerListener(null);
+//                    player.setPlayerCallback(null);
+//                    ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
+//                    ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+//                    parentViewController.addView((View)switchedPlayer, parentViewController.getChildCount() - 1, lp);
+//                    switchedPlayer.setPlayerCallback(this);
+//                    switchedPlayer.setPlayerListener(playerListener);
+                }
+                break;
+            case KPlayerController.SHOULD_PLAY:
+                player.play();
+                break;
+            case KPlayerController.SHOULD_PAUSE:
+                player.pause();
+                break;
+            case KPlayerController.ENDED:
+                if (imaManager != null) {
+                    imaManager.contentComplete();
+                }
+                break;
+        }
+    }
 
 }

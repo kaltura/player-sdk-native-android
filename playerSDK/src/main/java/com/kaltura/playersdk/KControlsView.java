@@ -2,6 +2,7 @@ package com.kaltura.playersdk;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -123,6 +124,12 @@ public class KControlsView extends WebView {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
             view.clearCache(true);
+        }
+
+        @Override
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            super.onReceivedError(view, errorCode, description, failingUrl);
+            Log.d("Webview Error", description);
         }
     }
 }

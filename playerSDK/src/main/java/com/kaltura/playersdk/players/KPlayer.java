@@ -61,6 +61,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     static protected String DurationChangedKey = "durationchange";
     static protected String LoadedMetaDataKey = "loadedmetadata";
     static protected String TimeUpdateKey = "timeupdate";
+    static protected String ProgressKey = "progress";
     static public String EndedKey = "ended";
     static protected String SeekedKey = "seeked";
     static protected String CanPlayKey = "canplay";
@@ -106,7 +107,9 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if ( mIsReady ) {
             mSeeking = true;
-            this.listener.eventWithValue(this, KPlayer.SeekedKey, null);
+            if (listener != null) {
+                listener.eventWithValue(this, KPlayer.SeekedKey, null);
+            }
             mExoPlayer.seekTo( (int)(currentPlaybackTime * 1000) );
         }
     }
@@ -148,8 +151,8 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                     if ( mExoPlayer != null ) {
                         try {
                             int position = mExoPlayer.getCurrentPosition();
-                            if ( position != 0 && isPlaying() ) {
-                                KPlayer.this.listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float)position / 1000));
+                            if ( position != 0 && isPlaying()  && listener != null) {
+                                listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float)position / 1000));
                             }
                         } catch(IllegalStateException e){
                             e.printStackTrace();
@@ -213,9 +216,12 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
             case ExoPlayer.STATE_READY:
                 if ( !mIsReady ) {
                     mIsReady = true;
-                    this.listener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(this.getDuration()));
-                    this.listener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
-                    this.listener.eventWithValue(this, KPlayer.CanPlayKey, null);
+                    if (listener != null) {
+                        listener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(this.getDuration()));
+                        listener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
+                        listener.eventWithValue(this, KPlayer.CanPlayKey, null);
+                        callback.playerStateChanged(KPlayerController.CAN_PLAY);
+                    }
                 } else if ( mSeeking ) {
                     mSeeking = false;
                 }
@@ -235,12 +241,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                     Log.d(TAG, "state ended: seek to 0");
                     mExoPlayer.seekTo(0);
                 }
-                if (playWhenReady) {
+                if (playWhenReady && listener != null) {
                     listener.contentCompleted(this);
                     updateStopState();
-                    if (callback != null) {
-                        callback.onCompleted();
-                    }
+                    callback.playerStateChanged(KPlayerController.ENDED);
                 }
                 break;
         }
@@ -248,17 +252,15 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public void onPlayWhenReadyCommitted() {
-        this.listener.eventWithValue(this, mExoPlayer.getPlayWhenReady() ? KPlayer.PlayKey : KPlayer.PauseKey, null);
-        if (callback != null && mExoPlayer.getPlayWhenReady()) {
-            callback.onPlay();
+        if (listener != null) {
+            listener.eventWithValue(this, mExoPlayer.getPlayWhenReady() ? KPlayer.PlayKey : KPlayer.PauseKey, null);
         }
+
     }
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-        if (callback != null) {
-            callback.onError();
-        }
+
     }
 
 

@@ -19,6 +19,7 @@ import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
 import com.kaltura.playersdk.players.KPlayer;
+import com.kaltura.playersdk.players.KPlayerCallback;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 
@@ -52,6 +53,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String mDefaultAdTagUrl;
 
     private KPlayerListener mPlayerListener;
+
+    private KPlayerCallback mPLayerCallback;
 
     private JSONObject jsonValue = new JSONObject();
 
@@ -102,6 +105,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     public void setPlayerListener(KPlayerListener listener) {
         mPlayerListener = listener;
+    }
+
+    public void setPlayerCallback(KPlayerCallback callback) {
+        mPLayerCallback = callback;
     }
 
     /**
@@ -184,19 +191,12 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 fireIMAEvent(AdClickedKey);
                 break;
             case CONTENT_PAUSE_REQUESTED:
-                // AdEventType.CONTENT_PAUSE_REQUESTED is fired immediately before a video ad is
-                // played.
-//                mIMAPlayer.removeAd();
                 fireIMAEvent(ContentPauseRequestedKey);
-//                mPlayerListener.eventWithJSON(null, ContentPauseRequestedKey, null);
-
+                mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
-                // AdEventType.CONTENT_RESUME_REQUESTED is fired when the ad is completed and you
-                // should start playing your content.
                 fireIMAEvent(ContentResumeRequestedKey);
-//                mPlayerListener.eventWithJSON(null, ContentResumeRequestedKey, null);
-
+                mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 break;
             case ALL_ADS_COMPLETED:
                 fireIMAEvent(AllAdsCompletedKey);
