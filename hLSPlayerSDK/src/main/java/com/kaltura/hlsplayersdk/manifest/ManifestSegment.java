@@ -72,17 +72,21 @@ public class ManifestSegment extends BaseManifestItem
 		if(cryptoId != -1 || eKey == null)
 			return;
 		
+		Log.i("ManifestSegment.initializeCrypto", "Initializing Crypto for key: " + eKey);
+		
 		key = eKey;
 		
 		// If we're already in the cache, use the same handle
 		cryptoId = HLSSegmentCache.getCryptoId(uri);
 		if (cryptoId != -1) 
 			return;
+		Log.i("ManifestSegment.initializeCrypto", "Got CryptoId [" + cryptoId + "] for key: " + eKey);
 
 		// Read the key optimistically.
 		ByteBuffer keyBytes = ByteBuffer.allocate(16);
 		HLSSegmentCache.read(key.url, 0, 16, keyBytes);
-
+		Log.i("ManifestSegment.initializeCrypto", "Read CryptoId bytes for key: " + eKey);
+		
 		// Generate IV and cut off 0x part if present.
 		String ivStr = key.getIV(id);
 		if(ivStr.indexOf("0x") == 0 || ivStr.indexOf("0X") == 0)
