@@ -227,7 +227,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
                         mi.uri = targetUrl;
                     else
                     {
-                        Log.e("ManifestParser.parse", "UnknownType. Can't Set URI: " + lastHint.toString());
+                        Log.e("ManifestParser.parse", "UnknownType. Can't Set URI: " + lastHint);
                     }
                         
                 }
@@ -240,7 +240,7 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
                         sp.setUrl(targetUrl);
                     else
                     {
-                        Log.e("ManifestParser.parse", "UnknownType. Can't call SubTitleSegment.setUrl(): " + lastHint.toString());
+                        Log.e("ManifestParser.parse", "UnknownType. Can't call SubTitleSegment.setUrl(): " + lastHint);
                     }
                 }
                 continue;
@@ -309,8 +309,13 @@ public class ManifestParser implements OnParseCompleteListener, URLLoader.Downlo
             }
             else if (tagType.equals("EXT-X-STREAM-INF"))
             {
-                streams.add(ManifestStream.fromString(tagParams));
-                lastHint = streams.get(streams.size() - 1);
+                ManifestStream str = ManifestStream.fromString(tagParams);
+                lastHint = null;
+                if (str.codecs == null || str.codecs.length() == 0 || str.codecs.contains("avc"))
+                {
+                    streams.add(str);
+                    lastHint = streams.get(streams.size() - 1);
+                }
             }
             else if (tagType.equals("EXTINF"))
             {

@@ -23,7 +23,7 @@ public class ManifestPlaylist extends BaseManifestItem {
 		int firstCommaIndex = input.indexOf(',');
 		int firstEqualSignIndex = input.indexOf('=');
 		int firstQuoteIndex = input.indexOf('"');
-		int endIndex = firstCommaIndex > -1 ? firstCommaIndex : input.length() + 1;
+		int endIndex = firstCommaIndex > -1 ? firstCommaIndex : input.length();
 		
 		String key = input.substring( 0, firstEqualSignIndex ).trim();
 		String value;

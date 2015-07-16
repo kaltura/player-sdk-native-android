@@ -1906,6 +1906,8 @@ TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, Segm
             }
             else if (requestedState[FSM_SEEKING]) gotoState(FSM_SEEKING);
             else if (requestedState[FSM_PAUSE]) gotoState(FSM_PAUSE);
+            else if (requestedState[FSM_PLAY]) clearRequest(FSM_PLAY); // We shouldn't be making a play request if we're already in the play state
+                                                                       // Leaving the request causes issues with pause.
             break;
         case FSM_PAUSE:
             if (requestedState[FSM_STOPPED]) gotoState(FSM_STOPPED);
@@ -1924,7 +1926,8 @@ TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, Segm
             break;
         case FSM_SEEKED:
             if (requestedState[FSM_STOPPED]) gotoState(FSM_STOPPED);
-            if (isLoaded()) gotoState(FSM_PLAY);
+            else if (requestedState[FSM_PAUSE]) gotoState(FSM_PAUSE);
+            else if (isLoaded()) gotoState(FSM_PLAY);
             break;
         }
     }
@@ -2085,8 +2088,15 @@ TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, Segm
     // Seek State Handler
     private int mSeekState_seekToMS = 0;
     private boolean mSeekState_notify = true;
+    private boolean mSeekState_pauseOnFinish = false;
+     
     void doSeekState()
     {
+
+        if (getState() != STATE_PLAYING)
+        {
+            mSeekState_pauseOnFinish = true;
+        }
         setState(FSM_SEEKING);
         clearRequest(FSM_SEEKING);
         
@@ -2101,6 +2111,13 @@ TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, Segm
         else
             SeekTo((double)tsms);
         
+        if (mSeekState_pauseOnFinish)
+            pause();
+        mSeekState_pauseOnFinish = false;   // We reset this here, instead of at the start
+                                            // due to the potential need to be able to set
+                                            // the flag outside of the method to a positive
+                                            // value (forcing a pause, no matter if we're
+                                            // "playing" or not).
         
         requestState(FSM_SEEKED);
     }

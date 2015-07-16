@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.kaltura.kalturaplayertoolkit"
     android:versionCode="1"
-    android:versionName="0.7">
+    android:versionName="0.8">
 
     <uses-sdk
 
