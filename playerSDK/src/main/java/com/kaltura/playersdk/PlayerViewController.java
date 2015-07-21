@@ -522,7 +522,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 e.printStackTrace();
             }
         }
-
     }
 
     @Override
@@ -543,7 +542,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void contentCompleted(KPlayerController.KPlayer currentPlayer) {
-        this.mWebView.triggerEvent(KPlayer.EndedKey, null);
+        if (currentPlayer == null) {
+            playerController.setCurrentPlaybackTime(0);
+        } else {
+            this.mWebView.triggerEvent(KPlayer.EndedKey, null);
+        }
     }
 
     private static class ErrorBuilder {

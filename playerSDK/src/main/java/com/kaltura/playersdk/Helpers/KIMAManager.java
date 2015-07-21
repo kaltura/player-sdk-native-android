@@ -56,6 +56,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     private KPlayerCallback mPLayerCallback;
 
+    private boolean mContentCompleted;
+
     private JSONObject jsonValue = new JSONObject();
 
     private String DurationKey = "duration";
@@ -87,6 +89,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
         mIMAPlayer.setKIMAAdEventListener(this);
         mDefaultAdTagUrl = adTagURL;
+        mContentCompleted = false;
 
         // Create an AdsLoader.
         mSdkFactory = ImaSdkFactory.getInstance();
@@ -196,7 +199,9 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 break;
             case CONTENT_RESUME_REQUESTED:
                 fireIMAEvent(ContentResumeRequestedKey);
-                mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
+                if (!mContentCompleted) {
+                    mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
+                }
                 break;
             case ALL_ADS_COMPLETED:
                 fireIMAEvent(AllAdsCompletedKey);
@@ -229,6 +234,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
      * Event raised by VideoPlayerWithAdPlayback when the content video is complete.
      */
     public void contentComplete() {
+        mContentCompleted = true;
         mAdsLoader.contentComplete();
     }
 

@@ -151,7 +151,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                     if ( mExoPlayer != null ) {
                         try {
                             int position = mExoPlayer.getCurrentPosition();
-                            if ( position != 0 && isPlaying()  && listener != null) {
+                            if ( position != 0 && position < KPlayer.this.getDuration() * 1000 && isPlaying()  && listener != null) {
                                 listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float)position / 1000));
                             }
                         } catch(IllegalStateException e){
@@ -239,7 +239,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 }
                 if (mExoPlayer != null) {
                     Log.d(TAG, "state ended: seek to 0");
-                    mExoPlayer.seekTo(0);
+                    this.setCurrentPlaybackTime(0);
                 }
                 if (playWhenReady && listener != null) {
                     listener.contentCompleted(this);
