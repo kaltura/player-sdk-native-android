@@ -79,6 +79,7 @@ public class LoginFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
+                mListener.onFragmentInteraction(null);
 //                String url = "http://player.kaltura.com/docs/?forceKalturaNativeComponentPlayer";
 //                Intent i = new Intent(Intent.ACTION_VIEW);
 //                i.setData(Uri.parse(url));

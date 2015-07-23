@@ -13,6 +13,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebView;
 
+import com.kaltura.playersdk.KPPlayerConfig;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
@@ -68,7 +70,18 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-
+        Intent intent = getIntent();
+        Fragment fragment = new FullscreenFragment();
+        Bundle extras = intent.getExtras();
+        if (extras == null) {
+            extras = new Bundle();
+        }
+        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com/html5/html5lib/v2.32/mwEmbedFrame.php", "30263061", "kaltura_player_1435744828");
+        config.setWid("_1424501");
+        config.setCacheSt("1435744828");
+        config.setEntryId("1_ypo9wae3");
+        extras.putString(getString(R.string.prop_iframe_url), config.getVideoURL());
+        FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
 
     private void loadFragment(){

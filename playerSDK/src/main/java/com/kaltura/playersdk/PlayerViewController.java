@@ -71,6 +71,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
     private KPlayerJsCallbackReadyListener mJsReadyListener;
     private JSONObject nativeActionParams;
+    private KPPlayerConfig mConfig;
 
     public String host = DEFAULT_HOST;
 
@@ -102,6 +103,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                                 int defStyle) {
         super(context, attrs, defStyle);
         setupPlayerViewController( context );
+    }
+
+    public void initWithConfiguration(KPPlayerConfig configuration) {
+        mConfig = configuration;
+        mIframeUrl = mConfig.getVideoURL();
+    }
+
+    public void loadPlayerIntoActivity(Activity activity) {
+        mActivity = activity;
     }
 
     /**
