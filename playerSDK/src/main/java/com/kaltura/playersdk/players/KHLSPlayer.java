@@ -83,7 +83,7 @@ public class KHLSPlayer extends FrameLayout implements
 
     @Override
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        mPlayer.seek((int)currentPlaybackTime * 1000);
+        mPlayer.seek((int)(currentPlaybackTime * 1000) + mPlayer.getPlaybackWindowStartTime());
     }
 
     @Override
@@ -185,7 +185,8 @@ public class KHLSPlayer extends FrameLayout implements
     //region com.kaltura.hlsplayersdk.events.OnPlayheadUpdateListener
     @Override
     public void onPlayheadUpdated(int msec) {
-        mListener.eventWithValue(this, KPlayer.TimeUpdateKey, Float.toString((float)msec / 1000));
+        float updateTimeVal = msec - mPlayer.getPlaybackWindowStartTime();
+        mListener.eventWithValue(this, KPlayer.TimeUpdateKey, Float.toString(updateTimeVal / 1000));
     }
     //endregion
 

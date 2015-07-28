@@ -967,6 +967,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case doubleClickRequestAds:
                     playerController.initIMA(attributeValue, mActivity);
                     break;
+                case goLive:
+                    ((LiveStreamInterface)playerController.getPlayer()).switchToLive();
+                    break;
             }
         }
     }
