@@ -98,7 +98,7 @@ public class KStringUtilities {
     }
 
     public enum Attribute {
-        src, currentTime, visible, wvServerKey, nativeAction, doubleClickRequestAds, language, textTrackSelected;
+        src, currentTime, visible, wvServerKey, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive;
     }
 
     static public String addEventListener(String event) {

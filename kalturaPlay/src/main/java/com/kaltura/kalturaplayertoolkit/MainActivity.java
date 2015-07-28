@@ -76,10 +76,13 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if (extras == null) {
             extras = new Bundle();
         }
-        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com/html5/html5lib/v2.32/mwEmbedFrame.php", "30263061", "kaltura_player_1435744828");
-        config.setWid("_1424501");
-        config.setCacheSt("1435744828");
-        config.setEntryId("1_ypo9wae3");
+        KPPlayerConfig config = new  KPPlayerConfig("http://10.0.21.46/html5.kaltura/mwEmbed/mwEmbedFrame.php", "15115621", "kaltura_player_1428841967");
+        config.setWid("_1091");
+        config.setCacheSt("1428841967");
+        config.setEntryId("0_nt4qzwvs");
+        config.setDebug(true);
+        config.addConfig("nativeCallout", "{\"plugin\":true}");
+        config.setForceMobileHTML5(true);
         extras.putString(getString(R.string.prop_iframe_url), config.getVideoURL());
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
