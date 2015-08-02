@@ -1,8 +1,6 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -16,9 +14,14 @@ import com.kaltura.playersdk.LiveStreamInterface;
 import com.kaltura.playersdk.QualityTracksInterface;
 import com.kaltura.playersdk.TextTracksInterface;
 
-import org.w3c.dom.NameList;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
 /**
  * Created by nissopa on 7/6/15.
@@ -38,6 +41,7 @@ public class KHLSPlayer extends FrameLayout implements
         com.kaltura.hlsplayersdk.events.OnQualitySwitchingListener,
         OnDurationChangedListener,
         LiveStreamInterface {
+    private static final String TAG = "KHLSPlayer";
     private HLSPlayerViewController mPlayer;
     private KPlayerListener mListener;
     private KPlayerCallback mCallback;
@@ -260,23 +264,65 @@ public class KHLSPlayer extends FrameLayout implements
 
     }
     //endregion
+    
+    
+    private static JSONObject qualityTrackToJSONObject(int originalIndex, QualityTrack track) {
+        Map<String, Object> objectMap = new HashMap<>();
+        objectMap.put("originalIndex", originalIndex);
+        objectMap.put("trackId", track.trackId);
+        objectMap.put("bitrate", track.bitrate);
+        objectMap.put("height", track.height);
+        objectMap.put("width", track.width);
+        return new JSONObject(objectMap);
+    }
 
     //region com.kaltura.hlsplayersdk.events.OnQualityTracksListListener
     @Override
     public void OnQualityTracksList(List<QualityTrack> list, int defaultTrackIndex) {
+        JSONArray jsonArray = new JSONArray();
+        
+        for (ListIterator<QualityTrack> it = list.listIterator(); it.hasNext(); ) {
+            QualityTrack track = it.next();
+            if (track.width >= 1024) {
+                continue;
+            }
+            jsonArray.put(qualityTrackToJSONObject(it.nextIndex() - 1, track));
+        }
+        
+        
+        JSONObject jsonResponse = new JSONObject();
+        try {
+            jsonResponse.put("tracks", jsonArray);
+            jsonResponse.put("defaultTrackIndex", defaultTrackIndex);
+        } catch (JSONException e) {
+            Log.wtf(TAG, "JSONException in put can only happen with double values", e);
+        }
 
+        mListener.eventWithJSON(this, KPlayer.FlavorsListChangedKey, jsonResponse.toString());
     }
     //endregion
 
     //region com.kaltura.hlsplayersdk.events.OnQualitySwitchingListener
     @Override
     public void onQualitySwitchingStart(int oldTrackIndex, int newTrackIndex) {
-
+        JSONObject jsonResponse = new JSONObject();
+        try {
+            jsonResponse = new JSONObject().put("oldIndex", oldTrackIndex).put("newIndex", newTrackIndex);
+        } catch (JSONException e) {
+            Log.wtf(TAG, "JSONException in put can only happen with double values", e);
+        }
+        mListener.eventWithJSON(this, KPlayer.SourceSwitchingStartedKey, jsonResponse.toString());
     }
 
     @Override
     public void onQualitySwitchingEnd(int newTrackIndex) {
-
+        JSONObject jsonResponse = new JSONObject();
+        try {
+            jsonResponse = new JSONObject().put("newIndex", newTrackIndex);
+        } catch (JSONException e) {
+            Log.wtf(TAG, "JSONException in put can only happen with double values", e);
+        }
+        mListener.eventWithJSON(this, KPlayer.SourceSwitchingEndKey, jsonResponse.toString());
     }
     //endregion
 

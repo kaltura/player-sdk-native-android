@@ -1,10 +1,7 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
-import android.text.StaticLayout;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -12,12 +9,9 @@ import android.widget.RelativeLayout;
 
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.google.android.libraries.mediaframework.layeredvideo.Util;
 import com.kaltura.playersdk.Helpers.KIMAManager;
-import com.kaltura.playersdk.Helpers.KStringUtilities;
 
 import java.lang.ref.WeakReference;
-import java.util.Objects;
 
 
 /**
