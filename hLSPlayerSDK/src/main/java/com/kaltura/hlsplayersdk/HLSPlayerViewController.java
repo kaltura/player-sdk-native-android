@@ -1893,7 +1893,10 @@ TextTracksInterface, AlternateAudioTracksInterface, QualityTracksInterface, Segm
             break;
         case FSM_START:
             if (requestedState[FSM_PLAY] && isLoaded()) gotoState(FSM_PLAY); // Note that isloaded should be true, always, if we end up in the start state
-            else if (requestedState[FSM_SEEKING]) gotoState(FSM_PLAY); // If we seeked to start, we need to play, first
+            else if (requestedState[FSM_SEEKING])
+            {
+                // do nothing because we're waiting to play. Seek will happen once play commences.
+            }
             else if (requestedState[FSM_STOPPED]) gotoState(FSM_STOPPED);
             break;
         case FSM_PLAY:
