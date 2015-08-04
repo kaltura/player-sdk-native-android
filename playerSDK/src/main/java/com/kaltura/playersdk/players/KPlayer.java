@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.players;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Handler;
@@ -11,9 +10,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
@@ -25,9 +22,6 @@ import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
 import com.kaltura.playersdk.Helpers.KPlayerParams;
-import com.kaltura.playersdk.types.PlayerStates;
-
-import java.util.jar.Attributes;
 
 /**
  * Created by nissopa on 6/15/15.
@@ -65,6 +59,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     static public String EndedKey = "ended";
     static protected String SeekedKey = "seeked";
     static protected String CanPlayKey = "canplay";
+    static protected String FlavorsListChangedKey = "flavorsListChanged";
+    public static final String SourceSwitchingStartedKey = "sourceSwitchingStarted";
+    public static final String SourceSwitchingEndKey = "sourceSwitchingEnd";
+
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
