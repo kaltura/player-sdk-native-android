@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/kaltura/player-sdk-native-android.svg?branch=master)](https://travis-ci.org/kaltura/player-sdk-native-android)
+
 # player-sdk-native-android
 Player SDK Native Android
 =========================
