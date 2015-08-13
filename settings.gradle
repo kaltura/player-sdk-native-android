@@ -1,6 +1,5 @@
 include ':castCompanionLibraryandroid'
 include ':exoPlayerLib'
-include ':hLSPlayerSDK'
 include ':googlemediaframework'
 include ':playerSDK'
 include ':kalturaPlay'
