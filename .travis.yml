@@ -20,7 +20,7 @@ deploy:
   on:
     tags: true
   api-key:
-    secure: "O61ec3xzCDLOv70awzLNuI2bx0FQCNd8lgYY3J9Lv9ZUubxDKQPPK6PvQH0GXVrC7SfF3nw8FaJ3jJAvz8zcj3olzg+cR1gEFWPzxIZvRJsdwRWshQrH3STGSt3QdYw4qvznIqw1VwJ9Hx+C27O+iQkWfrMEgDDReAnq3v+Bucs="
+    secure: "TklD17qRdJATf4gBnRwmxA7/FNBS37BY69hGgFrI8wSNRpoL/QeD3pLDvAiwZaWwZtTdTvb8GKGI9KCFKwR8DqoqxMqpyazPlgqd76INQ9jhVuY8kIwn+kDJQBhT4wmYOqKcuzICG5RJF76fJc7FE/KKVvKkgyG8jRL+Vh826do="
 notifications:
   email:
     recipients:
