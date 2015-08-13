@@ -4,9 +4,10 @@ android:
   components:
   - platform-tools
   - tools
-  - build-tools-19.1.0
-  - android-19
+  - build-tools-22
+  - android-22
   - extra-android-m2repository
+  - extra-google-m2repository
 script:
 - ./gradlew assembleDebug
 after_success:
