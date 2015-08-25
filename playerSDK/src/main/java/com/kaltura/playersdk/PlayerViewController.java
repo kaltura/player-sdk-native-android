@@ -974,6 +974,23 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    
+    private void switchFlavor(String index) {
+        int flavorIndex = -1;
+        try {
+            flavorIndex = Integer.parseInt(index);
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "switchFlavor failed parsing index, ignoring request" + index);
+            return;
+        }
+
+        KPlayerController.KPlayer player = playerController.getPlayer();
+        if (player instanceof QualityTracksInterface) {
+            QualityTracksInterface adaptivePlayer = (QualityTracksInterface) player;
+            adaptivePlayer.switchQualityTrack(flavorIndex);
+        }
+    }
+    
     private void notifyJsReady() {
         if ( mJsReadyListener != null ) {
             mJsReadyListener.jsCallbackReady();

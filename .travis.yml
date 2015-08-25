@@ -1,0 +1,32 @@
+sudo: false
+language: android
+android:
+  components:
+  - platform-tools
+  - tools
+  - build-tools-22.0.1
+  - android-22
+  - extra-android-m2repository
+  - extra-google-m2repository
+script:
+- ./gradlew assembleDebug
+after_success:
+- ls -lh kalturaPlay/build/outputs/apk
+deploy:
+  provider: releases
+  draft: true
+  skip_cleanup: true
+  file:
+    - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
+  on:
+    tags: true
+  api-key:
+    secure: "TklD17qRdJATf4gBnRwmxA7/FNBS37BY69hGgFrI8wSNRpoL/QeD3pLDvAiwZaWwZtTdTvb8GKGI9KCFKwR8DqoqxMqpyazPlgqd76INQ9jhVuY8kIwn+kDJQBhT4wmYOqKcuzICG5RJF76fJc7FE/KKVvKkgyG8jRL+Vh826do="
+notifications:
+  email:
+    recipients:
+      - noam.tamim@kaltura.com
+      - itay.kinnrot@kaltura.com
+    on_success: change
+    on_failure: always
+    

@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         applicationId "com.kaltura.kalturaplayertoolkit"
@@ -11,7 +11,6 @@ android {
         versionCode 3
         versionName "0.9"
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -22,7 +21,7 @@ android {
 
 dependencies {
     compile project(':playerSDK')
-    compile 'com.android.support:mediarouter-v7:19.+'
-    compile 'com.google.android.gms:play-services:6.5.87'
-    compile 'com.android.support:appcompat-v7:21.+'
+    compile 'com.android.support:mediarouter-v7:22.2.1'
+    compile 'com.google.android.gms:play-services:7.5.0'
+    compile 'com.android.support:appcompat-v7:22.2.1'
 }
