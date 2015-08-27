@@ -27,6 +27,7 @@ notifications:
     recipients:
       - noam.tamim@kaltura.com
       - itay.kinnrot@kaltura.com
+      - nissim.pardo@kaltura.com
     on_success: change
     on_failure: always
     
