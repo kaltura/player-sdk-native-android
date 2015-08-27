@@ -10,6 +10,7 @@ android:
   - extra-google-m2repository
 script:
 - ./gradlew assembleDebug
+- ./gradlew assembleRelease
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk
 deploy:
@@ -18,6 +19,11 @@ deploy:
   skip_cleanup: true
   file:
     - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
+    - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
+    - castCompanionLibraryandroid/build/outputs/aar/castCompanionLibraryandroid-release.aar
+    - exoPlayerLib/build/outputs/aar/exoPlayerLib-release.aar
+    - googlemediaframework/build/outputs/aar/googlemediaframework-release.aar
+    - playerSDK/build/outputs/aar/playerSDK-release.aar
   on:
     tags: true
   api-key:
