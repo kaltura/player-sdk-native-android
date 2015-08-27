@@ -26,7 +26,6 @@ import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
 import com.kaltura.playersdk.events.KPlayerEventListener;
-import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnShareListener;
@@ -69,7 +68,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private OnShareListener mShareListener;
     private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
     private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
-    private KPlayerJsCallbackReadyListener mJsReadyListener;
     private JSONObject nativeActionParams;
     private KPPlayerConfig mConfig;
 
@@ -87,7 +85,24 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private int newWidth, newHeight;
 
+    private boolean mIsJsCallReadyRegistration = false;
+    private ArrayList<ReadyEventListener> mCallBackReadyRegistrations;
+    private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
+    private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
+
     // trigger timeupdate events
+
+    public interface EventListener {
+        public void handler(String eventName, String params);
+    }
+
+    public interface ReadyEventListener {
+        public void handler();
+    }
+
+    public interface EvaluateListener {
+        public void handler(String evaluateResponse);
+    }
 
     public PlayerViewController(Context context) {
         super(context);
@@ -351,9 +366,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    public void triggerEvent(String event, String value) {
-        mWebView.triggerEvent(event, value);
-    }
 
     /**
      * create PlayerView / CastPlayer instance according to cast status
@@ -425,54 +437,18 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // Kaltura Player external API
     // /////////////////////////////////////////////////////////////////////////////////////////////
-    public void registerJsCallbackReady( KPlayerJsCallbackReadyListener listener ) {
-        mJsReadyListener = listener;
-    }
 
     public void sendNotification(String noteName, JSONObject noteBody) {
-        notifyKPlayer("sendNotification",  new String[] { noteName, noteBody.toString() });
+        notifyKPlayer("sendNotification", new String[]{noteName, noteBody.toString()});
     }
 
-    public void addKPlayerEventListener(String eventName,
-                                        KPlayerEventListener listener) {
-        ArrayList<KPlayerEventListener> listeners = mKplayerEventsMap
-                .get(eventName);
-        boolean isNewEvent = false;
-        if ( listeners == null ) {
-            listeners = new ArrayList<KPlayerEventListener>();
-        }
-        if ( listeners.size() == 0 ) {
-            isNewEvent = true;
-        }
-        listeners.add(listener);
-        mKplayerEventsMap.put(eventName, listeners);
-        if ( isNewEvent )
-            notifyKPlayer("addJsListener", new String[] { eventName });
-    }
 
-    public void removeKPlayerEventListener(String eventName,String callbackName) {
-        ArrayList<KPlayerEventListener> listeners = mKplayerEventsMap.get(eventName);
-        if (listeners != null) {
-            for (int i = 0; i < listeners.size(); i++) {
-                if ( listeners.get(i).getCallbackName().equals( callbackName )) {
-                    listeners.remove(i);
-                    break;
-                }
-            }
-            if ( listeners.size() == 0 )
-                notifyKPlayer( "removeJsListener", new String[] { eventName });
-        }
-    }
 
     public void setKDPAttribute(String hostName, String propName, Object value) {
-        notifyKPlayer("setKDPAttribute", new Object[] { hostName, propName, value });
+        notifyKPlayer("setKDPAttribute", new Object[]{hostName, propName, value});
     }
 
-    public void asyncEvaluate(String expression, KPlayerEventListener listener) {
-        String callbackName = listener.getCallbackName();
-        mKplayerEvaluatedMap.put(callbackName, listener);
-        notifyKPlayer("asyncEvaluate", new String[]{expression, callbackName});
-    }
+
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /**
@@ -930,7 +906,80 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //        }
 
     }
+    public void registerReadyEvent(ReadyEventListener listener) {
+        if (mIsJsCallReadyRegistration) {
+            listener.handler();
+        } else {
+            if (mCallBackReadyRegistrations == null && listener != null) {
+                mCallBackReadyRegistrations = new ArrayList<ReadyEventListener>();
+                mCallBackReadyRegistrations.add(listener);
+            }
+        }
+    }
 
+    public void addKPlayerEventListener(final String event, final String eventID, final EventListener listener) {
+        this.registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                if (mPlayerEventsHash == null) {
+                    mPlayerEventsHash = new HashMap<String, ArrayList<HashMap<String,EventListener>>>();
+                }
+                ArrayList<HashMap<String, EventListener>> listenerArr = (ArrayList<HashMap<String, EventListener>>)mPlayerEventsHash.get(event);
+                if (listenerArr == null) {
+                    listenerArr = new ArrayList<HashMap<String, EventListener>>();
+                }
+                HashMap<String, EventListener> addedEvent = new HashMap<String, EventListener>();
+                addedEvent.put(eventID, listener);
+                listenerArr.add(addedEvent);
+                mPlayerEventsHash.put(event, listenerArr);
+                if (listenerArr.size() == 1 && KStringUtilities.isToggleFullScreen(event)) {
+                    mWebView.addEventListener(event);
+                }
+            }
+        });
+    }
+
+    public void removeKPlayerEventListener(String event,String eventID) {
+        ArrayList<HashMap<String, EventListener>> listenerArr = mPlayerEventsHash.get(event);
+        if (listenerArr == null || listenerArr.size() == 0) {
+            return;
+        }
+        ArrayList<HashMap<String, EventListener>> temp = new ArrayList<HashMap<String, EventListener>>(listenerArr);
+        for (HashMap<String, EventListener> hash: temp) {
+            if (hash.keySet().toArray()[hash.keySet().size() - 1].equals(eventID)) {
+                listenerArr.remove(hash);
+            }
+        }
+        if (listenerArr.size() == 0) {
+            listenerArr = null;
+            if (!KStringUtilities.isToggleFullScreen(event)) {
+                mWebView.removeEventListener(event);
+            }
+        }
+    }
+
+    public void asyncEvaluate(String expression, String expressionID, EvaluateListener evaluateListener) {
+        if (mPlayerEvaluatedHash == null) {
+            mPlayerEvaluatedHash = new HashMap<String, EvaluateListener>();
+        }
+        mPlayerEvaluatedHash.put(expressionID, evaluateListener);
+        mWebView.evaluate(expression, expressionID);
+    }
+
+    public void sendNotification(String notificationName, String params) {
+        if (notificationName == null) {
+            notificationName = "null";
+        }
+        mWebView.sendNotification(notificationName, params);
+    }
+
+    public void setKDPAttribute(String pluginName, String propertyName, String value) {
+        mWebView.setKDPAttribute(pluginName, propertyName, value);
+    }
+
+    public void triggerEvent(String event, String value) {
+        mWebView.triggerEvent(event, value);
+    }
 
     /// Bridge methods
     private void setAttribute(String argsString) {
@@ -992,8 +1041,41 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
     
     private void notifyJsReady() {
-        if ( mJsReadyListener != null ) {
-            mJsReadyListener.jsCallbackReady();
+        mIsJsCallReadyRegistration = true;
+        if (mCallBackReadyRegistrations != null) {
+            ArrayList<ReadyEventListener> temp = new ArrayList<ReadyEventListener>(mCallBackReadyRegistrations);
+            for (ReadyEventListener listener: temp) {
+                listener.handler();
+                mCallBackReadyRegistrations.remove(listener);
+            }
+            temp = null;
+            mCallBackReadyRegistrations = null;
+        }
+    }
+
+    private void notifyKPlayerEvent(String args) {
+        String[] arguments = KStringUtilities.fetchArgs(args);
+        if (arguments.length == 2) {
+            String eventName = arguments[0];
+            String params = arguments[1];
+            ArrayList<HashMap<String, EventListener>> listenerArr = mPlayerEventsHash.get(eventName);
+            if (listenerArr != null) {
+                for (HashMap<String, EventListener> hash: listenerArr) {
+                    ((EventListener)hash.values().toArray()[hash.values().size() - 1]).handler(eventName, params);
+                }
+            }
+        }
+    }
+
+    private void notifyKPlayerEvaluated(String args) {
+        String[] arguments = KStringUtilities.fetchArgs(args);
+        if (arguments.length == 2) {
+            EvaluateListener listener = mPlayerEvaluatedHash.get(arguments[0]);
+            if (listener != null) {
+                listener.handler(arguments[1]);
+            }
+        } else {
+            Log.d("AsyncEvaluate Error", "Missing evaluate params");
         }
     }
 
@@ -1035,9 +1117,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    private void notifyKPlayerEvent(String args) {
 
-    }
 
 
     // Native actions

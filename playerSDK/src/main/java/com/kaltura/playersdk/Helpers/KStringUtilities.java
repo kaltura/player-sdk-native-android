@@ -62,6 +62,10 @@ public class KStringUtilities {
         return src.contains(".m3u8");
     }
 
+    public static boolean isToggleFullScreen(String event) {
+        return event.equals("toggleFullscreen");
+    }
+
     public String[] fetchArgs() {
         if (this.argsString != null && this.argsString.length() > 3) {
             try {

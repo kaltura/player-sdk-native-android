@@ -22,8 +22,6 @@ import com.kaltura.kalturaplayertoolkit.R;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.RequestDataSource;
-import com.kaltura.playersdk.events.KPlayerEventListener;
-import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 
 import java.lang.reflect.Method;
@@ -98,57 +96,33 @@ public class FullscreenFragment extends Fragment{
 
             }
         });
-        mPlayerView.registerJsCallbackReady(new KPlayerJsCallbackReadyListener() {
+        mPlayerView.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
 
             @Override
-            public void jsCallbackReady() {
-                mPlayerView.addKPlayerEventListener("doPlay", new KPlayerEventListener() {
-
-                    @Override
-                    public void onKPlayerEvent(Object body) {
-                        Log.d(TAG, "doPlay event called");
-                        setFullScreen();
-                        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
-
-                    @Override
-                    public String getCallbackName() {
-                        return "EventListenerDoPlay";
-                    }
-                });
-
-
-                mPlayerView.addKPlayerEventListener("doPause", new KPlayerEventListener() {
-
-                    @Override
-                    public void onKPlayerEvent(Object body) {
-                        Log.d(TAG,"doPause event called");
-                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
-
-                    @Override
-                    public String getCallbackName() {
-                        return "EventListenerDoPause";
-                    }
-                });
-
+            public void handler() {
+                setFullScreen();
+                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-
                     @Override
                     public void onSystemUiVisibilityChange(int visibility) {
                         Log.d(TAG, "onSystemVisibility change");
-                        if(visibility == FULL_SCREEN_FLAG) {
+                        if (visibility == FULL_SCREEN_FLAG) {
                             Point size = getRealScreenSize();
                             mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                        }else{
+                        } else {
                             Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
-                            mPlayerView.setPlayerViewDimensions(size.x,size.y);
+                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
                         }
                     }
                 });
-
             }
+        });
 
+        mPlayerView.addKPlayerEventListener("doPause", "pause1", new PlayerViewController.EventListener() {
+            @Override
+            public void handler(String eventName, String params) {
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
         });
 
 
