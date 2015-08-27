@@ -118,13 +118,12 @@ public class FullscreenFragment extends Fragment{
             }
         });
 
-        mPlayerView.addKPlayerEventListener("doPause", "pause1", new PlayerViewController.EventListener() {
+        mPlayerView.addKPlayerEventListener("pause", "pause1", new PlayerViewController.EventListener() {
             @Override
             public void handler(String eventName, String params) {
                 getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
         });
-
 
         showPlayerView();
         Bundle bundle = getArguments();

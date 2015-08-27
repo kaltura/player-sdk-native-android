@@ -154,7 +154,7 @@ public class KStringUtilities {
     }
 
     static private String JSMethod(String action, String params) {
-        return JavaScriptPrefix + action +"(" + params + ")";
+        return JavaScriptPrefix + action +"(\"" + params + "\")";
     }
 
     static private String JSMethod(String action, String param1, String param2) {

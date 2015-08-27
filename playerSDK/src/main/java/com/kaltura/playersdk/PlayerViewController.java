@@ -912,8 +912,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         } else {
             if (mCallBackReadyRegistrations == null && listener != null) {
                 mCallBackReadyRegistrations = new ArrayList<ReadyEventListener>();
-                mCallBackReadyRegistrations.add(listener);
             }
+            mCallBackReadyRegistrations.add(listener);
         }
     }
 
@@ -932,7 +932,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 addedEvent.put(eventID, listener);
                 listenerArr.add(addedEvent);
                 mPlayerEventsHash.put(event, listenerArr);
-                if (listenerArr.size() == 1 && KStringUtilities.isToggleFullScreen(event)) {
+                if (listenerArr.size() == 1 && !KStringUtilities.isToggleFullScreen(event)) {
                     mWebView.addEventListener(event);
                 }
             }
