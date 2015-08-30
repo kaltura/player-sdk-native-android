@@ -50,9 +50,6 @@ import java.util.HashMap;
 public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerListener {
     public static String TAG = "PlayerViewController";
     public static String DEFAULT_HOST = "http://kgit.html5video.org/";
-    public static String DEFAULT_HTML5_URL = "/tags/v2.23.rc4/mwEmbedFrame.php";
-    public static String DEFAULT_PLAYER_ID = "21384602";
-    public static int CONTROL_BAR_HEIGHT = 38;
 
     //current active VideoPlayerInterface
     private BasePlayerView mVideoInterface;
@@ -66,16 +63,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private double mDurationSec = 0;
     private OnToggleFullScreenListener mFSListener;
     private OnShareListener mShareListener;
-    private HashMap<String, ArrayList<KPlayerEventListener>> mKplayerEventsMap = new HashMap<String, ArrayList<KPlayerEventListener>>();
-    private HashMap<String, KPlayerEventListener> mKplayerEvaluatedMap = new HashMap<String, KPlayerEventListener>();
     private JSONObject nativeActionParams;
     private KPPlayerConfig mConfig;
 
-    public String host = DEFAULT_HOST;
 
-    private String mVideoUrl;
-    private String mVideoTitle = "";
-    private String mThumbUrl = "";
     private String mIframeUrl = null;
 
     private PlayerStates mState = PlayerStates.START;
@@ -333,11 +324,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * Build player URL and load it to player view
      * @param requestDataSource - RequestDataSource object
      */
-    public void setComponents(RequestDataSource requestDataSource) {
-        String iframeUrl = RequestHandler.videoRequestURL(requestDataSource);
-//		String iframeUrl = host + html5Url + "?wid=_" + partnerId + "&uiconf_id=" + playerId + "&entry_id=" + entryId + "&flashvars[Kaltura.LeadHLSOnAndroid]=true";
-        setComponents(iframeUrl);
-    }
 
     /**
      * Build player URL and load it to player view
@@ -356,8 +342,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             this.playerController.addPlayerToController(this);
             this.addView(mWebView, wvLp);
         }
-
-        iframeUrl = RequestHandler.getIframeUrlWithNativeVersion(iframeUrl, this.getContext());
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) )
         {
             iframeUrl = iframeUrl + "&iframeembed=true";
