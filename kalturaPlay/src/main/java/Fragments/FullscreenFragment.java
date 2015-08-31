@@ -130,55 +130,6 @@ public class FullscreenFragment extends Fragment{
         String iFrameUrl;
         if (bundle != null && (iFrameUrl = bundle.getString(getString(R.string.prop_iframe_url))) != null){
             mPlayerView.setComponents(iFrameUrl);
-        }else{
-            mPlayerView.setComponents(new RequestDataSource() {
-
-                @Override
-                public String getWid() {
-                    return "243342";
-                }
-
-                @Override
-                public String getUrid() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
-
-                @Override
-                public boolean isSpecificVersionTemplate() {
-                    return false;
-                }
-
-                @Override
-                public String getUiConfId() {
-                    return "21384602";
-                }
-
-                @Override
-                public String getServerAddress() {
-                    return "http://cdnapi.kaltura.com";
-
-//                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.25.2/mwEmbedFrame.php";
-                }
-
-                @Override
-                public KPPlayerConfig getFlashVars() {
-                    KPPlayerConfig playerConfig = new KPPlayerConfig();
-                    playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
-                    return playerConfig;
-                }
-
-                @Override
-                public String getEntryId() {
-                    return "0_c0r624gh";
-                }
-
-                @Override
-                public String getCacheStr() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
-            });
         }
 
         return mFragmentView;
