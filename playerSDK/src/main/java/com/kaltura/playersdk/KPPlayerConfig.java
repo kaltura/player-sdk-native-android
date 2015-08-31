@@ -14,33 +14,13 @@ public class KPPlayerConfig {
 	static String sUiConfIdKey = "uiconf_id";
 	static String sCacheStKey = "cache_st";
 	static String sEntryIdKey = "entry_id";
-	static String sPlayerIdKey = "playerId";
 	static String sUridKey = "urid";
-	static String sDebugKey = "debug";
-	static String sForceHtml5Key = "forceMobileHTML5";
 	static String sNativeAdIDKey = "&flashvars[nativeAdId]=";
 	static String sEnableHoverKey = "&flashvars[controlBarContainer.hover]=true";
 	static String sIFrameEmbedKey = "&iframeembed=true";
 
-	public static enum Key{
-		KP_PLAYER_CONFIG_NATIVE_AD_ID_KEY("nativeAdId"),
-		KP_PLAYER_CONFIG_NATIVE_CALL_OUT_KEY("nativeCallout"),
-		KP_PLAYER_CONFIG_CHROMECAST_KEY("chromecast.plugin"),
-		KP_PLAYER_CONFIG_LEAD_ANDROID_HLS("Kaltura.LeadHLSOnAndroid");
 
-		private String label;
 
-		private Key(String str) {
-			this.label = str;
-		}
-
-		public String toString() {
-			return this.label;
-		}
-
-	}
-
-	private Map<Key,String> mFlashvarsDict;
 
 	private Map<String, String> mParamsHash;
 	private String mUrl;
@@ -52,53 +32,13 @@ public class KPPlayerConfig {
 	private String mAdvertiserID;
 	private String mEntryId;
 	private boolean mEnableHover;
-	private boolean mDebug;
-	private boolean mForceMobileHTML5;
-
-
 	private String mUiConfId;
-	private String mPlayerId;
 
-
-
-
-	public KPPlayerConfig(){
-		setupKPPlayerConfig();
-	}
-
-	public void setConfigKey(Key key, String value){
-		mFlashvarsDict.put(key, value);
-	}
-
-	public List<Map.Entry<String,String>> getFlashVarsArray(){
-		List<Map.Entry<String,String>> flashVarsArray = new ArrayList<Map.Entry<String,String>>();
-		for (Entry<Key, String> pairs : mFlashvarsDict.entrySet()) {
-			if(pairs.getKey() != null && !pairs.getValue().isEmpty()) {
-				flashVarsArray.add(new AbstractMap.SimpleEntry<String, String>(String.format("flashvars[%s]",pairs.getKey()), pairs.getValue()));
-			}
-
-		}
-
-		return flashVarsArray;
-	}
-
-	private void addDefaultFlags(){
-		if (mFlashvarsDict != null){
-			mFlashvarsDict.put(Key.KP_PLAYER_CONFIG_NATIVE_AD_ID_KEY, ""); //TODO:define value for advertiser id
-		}
-	}
-	private void setupKPPlayerConfig(){
-		mFlashvarsDict = new HashMap<Key,String>();
-		addDefaultFlags();
-	}
-
-	public KPPlayerConfig(String domain, String uiConfId, String playerID) {
+	public KPPlayerConfig(String domain, String uiConfId) {
 		mDomain = domain;
 		mUiConfId = uiConfId;
-		mPlayerId = playerID;
 		mParamsHash = new HashMap<String, String>();
 		mParamsHash.put(sUiConfIdKey, uiConfId);
-		mParamsHash.put(sPlayerIdKey, playerID);
 	}
 
 	public void addConfig(String key, String value) {
@@ -171,28 +111,6 @@ public class KPPlayerConfig {
 		mEnableHover = enableHover;
 	}
 
-	public boolean isDebug() {
-		return mDebug;
-	}
-
-	public void setDebug(boolean debug) {
-		mDebug = debug;
-		if (debug) {
-			mParamsHash.put(sDebugKey, "true");
-		}
-	}
-
-	public boolean isForceMobileHTML5() {
-		return mForceMobileHTML5;
-	}
-
-	public void setForceMobileHTML5(boolean forceMobileHTML5) {
-		mForceMobileHTML5 = forceMobileHTML5;
-		if (forceMobileHTML5) {
-			mParamsHash.put(sForceHtml5Key, "true");
-		}
-	}
-
 	public String getEntryId() {
 		return mEntryId;
 	}
@@ -204,9 +122,5 @@ public class KPPlayerConfig {
 
 	public String getUiConfId() {
 		return mUiConfId;
-	}
-
-	public String getPlayerId() {
-		return mPlayerId;
 	}
 }

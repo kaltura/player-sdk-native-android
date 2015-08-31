@@ -62,6 +62,10 @@ public class KStringUtilities {
         return src.contains(".m3u8");
     }
 
+    public static boolean isToggleFullScreen(String event) {
+        return event.equals("toggleFullscreen");
+    }
+
     public String[] fetchArgs() {
         if (this.argsString != null && this.argsString.length() > 3) {
             try {
@@ -150,7 +154,7 @@ public class KStringUtilities {
     }
 
     static private String JSMethod(String action, String params) {
-        return JavaScriptPrefix + action +"(" + params + ")";
+        return JavaScriptPrefix + action +"(\"" + params + "\")";
     }
 
     static private String JSMethod(String action, String param1, String param2) {

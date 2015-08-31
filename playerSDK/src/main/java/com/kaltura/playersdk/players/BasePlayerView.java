@@ -7,7 +7,6 @@ import android.widget.FrameLayout;
 import com.google.android.gms.cast.CastDevice;
 import com.kaltura.playersdk.QualityTrack;
 import com.kaltura.playersdk.events.KPlayerEventListener;
-import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.playersdk.events.OnAudioTracksListListener;
@@ -160,10 +159,6 @@ public abstract class BasePlayerView extends FrameLayout {
             return BasePlayerView.this.executeListener(Listener.EventType.KPLAYER_EVENT_LISTENER_TYPE, input);
         }
 
-        boolean executeJsCallbackReady(){
-            KPlayerJsCallbackReadyListener.JsCallbackReadyInputObject input = new KPlayerJsCallbackReadyListener.JsCallbackReadyInputObject();
-            return BasePlayerView.this.executeListener(Listener.EventType.JS_CALLBACK_READY_LISTENER_TYPE, input);
-        }
 
         boolean executeOnAudioTracksList( List<String> list, int defaultTrackIndex ){
             OnAudioTracksListListener.AudioTracksListInputObject input = new OnAudioTracksListListener.AudioTracksListInputObject();
