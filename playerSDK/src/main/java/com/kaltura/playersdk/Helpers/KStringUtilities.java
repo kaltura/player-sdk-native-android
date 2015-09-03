@@ -22,8 +22,6 @@ public class KStringUtilities {
     private String string;
     private String argsString;
 
-    private String[] playerStates = {"loaded", "canplay", "play", "pause", "seeking", "ended"};
-
     public KStringUtilities(String string) {
         this.string = string;
         this.argsString = null;
@@ -70,13 +68,6 @@ public class KStringUtilities {
         return event.equals("toggleFullscreen");
     }
 
-    public boolean isPlayerState() {
-        return Arrays.asList(playerStates).contains(string);
-    }
-
-    public int playerStateIndex() {
-        return Arrays.asList(playerStates).indexOf(string);
-    }
 
     public String[] fetchArgs() {
         if (this.argsString != null && this.argsString.length() > 3) {

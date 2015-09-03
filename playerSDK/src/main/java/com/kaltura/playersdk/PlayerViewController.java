@@ -529,8 +529,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
             for (KPEventListener listener : eventListeners) {
-                if (event.isPlayerState()) {
-                    listener.onKPlayerStateChanged(this, KPlayerState.stateIndex(event.playerStateIndex()));
+                if (KPlayerState.getStateForEventName(eventName) != null) {
+                    listener.onKPlayerStateChanged(this, KPlayerState.getStateForEventName(eventName));
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
                 }
