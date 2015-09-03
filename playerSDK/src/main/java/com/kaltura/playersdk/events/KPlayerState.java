@@ -7,7 +7,7 @@ package com.kaltura.playersdk.events;
 public enum KPlayerState {
     LOADED("loaded"),
     READY("canplay"),
-    PLAING("play"),
+    PLAYING("play"),
     PAUSED("pause"),
     SEEKING("Seeking"),
     ENDED("ended");
@@ -24,7 +24,7 @@ public enum KPlayerState {
             case "canplay":
                 return READY;
             case "play":
-                return PLAING;
+                return PLAYING;
             case "pause":
                 return PAUSED;
             case "Seeking":

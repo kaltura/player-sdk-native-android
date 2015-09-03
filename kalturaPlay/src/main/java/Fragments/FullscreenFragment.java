@@ -19,10 +19,9 @@ import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
 import com.kaltura.kalturaplayertoolkit.R;
-import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.RequestDataSource;
-import com.kaltura.playersdk.events.OnToggleFullScreenListener;
+import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPlayerState;
 
 import java.lang.reflect.Method;
 import java.util.Timer;
@@ -87,41 +86,42 @@ public class FullscreenFragment extends Fragment{
         }
         
         mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
-        mPlayerView.setActivity(getActivity());
-        mPlayerView.setOnFullScreenListener(new OnToggleFullScreenListener() {
+        mPlayerView.loadPlayerIntoActivity(getActivity());
+        mPlayerView.addEventListener(new KPEventListener() {
+            @Override
+            public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                switch (state) {
+                    case READY:
+                        setFullScreen();
+                        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+                            @Override
+                            public void onSystemUiVisibilityChange(int visibility) {
+                                Log.d(TAG, "onSystemVisibility change");
+                                if (visibility == FULL_SCREEN_FLAG) {
+                                    Point size = getRealScreenSize();
+                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                                } else {
+                                    Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
+                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                                }
+                            }
+                        });
+                        break;
+                    case PAUSED:
+                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        break;
+                }
+            }
 
             @Override
-            public void onToggleFullScreen() {
-                setFullScreen();
+            public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
 
             }
-        });
-        mPlayerView.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
 
             @Override
-            public void handler() {
+            public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
                 setFullScreen();
-                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-                    @Override
-                    public void onSystemUiVisibilityChange(int visibility) {
-                        Log.d(TAG, "onSystemVisibility change");
-                        if (visibility == FULL_SCREEN_FLAG) {
-                            Point size = getRealScreenSize();
-                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                        } else {
-                            Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
-                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                        }
-                    }
-                });
-            }
-        });
-
-        mPlayerView.addKPlayerEventListener("pause", "pause1", new PlayerViewController.EventListener() {
-            @Override
-            public void handler(String eventName, String params) {
-                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
         });
 

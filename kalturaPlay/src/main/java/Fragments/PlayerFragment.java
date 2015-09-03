@@ -22,7 +22,8 @@ import android.widget.RelativeLayout;
 
 import com.kaltura.kalturaplayertoolkit.R;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.events.OnToggleFullScreenListener;
+import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPlayerState;
 
 import java.lang.reflect.Method;
 import java.util.Timer;
@@ -107,63 +108,49 @@ public class PlayerFragment extends Fragment {
                 showPlayerView();
             }
         });
-        mPlayerView.setActivity(getActivity());
-        mPlayerView.setOnFullScreenListener(new OnToggleFullScreenListener() {
+        mPlayerView.loadPlayerIntoActivity(getActivity());
 
+        mPlayerView.addEventListener(new KPEventListener() {
             @Override
-            public void onToggleFullScreen() {
-                setFullScreen();
+            public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                switch (state) {
+                    case READY:
+                        mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
 
-            }
-        });
-        mPlayerView.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
-
-            @Override
-            public void handler() {
-                mPlayerView.addKPlayerEventListener("doPlay", "play1", new PlayerViewController.EventListener() {
-                    @Override
-                    public void handler(String eventName, String params) {
+                            @Override
+                            public void onSystemUiVisibilityChange(int visibility) {
+                                Log.d(TAG, "onSystemVisibility change");
+                                if (visibility == FULL_SCREEN_FLAG) {
+                                    Point size = getRealScreenSize();
+                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                                } else {
+                                    Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
+                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                                }
+                            }
+                        });
+                        break;
+                    case PLAYING:
                         if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT) {
                             setFullScreen();
                         }
-                    }
-                });
-
-                mPlayerView.addKPlayerEventListener("doPause", "pause1", new PlayerViewController.EventListener() {
-                    @Override
-                    public void handler(String eventName, String params) {
+                        break;
+                    case PAUSED:
                         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
-                });
+                        break;
+                }
+            }
 
-
-
-
-
-
-
-                mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-
-                    @Override
-                    public void onSystemUiVisibilityChange(int visibility) {
-                        Log.d(TAG, "onSystemVisibility change");
-                        if (visibility == FULL_SCREEN_FLAG) {
-                            Point size = getRealScreenSize();
-                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                        } else {
-                            Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
-                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                        }
-                    }
-                });
+            @Override
+            public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
 
             }
 
+            @Override
+            public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+                setFullScreen();
+            }
         });
-
-
-
-
         return fragmentView;
     }
 
