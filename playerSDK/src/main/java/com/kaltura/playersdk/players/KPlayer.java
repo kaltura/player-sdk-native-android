@@ -153,7 +153,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                                 listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float)position / 1000));
                             }
                         } catch(IllegalStateException e){
-                            e.printStackTrace();
+                            Log.e(TAG, "Looper Exception" , e);
                         }
                         mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
                     }

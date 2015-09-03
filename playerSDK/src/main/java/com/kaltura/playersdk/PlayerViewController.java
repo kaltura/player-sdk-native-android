@@ -16,7 +16,6 @@ import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
-import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
@@ -25,11 +24,11 @@ import com.kaltura.playersdk.Helpers.KStringUtilities;
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
 import com.kaltura.playersdk.chromecast.ChromecastHandler;
-import com.kaltura.playersdk.events.KPlayerEventListener;
+import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnShareListener;
-import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.players.BasePlayerView;
 import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
@@ -43,6 +42,8 @@ import org.json.JSONObject;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by michalradwantzor on 9/24/13.
@@ -61,7 +62,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private double mCurSec;
     private Activity mActivity;
     private double mDurationSec = 0;
-    private OnToggleFullScreenListener mFSListener;
     private OnShareListener mShareListener;
     private JSONObject nativeActionParams;
     private KPPlayerConfig mConfig;
@@ -77,9 +77,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private int newWidth, newHeight;
 
     private boolean mIsJsCallReadyRegistration = false;
-    private ArrayList<ReadyEventListener> mCallBackReadyRegistrations;
+    private Set<ReadyEventListener> mCallBackReadyRegistrations;
     private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
+    private Set<KPEventListener> eventListeners;
+    private boolean isFullScreen = false;
 
     // trigger timeupdate events
 
@@ -117,7 +119,32 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void loadPlayerIntoActivity(Activity activity) {
+        registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                if (eventListeners != null) {
+                    for (KPEventListener listener: eventListeners) {
+                        listener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
+                    }
+                }
+            }
+        });
         mActivity = activity;
+    }
+
+    public void addEventListener(KPEventListener listener) {
+        if (listener != null) {
+            if (eventListeners == null) {
+                eventListeners = new HashSet<>();
+            }
+            eventListeners.add(listener);
+        }
+    }
+
+    public void removeEventListener(KPEventListener listener) {
+        if (listener != null && eventListeners != null && eventListeners.contains(listener)) {
+            eventListeners.remove(listener);
+        }
     }
 
     /**
@@ -182,9 +209,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         super.onDraw(canvas);
     }
 
-    public void setOnFullScreenListener(OnToggleFullScreenListener listener) {
-        mFSListener = listener;
-    }
 
     public void setOnShareListener(OnShareListener listener) {
         mShareListener = listener;
@@ -502,6 +526,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     //
     @Override
     public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue) {
+        KStringUtilities event = new KStringUtilities(eventName);
+        if (eventListeners != null) {
+            for (KPEventListener listener : eventListeners) {
+                if (event.isPlayerState()) {
+                    listener.onKPlayerStateChanged(this, KPlayerState.stateIndex(event.playerStateIndex()));
+                } else if (event.isTimeUpdate()) {
+                    listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
+                }
+            }
+        }
         this.mWebView.triggerEvent(eventName, eventValue);
     }
 
@@ -516,6 +550,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             playerController.setCurrentPlaybackTime(0);
         } else {
             this.mWebView.triggerEvent(KPlayer.EndedKey, null);
+            if (eventListeners != null) {
+                for (KPEventListener listener: eventListeners) {
+                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
+                }
+            }
         }
     }
 
@@ -563,7 +602,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             listener.handler();
         } else {
             if (mCallBackReadyRegistrations == null && listener != null) {
-                mCallBackReadyRegistrations = new ArrayList<ReadyEventListener>();
+                mCallBackReadyRegistrations = new HashSet<>();
             }
             mCallBackReadyRegistrations.add(listener);
         }
@@ -736,8 +775,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void toggleFullscreen() {
-        if (mFSListener != null) {
-            mFSListener.onToggleFullScreen();
+        isFullScreen = !isFullScreen;
+        if (eventListeners != null) {
+            for (KPEventListener listener : eventListeners) {
+                listener.onKPlayerFullScreenToggeled(this, isFullScreen);
+            }
         }
     }
 

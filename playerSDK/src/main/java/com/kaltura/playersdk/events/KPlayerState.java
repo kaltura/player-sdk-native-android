@@ -5,17 +5,36 @@ package com.kaltura.playersdk.events;
  */
 
 public enum KPlayerState {
-    LOADED("Loaded", 0),
-    READY("Ready", 1),
-    PLAING("Playing", 2),
-    PAUSED("Paused", 3),
-    SEEKING("Seeking", 4);
+    LOADED("loaded", 0),
+    READY("canplay", 1),
+    PLAING("play", 2),
+    PAUSED("pause", 3),
+    SEEKING("Seeking", 4),
+    ENDED("ended", 5);
 
     private String stringValue;
     private int intValue;
     KPlayerState(String toString, int value) {
         stringValue = toString;
         intValue = value;
+    }
+
+    public static KPlayerState stateIndex(int index) {
+        switch (index) {
+            case 0:
+                return LOADED;
+            case 1:
+                return READY;
+            case 2:
+                return PLAING;
+            case 3:
+                return PAUSED;
+            case 4:
+                return SEEKING;
+            case 5:
+                return ENDED;
+        }
+        return null;
     }
 
     @Override

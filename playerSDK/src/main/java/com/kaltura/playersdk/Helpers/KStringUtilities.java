@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by nissopa on 6/7/15.
@@ -20,6 +21,8 @@ public class KStringUtilities {
 
     private String string;
     private String argsString;
+
+    private String[] playerStates = {"loaded", "canplay", "play", "pause", "seeking", "ended"};
 
     public KStringUtilities(String string) {
         this.string = string;
@@ -41,6 +44,7 @@ public class KStringUtilities {
     public boolean isSeeked() {
         return this.string.equals("seeked");
     }
+    public boolean isTimeUpdate() {return this.string.equals("timeupdate");}
 
     public boolean isContentPauseRequested() {
         return string.equals(KIMAManager.ContentPauseRequestedKey);
@@ -64,6 +68,14 @@ public class KStringUtilities {
 
     public static boolean isToggleFullScreen(String event) {
         return event.equals("toggleFullscreen");
+    }
+
+    public boolean isPlayerState() {
+        return Arrays.asList(playerStates).contains(string);
+    }
+
+    public int playerStateIndex() {
+        return Arrays.asList(playerStates).indexOf(string);
     }
 
     public String[] fetchArgs() {

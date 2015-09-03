@@ -22,7 +22,6 @@ import com.kaltura.playersdk.events.OnQualityTracksListListener;
 import com.kaltura.playersdk.events.OnTextTrackChangeListener;
 import com.kaltura.playersdk.events.OnTextTrackTextListener;
 import com.kaltura.playersdk.events.OnTextTracksListListener;
-import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
@@ -263,10 +262,6 @@ public abstract class BasePlayerView extends FrameLayout {
             return BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_TEXT_LISTENER_TYPE, input);
         }
 
-        boolean executeOnToggleFullScreen(){
-            OnToggleFullScreenListener.ToggleFullScreenInputObject input = new OnToggleFullScreenListener.ToggleFullScreenInputObject();
-            return BasePlayerView.this.executeListener(Listener.EventType.TOGGLE_FULLSCREEN_LISTENER_TYPE, input);
-        }
 
         boolean executeSetMinimize( boolean minimize ){
             OnWebViewMinimizeListener.WebViewMinimizeInputObject input = new OnWebViewMinimizeListener.WebViewMinimizeInputObject();
