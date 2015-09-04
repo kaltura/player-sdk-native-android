@@ -35,10 +35,41 @@ Quick Start Guide
 ======
 
 ```
-git clone https://github.com/kaltura/player-sdk-native-android.git
+1. git clone https://github.com/kaltura/player-sdk-native-android.git to the same folder of your app.
+```
+```
+2. Add reference to PlayerSDK module from your project:
 ```
 
-Start up Android Studio, and build the project.
+#####Select `settings.gradle` and add:
+
+```
+include ':castCompanionLibraryandroid'
+project(':castCompanionLibraryandroid').projectDir=new File('../player-sdk-native-android/castCompanionLibraryandroid')
+ 
+include ':exoPlayerLib'
+project(':exoPlayerLib').projectDir=new File('../player-sdk-native-android/exoPlayerLib')
+ 
+include ':googlemediaframework'
+project(':googlemediaframework').projectDir=new File('../player-sdk-native-android/googlemediaframework')
+ 
+include ':hLSPlayerSDK'
+project(':hLSPlayerSDK').projectDir=new File('../player-sdk-native-android/hLSPlayerSDK')
+ 
+include ':playerSDK'
+project(':playerSDK').projectDir=new File(‘../player-sdk-native-android/playerSDK')
+```
+#####Right click on your app folder ->`Open Module Settings`.
+
+![alt text](https://9e7704fa-a-62cb3a1a-s-sites.googlegroups.com/site/kalturaimages/shareicons/ModuleSettings.png?attachauth=ANoY7co3Fibe4sZcIY5K1QBU7L74Y4Jp71WJbMJ4vKagckhsYzA2qxzAT5myeKeizQrUsOqn7c-MCNU6jKJi-SZwMWHv2JMcmM7xs-O2FkQUoebdD7SFScNdrUV8sfdaAq0GrNYgrSEk0_4S0bYErXbg0nEzLlOHLOURwMzhZsEvMFdjj_Qe6vfUCsFdlOm6BHOV8FjrA8azbx-ywPWn13SirFrVD71PmbrMftmv6NivJOzaes9lois%3D&attredirects=0)
+
+#####Select `Dependencies` tab -> click on the `+` button and choos the `playerSDK` module:
+![alt text](https://9e7704fa-a-62cb3a1a-s-sites.googlegroups.com/site/kalturaimages/shareicons/AddDependencies.png?attachauth=ANoY7cqDWyp0Wk-K-EcsLqf1Iad71Hm8WXS55nmpkaKjw6Me79OXBPoUb8_utColKQgLHC-NL8Q4MD6jabqeUvnYiW9nANA_kcjGbgx8tFndx-_nwrdKLawmpJYN24XMl2g9EvR6SfVwLpMHOymUnN868yvIJQiIOeYpVjtKW67Fr13tD3mVVMSzqoPC1hbTnMiJE-r6msrIkqy4SZFsTXk39swMea7UAEN1heb6u_AdsU-UxUBfTyg%3D&attredirects=0)
+
+Now, you are linked to the playerSDK by reference. Be sure that you cloned the playerSDK to the same folder of your project.
+
+
+Make sure that you cloned the **_player-sdk-native-android_** project to the same folder of your project, if you prefer to clone it else where, you should update the **`settings.gradle`**. 
 
 API Overview
 =====
