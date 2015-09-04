@@ -112,9 +112,3 @@ API Overview
     }
 ```
 
-
-
-The player includes the same KDP api available in webviews this includes: 
-* kdp.asyncEvaluate( property, callback );
-* kdp.setKDPAttribute( property, value );
-* kdp.addListener( name, callback );
