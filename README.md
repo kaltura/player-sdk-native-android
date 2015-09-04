@@ -111,4 +111,8 @@ API Overview
         return mFragmentView;
     }
 ```
+DEMO Better Then Words
+=====
 
+You can check out our demo which will help you to better understand our SDK:
+[Kaltura Player Demo](https://github.com/kaltura/player-sdk-demo-android)
