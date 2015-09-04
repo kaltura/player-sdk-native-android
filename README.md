@@ -1,9 +1,8 @@
 [![Build Status](https://travis-ci.org/kaltura/player-sdk-native-android.svg?branch=master)](https://travis-ci.org/kaltura/player-sdk-native-android)
 
-# player-sdk-native-android
+
 Player SDK Native Android
 =========================
-For detailed usage guide see [Knowledge Center Android player SDK usage guide](http://knowledge.kaltura.com/kaltura-player-sdk-android)
 
 **Note**: The Kaltura native player component is in beta. If your a Kaltura customer please contact your Kaltura customer success manager to help facilitate use of this component. 
 
@@ -17,9 +16,6 @@ The Kaltura player-sdk-native component enables embedding the [kaltura player](h
 For a full list of native embed advantages see native controls table within the [player toolkit basic usage guide](http://knowledge.kaltura.com/kaltura-player-v2-toolkit-theme-skin-guide). 
 
 The Kaltura player-sdk-native component can be embedded into both native apps, and hybrid native apps ( via standard dynamic embed syntax ) 
-
-![alt text](http://html5video.org/presentations/HTML5PartDeux.FOSDEM.2014/player-native.png "player in native")
-![alt text](http://html5video.org/presentations/HTML5PartDeux.FOSDEM.2014/player-native2.png "player in webview")
 
 Future support will include: 
 * PlayReady DRM
