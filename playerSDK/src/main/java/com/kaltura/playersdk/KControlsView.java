@@ -108,11 +108,10 @@ public class KControlsView extends WebView {
             if (url == null) {
                 return false;
             }
-            KStringUtilities urlUtil = new KStringUtilities(url);
-            if (urlUtil.isJSFrame()) {
-                KControlsView.this.controlsViewClient.handleHtml5LibCall(urlUtil.getAction(), 1, urlUtil.getArgsString());
+            if (KStringUtilities.isJSFrame(url)) {
+                KControlsView.this.controlsViewClient.handleHtml5LibCall(KStringUtilities.getAction(url), 1, KStringUtilities.getArgs(url));
                 return false;
-            } else if (!urlUtil.isEmbedFrame()) {
+            } else if (!KStringUtilities.isEmbedFrame(url)) {
                 KControlsView.this.controlsViewClient.openURL(url);
                 return false;
             }

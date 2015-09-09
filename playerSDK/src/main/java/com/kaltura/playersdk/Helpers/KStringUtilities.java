@@ -19,45 +19,39 @@ public class KStringUtilities {
     private static String TriggerEvent = "trigger";
     private static String SendNotification = "sendNotification";
 
-    private String string;
-    private String argsString;
 
-    public KStringUtilities(String string) {
-        this.string = string;
-        this.argsString = null;
+
+    static public boolean isJSFrame(String str) {
+       return str.startsWith("js-frame:");
     }
 
-    public boolean isJSFrame() {
-       return this.string.startsWith("js-frame:");
+    static public boolean isEmbedFrame(String str) {
+        return str.contains("mwEmbedFrame.php");
     }
 
-    public boolean isEmbedFrame() {
-        return this.string.contains("mwEmbedFrame.php");
+    static public boolean isPlay(String str) {
+        return str.equals("play");
     }
 
-    public boolean isPlay() {
-        return this.string.equals("play");
+    static public boolean isSeeked(String str) {
+        return str.equals("seeked");
+    }
+    static public boolean isTimeUpdate(String str) {return str.equals("timeupdate");}
+
+    static public boolean isContentPauseRequested(String str) {
+        return str.equals(KIMAManager.ContentPauseRequestedKey);
     }
 
-    public boolean isSeeked() {
-        return this.string.equals("seeked");
-    }
-    public boolean isTimeUpdate() {return this.string.equals("timeupdate");}
-
-    public boolean isContentPauseRequested() {
-        return string.equals(KIMAManager.ContentPauseRequestedKey);
+    static public boolean isContentResumeRequested(String str) {
+        return str.equals(KIMAManager.ContentResumeRequestedKey);
     }
 
-    public boolean isContentResumeRequested() {
-        return string.equals(KIMAManager.ContentResumeRequestedKey);
+    static public boolean isAllAdsCompleted(String str) {
+        return str.equals(KIMAManager.AllAdsCompletedKey);
     }
 
-    public boolean isAllAdsCompleted() {
-        return string.equals(KIMAManager.AllAdsCompletedKey);
-    }
-
-    public boolean canPlay() {
-        return this.string.equals("canplay");
+    static public boolean canPlay(String str) {
+        return str.equals("canplay");
     }
 
     public static boolean isHLSSource(String src) {
@@ -68,43 +62,24 @@ public class KStringUtilities {
         return event.equals("toggleFullscreen");
     }
 
-
-    public String[] fetchArgs() {
-        if (this.argsString != null && this.argsString.length() > 3) {
-            try {
-                String value = URLDecoder.decode(this.argsString, "UTF-8");
-                if (value != null && value.length() > 2) {
-                    JSONArray jsonArr = new JSONArray(value);
-
-                    String[] params = new String[jsonArr.length()];
-                    for (int i = 0; i < jsonArr.length(); i++) {
-                        params[i] = jsonArr.getString(i);
-                    }
-                    return params;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    public String getArgsString() {
-        return this.argsString;
-    }
-
-    public String getAction() {
-        String[] arr = this.string.split(":");
+    static public String getAction(String str) {
+        String[] arr = str.split(":");
         if (arr.length > 1) {
-            if (arr.length > 3) {
-                this.argsString = arr[3].equals("%5B%5D") ? null : arr[3];
-            }
             return arr[1];
         }
         return null;
     }
 
-    public enum Attribute {
+    static public String getArgs(String str) {
+        String[] arr = str.split(":");
+        if (arr.length > 3) {
+            str = arr[3].equals("%5B%5D") ? null : arr[3];
+            return str;
+        }
+        return null;
+    }
+
+    static public enum Attribute {
         src, currentTime, visible, wvServerKey, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive;
     }
 
