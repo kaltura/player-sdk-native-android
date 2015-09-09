@@ -87,9 +87,9 @@ API Overview
         mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
         mPlayerView.loadPlayerIntoActivity(getActivity());
 
-        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com/html5/html5lib/v2.33/mwEmbedFrame.php", "26698911");
-        config.setWid("_1831271");
+        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "30824441", "1281471");
         config.setEntryId("1_o426d3i4");
+        config.addConfig("streamerType", "auto");
         mPlayerView.setComponents(config.getVideoURL());
         mPlayerView.addEventListener(new KPEventListener() {
             @Override
