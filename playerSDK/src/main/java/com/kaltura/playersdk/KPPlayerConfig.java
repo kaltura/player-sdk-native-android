@@ -1,18 +1,13 @@
 package com.kaltura.playersdk;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 public class KPPlayerConfig {
 
 	/// Key names of the video request
 	static String sWidKey = "wid";
 	static String sUiConfIdKey = "uiconf_id";
-	static String sCacheStKey = "cache_st";
 	static String sEntryIdKey = "entry_id";
 	static String sUridKey = "urid";
 	static String sNativeAdIDKey = "&flashvars[nativeAdId]=";
@@ -22,29 +17,29 @@ public class KPPlayerConfig {
 
 
 
-	private Map<String, String> mParamsHash;
+	private Map<String, String> mParamsMap;
 	private String mUrl;
 
 	private String mDomain;
 	private String mWid;
-	private String mCacheSt;
 	private String mUrid;
 	private String mAdvertiserID;
 	private String mEntryId;
 	private boolean mEnableHover;
 	private String mUiConfId;
+	private String mPartnerId;
 
-	public KPPlayerConfig(String domain, String uiConfId) {
+	public KPPlayerConfig(String domain, String uiConfId, String partnerId) {
 		mDomain = domain;
 		mUiConfId = uiConfId;
-		mParamsHash = new HashMap<String, String>();
-		mParamsHash.put(sUiConfIdKey, uiConfId);
+		mPartnerId = partnerId;
+		mParamsMap = new HashMap<String, String>();
 	}
 
 	public void addConfig(String key, String value) {
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
 			String configKey = "flashvars[" + key + "]";
-			mParamsHash.put(configKey, value);
+			mParamsMap.put(configKey, value);
 		}
 	}
 
@@ -60,39 +55,12 @@ public class KPPlayerConfig {
 	}
 
 	public String getVideoURL() {
-		mUrl = mDomain + "?";
-		for (String key: mParamsHash.keySet()) {
-			mUrl += key + "=" + mParamsHash.get(key) + "&";
+		mUrl = mDomain + "/p/" + mPartnerId + "/sp/" + mPartnerId + "00/embedIframeJs/uiconf_id/" + mUiConfId + "/partner_id/" + mPartnerId + "?";
+		for (String key: mParamsMap.keySet()) {
+			mUrl += key + "=" + mParamsMap.get(key) + "&";
 		}
 		mUrl = mUrl.substring(0, mUrl.length() - 1);
 		return mUrl;
-	}
-
-	public String getWid() {
-		return mWid;
-	}
-
-	public void setWid(String wid) {
-		mWid = wid;
-		mParamsHash.put(sWidKey, wid);
-	}
-
-	public String getCacheSt() {
-		return mCacheSt;
-	}
-
-	public void setCacheSt(String cacheSt) {
-		mCacheSt = cacheSt;
-		mParamsHash.put(sCacheStKey, cacheSt);
-	}
-
-	public String getUrid() {
-		return mUrid;
-	}
-
-	public void setUrid(String urid) {
-		mParamsHash.put(sUridKey, urid);
-		mUrid = urid;
 	}
 
 	public String getAdvertiserID() {
@@ -117,7 +85,7 @@ public class KPPlayerConfig {
 
 	public void setEntryId(String entryId) {
 		mEntryId = entryId;
-		mParamsHash.put(sEntryIdKey, entryId);
+		mParamsMap.put(sEntryIdKey, entryId);
 	}
 
 	public String getUiConfId() {
