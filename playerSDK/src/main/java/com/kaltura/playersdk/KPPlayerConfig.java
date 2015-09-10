@@ -12,7 +12,6 @@ public class KPPlayerConfig {
 	/// Key names of the video request
 	static String sWidKey = "wid";
 	static String sUiConfIdKey = "uiconf_id";
-	static String sCacheStKey = "cache_st";
 	static String sEntryIdKey = "entry_id";
 	static String sUridKey = "urid";
 	static String sNativeAdIDKey = "&flashvars[nativeAdId]=";
@@ -27,7 +26,6 @@ public class KPPlayerConfig {
 
 	private String mDomain;
 	private String mWid;
-	private String mCacheSt;
 	private String mUrid;
 	private String mAdvertiserID;
 	private String mEntryId;
@@ -68,31 +66,9 @@ public class KPPlayerConfig {
 		return mUrl;
 	}
 
-	public String getWid() {
-		return mWid;
-	}
-
 	public void setWid(String wid) {
 		mWid = wid;
 		mParamsHash.put(sWidKey, wid);
-	}
-
-	public String getCacheSt() {
-		return mCacheSt;
-	}
-
-	public void setCacheSt(String cacheSt) {
-		mCacheSt = cacheSt;
-		mParamsHash.put(sCacheStKey, cacheSt);
-	}
-
-	public String getUrid() {
-		return mUrid;
-	}
-
-	public void setUrid(String urid) {
-		mParamsHash.put(sUridKey, urid);
-		mUrid = urid;
 	}
 
 	public String getAdvertiserID() {
