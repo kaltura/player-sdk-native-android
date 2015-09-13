@@ -109,6 +109,31 @@ API Overview
         return mFragmentView;
     }
 ```
+
+###Fetching duration:
+For fetching the duration of a video, the player must be in READY state:
+
+```
+mPlayerView.addEventListener(new KPEventListener() {
+            @Override
+            public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                Log.d("KPlayer State Changed", state.toString());
+                if (state == KPlayerState.READY) {
+                    Log.d("Duration", Double.toString(playerViewController.getDurationSec()) );
+                }
+            }
+
+            @Override
+            public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+                Log.d("KPlayer State Changed", Float.toString(currentTime));
+            }
+
+            @Override
+            public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
+                Log.d("KPlayer toggeled", Boolean.toString(isFullscreen));
+            }
+        });
+```
 DEMO Better Then Words
 =====
 
