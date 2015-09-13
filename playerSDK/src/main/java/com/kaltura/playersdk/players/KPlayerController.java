@@ -93,6 +93,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         player.setPlayerListener(playerListener);
     }
 
+    public float getDuration() {
+        if (player != null) {
+            return player.getDuration();
+        }
+        return 0;
+    }
+
     public void changeSubtitleLanguage(String isoCode) {
 
     }

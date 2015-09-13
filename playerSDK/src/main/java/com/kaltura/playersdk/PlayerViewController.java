@@ -426,10 +426,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      */
     public double getDurationSec() {
         double duration = 0;
-        if (mVideoInterface != null) {
-            duration = mVideoInterface.getDuration();
+        if (playerController != null) {
+            duration = playerController.getDuration();
         }
-        duration /= 1000;
         return duration;
     }
 
