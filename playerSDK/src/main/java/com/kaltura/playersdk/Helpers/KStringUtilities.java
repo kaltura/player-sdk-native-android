@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by nissopa on 6/7/15.
@@ -41,6 +42,7 @@ public class KStringUtilities {
     public boolean isSeeked() {
         return this.string.equals("seeked");
     }
+    public boolean isTimeUpdate() {return this.string.equals("timeupdate");}
 
     public boolean isContentPauseRequested() {
         return string.equals(KIMAManager.ContentPauseRequestedKey);
@@ -61,6 +63,11 @@ public class KStringUtilities {
     public static boolean isHLSSource(String src) {
         return src.contains(".m3u8");
     }
+
+    public static boolean isToggleFullScreen(String event) {
+        return event.equals("toggleFullscreen");
+    }
+
 
     public String[] fetchArgs() {
         if (this.argsString != null && this.argsString.length() > 3) {
@@ -150,7 +157,7 @@ public class KStringUtilities {
     }
 
     static private String JSMethod(String action, String params) {
-        return JavaScriptPrefix + action +"(" + params + ")";
+        return JavaScriptPrefix + action +"(\"" + params + "\")";
     }
 
     static private String JSMethod(String action, String param1, String param2) {
