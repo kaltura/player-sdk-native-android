@@ -434,10 +434,17 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public String getVideoUrl() {
         String url = null;
-        if (mVideoInterface != null)
-            url = mVideoInterface.getVideoUrl();
+        if (playerController != null)
+            url = playerController.getSrc();
 
         return url;
+    }
+
+    public double getCurrentPlaybackTime() {
+        if (playerController != null) {
+            return playerController.getCurrentPlaybackTime();
+        }
+        return 0.0;
     }
 
 
@@ -685,6 +692,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setSrc(attributeValue);
                     break;
                 case currentTime:
+                    if (eventListeners != null) {
+                        for (KPEventListener listener: eventListeners) {
+                            listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
+                        }
+                    }
                     this.playerController.setCurrentPlaybackTime(Float.parseFloat(attributeValue));
                     break;
                 case visible:
