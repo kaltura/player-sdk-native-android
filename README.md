@@ -134,7 +134,7 @@ mPlayerView.addEventListener(new KPEventListener() {
             }
         });
 ```
-DEMO Better Then Words
+DEMO - Better Than Words
 =====
 
 You can check out our demo which will help you to better understand our SDK:
