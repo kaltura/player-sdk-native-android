@@ -78,6 +78,9 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         }
         KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271");
         config.setEntryId("1_o426d3i4");
+//        config.addConfig("LeadWithHLSOnFlash", "true");
+//        config.addConfig("LeadHLSOnAndroid", "true");
+//        config.addConfig("ks", "MGNiZDE3ODc2MzBkZTYyYjNkYTlmODIyNmY4MGMyYzdlZTZkNmI1OHwxNzgyMzkxOzE3ODIzOTE7MTQ0MzE2OTA0NzswOzE0NDMwODI2NDcuODU5NTtkb3VnLndvb2RhcmRAdmlzaW9ubWVkaWFtZ210LmNvbTtzdmlldzoqOzs=");
         extras.putString(getString(R.string.prop_iframe_url), config.getVideoURL());
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
