@@ -116,7 +116,7 @@ public class KControlsView extends WebView {
                 KControlsView.this.controlsViewClient.openURL(url);
                 return false;
             }
-            return true;
+            return super.shouldOverrideUrlLoading(view, url);
         }
 
 

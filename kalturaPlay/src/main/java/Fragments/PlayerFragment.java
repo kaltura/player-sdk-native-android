@@ -21,12 +21,9 @@ import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.kaltura.kalturaplayertoolkit.R;
-import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.RequestDataSource;
-import com.kaltura.playersdk.events.KPlayerEventListener;
-import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
-import com.kaltura.playersdk.events.OnToggleFullScreenListener;
+import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPlayerState;
 
 import java.lang.reflect.Method;
 import java.util.Timer;
@@ -111,118 +108,49 @@ public class PlayerFragment extends Fragment {
                 showPlayerView();
             }
         });
-        mPlayerView.setActivity(getActivity());
-        mPlayerView.setOnFullScreenListener(new OnToggleFullScreenListener() {
+        mPlayerView.loadPlayerIntoActivity(getActivity());
 
+        mPlayerView.addEventListener(new KPEventListener() {
             @Override
-            public void onToggleFullScreen() {
-                setFullScreen();
+            public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                switch (state) {
+                    case READY:
+                        mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
 
-            }
-        });
-        mPlayerView.registerJsCallbackReady(new KPlayerJsCallbackReadyListener() {
-
-            @Override
-            public void jsCallbackReady() {
-                mPlayerView.addKPlayerEventListener("doPlay", new KPlayerEventListener() {
-
-                    @Override
-                    public void onKPlayerEvent(Object body) {
-                        Log.d(TAG, "doPlay event called");
+                            @Override
+                            public void onSystemUiVisibilityChange(int visibility) {
+                                Log.d(TAG, "onSystemVisibility change");
+                                if (visibility == FULL_SCREEN_FLAG) {
+                                    Point size = getRealScreenSize();
+                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                                } else {
+                                    Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
+                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                                }
+                            }
+                        });
+                        break;
+                    case PLAYING:
                         if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT) {
                             setFullScreen();
                         }
-                    }
-
-                    @Override
-                    public String getCallbackName() {
-                        return "EventListenerDoPlay";
-                    }
-                });
-
-
-                mPlayerView.addKPlayerEventListener("doPause", new KPlayerEventListener() {
-
-                    @Override
-                    public void onKPlayerEvent(Object body) {
-                        Log.d(TAG,"doPause event called");
+                        break;
+                    case PAUSED:
                         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
+                        break;
+                }
+            }
 
-                    @Override
-                    public String getCallbackName() {
-                        return "EventListenerDoPause";
-                    }
-                });
-
-                mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-
-                    @Override
-                    public void onSystemUiVisibilityChange(int visibility) {
-                        Log.d(TAG, "onSystemVisibility change");
-                        if(visibility == FULL_SCREEN_FLAG) {
-                            Point size = getRealScreenSize();
-                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                        }else{
-                            Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
-                            mPlayerView.setPlayerViewDimensions(size.x,size.y);
-                        }
-                    }
-                });
+            @Override
+            public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
 
             }
 
+            @Override
+            public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+                setFullScreen();
+            }
         });
-
-            mPlayerView.setComponents(new RequestDataSource() {
-
-                @Override
-                public String getWid() {
-                    return "243342";
-                }
-
-                @Override
-                public String getUrid() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
-
-                @Override
-                public boolean isSpecificVersionTemplate() {
-                    return true;
-                }
-
-                @Override
-                public String getUiConfId() {
-                    return "21384602";
-                }
-
-                @Override
-                public String getServerAddress() {
-                    return "http://cdnbakmi.kaltura.com/html5/html5lib/v2.28/mwEmbedFrame.php";
-//                    return "http://cdnapi.kaltura.com";
-                }
-
-                @Override
-                public KPPlayerConfig getFlashVars() {
-                    KPPlayerConfig playerConfig = new KPPlayerConfig();
-                    playerConfig.setConfigKey(KPPlayerConfig.Key.KP_PLAYER_CONFIG_LEAD_ANDROID_HLS, "true");
-                    return playerConfig;
-                }
-
-                @Override
-                public String getEntryId() {
-                    return "0_c0r624gh";
-                }
-
-                @Override
-                public String getCacheStr() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
-            });
-
-
         return fragmentView;
     }
 

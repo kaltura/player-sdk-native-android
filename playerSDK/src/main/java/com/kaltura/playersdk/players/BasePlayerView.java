@@ -7,7 +7,6 @@ import android.widget.FrameLayout;
 import com.google.android.gms.cast.CastDevice;
 import com.kaltura.playersdk.QualityTrack;
 import com.kaltura.playersdk.events.KPlayerEventListener;
-import com.kaltura.playersdk.events.KPlayerJsCallbackReadyListener;
 import com.kaltura.playersdk.events.Listener;
 import com.kaltura.playersdk.events.OnAudioTrackSwitchingListener;
 import com.kaltura.playersdk.events.OnAudioTracksListListener;
@@ -23,7 +22,6 @@ import com.kaltura.playersdk.events.OnQualityTracksListListener;
 import com.kaltura.playersdk.events.OnTextTrackChangeListener;
 import com.kaltura.playersdk.events.OnTextTrackTextListener;
 import com.kaltura.playersdk.events.OnTextTracksListListener;
-import com.kaltura.playersdk.events.OnToggleFullScreenListener;
 import com.kaltura.playersdk.events.OnWebViewMinimizeListener;
 import com.kaltura.playersdk.types.PlayerStates;
 
@@ -160,10 +158,6 @@ public abstract class BasePlayerView extends FrameLayout {
             return BasePlayerView.this.executeListener(Listener.EventType.KPLAYER_EVENT_LISTENER_TYPE, input);
         }
 
-        boolean executeJsCallbackReady(){
-            KPlayerJsCallbackReadyListener.JsCallbackReadyInputObject input = new KPlayerJsCallbackReadyListener.JsCallbackReadyInputObject();
-            return BasePlayerView.this.executeListener(Listener.EventType.JS_CALLBACK_READY_LISTENER_TYPE, input);
-        }
 
         boolean executeOnAudioTracksList( List<String> list, int defaultTrackIndex ){
             OnAudioTracksListListener.AudioTracksListInputObject input = new OnAudioTracksListListener.AudioTracksListInputObject();
@@ -268,10 +262,6 @@ public abstract class BasePlayerView extends FrameLayout {
             return BasePlayerView.this.executeListener(Listener.EventType.TEXT_TRACK_TEXT_LISTENER_TYPE, input);
         }
 
-        boolean executeOnToggleFullScreen(){
-            OnToggleFullScreenListener.ToggleFullScreenInputObject input = new OnToggleFullScreenListener.ToggleFullScreenInputObject();
-            return BasePlayerView.this.executeListener(Listener.EventType.TOGGLE_FULLSCREEN_LISTENER_TYPE, input);
-        }
 
         boolean executeSetMinimize( boolean minimize ){
             OnWebViewMinimizeListener.WebViewMinimizeInputObject input = new OnWebViewMinimizeListener.WebViewMinimizeInputObject();

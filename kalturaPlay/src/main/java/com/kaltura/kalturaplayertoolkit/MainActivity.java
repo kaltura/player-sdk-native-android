@@ -76,13 +76,11 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if (extras == null) {
             extras = new Bundle();
         }
-        KPPlayerConfig config = new  KPPlayerConfig("http://10.0.21.46/html5.kaltura/mwEmbed/mwEmbedFrame.php", "15115621", "kaltura_player_1428841967");
-        config.setWid("_1091");
-        config.setCacheSt("1428841967");
-        config.setEntryId("0_nt4qzwvs");
-        config.setDebug(true);
-        config.addConfig("nativeCallout", "{\"plugin\":true}");
-        config.setForceMobileHTML5(true);
+        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271");
+        config.setEntryId("1_o426d3i4");
+//        config.addConfig("LeadWithHLSOnFlash", "true");
+//        config.addConfig("LeadHLSOnAndroid", "true");
+//        config.addConfig("ks", "MGNiZDE3ODc2MzBkZTYyYjNkYTlmODIyNmY4MGMyYzdlZTZkNmI1OHwxNzgyMzkxOzE3ODIzOTE7MTQ0MzE2OTA0NzswOzE0NDMwODI2NDcuODU5NTtkb3VnLndvb2RhcmRAdmlzaW9ubWVkaWFtZ210LmNvbTtzdmlldzoqOzs=");
         extras.putString(getString(R.string.prop_iframe_url), config.getVideoURL());
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
