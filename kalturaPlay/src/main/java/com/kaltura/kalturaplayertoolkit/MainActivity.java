@@ -76,12 +76,9 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if (extras == null) {
             extras = new Bundle();
         }
-        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "30666052", "1782391");
-        config.addConfig("streamerType", "applehttp");
-        config.addConfig("Kaltura.LeadHLSOnAndroid", "true");
-        config.addConfig("watchwithPlugin.text", "Ideanova Watermark");
-        config.addConfig("ks", "djJ8MTc4MjM5MXzeUabzSd9BpWzRRkrsrDVUW_EYqubJF9-srYlXEoqD_meZU-ViGihNhfaBfDsXZ3FqoS1pR1MBTyIR3v5Amvth5GII43TVrJMjKPwbN5MKuTpqktgbhUFytm4n3fyjGC48pHdcdjzPtE7fadpBEUcK8ldz-AnAspUrJV9IEFsf9w==");
-        config.setEntryId("0_javdshwx");
+        
+        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271");
+        config.setEntryId("1_o426d3i4"); 
         extras.putString(getString(R.string.prop_iframe_url), config.getVideoURL());
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
