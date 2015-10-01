@@ -42,9 +42,9 @@
 	        <category android:name="android.intent.category.BROWSABLE" />
 	        
 	        <data
-	            android:host="kalturaplayertoolkit.com"
-	            android:pathPrefix="/"
-	            android:scheme="http" />
+	            android:host="kalturaplay.appspot.com"
+	            android:pathPrefix="/play"
+	            android:scheme="https" />
 
     	</intent-filter>
         </activity>

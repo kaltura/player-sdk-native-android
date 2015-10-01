@@ -93,17 +93,15 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
 
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
-            String[] params = null;
+            String url = null;
             try {
-                params = URLDecoder.decode(uri.toString(), "UTF-8").split(":=");
+                url = URLDecoder.decode(uri.toString(), "UTF-8").replace("https://kalturaplay.appspot.com/play?", "");
             } catch (UnsupportedEncodingException e) {
                 Log.w(TAG, "couldn't decode/split intent url");
                 e.printStackTrace();
             }
-            if (params != null && params.length > 1) {
-                String iframeUrl = params[1];
-
-                extras.putString(getString(R.string.prop_iframe_url), iframeUrl);
+            if (url != null) {
+                extras.putString(getString(R.string.prop_iframe_url), url);
                 fragment = new FullscreenFragment();
 
             } else {
