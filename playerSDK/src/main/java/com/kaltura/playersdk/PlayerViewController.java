@@ -337,11 +337,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void setChromecastVisiblity() {
-        if ( ChromecastHandler.routeInfos.size() > 0 ) {
-            setKDPAttribute("chromecast", "visible", true);
-        } else {
-            setKDPAttribute("chromecast", "visible", false);
-        }
+        mWebView.setKDPAttribute("chromecast", "visible", ChromecastHandler.routeInfos.size() > 0 ? "true" : "false");
     }
 
     /*
