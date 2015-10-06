@@ -152,11 +152,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * This method should be called when the main activity is paused.
      */
     public void releaseAndSavePosition() {
-        savePlaybackPosition();
-        if ( mVideoInterface != null )
-        {
-            mVideoInterface.release();
-        }
+        playerController.removePlayer();
     }
 
     /**
@@ -164,9 +160,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * This method should be called when the main activity is resumed.
      */
     public void resumePlayer() {
-        if ( mVideoInterface != null ) {
-            mVideoInterface.recoverRelease();
-        }
+        playerController.recoverPlayer();
     }
 
     private void setupPlayerViewController( final Context context) {
@@ -399,15 +393,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 .setInterpolator(new BounceInterpolator());
     }
 
-//    public void destroy() {
-//        this.stop();
-//    }
 
-    public void savePlaybackPosition() {
-        if ( mVideoInterface!= null ) {
-            mVideoInterface.setStartingPoint( (int) (mCurSec * 1000) );
-        }
-    }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // VideoPlayerInterface methods

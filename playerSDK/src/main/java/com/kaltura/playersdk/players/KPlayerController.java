@@ -35,6 +35,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private WeakReference<Activity> mActivity;
     private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
+    private float mStartPos;
 
 
     public static final int CAN_PLAY = 1;
@@ -54,6 +55,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         public void pause();
         public void changeSubtitleLanguage(String languageCode);
         public void removePlayer();
+        public void recoverPlayer();
         public boolean isKPlayer();
     }
 
@@ -105,8 +107,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void removePlayer() {
-
+        if (player != null) {
+            player.removePlayer();
+        }
     }
+
+    public void recoverPlayer() {
+        if (player != null) {
+            player.recoverPlayer();
+        }
+    }
+
+
+
 
     public void setPlayer(KPlayer player) {
         this.player = player;
@@ -185,6 +198,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void setLocale(String locale) {
         this.locale = locale;
     }
+
 
     // [START KPlayerListener region]
 //    @Override
