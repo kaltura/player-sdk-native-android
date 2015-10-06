@@ -90,7 +90,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     @Override
     public void setPlayerSource(String playerSource) {
         if ( !playerSource.equals(mVideoUrl) ) {
-//            removePlayer();
             mVideoUrl = playerSource;
             preparePlayer();
         }

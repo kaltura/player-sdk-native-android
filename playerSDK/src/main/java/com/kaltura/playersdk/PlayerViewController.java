@@ -16,6 +16,7 @@ import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
@@ -50,18 +51,13 @@ import java.util.Set;
  */
 public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerListener {
     public static String TAG = "PlayerViewController";
-    public static String DEFAULT_HOST = "http://kgit.html5video.org/";
 
-    //current active VideoPlayerInterface
-    private BasePlayerView mVideoInterface;
-    //Original VideoPlayerInterface that was created by "addComponents"
-    private BasePlayerView mOriginalVideoInterface;
+
 
     private KPlayerController playerController;
     private KControlsView mWebView = null;
     private double mCurSec;
     private Activity mActivity;
-    private double mDurationSec = 0;
     private OnShareListener mShareListener;
     private JSONObject nativeActionParams;
     private KPPlayerConfig mConfig;
@@ -69,7 +65,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private String mIframeUrl = null;
 
-    private PlayerStates mState = PlayerStates.START;
     private PowerManager mPowerManager;
 
     private boolean mWvMinimized = false;
@@ -161,6 +156,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      */
     public void resumePlayer() {
         playerController.recoverPlayer();
+    }
+
+    public void removePlayer() {
+        if (playerController != null) {
+            playerController.destroy();
+        }
+        if (eventListeners != null) {
+            eventListeners = null;
+        }
     }
 
     private void setupPlayerViewController( final Context context) {
@@ -271,7 +275,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         for ( int i = 0; i < this.getChildCount(); i++ ) {
 
             View v = getChildAt(i);
-            if( v == mVideoInterface )
+            if( v == playerController.getPlayer() )
             {
                 continue;
             }
@@ -289,8 +293,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
                 @Override
                 public void fetchHeight(int controlBarHeight) {
-                    if ( mVideoInterface != null && mVideoInterface.getParent() == PlayerViewController.this ) {
-                        LayoutParams wvLp = (LayoutParams) ((View) mVideoInterface).getLayoutParams();
+                    if ( playerController.getPlayer() != null && ((FrameLayout)playerController.getPlayer()).getParent() == PlayerViewController.this ) {
+                        LayoutParams wvLp = (LayoutParams) ((View) playerController.getPlayer()).getLayoutParams();
 
                         if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
                             wvLp.addRule(CENTER_IN_PARENT);
@@ -306,7 +310,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                         mActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                updateViewLayout(mVideoInterface, lp);
+                                updateViewLayout((View) playerController.getPlayer(), lp);
                                 invalidate();
                             }
                         });
@@ -398,9 +402,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // VideoPlayerInterface methods
     // /////////////////////////////////////////////////////////////////////////////////////////////
-    public boolean isPlaying() {
-        return (mVideoInterface != null && mVideoInterface.isPlaying());
-    }
+//    public boolean isPlaying() {
+//        return (playerController.getPlayer() != null && playerController.getPlayer().isPlaying());
+//    }
 
     /**
      *

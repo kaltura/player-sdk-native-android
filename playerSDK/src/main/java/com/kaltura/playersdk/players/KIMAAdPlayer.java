@@ -151,8 +151,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             mAdPlayer.release();
             mAdPlayer.moveSurfaceToBackground();
         }
-        if (mPlayerContainer != null) {
-//            mPlayerContainer
-        }
+        mAdUIContainer = null;
+        mPlayerContainer = null;
     }
 }

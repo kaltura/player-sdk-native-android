@@ -118,7 +118,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-
+    public void destroy() {
+        player.removePlayer();
+        player = null;
+        playerListener = null;
+        if (imaManager != null) {
+            imaManager.destroy();
+        }
+    }
 
 
     public void setPlayer(KPlayer player) {
@@ -199,56 +206,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.locale = locale;
     }
 
-
-    // [START KPlayerListener region]
-//    @Override
-//    public void eventWithValue(KPlayer currentPlayer, String eventName, String eventValue) {
-//        KStringUtilities event = new KStringUtilities(eventName);
-//        if (this.key != null && currentPlayer.isKPlayer() && (event.isPlay() || event.isSeeked())) {
-//            this.currentTime = this.player.getCurrentPlaybackTime();
-//            this.player.removePlayer();
-//            this.player = null;
-//            this.addPlayerToController(this.parentViewController);
-//            this.setSrc(this.src);
-//            this.isSeeked = event.isSeeked();
-//        } else if (!currentPlayer.isKPlayer() && event.canPlay()) {
-//            if (this.currentTime > 0) {
-//                this.player.setCurrentPlaybackTime(this.currentTime);
-//            }
-//            if (!this.isSeeked) {
-//                this.player.play();
-//            }
-//        } else {
-//            this.listener.eventWithValue(currentPlayer, eventName, eventValue);
-//        }
-//
-//        // Check if IMA was triggered
-//        if (mActivity != null && event.canPlay()) {
-//            playerReady = true;
-//            addAdPlayer();
-//        }
-//    }
-//
-//    @Override
-//    public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
-//        if (eventName.equals(KIMAManager.ContentPauseRequestedKey)) {
-//            this.player.pause();
-//        } else if (eventName.equals(KIMAManager.ContentResumeRequestedKey)) {
-//            this.player.play();
-//        }
-//        this.listener.eventWithJSON(player, eventName, jsonValue);
-//    }
-//
-//    @Override
-//    public void contentCompleted(KPlayer currentPlayer) {
-//        this.contentEnded = true;
-//        if (imaManager != null) {
-//            imaManager.contentComplete();
-//        } else {
-//            listener.contentCompleted(player);
-//        }
-//    }
-    // [END KPlayerListener region]
 
     // [START ContentProgressProvider region]
     @Override
