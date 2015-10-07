@@ -90,7 +90,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     @Override
     public void setPlayerSource(String playerSource) {
         if ( !playerSource.equals(mVideoUrl) ) {
-            removePlayer();
             mVideoUrl = playerSource;
             preparePlayer();
         }
@@ -114,13 +113,19 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public float getCurrentPlaybackTime() {
-        return (float)(mExoPlayer.getCurrentPosition() / 1000);
+        if (mExoPlayer != null) {
+            return (float)(mExoPlayer.getCurrentPosition() / 1000);
+        }
+        return 0;
     }
 
 
     @Override
     public float getDuration() {
-        return (float)(mExoPlayer.getDuration() / 1000);
+        if (mExoPlayer != null) {
+            return (float)(mExoPlayer.getDuration() / 1000);
+        }
+        return 0;
     }
 
 
@@ -146,14 +151,14 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if ( mExoPlayer != null ) {
+                    if (mExoPlayer != null) {
                         try {
                             int position = mExoPlayer.getCurrentPosition();
-                            if ( position != 0 && position < KPlayer.this.getDuration() * 1000 && isPlaying()  && listener != null) {
-                                listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float)position / 1000));
+                            if (position != 0 && position < KPlayer.this.getDuration() * 1000 && isPlaying() && listener != null) {
+                                listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float) position / 1000));
                             }
-                        } catch(IllegalStateException e){
-                            Log.e(TAG, "Looper Exception" , e);
+                        } catch (IllegalStateException e) {
+                            Log.e(TAG, "Looper Exception", e);
                         }
                         mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
                     }
@@ -176,15 +181,23 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public void removePlayer() {
+        mShouldResumePlayback = isPlaying();
+        if (mShouldResumePlayback) {
+            mStartPos = mExoPlayer.getCurrentPosition();
+        }
         updateStopState();
+        pause();
         if (mExoPlayer != null) {
-            Log.d(TAG, "Releasing ExoPlayer");
             mExoPlayer.release();
-            Log.d(TAG, "ExoPlayer released");
             mExoPlayer = null;
         }
         mPrepared = false;
         mIsReady = false;
+    }
+
+    @Override
+    public void recoverPlayer() {
+
     }
 
 
@@ -192,6 +205,8 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     public boolean isKPlayer() {
         return true;
     }
+
+
 
 //    @Override
 //    public void setPlayerParams(KPlayerParams params) {
@@ -214,11 +229,13 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
             case ExoPlayer.STATE_READY:
                 if ( !mIsReady ) {
                     mIsReady = true;
-                    if (listener != null) {
+                    if (listener != null && !mShouldResumePlayback) {
                         listener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(this.getDuration()));
                         listener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
                         listener.eventWithValue(this, KPlayer.CanPlayKey, null);
                         callback.playerStateChanged(KPlayerController.CAN_PLAY);
+                    } else {
+                        mShouldResumePlayback = false;
                     }
                 } else if ( mSeeking ) {
                     mSeeking = false;
@@ -296,7 +313,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         if ( mShouldResumePlayback ) {
             play();
         }
-        mShouldResumePlayback = false;
     }
 
     @Override
@@ -316,7 +332,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
         mExoPlayer = ExoPlayer.Factory.newInstance(NUM_OF_RENFERERS);
         mExoPlayer.addListener(this);
-        mExoPlayer.seekTo(0);
+//        mExoPlayer.seekTo(0);
 
 
 

@@ -125,6 +125,11 @@ public class KHLSPlayer extends FrameLayout implements
     }
 
     @Override
+    public void recoverPlayer() {
+        mPlayer.recoverRelease();
+    }
+
+    @Override
     public boolean isKPlayer() {
         return false;
     }

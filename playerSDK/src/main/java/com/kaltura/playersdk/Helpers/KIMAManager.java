@@ -261,35 +261,12 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         jsonValue = new JSONObject();
     }
 
-//    /**
-//     * Set metadata about the content video. In more complex implementations, this might
-//     * more than just a URL and could trigger additional decisions regarding ad tag selection.
-//     */
-//    public void setContentVideo(String videoPath) {
-//        imaAdapter.setContentVideoPath(videoPath);
-//    }
-//
-//
-//    /**
-//     * Resumes ad playback
-//     */
-//    public void resume() {
-//        imaAdapter.restorePosition();
-//        if (mAdsManager != null) {
-//            mAdsManager.resume();
-//        }
-//    }
-//
-//    /**
-//     * Pauses ad playback
-//     */
-//    public void pause() {
-//        imaAdapter.savePosition();
-//    }
-//
-//    @Override
-//    public VideoProgressUpdate getContentProgress() {
-//        if ()
-//        return null;
-//    }
+    public void destroy() {
+        if (mIMAPlayer != null) {
+            mIMAPlayer.release();
+            mPlayerListener = null;
+            mAdsManager.destroy();
+            mPLayerCallback = null;
+        }
+    }
 }
