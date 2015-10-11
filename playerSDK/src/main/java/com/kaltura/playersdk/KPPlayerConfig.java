@@ -36,11 +36,12 @@ public class KPPlayerConfig {
 		mParamsMap = new HashMap<String, String>();
 	}
 
-	public void addConfig(String key, String value) {
+	public KPPlayerConfig addConfig(String key, String value) {
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
 			String configKey = "flashvars[" + key + "]";
 			mParamsMap.put(configKey, value);
 		}
+		return this;
 	}
 
 	public String appendConfiguration(String videoURL) {
@@ -73,25 +74,28 @@ public class KPPlayerConfig {
 		return mAdvertiserID;
 	}
 
-	public void setAdvertiserID(String advertiserID) {
+	public KPPlayerConfig setAdvertiserID(String advertiserID) {
 		mAdvertiserID = advertiserID;
+		return this;
 	}
 
 	public boolean isEnableHover() {
 		return mEnableHover;
 	}
 
-	public void setEnableHover(boolean enableHover) {
+	public KPPlayerConfig setEnableHover(boolean enableHover) {
 		mEnableHover = enableHover;
+		return this;
 	}
 
 	public String getEntryId() {
 		return mEntryId;
 	}
 
-	public void setEntryId(String entryId) {
+	public KPPlayerConfig setEntryId(String entryId) {
 		mEntryId = entryId;
 		mParamsMap.put(sEntryIdKey, entryId);
+		return this;
 	}
 
 	public String getUiConfId() {
