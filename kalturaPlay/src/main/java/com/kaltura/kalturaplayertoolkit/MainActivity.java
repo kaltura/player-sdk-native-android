@@ -77,9 +77,11 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
         
-        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271");
-        config.setEntryId("1_o426d3i4"); 
-        extras.putString(getString(R.string.prop_iframe_url), config.getVideoURL());
+        String iframeUrl;
+        iframeUrl = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u").getVideoURL();
+        Log.d(TAG, "iframeUrl: " + iframeUrl);
+        extras.putString("iframeUrl", iframeUrl);
+
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
 
