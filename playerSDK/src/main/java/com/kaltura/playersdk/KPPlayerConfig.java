@@ -55,7 +55,13 @@ public class KPPlayerConfig {
 	}
 
 	public String getVideoURL() {
-		mUrl = mDomain + "/p/" + mPartnerId + "/sp/" + mPartnerId + "00/embedIframeJs/uiconf_id/" + mUiConfId + "/partner_id/" + mPartnerId + "?";
+		mUrl = mDomain + "/p/" + mPartnerId + "/sp/" + mPartnerId + "00/embedIframeJs/uiconf_id/" + mUiConfId;
+		if (mEntryId != null) {
+			mUrl += "/entry_id/" + mEntryId + "?";
+		} else {
+			mUrl += "?";
+		}
+		mUrl += "wid=_" + mPartnerId + "&";
 		for (String key: mParamsMap.keySet()) {
 			mUrl += key + "=" + mParamsMap.get(key) + "&";
 		}

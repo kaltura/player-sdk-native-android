@@ -76,7 +76,8 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if (extras == null) {
             extras = new Bundle();
         }
-        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271");
+        
+        KPPlayerConfig config = new  KPPlayerConfig("http://cdnapisec.kaltura.com", "29802711", "1831271");
         config.setEntryId("1_o426d3i4");
         extras.putString(getString(R.string.prop_iframe_url), config.getVideoURL());
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
@@ -89,17 +90,15 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
 
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
-            String[] params = null;
+            String url = null;
             try {
-                params = URLDecoder.decode(uri.toString(), "UTF-8").split(":=");
+                url = URLDecoder.decode(uri.toString(), "UTF-8").replace("https://kalturaplay.appspot.com/play?", "");
             } catch (UnsupportedEncodingException e) {
                 Log.w(TAG, "couldn't decode/split intent url");
                 e.printStackTrace();
             }
-            if (params != null && params.length > 1) {
-                String iframeUrl = params[1];
-
-                extras.putString(getString(R.string.prop_iframe_url), iframeUrl);
+            if (url != null) {
+                extras.putString(getString(R.string.prop_iframe_url), url);
                 fragment = new FullscreenFragment();
 
             } else {

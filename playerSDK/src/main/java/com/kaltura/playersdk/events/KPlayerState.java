@@ -9,7 +9,8 @@ public enum KPlayerState {
     READY("canplay"),
     PLAYING("play"),
     PAUSED("pause"),
-    SEEKING("Seeking"),
+    SEEKED("seeked"),
+    SEEKING("seeking"),
     ENDED("ended");
 
     private String stringValue;
@@ -27,7 +28,9 @@ public enum KPlayerState {
                 return PLAYING;
             case "pause":
                 return PAUSED;
-            case "Seeking":
+            case "seeked":
+                return SEEKED;
+            case "seeking":
                 return SEEKING;
             case "ended":
                 return ENDED;
