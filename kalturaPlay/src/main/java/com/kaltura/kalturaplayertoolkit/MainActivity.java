@@ -77,8 +77,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
         
-        String iframeUrl;
-        iframeUrl = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u").getVideoURL();
+        String iframeUrl = new KPPlayerConfig("http://cdnapi.kaltura.com", "29802711", "1831271").setEntryId("1_o426d3i4").getVideoURL();
         Log.d(TAG, "iframeUrl: " + iframeUrl);
         extras.putString("iframeUrl", iframeUrl);
 
