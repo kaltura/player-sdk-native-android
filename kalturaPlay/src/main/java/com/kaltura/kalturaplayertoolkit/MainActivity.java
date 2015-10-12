@@ -18,11 +18,6 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-import Fragments.FullscreenFragment;
-import Fragments.LoginFragment;
-import Fragments.PlayerFragment;
-import Utilities.FragmentUtilities;
-
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
 	public static String TAG = MainActivity.class.getSimpleName();

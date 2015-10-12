@@ -1,11 +1,9 @@
-package Utilities;
+package com.kaltura.kalturaplayertoolkit;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
-
-import com.kaltura.kalturaplayertoolkit.R;
 
 /**
  * Created by itayi on 2/24/15.

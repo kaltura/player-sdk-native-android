@@ -1,4 +1,4 @@
-package Fragments;
+package com.kaltura.kalturaplayertoolkit;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -20,7 +20,6 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import com.kaltura.kalturaplayertoolkit.R;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;

@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="Fragments.LoginFragment"
+    tools:context="com.kaltura.kalturaplayertoolkit.LoginFragment"
     android:orientation="vertical"
     android:configChanges="orientation|screenSize"
     android:id="@+id/fragment_login"
