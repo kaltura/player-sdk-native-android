@@ -11,8 +11,6 @@ import android.webkit.WebViewClient;
 
 import com.kaltura.playersdk.Helpers.KStringUtilities;
 
-import java.util.ArrayList;
-
 
 /**
  * Created by nissopa on 6/7/15.
@@ -93,7 +91,7 @@ public class KControlsView extends WebView {
     }
 
     @JavascriptInterface
-    private void onData(String value) {
+    public void onData(String value) {
         if (this.fetcher != null) {
             int height = Integer.parseInt(value) + 5;
             this.fetcher.fetchHeight(height);
