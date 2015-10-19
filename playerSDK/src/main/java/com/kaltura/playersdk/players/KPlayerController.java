@@ -36,6 +36,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
     private float mStartPos;
+    private boolean isIMAActive = false;
 
 
     public static final int CAN_PLAY = 1;
@@ -151,14 +152,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void setSrc(String src) {
         this.src = src;
-        this.player.setPlayerSource(src);
+        if (!isIMAActive) {
+            this.player.setPlayerSource(src);
+        }
     }
 
 
     public void initIMA(String adTagURL, Activity activity) {
+        isIMAActive = true;
         this.adTagURL = adTagURL;
         mActivity = new WeakReference<Activity>(activity);
-//        addAdPlayer();
     }
 
     private void addAdPlayer() {

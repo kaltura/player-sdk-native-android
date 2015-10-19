@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 22
+        targetSdkVersion 23
     }
 
     buildTypes {
@@ -21,9 +21,10 @@ dependencies {
     compile project(':exoPlayerLib')
     compile project(':castCompanionLibraryandroid')
     compile project(':googlemediaframework')
-    compile 'com.google.android.gms:play-services:8.1.0'
-    compile 'com.android.support:mediarouter-v7:22.0.1'
-    compile 'com.android.support:appcompat-v7:22.0.1'
+    compile 'com.google.android.gms:play-services-ads:8.1.0'
+    compile 'com.android.support:mediarouter-v7:23.0.1'
+    compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'com.google.code.gson:gson:2.3.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile files('libs/sdk.jar')
 }

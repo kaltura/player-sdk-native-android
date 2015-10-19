@@ -31,7 +31,9 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     // [START VideoAdPlayer region]
     @Override
     public void playAd() {
-        mAdPlayer.play();
+        if (mAdPlayer != null) {
+            mAdPlayer.play();
+        }
     }
 
     @Override
@@ -41,17 +43,23 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     @Override
     public void stopAd() {
-        mAdPlayer.pause();
+        if (mAdPlayer != null) {
+            mAdPlayer.pause();
+        }
     }
 
     @Override
     public void pauseAd() {
-        mAdPlayer.pause();
+        if (mAdPlayer != null) {
+            mAdPlayer.pause();
+        }
     }
 
     @Override
     public void resumeAd() {
-        mAdPlayer.play();
+        if (mAdPlayer != null) {
+            mAdPlayer.play();
+        }
     }
 
     @Override
@@ -66,6 +74,9 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     @Override
     public VideoProgressUpdate getAdProgress() {
+        if (mAdPlayer == null) {
+            return new VideoProgressUpdate(0, 0);
+        }
         if (mAdPlayer.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }

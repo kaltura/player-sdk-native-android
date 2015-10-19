@@ -91,7 +91,7 @@ public class KControlsView extends WebView {
     }
 
     @JavascriptInterface
-    public void onData(String value) {
+    protected void onData(String value) {
         if (this.fetcher != null) {
             int height = Integer.parseInt(value) + 5;
             this.fetcher.fetchHeight(height);
