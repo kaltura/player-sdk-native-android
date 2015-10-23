@@ -17,7 +17,7 @@ import java.lang.ref.WeakReference;
 /**
  * Created by nissopa on 6/14/15.
  */
-public class KPlayerController implements KPlayerCallback, ContentProgressProvider {
+public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerListener {
     private KPlayer player;
     private String playerClassName;
     private String src;
@@ -43,6 +43,29 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public static final int SHOULD_PAUSE = 2;
     public static final int SHOULD_PLAY = 3;
     public static final int ENDED = 4;
+
+    @Override
+    public void eventWithValue(KPlayer player, String eventName, String eventValue) {
+        playerListener.eventWithValue(player, eventName, eventValue);
+    }
+
+    @Override
+    public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
+        playerListener.eventWithJSON(player, eventName, jsonValue);
+    }
+
+    @Override
+    public void contentCompleted(KPlayer currentPlayer) {
+        if (!isIMAActive) {
+            player.setCurrentPlaybackTime(0);
+            playerListener.eventWithValue(player, "ended", null);
+        } else if (isIMAActive && currentPlayer == null) {
+            isIMAActive = false;
+            player.setShouldCancelPlay(true);
+            playerListener.eventWithValue(player, "ended", null);
+        }
+        playerListener.contentCompleted(currentPlayer);
+    }
 
     public interface KPlayer {
         public void setPlayerListener(KPlayerListener listener);
@@ -185,7 +208,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
         // Initialize IMA manager
         imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, adUiControls, adTagURL);
-        imaManager.setPlayerListener(playerListener);
+        imaManager.setPlayerListener(this);
         imaManager.setPlayerCallback(this);
         imaManager.requestAds(this);
     }

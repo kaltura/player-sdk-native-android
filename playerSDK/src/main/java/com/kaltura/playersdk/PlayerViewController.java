@@ -538,17 +538,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void contentCompleted(KPlayerController.KPlayer currentPlayer) {
-        if (currentPlayer == null) {
-            playerController.setCurrentPlaybackTime(0);
-            playerController.getPlayer().setShouldCancelPlay(true);
-            this.mWebView.triggerEvent(KPlayer.EndedKey, null);
-        } else {
-            if (eventListeners != null) {
-                for (KPEventListener listener: eventListeners) {
-                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-                }
-            } else {
-                this.mWebView.triggerEvent(KPlayer.EndedKey, null);
+//        if (currentPlayer == null) {
+////            playerController.setCurrentPlaybackTime(0);
+//            playerController.getPlayer().setShouldCancelPlay(true);
+//        } else {
+//
+//        }
+//        this.mWebView.triggerEvent(KPlayer.EndedKey, null);
+        if (eventListeners != null) {
+            for (KPEventListener listener: eventListeners) {
+                listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
             }
         }
     }
