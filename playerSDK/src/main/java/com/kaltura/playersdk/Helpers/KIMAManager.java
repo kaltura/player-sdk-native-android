@@ -15,6 +15,8 @@ import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
+import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.kaltura.playersdk.players.KAdIMAPlayer;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
 import com.kaltura.playersdk.players.KPlayerCallback;
 import com.kaltura.playersdk.players.KPlayerController;
@@ -31,7 +33,7 @@ import java.util.List;
  */
 public class KIMAManager implements AdErrorEvent.AdErrorListener,
         AdsLoader.AdsLoadedListener, AdEvent.AdEventListener,
-        KIMAAdPlayer.KIMAAdPlayerEvents {
+        KAdIMAPlayer.KAdIMAPlayerProgress {
     // Container with references to video player and ad UI ViewGroup.
     private AdDisplayContainer mAdDisplayContainer;
 
@@ -45,7 +47,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private ImaSdkFactory mSdkFactory;
 
     // Ad-enabled video player.
-    private KIMAAdPlayer mIMAPlayer;
+    private KAdIMAPlayer mIMAPlayer;
 
     // Default VAST ad tag; more complex apps might select ad tag based on content video criteria.
     private String mDefaultAdTagUrl;
@@ -82,10 +84,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String AdsLoadErrorKey = "adsLoadError";
 
 
-    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL) {
-        mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer);
+    public KIMAManager(Activity context, KAdIMAPlayer adPlayer, ViewGroup adUiContainer, String adTagURL) {
+        mIMAPlayer = adPlayer; //new KIMAAdPlayer(context, adPlayer, adUiContainer);
 
-        mIMAPlayer.setKIMAAdEventListener(this);
+//        mIMAPlayer.setKIMAAdEventListener(this);
         mDefaultAdTagUrl = adTagURL;
         mContentCompleted = false;
 
@@ -100,8 +102,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
      * Request video ads using the default VAST ad tag. Typically, you would change your ad tag
      * URL based on the current content being played.
      */
-    public void requestAds(ContentProgressProvider contentProgressProvider) {
-        requestAds(mDefaultAdTagUrl, contentProgressProvider);
+    public void requestAds(ContentProgressProvider contentProgressProvider, ViewGroup containerUI) {
+        requestAds(mDefaultAdTagUrl, contentProgressProvider, containerUI);
     }
 
     public void setPlayerListener(KPlayerListener listener) {
@@ -116,10 +118,11 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
      * Request video ads from the given VAST ad tag.
      * @param adTagUrl URL of the ad's VAST XML
      */
-    private void requestAds(String adTagUrl, ContentProgressProvider contentProgressProvider) {
+    private void requestAds(String adTagUrl, ContentProgressProvider contentProgressProvider, ViewGroup containerUI) {
         mAdDisplayContainer = mSdkFactory.createAdDisplayContainer();
+        mIMAPlayer.setListener(this);
         mAdDisplayContainer.setPlayer(mIMAPlayer);
-        mAdDisplayContainer.setAdContainer(mIMAPlayer.getAdUIContainer());
+        mAdDisplayContainer.setAdContainer(containerUI);
 
         // Create the ads request.
         AdsRequest request = mSdkFactory.createAdsRequest();
@@ -174,7 +177,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 fireIMAEvent(AdStartKey);
                 break;
             case COMPLETED:
-                mIMAPlayer.removeAd();
                 jsonValue.put(AdIDKey, ad.getAdId());
                 fireIMAEvent(AdCompletedKey);
                 break;
@@ -192,16 +194,19 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 fireIMAEvent(AdClickedKey);
                 break;
             case CONTENT_PAUSE_REQUESTED:
+                mIMAPlayer.resume();
                 fireIMAEvent(ContentPauseRequestedKey);
                 mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
+                mIMAPlayer.remove();
                 fireIMAEvent(ContentResumeRequestedKey);
                 if (!mContentCompleted) {
                     mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
                 break;
             case ALL_ADS_COMPLETED:
+                mPlayerListener.contentCompleted(null);
                 fireIMAEvent(AllAdsCompletedKey);
                 if (mAdsManager != null) {
                     mAdsManager.destroy();
@@ -209,9 +214,9 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 }
                 break;
             case SKIPPED:
-                mIMAPlayer.removeAd();
-                jsonValue.put(AdIDKey, ad.getAdId());
-                fireIMAEvent(AdCompletedKey);
+//                mIMAPlayer.removeAd();
+//                jsonValue.put(AdIDKey, ad.getAdId());
+//                fireIMAEvent(AdCompletedKey);
                 break;
             default:
                 break;
@@ -220,6 +225,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
             e.printStackTrace();
         }
     }
+
+
 
     /**
      * An event raised when there is an error loading or playing ads.
@@ -238,18 +245,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         mAdsLoader.contentComplete();
     }
 
-    @Override
-    public void adDidProgress(long toTime, long totalTime) {
-        try {
-            jsonValue.put(TimeKey, toTime);
-            jsonValue.put(DurationKey, totalTime);
-            jsonValue.put(RemainKey, (float)(totalTime - toTime));
-            fireIMAEvent(AdRemainingTimeChangeKey);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void fireIMAEvent(String eventName) {
         if (jsonValue.length() == 0) {
             mPlayerListener.eventWithJSON(null, eventName, "(null)");
@@ -263,10 +258,22 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     public void destroy() {
         if (mIMAPlayer != null) {
-            mIMAPlayer.release();
+//            mIMAPlayer.release();
             mPlayerListener = null;
             mAdsManager.destroy();
             mPLayerCallback = null;
+        }
+    }
+
+    @Override
+    public void adProgress(float currentPosition, float duration) {
+        try {
+            jsonValue.put(TimeKey, currentPosition);
+            jsonValue.put(DurationKey, duration);
+            jsonValue.put(RemainKey, (duration - currentPosition));
+            fireIMAEvent(AdRemainingTimeChangeKey);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 }

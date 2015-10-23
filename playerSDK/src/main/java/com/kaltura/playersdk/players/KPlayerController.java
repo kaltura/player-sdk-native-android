@@ -1,7 +1,10 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -9,6 +12,7 @@ import android.widget.RelativeLayout;
 
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.google.android.exoplayer.ExoPlayer;
 import com.kaltura.playersdk.Helpers.KIMAManager;
 
 import java.lang.ref.WeakReference;
@@ -32,11 +36,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean contentEnded;
     private boolean playerReady;
     private KIMAManager imaManager;
-    private WeakReference<Activity> mActivity;
+    private Activity mActivity;
     private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
     private float mStartPos;
     private boolean isIMAActive = false;
+    private boolean isPlayerCanPlay = false;
+    private RelativeLayout mAdIMAPlayerHolder;
 
 
     public static final int CAN_PLAY = 1;
@@ -161,16 +167,33 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void initIMA(String adTagURL, Activity activity) {
         isIMAActive = true;
         this.adTagURL = adTagURL;
-        mActivity = new WeakReference<Activity>(activity);
+        mActivity = activity;
+        if (isPlayerCanPlay) {
+            addAdPlayer();
+        }
     }
 
     private void addAdPlayer() {
 
         // Add adPlayer view
-        FrameLayout adPlayerContainer = new FrameLayout(mActivity.get());
-        ViewGroup.LayoutParams lp = parentViewController.getLayoutParams();
-        lp = new ViewGroup.LayoutParams(lp.width, lp.height);
-        parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1, lp);
+//        FrameLayout adPlayerContainer = new FrameLayout(mActivity);
+//        KAdIMAPlayer adIMAPlayer = new KAdIMAPlayer(mActivity);
+//        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams)parentViewController.getLayoutParams();
+//        lp = new FrameLayout.LayoutParams(lp.width, lp.height);
+//        lp.gravity = (Gravity.CENTER);
+//        adIMAPlayer.setLayoutParams(lp);
+//        parentViewController.addView(adIMAPlayer, parentViewController.getChildCount() - 1, lp);
+        mAdIMAPlayerHolder = new RelativeLayout(mActivity);
+        mAdIMAPlayerHolder.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+        RelativeLayout.LayoutParams adPlayerLayout = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        adPlayerLayout.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+//        adPlayerLayout.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+//        adPlayerLayout.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+//        adPlayerLayout.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+        KAdIMAPlayer adIMAPlayer = new KAdIMAPlayer(mActivity);
+        adIMAPlayer.setLayoutParams(adPlayerLayout);
+        mAdIMAPlayerHolder.addView(adIMAPlayer);
+        parentViewController.addView(mAdIMAPlayerHolder, parentViewController.getChildCount()- 1);
 
         // Add IMA UI controls view
         RelativeLayout adUiControls = new RelativeLayout(parentViewController.getContext());
@@ -179,10 +202,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(adUiControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, adUiControls, adTagURL);
+        imaManager = new KIMAManager(mActivity, adIMAPlayer, adUiControls, adTagURL);
         imaManager.setPlayerListener(playerListener);
         imaManager.setPlayerCallback(this);
-        imaManager.requestAds(this);
+        imaManager.requestAds(this, adUiControls);
     }
 
     public float getCurrentPlaybackTime() {
@@ -224,6 +247,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void playerStateChanged(int state) {
         switch (state) {
             case KPlayerController.CAN_PLAY:
+                isPlayerCanPlay = true;
                 if (mActivity != null) {
                     addAdPlayer();
                 }
