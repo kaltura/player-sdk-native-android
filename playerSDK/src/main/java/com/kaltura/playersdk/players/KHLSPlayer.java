@@ -133,6 +133,11 @@ public class KHLSPlayer extends FrameLayout implements
     public boolean isKPlayer() {
         return false;
     }
+
+    @Override
+    public void setShouldCancelPlay(boolean shouldCancelPlay) {
+
+    }
     //endregion
 
     //region TextTracksInterface

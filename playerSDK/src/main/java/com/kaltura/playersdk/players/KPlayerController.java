@@ -36,7 +36,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
     private float mStartPos;
-
+    private boolean isIMAActive = false;
+    private boolean isPlayerCanPlay = false;
 
     public static final int CAN_PLAY = 1;
     public static final int SHOULD_PAUSE = 2;
@@ -57,6 +58,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         public void removePlayer();
         public void recoverPlayer();
         public boolean isKPlayer();
+        public void setShouldCancelPlay(boolean shouldCancelPlay);
     }
 
 
@@ -150,15 +152,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
-        this.src = src;
-        this.player.setPlayerSource(src);
+        if (!isIMAActive) {
+            this.src = src;
+            this.player.setPlayerSource(src);
+        }
     }
 
 
     public void initIMA(String adTagURL, Activity activity) {
+        isIMAActive = true;
+        player.setShouldCancelPlay(true);
         this.adTagURL = adTagURL;
         mActivity = new WeakReference<Activity>(activity);
-//        addAdPlayer();
+        if (isPlayerCanPlay) {
+            addAdPlayer();
+        }
     }
 
     private void addAdPlayer() {
@@ -221,18 +229,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void playerStateChanged(int state) {
         switch (state) {
             case KPlayerController.CAN_PLAY:
+                isPlayerCanPlay = true;
                 if (mActivity != null) {
                     addAdPlayer();
-                }
-                if (switchedPlayer != null) {
-//                    parentViewController.removeView((View)player);
-//                    player.setPlayerListener(null);
-//                    player.setPlayerCallback(null);
-//                    ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
-//                    ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-//                    parentViewController.addView((View)switchedPlayer, parentViewController.getChildCount() - 1, lp);
-//                    switchedPlayer.setPlayerCallback(this);
-//                    switchedPlayer.setPlayerListener(playerListener);
                 }
                 break;
             case KPlayerController.SHOULD_PLAY:
