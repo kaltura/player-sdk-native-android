@@ -176,7 +176,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 fireIMAEvent(AdStartKey);
                 break;
             case COMPLETED:
-                mIMAPlayer.removeAd();
                 jsonValue.put(AdIDKey, ad.getAdId());
                 fireIMAEvent(AdCompletedKey);
                 break;
@@ -198,12 +197,14 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
+                mIMAPlayer.removeAd();
                 fireIMAEvent(ContentResumeRequestedKey);
                 if (!mContentCompleted) {
                     mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
                 break;
             case ALL_ADS_COMPLETED:
+                mPlayerListener.contentCompleted(null);
                 fireIMAEvent(AllAdsCompletedKey);
                 if (mAdsManager != null) {
                     mAdsManager.destroy();
@@ -211,7 +212,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 }
                 break;
             case SKIPPED:
-//                mIMAPlayer.removeAd();
+                mIMAPlayer.removeAd();
                 break;
             default:
                 break;
@@ -239,11 +240,11 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     }
 
     @Override
-    public void adDidProgress(long toTime, long totalTime) {
+    public void adDidProgress(float toTime, float totalTime) {
         try {
             jsonValue.put(TimeKey, toTime);
             jsonValue.put(DurationKey, totalTime);
-            jsonValue.put(RemainKey, (float)(totalTime - toTime));
+            jsonValue.put(RemainKey, (totalTime - toTime));
             fireIMAEvent(AdRemainingTimeChangeKey);
         } catch (JSONException e) {
             e.printStackTrace();
