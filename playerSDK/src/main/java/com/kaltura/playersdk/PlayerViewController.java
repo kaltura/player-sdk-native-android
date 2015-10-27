@@ -21,6 +21,7 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
+import com.kaltura.playersdk.Helpers.KCacheManager;
 import com.kaltura.playersdk.Helpers.KStringUtilities;
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
@@ -41,6 +42,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -364,6 +367,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         {
             iframeUrl = iframeUrl + "&iframeembed=true";
             mIframeUrl = iframeUrl;
+            try {
+                URI uri = new URI(iframeUrl);
+                KCacheManager.getInstance().setHost(uri.getHost());
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
             mWebView.loadUrl(iframeUrl);
         }
     }
