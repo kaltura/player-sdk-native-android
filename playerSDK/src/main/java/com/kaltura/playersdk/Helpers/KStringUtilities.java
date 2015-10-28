@@ -4,8 +4,6 @@ import org.json.JSONArray;
 
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Created by nissopa on 6/7/15.
@@ -105,7 +103,7 @@ public class KStringUtilities {
     }
 
     public enum Attribute {
-        src, currentTime, visible, wvServerKey, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive;
+        src, currentTime, visible, licenseUri, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive;
     }
 
     static public String addEventListener(String event) {
@@ -180,6 +178,10 @@ public class KStringUtilities {
 
 
     static public Attribute attributeEnumFromString(String value) {
-        return Attribute.valueOf(value);
+        try {
+            return Attribute.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }
