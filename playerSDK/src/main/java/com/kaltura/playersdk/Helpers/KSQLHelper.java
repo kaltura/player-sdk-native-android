@@ -6,6 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.google.android.exoplayer.util.SystemClock;
+
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -18,6 +21,8 @@ public class KSQLHelper extends SQLiteOpenHelper {
     private final String id = "_id";
     public static final String Encoding = "Encoding";
     public static final String MimeType = "MimeType";
+    public static final String LastUsed = "LastUsed";
+    public static final String Size = "Size";
 
     public KSQLHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -28,7 +33,7 @@ public class KSQLHelper extends SQLiteOpenHelper {
         String CREATE_PRODUCTS_TABLE = "Create table IF NOT EXISTS " +
                 TABLE_NAME + "("
                 + id + " TEXT," + Encoding
-                + " TEXT," + MimeType + " TEXT)";
+                + " TEXT," + MimeType + " TEXT," + LastUsed + "INTEGER," + Size + "INTEGER)";
         db.execSQL(CREATE_PRODUCTS_TABLE);
     }
 
@@ -38,24 +43,33 @@ public class KSQLHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void addFile(String fileName, String mimeType, String encoding) {
+    public void addFile(String fileName, String mimeType, String encoding, int size) {
         ContentValues values = new ContentValues();
         values.put(id, fileName);
         values.put(MimeType, mimeType);
         values.put(Encoding, encoding);
+        values.put(Size, size);
         SQLiteDatabase db = getWritableDatabase();
         db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         db.close();
     }
 
-    public HashMap<String, String> fetchParamsForFile(String fileName) {
+    public void updateDate(String fileId) {
+        ContentValues data = new ContentValues();
+        data.put(LastUsed, System.currentTimeMillis());
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(DATABASE_NAME, data, id + "=" + fileId, null);
+    }
+
+    public HashMap<String, Object> fetchParamsForFile(String fileName) {
         String query = "Select * FROM " + TABLE_NAME + " WHERE " + id + " =  \"" + fileName + "\"";
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         if (cursor.moveToFirst()) {
-            HashMap<String , String> params = new HashMap<>();
+            HashMap<String , Object> params = new HashMap<>();
             params.put(Encoding, cursor.getString(1));
             params.put(MimeType, cursor.getString(2));
+            params.put(Size, new Integer(cursor.getInt(4)));
             return params;
         }
         return null;

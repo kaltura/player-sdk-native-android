@@ -1,6 +1,9 @@
 package com.kaltura.playersdk.Helpers;
 
 import android.content.Context;
+import android.util.Log;
+
+import com.google.android.exoplayer.upstream.Loader;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -13,44 +16,27 @@ import java.io.InputStream;
  * Created by nissimpardo on 25/10/15.
  */
 public class KInputStream extends BufferedInputStream {
-    private String mUrl;
+    private String mFilePath;
     private BufferedOutputStream mOutputStream;
-    private Context mContext;
-    private String mMimeType;
-    private String mEncoding;
-    private KSQLHelper mSQLHelper;
-
 
     public KInputStream(InputStream in) {
         super(in);
     }
 
-    public KInputStream(String url, String mimeType, String encoding, InputStream inputStream, Context context) {
+    public KInputStream(String filePath,InputStream inputStream) {
         super(inputStream);
-        mUrl = url;
-        mContext = context;
-        mMimeType = mimeType;
-        mEncoding = encoding;
+        mFilePath = filePath;
     }
 
     private BufferedOutputStream getOutputStream() throws FileNotFoundException {
         if (mOutputStream == null) {
-            mOutputStream = new BufferedOutputStream(new FileOutputStream(mContext.getFilesDir() + "/" + KStringUtilities.md5(mUrl)));
+            mOutputStream = new BufferedOutputStream(new FileOutputStream(mFilePath));
         }
         return mOutputStream;
     }
 
-    private KSQLHelper getSQLHelper() {
-        if (mSQLHelper == null) {
-            mSQLHelper = new KSQLHelper(mContext);
-        }
-        return mSQLHelper;
-    }
-
     @Override
     public void close() throws IOException {
-        getSQLHelper().addFile(KStringUtilities.md5(mUrl), mMimeType, mEncoding);
-        getOutputStream().flush();
         getOutputStream().close();
         super.close();
     }
@@ -58,7 +44,9 @@ public class KInputStream extends BufferedInputStream {
     @Override
     public synchronized int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
         int bytesRead = super.read(buffer, byteOffset, byteCount);
-        getOutputStream().write(buffer, byteOffset, byteCount);
+        if (bytesRead > 0) {
+            getOutputStream().write(buffer, 0, bytesRead);
+        }
         return bytesRead;
     }
 }

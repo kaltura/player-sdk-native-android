@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
 import android.webkit.WebResourceRequest;
@@ -115,11 +116,12 @@ public class KCacheManager {
         }
         InputStream inputStream = null;
         String fileName = KStringUtilities.md5(request.getUrl().toString());
+        String filePath = mContext.getFilesDir() + "/" + fileName;
         String contentType = null;
         String encoding = null;
         HashMap<String, String> fileParams = mSQLHelper.fetchParamsForFile(fileName);
         if (fileParams != null) {
-            FileInputStream fileInputStream = new FileInputStream(mContext.getFilesDir() + "/" + fileName);
+            FileInputStream fileInputStream = new FileInputStream(filePath);
             inputStream = new BufferedInputStream(fileInputStream);
             contentType = fileParams.get(KSQLHelper.MimeType);
             encoding = fileParams.get(KSQLHelper.Encoding);
@@ -135,8 +137,13 @@ public class KCacheManager {
                 }
                 connection.connect();
                 contentType = connection.getContentType();
-                encoding = connection.getContentEncoding();
-                inputStream = new KInputStream(url.toString(), contentType, encoding, url.openStream(), mContext);
+                String[] contentTypeParts = TextUtils.split(contentType, ";");
+                if (contentTypeParts.length >= 2) {
+                    contentType = contentTypeParts[0].trim();
+                    encoding = contentTypeParts[1].trim();
+                }
+                inputStream = new KInputStream(filePath, url.openStream());
+                mSQLHelper.addFile(fileName, contentType, encoding);
             } catch (Exception e) {
                 e.printStackTrace();
             }
