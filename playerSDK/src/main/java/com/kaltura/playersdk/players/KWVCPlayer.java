@@ -217,6 +217,7 @@ public class KWVCPlayer
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
+                Log.e(TAG, "VideoView:onError(" + what + "," + extra + ")");
                 // TODO
                 return false;
             }
