@@ -2,6 +2,7 @@ package com.kaltura.playersdk.Helpers;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.util.Xml;
@@ -90,8 +91,7 @@ public class KCacheManager {
         return (LinkedTreeMap)getCacheConditions().get("withDomain");
     }
 
-    public boolean shouldStore(String url) throws URISyntaxException {
-        URI uri = new URI(url);
+    public boolean shouldStore(Uri uri) throws URISyntaxException {
         if (uri.getHost().equals(mHost)) {
             for (String key: getWithDomain().keySet()) {
                 if (uri.toString().contains(key)) {
@@ -109,7 +109,10 @@ public class KCacheManager {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public WebResourceResponse getResponse(WebResourceRequest request) throws IOException {
+    public WebResourceResponse getResponse(WebResourceRequest request) throws IOException, URISyntaxException {
+        if (!shouldStore(request.getUrl())) {
+            return null;
+        }
         InputStream inputStream = null;
         String fileName = KStringUtilities.md5(request.getUrl().toString());
         String contentType = null;

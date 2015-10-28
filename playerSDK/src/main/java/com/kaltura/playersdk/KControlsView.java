@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -179,7 +180,7 @@ public class KControlsView extends WebView {
             try {
                 KCacheManager.getInstance().setContext(mContext);
                 response =  KCacheManager.getInstance().getResponse(request);
-            } catch (java.io.IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return response;
