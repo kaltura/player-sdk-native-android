@@ -16,6 +16,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -41,6 +42,8 @@ public class KCacheManager {
     private Context mContext;
     private KSQLHelper mSQLHelper;
     private String mHost;
+    private int mCacheSize = 0;
+    private String mCachePath;
 
     public static KCacheManager getInstance() {
         return ourInstance;
@@ -56,6 +59,21 @@ public class KCacheManager {
 
     public void setHost(String host) {
         mHost = host;
+    }
+
+    public void setCacheSize(int cacheSize) {
+        mCacheSize = cacheSize;
+    }
+
+    private String getCachePath() {
+        if (mCachePath == null) {
+            mCachePath = mContext.getFilesDir() + "/kaltura/";
+            File cacheDir = new File(mCachePath);
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+        }
+        return mCachePath;
     }
 
     private HashMap<String, Object> getCacheConditions() {
@@ -109,22 +127,34 @@ public class KCacheManager {
         return false;
     }
 
+    private void deleteLessUsedFiles(long newCacheSize) {
+        long freeBytesInternal = new File(mContext.getFilesDir().getAbsoluteFile().toString()).getFreeSpace();
+//        long freeBytesExternal = new File(getExternalFilesDir(null).toString()).getFreeSpace();
+        long cahceSize = mCacheSize * 1024 * 1024;
+        long actualCacheSize = Math.max(cahceSize, freeBytesInternal);
+        boolean shouldDeleteLessUsedFiles = mSQLHelper.cacheSize() + newCacheSize > actualCacheSize;
+        if (shouldDeleteLessUsedFiles) {
+            mSQLHelper.deleteLessUsedFiles(mSQLHelper.cacheSize() + newCacheSize - actualCacheSize);
+        }
+    }
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public WebResourceResponse getResponse(WebResourceRequest request) throws IOException, URISyntaxException {
         if (!shouldStore(request.getUrl())) {
             return null;
         }
         InputStream inputStream = null;
-        String fileName = KStringUtilities.md5(request.getUrl().toString());
-        String filePath = mContext.getFilesDir() + "/" + fileName;
+        final String fileName = KStringUtilities.md5(request.getUrl().toString());
+        String filePath = getCachePath() + fileName;
         String contentType = null;
         String encoding = null;
-        HashMap<String, String> fileParams = mSQLHelper.fetchParamsForFile(fileName);
-        if (fileParams != null) {
+        HashMap<String, Object> fileParams = mSQLHelper.fetchParamsForFile(fileName);
+        if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
             FileInputStream fileInputStream = new FileInputStream(filePath);
             inputStream = new BufferedInputStream(fileInputStream);
-            contentType = fileParams.get(KSQLHelper.MimeType);
-            encoding = fileParams.get(KSQLHelper.Encoding);
+            contentType = (String)fileParams.get(KSQLHelper.MimeType);
+            encoding = (String)fileParams.get(KSQLHelper.Encoding);
+            mSQLHelper.updateDate(fileName);
         } else {
             URL url = null;
             HttpURLConnection connection = null;
@@ -142,8 +172,17 @@ public class KCacheManager {
                     contentType = contentTypeParts[0].trim();
                     encoding = contentTypeParts[1].trim();
                 }
-                inputStream = new KInputStream(filePath, url.openStream());
                 mSQLHelper.addFile(fileName, contentType, encoding);
+                inputStream = new KInputStream(filePath, url.openStream(), new KInputStream.KInputStreamListener() {
+                    @Override
+                    public void streamClosed(long fileSize, String filePath) {
+                        deleteLessUsedFiles(fileSize);
+                        int trimLength = (int)mContext.getFilesDir().length() + 1;
+                        String fileId = filePath.substring(trimLength);
+                        mSQLHelper.updateFileSize(fileId, fileSize);
+                    }
+                });
+
             } catch (Exception e) {
                 e.printStackTrace();
             }

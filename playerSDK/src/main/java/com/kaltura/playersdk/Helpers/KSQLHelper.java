@@ -43,15 +43,30 @@ public class KSQLHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void addFile(String fileName, String mimeType, String encoding, int size) {
+
+
+    public void addFile(String fileName, String mimeType, String encoding) {
         ContentValues values = new ContentValues();
         values.put(id, fileName);
         values.put(MimeType, mimeType);
         values.put(Encoding, encoding);
-        values.put(Size, size);
         SQLiteDatabase db = getWritableDatabase();
         db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         db.close();
+    }
+
+    public void removeFile(String fileId) {
+
+    }
+
+    public long cacheSize() {
+        String query = "SELECT SUM(Size) FROM KCacheTable";
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        if (cursor.moveToFirst()) {
+            return cursor.getInt(0);
+        }
+        return 0;
     }
 
     public void updateDate(String fileId) {
@@ -59,6 +74,43 @@ public class KSQLHelper extends SQLiteOpenHelper {
         data.put(LastUsed, System.currentTimeMillis());
         SQLiteDatabase db = getWritableDatabase();
         db.update(DATABASE_NAME, data, id + "=" + fileId, null);
+    }
+
+    public void updateFileSize(String fileId, long fileSize) {
+        ContentValues data = new ContentValues();
+        data.put(Size, fileSize);
+        SQLiteDatabase db = getWritableDatabase();
+        db.update(DATABASE_NAME, data, id + "=" + fileId, null);
+    }
+
+    public long sizeForId(String fileId) {
+        String query = "Select Size FROM " + TABLE_NAME + " WHERE " + id + " =  \"" + fileId + "\"";
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        if (cursor.moveToFirst()) {
+            int size = cursor.getInt(0);
+            cursor.close();
+            return size;
+        }
+        return 0;
+    }
+
+    public void deleteLessUsedFiles(long sizeToDelete) {
+        String query = "SELECT * FROM KCacheTable ORDER BY LastUsed";
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        boolean stop = false;
+        while (!stop) {
+            if (cursor.moveToFirst()) {
+                int size = cursor.getInt(4);
+                String fileId = cursor.getString(0);
+                cursor.close();
+                if (db.delete(TABLE_NAME, id + "=" + fileId, null) > 0) {
+                    sizeToDelete -= size;
+                    stop = sizeToDelete <= 0;
+                }
+            }
+        }
     }
 
     public HashMap<String, Object> fetchParamsForFile(String fileName) {
@@ -69,7 +121,6 @@ public class KSQLHelper extends SQLiteOpenHelper {
             HashMap<String , Object> params = new HashMap<>();
             params.put(Encoding, cursor.getString(1));
             params.put(MimeType, cursor.getString(2));
-            params.put(Size, new Integer(cursor.getInt(4)));
             return params;
         }
         return null;
