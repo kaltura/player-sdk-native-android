@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -22,48 +24,60 @@ public class KWVCPlayer
 
     private static final String TAG = "KWVCPlayer";
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
-    private VideoView mPlayer;
+    @Nullable private VideoView mPlayer;
     private String mAssetUri;
     private String mLicenseUri;
     private WidevineDrmClient mDrmClient;
-    private KPlayerListener mListener;
-    private KPlayerCallback mCallback;
+    @NonNull private KPlayerListener mListener;
+    @NonNull private KPlayerCallback mCallback;
     private Handler mTimeUpdateHandler;
-    private int mStartPos;
     private boolean mShouldCancelPlay;
     private boolean mPrepared;
+    @NonNull private PlayerState mSavedState;
+
     
     private class PlayerState {
         boolean playing;
         int position;
+        
+        void set(boolean playing, int position) {
+            this.playing = playing;
+            this.position = position;
+        }
     }
-    private PlayerState mSavedState = new PlayerState();
 
 
     public KWVCPlayer(Context context) {
         super(context);
         mDrmClient = new WidevineDrmClient(context);
-
-        // Create default empty listeners, so that we don't have to ask != null every time.
-        mListener = new KPlayerListener() {
-            public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue) {}
-            public void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue) {}
-            public void contentCompleted(KPlayerController.KPlayer currentPlayer) {}
-        };
+        mSavedState = new PlayerState();
         
-        mCallback = new KPlayerCallback() {
-            public void playerStateChanged(int state) {}
-        };
-        
+        // Set no-op listeners so we don't have to check for null on use
+        setPlayerListener(null);
+        setPlayerCallback(null);
     }
 
     @Override
     public void setPlayerListener(KPlayerListener listener) {
+        if (listener == null) {
+            // Create a no-op listener
+            listener = new KPlayerListener() {
+                public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue) {}
+                public void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue) {}
+                public void contentCompleted(KPlayerController.KPlayer currentPlayer) {}
+            };
+        }
         mListener = listener;
     }
 
     @Override
     public void setPlayerCallback(KPlayerCallback callback) {
+        if (callback == null) {
+            // Create a no-op callback
+            callback = new KPlayerCallback() {
+                public void playerStateChanged(int state) {}
+            };
+        }
         mCallback = callback;
     }
 
@@ -71,7 +85,11 @@ public class KWVCPlayer
     public void setPlayerSource(String playerSource) {
         mAssetUri = playerSource;
 
-        preparePlayer();
+        if (mLicenseUri != null) {
+            preparePlayer();
+        } else {
+            Log.d(TAG, "setPlayerSource: waiting for licenseUri.");
+        }
     }
 
     @Override
@@ -80,19 +98,31 @@ public class KWVCPlayer
     }
 
     @Override
+    public void setLicenseUri(String licenseUri) {
+        mLicenseUri = licenseUri;
+
+        if (mAssetUri != null) {
+            preparePlayer();
+        } else {
+            Log.d(TAG, "setLicenseUri: Waiting for assetUri.");
+        }
+    }
+    
+    @Override
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        mPlayer.seekTo((int) (currentPlaybackTime*1000));
-        mListener.eventWithValue(this, KPlayer.SeekedKey, null);
+        if (mPlayer != null) {
+            mPlayer.seekTo((int) (currentPlaybackTime * 1000));
+        }
     }
 
     @Override
     public float getCurrentPlaybackTime() {
-        return mPlayer.getCurrentPosition() / 1000f;
+        return mPlayer != null ? mPlayer.getCurrentPosition() / 1000f : 0;
     }
 
     @Override
     public float getDuration() {
-        return mPlayer.getDuration() / 1000f;
+        return mPlayer != null ? mPlayer.getDuration() / 1000f : 0;
     }
 
     @Override
@@ -110,12 +140,8 @@ public class KWVCPlayer
             preparePlayer();
         }
 
+        assert mPlayer != null;
         mPlayer.start();
-        if (mStartPos != 0) {
-            mPlayer.seekTo(mStartPos);
-            mStartPos = 0;
-        }
-
 
         if (mTimeUpdateHandler == null) {
             mTimeUpdateHandler = new Handler(Looper.getMainLooper());
@@ -127,15 +153,16 @@ public class KWVCPlayer
             @Override
             public void run() {
                 try {
-                    if (mPlayer.isPlaying()) {
-                        float playbackTime = getCurrentPlaybackTime();
-                        Log.i(TAG, "TimeUpdate: " + playbackTime);
+                    float playbackTime = 0;
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        playbackTime = getCurrentPlaybackTime();
+//                        Log.i(TAG, "TimeUpdate: " + playbackTime);
                         mListener.eventWithValue(KWVCPlayer.this, KPlayer.TimeUpdateKey, String.valueOf(playbackTime));
                     }
+                    
                 } catch (IllegalStateException e) {
                     Log.e(TAG, "Error", e);
                 }
-
                 mTimeUpdateHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
             }
         }, PLAYHEAD_UPDATE_INTERVAL);
@@ -145,7 +172,10 @@ public class KWVCPlayer
 
     @Override
     public void pause() {
-        mPlayer.pause();
+        if (mPlayer != null) {
+            mPlayer.pause();
+        }
+        saveState();
     }
 
     @Override
@@ -154,16 +184,21 @@ public class KWVCPlayer
     }
 
     private void saveState() {
-        mSavedState.playing = mPlayer.isPlaying();
-        mSavedState.position = mPlayer.getCurrentPosition();
+        if (mPlayer != null) {
+            mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
+        } else {
+            mSavedState.set(false, 0);
+        }
     }
 
     @Override
     public void removePlayer() {
         saveState();
-        mPlayer.stopPlayback();
-        removeView(mPlayer);
-        mPlayer = null;
+        if (mPlayer != null) {
+            mPlayer.stopPlayback();
+            removeView(mPlayer);
+            mPlayer = null;
+        }
         mTimeUpdateHandler.removeCallbacks(null);
         mPrepared = false;
     }
@@ -183,26 +218,14 @@ public class KWVCPlayer
         mShouldCancelPlay = shouldCancelPlay;
     }
     
-    @Override
-    public void setLicenseUri(String licenseUri) {
-        mLicenseUri = licenseUri;
-
-        preparePlayer();
-    }
-
     private void preparePlayer() {
-        // make sure we have both licenseUri and assetUri
-        if (mAssetUri == null) {
-            Log.d(TAG, "assetUri is missing, can't play yet.");
-            return;
-        }
-        if (mLicenseUri == null) {
-            Log.d(TAG, "licenseUri is missing, can't play yet.");
-            return;
-        }
+
+        // Make sure we have both licenseUri and assetUri
+        // This is a private method and the callers make sure both of those fields are set.
+        assert mAssetUri!=null;
+        assert mLicenseUri!=null;
         
         // now really prepare
-
         mPlayer = new VideoView(getContext());
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
@@ -235,15 +258,26 @@ public class KWVCPlayer
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+
                 mPrepared = true;
-                KWVCPlayer player = KWVCPlayer.this;
+                final KWVCPlayer kplayer = KWVCPlayer.this;
+                
+                mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                    @Override
+                    public void onSeekComplete(MediaPlayer mp) {
+                        saveState();
+                        mListener.eventWithValue(kplayer, KPlayer.SeekedKey, null);
+                    }
+                });
+
                 if (mSavedState.playing) {
+                    // we were already playing, so just resume playback from the saved position
                     mPlayer.seekTo(mSavedState.position);
                     play();
                 } else {
-                    mListener.eventWithValue(player, KPlayer.DurationChangedKey, String.valueOf(player.getDuration()));
-                    mListener.eventWithValue(player, KPlayer.LoadedMetaDataKey, "");
-                    mListener.eventWithValue(player, KPlayer.CanPlayKey, null);
+                    mListener.eventWithValue(kplayer, KPlayer.DurationChangedKey, String.valueOf(kplayer.getDuration()));
+                    mListener.eventWithValue(kplayer, KPlayer.LoadedMetaDataKey, "");
+                    mListener.eventWithValue(kplayer, KPlayer.CanPlayKey, null);
                     mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
                 }
             }
