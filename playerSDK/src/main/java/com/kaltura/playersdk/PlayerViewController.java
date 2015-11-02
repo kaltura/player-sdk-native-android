@@ -113,7 +113,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
         mConfig = configuration;
-        mIframeUrl = mConfig.getVideoURL();
+        setComponents(mConfig.getVideoURL());
     }
 
     public void loadPlayerIntoActivity(Activity activity) {
@@ -369,7 +369,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mIframeUrl = iframeUrl;
             try {
                 URI uri = new URI(iframeUrl);
-                KCacheManager.getInstance().setHost(uri.getHost());
+                if (mConfig.getCacheSize() > 0) {
+                    KCacheManager.getInstance().setHost(uri.getHost());
+                    KCacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
+                }
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }

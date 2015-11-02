@@ -6,6 +6,6 @@
     <string name="footer">Powered by Kaltura</string>
     <string name="demo">Learn More</string>
     <string name="main_message">Use this app to view Kaltura video content</string>
-    <string name="prop_iframe_url">iframeUrl</string>
+    <string name="config">config</string>
 
 </resources>

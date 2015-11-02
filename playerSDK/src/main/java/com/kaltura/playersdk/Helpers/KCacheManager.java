@@ -42,7 +42,7 @@ public class KCacheManager {
     private Context mContext;
     private KSQLHelper mSQLHelper;
     private String mHost;
-    private int mCacheSize = 0;
+    private float mCacheSize = 0;
     private String mCachePath;
 
     public static KCacheManager getInstance() {
@@ -61,7 +61,7 @@ public class KCacheManager {
         mHost = host;
     }
 
-    public void setCacheSize(int cacheSize) {
+    public void setCacheSize(float cacheSize) {
         mCacheSize = cacheSize;
     }
 
@@ -130,11 +130,20 @@ public class KCacheManager {
     private void deleteLessUsedFiles(long newCacheSize) {
         long freeBytesInternal = new File(mContext.getFilesDir().getAbsoluteFile().toString()).getFreeSpace();
 //        long freeBytesExternal = new File(getExternalFilesDir(null).toString()).getFreeSpace();
-        long cahceSize = mCacheSize * 1024 * 1024;
-        long actualCacheSize = Math.max(cahceSize, freeBytesInternal);
+        long cahceSize = (long)(mCacheSize * 1024 * 1024);
+        long actualCacheSize = Math.min(cahceSize, freeBytesInternal);
+        Log.d("KalturaCacheSize", String.valueOf(mSQLHelper.cacheSize()));
         boolean shouldDeleteLessUsedFiles = mSQLHelper.cacheSize() + newCacheSize > actualCacheSize;
         if (shouldDeleteLessUsedFiles) {
-            mSQLHelper.deleteLessUsedFiles(mSQLHelper.cacheSize() + newCacheSize - actualCacheSize);
+            mSQLHelper.deleteLessUsedFiles(mSQLHelper.cacheSize() + newCacheSize - actualCacheSize, new KSQLHelper.KSQLHelperDeleteListener() {
+                @Override
+                public void fileDeleted(String fileId) {
+                    File lessUsedFile = new File(getCachePath() + fileId);
+                    if (lessUsedFile.exists()) {
+                        lessUsedFile.delete();
+                    }
+                }
+            });
         }
     }
 
@@ -176,10 +185,10 @@ public class KCacheManager {
                 inputStream = new KInputStream(filePath, url.openStream(), new KInputStream.KInputStreamListener() {
                     @Override
                     public void streamClosed(long fileSize, String filePath) {
-                        deleteLessUsedFiles(fileSize);
-                        int trimLength = (int)mContext.getFilesDir().length() + 1;
+                        int trimLength = (int)getCachePath().length();
                         String fileId = filePath.substring(trimLength);
                         mSQLHelper.updateFileSize(fileId, fileSize);
+                        deleteLessUsedFiles(fileSize);
                     }
                 });
 

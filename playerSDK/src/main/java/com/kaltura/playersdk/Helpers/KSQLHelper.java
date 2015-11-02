@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.google.android.exoplayer.util.SystemClock;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -24,6 +25,10 @@ public class KSQLHelper extends SQLiteOpenHelper {
     public static final String LastUsed = "LastUsed";
     public static final String Size = "Size";
 
+    public interface KSQLHelperDeleteListener {
+        public void fileDeleted(String fileId);
+    }
+
     public KSQLHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -33,7 +38,7 @@ public class KSQLHelper extends SQLiteOpenHelper {
         String CREATE_PRODUCTS_TABLE = "Create table IF NOT EXISTS " +
                 TABLE_NAME + "("
                 + id + " TEXT," + Encoding
-                + " TEXT," + MimeType + " TEXT," + LastUsed + "INTEGER," + Size + "INTEGER)";
+                + " TEXT," + MimeType + " TEXT," + LastUsed + " INTEGER," + Size + " INTEGER)";
         db.execSQL(CREATE_PRODUCTS_TABLE);
     }
 
@@ -50,9 +55,13 @@ public class KSQLHelper extends SQLiteOpenHelper {
         values.put(id, fileName);
         values.put(MimeType, mimeType);
         values.put(Encoding, encoding);
+        values.put(LastUsed, 0);
+        values.put(Size, 0);
         SQLiteDatabase db = getWritableDatabase();
         db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-        db.close();
+        if (db.isOpen()) {
+            db.close();
+        }
     }
 
     public void removeFile(String fileId) {
@@ -73,14 +82,21 @@ public class KSQLHelper extends SQLiteOpenHelper {
         ContentValues data = new ContentValues();
         data.put(LastUsed, System.currentTimeMillis());
         SQLiteDatabase db = getWritableDatabase();
-        db.update(DATABASE_NAME, data, id + "=" + fileId, null);
+        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+        if (db.isOpen()) {
+            db.close();
+        }
     }
 
     public void updateFileSize(String fileId, long fileSize) {
         ContentValues data = new ContentValues();
         data.put(Size, fileSize);
+        data.put(LastUsed, System.currentTimeMillis());
         SQLiteDatabase db = getWritableDatabase();
-        db.update(DATABASE_NAME, data, id + "=" + fileId, null);
+        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+        if (db.isOpen()) {
+            db.close();
+        }
     }
 
     public long sizeForId(String fileId) {
@@ -95,22 +111,26 @@ public class KSQLHelper extends SQLiteOpenHelper {
         return 0;
     }
 
-    public void deleteLessUsedFiles(long sizeToDelete) {
-        String query = "SELECT * FROM KCacheTable ORDER BY LastUsed";
+    public void deleteLessUsedFiles(long sizeToDelete, KSQLHelperDeleteListener listener) {
+        String query = "SELECT * FROM KCacheTable ORDER BY LastUsed Desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         boolean stop = false;
+        ArrayList<String> deletedIds = new ArrayList();
         while (!stop) {
             if (cursor.moveToFirst()) {
                 int size = cursor.getInt(4);
                 String fileId = cursor.getString(0);
-                cursor.close();
-                if (db.delete(TABLE_NAME, id + "=" + fileId, null) > 0) {
-                    sizeToDelete -= size;
-                    stop = sizeToDelete <= 0;
-                }
+                sizeToDelete -= size;
+                stop = sizeToDelete <= 0;
+                deletedIds.add(fileId);
             }
         }
+        for (String fileId: deletedIds) {
+            db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
+            listener.fileDeleted(fileId);
+        }
+        cursor.close();
     }
 
     public HashMap<String, Object> fetchParamsForFile(String fileName) {
