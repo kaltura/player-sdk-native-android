@@ -15,7 +15,7 @@ import java.util.HashMap;
 /**
  * Created by nissimpardo on 26/10/15.
  */
-public class KSQLHelper extends SQLiteOpenHelper {
+public class CacheSQLHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "KCache.db";
     private final String TABLE_NAME = "KCacheTable";
@@ -29,7 +29,7 @@ public class KSQLHelper extends SQLiteOpenHelper {
         public void fileDeleted(String fileId);
     }
 
-    public KSQLHelper(Context context) {
+    public CacheSQLHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

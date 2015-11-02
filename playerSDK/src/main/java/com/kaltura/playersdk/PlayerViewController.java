@@ -21,7 +21,7 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
-import com.kaltura.playersdk.Helpers.KCacheManager;
+import com.kaltura.playersdk.Helpers.CacheManager;
 import com.kaltura.playersdk.Helpers.KStringUtilities;
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
@@ -31,12 +31,10 @@ import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
 import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
 import com.kaltura.playersdk.events.OnShareListener;
-import com.kaltura.playersdk.players.BasePlayerView;
 import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
-import com.kaltura.playersdk.types.PlayerStates;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -352,7 +350,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      */
     public void setComponents(String iframeUrl) {
         if(mWebView == null) {
-            mWebView = new KControlsView(getContext());
+            mWebView = new KControlsView(getContext().getApplicationContext());
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
@@ -370,8 +368,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             try {
                 URI uri = new URI(iframeUrl);
                 if (mConfig.getCacheSize() > 0) {
-                    KCacheManager.getInstance().setHost(uri.getHost());
-                    KCacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
+                    CacheManager.getInstance().setHost(uri.getHost());
+                    CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
+                    mWebView.setCacheManager(CacheManager.getInstance());
                 }
             } catch (URISyntaxException e) {
                 e.printStackTrace();

@@ -10,30 +10,11 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.android.exoplayer.upstream.FileDataSource;
-import com.google.android.exoplayer.util.MimeTypes;
-import com.kaltura.playersdk.Helpers.KCacheManager;
-import com.kaltura.playersdk.Helpers.KInputStream;
+import com.kaltura.playersdk.Helpers.CacheManager;
 import com.kaltura.playersdk.Helpers.KStringUtilities;
-import com.kaltura.playersdk.events.Listener;
-
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.HashMap;
 
 
 /**
@@ -54,6 +35,7 @@ public class KControlsView extends WebView {
     private String entryId;
     private ControlsBarHeightFetcher fetcher;
     private Context mContext;
+    private CacheManager mCacheManager;
 
     private static String AddJSListener = "addJsListener";
     private static String RemoveJSListener = "removeJsListener";
@@ -63,8 +45,14 @@ public class KControlsView extends WebView {
         super(context);
         mContext = context;
         getSettings().setJavaScriptEnabled(true);
-//        getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-//        getSettings().setLoadsImagesAutomatically(true);
+        init();
+    }
+
+    public void setCacheManager(CacheManager cacheManager) {
+        mCacheManager = cacheManager;
+    }
+
+    private void init() {
         getSettings().setAllowFileAccessFromFileURLs(true);
         getSettings().setAllowUniversalAccessFromFileURLs(true);
         getSettings().setAllowFileAccess(true);
@@ -167,8 +155,8 @@ public class KControlsView extends WebView {
         public void onLoadResource(WebView view, String url) {
             Log.d("OverrideUrl", url);
 
-            KCacheManager.getInstance().setContext(mContext);
-//            KCacheManager.getInstance().getCacheConditions();
+//            CacheManager.getInstance().setContext(mContext);
+//            CacheManager.getInstance().getCacheConditions();
             super.onLoadResource(view, url);
         }
 
@@ -176,14 +164,17 @@ public class KControlsView extends WebView {
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             Log.d("WebResponse", request.getUrl().toString());
-            WebResourceResponse response = null;
-            try {
-                KCacheManager.getInstance().setContext(mContext);
-                response =  KCacheManager.getInstance().getResponse(request);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (mCacheManager != null) {
+                WebResourceResponse response = null;
+                try {
+                    mCacheManager.setContext(mContext);
+                    response = mCacheManager.getResponse(request);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return response;
             }
-            return response;
+            return null;
         }
     }
 }

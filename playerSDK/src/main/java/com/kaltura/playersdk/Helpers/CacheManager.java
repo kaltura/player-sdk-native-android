@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Xml;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 
@@ -18,43 +17,39 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by nissimpardo on 25/10/15.
  */
-public class KCacheManager {
-    private static KCacheManager ourInstance = new KCacheManager();
+public class CacheManager {
+    private static CacheManager ourInstance = new CacheManager();
     private HashMap<String, Object> mCacheConditions;
     private Context mContext;
-    private KSQLHelper mSQLHelper;
+    private CacheSQLHelper mSQLHelper;
     private String mHost;
     private float mCacheSize = 0;
     private String mCachePath;
 
-    public static KCacheManager getInstance() {
+    public static CacheManager getInstance() {
         return ourInstance;
     }
 
-    private KCacheManager() {
+    private CacheManager() {
     }
 
     public void setContext(Context context) {
         mContext = context;
-        mSQLHelper = new KSQLHelper(context);
+        if (mSQLHelper == null) {
+            mSQLHelper = new CacheSQLHelper(context);
+        }
     }
 
     public void setHost(String host) {
@@ -135,7 +130,7 @@ public class KCacheManager {
         Log.d("KalturaCacheSize", String.valueOf(mSQLHelper.cacheSize()));
         boolean shouldDeleteLessUsedFiles = mSQLHelper.cacheSize() + newCacheSize > actualCacheSize;
         if (shouldDeleteLessUsedFiles) {
-            mSQLHelper.deleteLessUsedFiles(mSQLHelper.cacheSize() + newCacheSize - actualCacheSize, new KSQLHelper.KSQLHelperDeleteListener() {
+            mSQLHelper.deleteLessUsedFiles(mSQLHelper.cacheSize() + newCacheSize - actualCacheSize, new CacheSQLHelper.KSQLHelperDeleteListener() {
                 @Override
                 public void fileDeleted(String fileId) {
                     File lessUsedFile = new File(getCachePath() + fileId);
@@ -161,8 +156,8 @@ public class KCacheManager {
         if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
             FileInputStream fileInputStream = new FileInputStream(filePath);
             inputStream = new BufferedInputStream(fileInputStream);
-            contentType = (String)fileParams.get(KSQLHelper.MimeType);
-            encoding = (String)fileParams.get(KSQLHelper.Encoding);
+            contentType = (String)fileParams.get(CacheSQLHelper.MimeType);
+            encoding = (String)fileParams.get(CacheSQLHelper.Encoding);
             mSQLHelper.updateDate(fileName);
         } else {
             URL url = null;
