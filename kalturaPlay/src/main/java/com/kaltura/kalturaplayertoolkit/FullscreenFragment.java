@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
+import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
@@ -126,9 +127,9 @@ public class FullscreenFragment extends Fragment{
 
         showPlayerView();
         Bundle bundle = getArguments();
-        String iFrameUrl;
-        if (bundle != null && (iFrameUrl = bundle.getString(getString(R.string.prop_iframe_url))) != null){
-            mPlayerView.setComponents(iFrameUrl);
+        KPPlayerConfig config = null;
+        if (bundle != null && (config = (KPPlayerConfig)bundle.getSerializable("config")) != null){
+            mPlayerView.initWithConfiguration(config);
         }
 
         return mFragmentView;

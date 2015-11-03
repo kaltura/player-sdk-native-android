@@ -1,9 +1,10 @@
 package com.kaltura.playersdk;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class KPPlayerConfig {
+public class KPPlayerConfig implements Serializable{
 
 	/// Key names of the video request
 	static String sWidKey = "wid";
@@ -28,6 +29,7 @@ public class KPPlayerConfig {
 	private boolean mEnableHover;
 	private String mUiConfId;
 	private String mPartnerId;
+	private float mCacheSize = 0;
 
 	public KPPlayerConfig(String domain, String uiConfId, String partnerId) {
 		mDomain = domain;
@@ -55,6 +57,14 @@ public class KPPlayerConfig {
 		return videoURL;
 	}
 
+	public void setCacheSize (float cacheSize) {
+		mCacheSize = cacheSize;
+	}
+
+	public float getCacheSize() {
+		return mCacheSize;
+	}
+
 	public String getVideoURL() {
 		mUrl = mDomain + "/p/" + mPartnerId + "/sp/" + mPartnerId + "00/embedIframeJs/uiconf_id/" + mUiConfId;
 		if (mEntryId != null) {
@@ -66,7 +76,7 @@ public class KPPlayerConfig {
 		for (String key: mParamsMap.keySet()) {
 			mUrl += key + "=" + mParamsMap.get(key) + "&";
 		}
-		mUrl = mUrl.substring(0, mUrl.length() - 1);
+		mUrl += "iframeembed=true";
 		return mUrl;
 	}
 

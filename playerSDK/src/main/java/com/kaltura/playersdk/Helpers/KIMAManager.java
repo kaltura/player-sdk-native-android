@@ -1,7 +1,6 @@
-package com.kaltura.playersdk.Helpers;
+package com.kaltura.playersdk.helpers;
 
 import android.app.Activity;
-import android.content.Context;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -16,17 +15,13 @@ import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
-import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
-import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerCallback;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.lang.ref.WeakReference;
 
 /**
  * Created by nissopa on 6/30/15.

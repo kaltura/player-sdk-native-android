@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.Helpers;
+package com.kaltura.playersdk.helpers;
 
 import com.kaltura.playersdk.players.KPlayerCallback;
 import com.kaltura.playersdk.players.KPlayerListener;
