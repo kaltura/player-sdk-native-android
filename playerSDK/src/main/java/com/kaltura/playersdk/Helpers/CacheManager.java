@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.Helpers;
+package com.kaltura.playersdk.helpers;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -177,7 +177,7 @@ public class CacheManager {
                     encoding = contentTypeParts[1].trim();
                 }
                 mSQLHelper.addFile(fileName, contentType, encoding);
-                inputStream = new KInputStream(filePath, url.openStream(), new KInputStream.KInputStreamListener() {
+                inputStream = new CachingInputStream(filePath, url.openStream(), new CachingInputStream.KInputStreamListener() {
                     @Override
                     public void streamClosed(long fileSize, String filePath) {
                         int trimLength = (int)getCachePath().length();

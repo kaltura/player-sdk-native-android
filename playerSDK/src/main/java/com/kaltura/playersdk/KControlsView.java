@@ -13,8 +13,8 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.kaltura.playersdk.Helpers.CacheManager;
-import com.kaltura.playersdk.Helpers.KStringUtilities;
+import com.kaltura.playersdk.helpers.CacheManager;
+import com.kaltura.playersdk.helpers.KStringUtilities;
 
 
 /**

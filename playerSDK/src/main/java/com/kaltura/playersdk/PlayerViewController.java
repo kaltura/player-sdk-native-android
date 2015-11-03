@@ -20,8 +20,8 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
-import com.kaltura.playersdk.Helpers.CacheManager;
-import com.kaltura.playersdk.Helpers.KStringUtilities;
+import com.kaltura.playersdk.helpers.CacheManager;
+import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.players.KHLSPlayer;

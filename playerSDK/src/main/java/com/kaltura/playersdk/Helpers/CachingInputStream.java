@@ -1,9 +1,4 @@
-package com.kaltura.playersdk.Helpers;
-
-import android.content.Context;
-import android.util.Log;
-
-import com.google.android.exoplayer.upstream.Loader;
+package com.kaltura.playersdk.helpers;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -15,7 +10,7 @@ import java.io.InputStream;
 /**
  * Created by nissimpardo on 25/10/15.
  */
-public class KInputStream extends BufferedInputStream {
+public class CachingInputStream extends BufferedInputStream {
     private String mFilePath;
     private BufferedOutputStream mOutputStream;
     private KInputStreamListener mListener;
@@ -25,11 +20,11 @@ public class KInputStream extends BufferedInputStream {
         public void streamClosed(long fileSize, String filePath);
     }
 
-    public KInputStream(InputStream in) {
+    public CachingInputStream(InputStream in) {
         super(in);
     }
 
-    public KInputStream(String filePath,InputStream inputStream, KInputStreamListener listener) {
+    public CachingInputStream(String filePath, InputStream inputStream, KInputStreamListener listener) {
         super(inputStream);
         mFilePath = filePath;
         mListener = listener;
