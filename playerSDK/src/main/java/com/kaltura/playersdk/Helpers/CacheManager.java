@@ -106,15 +106,16 @@ public class CacheManager {
     }
 
     public boolean shouldStore(Uri uri) throws URISyntaxException {
-        if (uri.getHost().equals(mHost)) {
+        String uriString = uri.toString();
+        if (mHost.equals(uri.getHost())) {
             for (String key: getWithDomain().keySet()) {
-                if (uri.toString().contains(key)) {
+                if (uriString.contains(key)) {
                     return true;
                 }
             }
         } else {
             for (String key: getSubStrings().keySet()) {
-                if (uri.toString().contains(key)) {
+                if (uriString.contains(key)) {
                     return true;
                 }
             }
