@@ -1,0 +1,12 @@
+{
+	"substring":{
+		"data:image": "14"
+	},
+	"withDomain":{
+		"thumbnail": 0,
+		"skins": 0,
+		"load.php": 14,
+		"mwEmbedFrame.php": 1,
+		"mwEmbedLoader.php": 7
+	}
+}

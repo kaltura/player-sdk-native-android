@@ -21,7 +21,7 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
-import com.kaltura.playersdk.Helpers.KPlayerParams;
+import com.kaltura.playersdk.helpers.KPlayerParams;
 
 /**
  * Created by nissopa on 6/15/15.

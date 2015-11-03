@@ -11,7 +11,7 @@ import android.widget.RelativeLayout;
 
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.kaltura.playersdk.Helpers.KIMAManager;
+import com.kaltura.playersdk.helpers.KIMAManager;
 
 import java.lang.ref.WeakReference;
 
