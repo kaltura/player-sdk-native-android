@@ -22,6 +22,8 @@ import com.kaltura.playersdk.helpers.KStringUtilities;
  */
 public class KControlsView extends WebView {
 
+    private static final String TAG = "KControlsView";
+
     public interface KControlsViewClient {
         public void handleHtml5LibCall(String functionName, int callbackId, String args);
         public void openURL(String url);
@@ -123,47 +125,39 @@ public class KControlsView extends WebView {
     private class CustomWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.d("OverrideUrl", url);
+            Log.d(TAG, "shouldOverrideUrlLoading: " + url);
             if (url == null) {
                 return false;
             }
             KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
                 KControlsView.this.controlsViewClient.handleHtml5LibCall(urlUtil.getAction(), 1, urlUtil.getArgsString());
-                return false;
+                return true;
             } else if (!urlUtil.isEmbedFrame()) {
                 KControlsView.this.controlsViewClient.openURL(url);
-                return false;
+                return true;
             }
-            return super.shouldOverrideUrlLoading(view, url);
+            return false;
         }
 
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
-            view.clearCache(true);
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-            super.onReceivedError(view, errorCode, description, failingUrl);
-            Log.d("Webview Error", description);
+            Log.d(TAG, "Webview Error: " + description);
         }
 
         @Override
         public void onLoadResource(WebView view, String url) {
-            Log.d("OverrideUrl", url);
-
-//            CacheManager.getInstance().setContext(mContext);
-//            CacheManager.getInstance().getCacheConditions();
-            super.onLoadResource(view, url);
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            Log.d("WebResponse", request.getUrl().toString());
+//            Log.d(TAG, "WebResponse: " + request.getUrl());
             if (mCacheManager != null) {
                 WebResourceResponse response = null;
                 try {
