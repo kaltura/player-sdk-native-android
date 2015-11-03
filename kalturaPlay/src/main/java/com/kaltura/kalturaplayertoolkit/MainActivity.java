@@ -100,7 +100,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
                 e.printStackTrace();
             }
             if (url != null) {
-                extras.putString(getString(R.string.config), url);
+                extras.putString("config", url);
                 fragment = new FullscreenFragment();
 
             } else {

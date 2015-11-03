@@ -128,7 +128,7 @@ public class FullscreenFragment extends Fragment{
         showPlayerView();
         Bundle bundle = getArguments();
         KPPlayerConfig config = null;
-        if (bundle != null && (config = (KPPlayerConfig)bundle.getSerializable(getString(R.string.config))) != null){
+        if (bundle != null && (config = (KPPlayerConfig)bundle.getSerializable("config")) != null){
             mPlayerView.initWithConfiguration(config);
         }
 
