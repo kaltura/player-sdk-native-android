@@ -32,10 +32,15 @@ public class KWVCPlayer
     @NonNull private KPlayerCallback mCallback;
     private Handler mTimeUpdateHandler;
     private boolean mShouldCancelPlay;
-    private boolean mPrepared;
-    @NonNull private PlayerState mSavedState;
+    private boolean mShouldPlayWhenReady;
 
-    
+    private enum PrepareState {
+        NotPrepared,
+        Preparing,
+        Prepared
+    }
+    private PrepareState mPrepareState;
+
     private class PlayerState {
         boolean playing;
         int position;
@@ -45,6 +50,7 @@ public class KWVCPlayer
             this.position = position;
         }
     }
+    @NonNull private PlayerState mSavedState;
 
 
     public KWVCPlayer(Context context) {
@@ -128,18 +134,24 @@ public class KWVCPlayer
     @Override
     public void play() {
         
+        // If already playing, don't do anything.
         if (mPlayer != null && mPlayer.isPlaying()) {
             return;
         }
-
+        
+        // If play should be canceled, don't even start.
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
             return;
         }
-        if ( !mPrepared ) {
+        
+        // If not prepared, ask player to start when prepared.
+        if (mPrepareState != PrepareState.Prepared) {
+            mShouldPlayWhenReady = true;
             preparePlayer();
+            return;
         }
-
+        
         assert mPlayer != null;
         mPlayer.start();
 
@@ -200,7 +212,7 @@ public class KWVCPlayer
             mPlayer = null;
         }
         mTimeUpdateHandler.removeCallbacks(null);
-        mPrepared = false;
+        mPrepareState = PrepareState.NotPrepared;
     }
 
     @Override
@@ -220,10 +232,16 @@ public class KWVCPlayer
     
     private void preparePlayer() {
 
+        if (mPrepareState == PrepareState.Preparing) {
+            return;
+        }
+
         // Make sure we have both licenseUri and assetUri
         // This is a private method and the callers make sure both of those fields are set.
         assert mAssetUri!=null;
         assert mLicenseUri!=null;
+        
+        mPrepareState = PrepareState.Preparing;
         
         // now really prepare
         mPlayer = new VideoView(getContext());
@@ -259,9 +277,10 @@ public class KWVCPlayer
             @Override
             public void onPrepared(MediaPlayer mp) {
 
-                mPrepared = true;
+                mPrepareState = PrepareState.Prepared;
+
                 final KWVCPlayer kplayer = KWVCPlayer.this;
-                
+
                 mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mp) {
@@ -279,6 +298,11 @@ public class KWVCPlayer
                     mListener.eventWithValue(kplayer, KPlayer.LoadedMetaDataKey, "");
                     mListener.eventWithValue(kplayer, KPlayer.CanPlayKey, null);
                     mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
+
+                    if (mShouldPlayWhenReady) {
+                        play();
+                        mShouldPlayWhenReady = false;
+                    }
                 }
             }
         });
