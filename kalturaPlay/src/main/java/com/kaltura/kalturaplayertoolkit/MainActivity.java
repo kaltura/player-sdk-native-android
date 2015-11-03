@@ -18,11 +18,6 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-import Fragments.FullscreenFragment;
-import Fragments.LoginFragment;
-import Fragments.PlayerFragment;
-import Utilities.FragmentUtilities;
-
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
 	public static String TAG = MainActivity.class.getSimpleName();
@@ -77,9 +72,15 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
         
-        String iframeUrl = new KPPlayerConfig("http://cdnapi.kaltura.com", "29802711", "1831271").setEntryId("1_o426d3i4").getVideoURL();
-        Log.d(TAG, "iframeUrl: " + iframeUrl);
-        extras.putString("iframeUrl", iframeUrl);
+//        String iframeUrl;
+        
+//        iframeUrl = new KPPlayerConfig("http://cdnapi.kaltura.com", "20540612", "243342").setEntryId("1_sf5ovm7u").getVideoURL();
+        
+//        Log.d(TAG, "iframeUrl: " + iframeUrl);
+        KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "20540612", "243342");
+        config.setEntryId("1_sf5ovm7u");
+        config.setCacheSize(0.8f);
+        extras.putSerializable("config", config);
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
@@ -99,7 +100,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
                 e.printStackTrace();
             }
             if (url != null) {
-                extras.putString(getString(R.string.prop_iframe_url), url);
+                extras.putString("config", url);
                 fragment = new FullscreenFragment();
 
             } else {

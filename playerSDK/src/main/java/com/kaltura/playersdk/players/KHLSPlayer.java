@@ -133,6 +133,11 @@ public class KHLSPlayer extends FrameLayout implements
     public boolean isKPlayer() {
         return false;
     }
+
+    @Override
+    public void setShouldCancelPlay(boolean shouldCancelPlay) {
+
+    }
     //endregion
 
     //region TextTracksInterface
@@ -334,7 +339,7 @@ public class KHLSPlayer extends FrameLayout implements
     //region OnDurationChangedListener
     @Override
     public void onDurationChanged(int msec) {
-        mListener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString((msec + mPlayer.getPlaybackWindowStartTime()) / 1000));
+        mListener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(msec / 1000));
     }
     //endregion
 

@@ -70,7 +70,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
         if (mListener != null) {
-            mListener.adDidProgress(mAdPlayer.getCurrentPosition() / 1000, mAdPlayer.getDuration() / 1000);
+            mListener.adDidProgress((float)mAdPlayer.getCurrentPosition() / 1000, (float)mAdPlayer.getDuration() / 1000);
         }
         return new VideoProgressUpdate(mAdPlayer.getCurrentPosition(), mAdPlayer.getDuration());
     }
@@ -110,7 +110,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
 
     public interface KIMAAdPlayerEvents {
-        public void adDidProgress(long toTome, long totalTime);
+        public void adDidProgress(float toTome, float totalTime);
     }
 
     public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer) {

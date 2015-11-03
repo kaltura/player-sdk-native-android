@@ -1,4 +1,4 @@
-package Fragments;
+package com.kaltura.kalturaplayertoolkit;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -15,12 +15,10 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import com.kaltura.kalturaplayertoolkit.R;
+import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
@@ -30,17 +28,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link PlayerFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link PlayerFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Created by itayi on 2/12/15.
  */
-public class PlayerFragment extends Fragment {
+public class FullscreenFragment extends Fragment{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String TAG = PlayerFragment.class.getSimpleName();
+    private static final String TAG = FullscreenFragment.class.getSimpleName();
+    private View mFragmentView = null;
 //    private static final String ARG_PARAM1 = "param1";
 //    private static final String ARG_PARAM2 = "param2";
 
@@ -51,8 +45,6 @@ public class PlayerFragment extends Fragment {
 //    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private int defaultPlayerHeight;
-    private int defaultPlayerWidth;
 
     /**
      * Use this factory method to create a new instance of
@@ -60,11 +52,11 @@ public class PlayerFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment PlayerFragment.
+     * @return A new instance of fragment FullscreenFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static PlayerFragment newInstance(String param1, String param2) {
-        PlayerFragment fragment = new PlayerFragment();
+    public static FullscreenFragment newInstance(String param1, String param2) {
+        FullscreenFragment fragment = new FullscreenFragment();
         Bundle args = new Bundle();
 //        args.putString(ARG_PARAM1, param1);
 //        args.putString(ARG_PARAM2, param2);
@@ -72,7 +64,7 @@ public class PlayerFragment extends Fragment {
         return fragment;
     }
 
-    public PlayerFragment() {
+    public FullscreenFragment() {
         // Required empty public constructor
     }
 
@@ -89,34 +81,20 @@ public class PlayerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        final View fragmentView = inflater.inflate(R.layout.fragment_player, container, false);
-        final WebView browser=(WebView)fragmentView.findViewById(R.id.web_view);
-        browser.loadUrl("http://knowledge.kaltura.com/kaltura-player-sdk-android");
-        browser.getSettings().setLoadWithOverviewMode(true);
-        browser.getSettings().setUseWideViewPort(true);
-        mPlayerView = (PlayerViewController) fragmentView.findViewById(R.id.player);
-
-        final ViewTreeObserver vto = mPlayerView.getViewTreeObserver();
-        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-
-                mPlayerView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-
-                defaultPlayerWidth = mPlayerView.getMeasuredWidth();
-                defaultPlayerHeight = mPlayerView.getMeasuredHeight();
-                showPlayerView();
-            }
-        });
+        if(mFragmentView == null) {
+            mFragmentView = inflater.inflate(R.layout.fragment_fullscreen, container, false);
+        }
+        
+        mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
         mPlayerView.loadPlayerIntoActivity(getActivity());
-
         mPlayerView.addEventListener(new KPEventListener() {
             @Override
             public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
                 switch (state) {
                     case READY:
+                        setFullScreen();
+                        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                         mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-
                             @Override
                             public void onSystemUiVisibilityChange(int visibility) {
                                 Log.d(TAG, "onSystemVisibility change");
@@ -129,11 +107,6 @@ public class PlayerFragment extends Fragment {
                                 }
                             }
                         });
-                        break;
-                    case PLAYING:
-                        if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT) {
-                            setFullScreen();
-                        }
                         break;
                     case PAUSED:
                         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -151,7 +124,15 @@ public class PlayerFragment extends Fragment {
                 setFullScreen();
             }
         });
-        return fragmentView;
+
+        showPlayerView();
+        Bundle bundle = getArguments();
+        KPPlayerConfig config = null;
+        if (bundle != null && (config = (KPPlayerConfig)bundle.getSerializable("config")) != null){
+            mPlayerView.initWithConfiguration(config);
+        }
+
+        return mFragmentView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -193,32 +174,13 @@ public class PlayerFragment extends Fragment {
         public void onFragmentInteraction(Uri uri);
     }
 
-    private void setPlayerFullScreen(){
+
+    private void setFullScreen (){
         View decorView = getActivity().getWindow().getDecorView(); //navigation view
         int uiOptions = FULL_SCREEN_FLAG;
         decorView.setSystemUiVisibility(uiOptions);
-        Point size = getRealScreenSize();
-        mPlayerView.setPlayerViewDimensions(size.x, size.y);
-    }
-
-    private void setFullScreen(){
-//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            if(mPlayerView.getHeight() > defaultPlayerHeight){
-                Point size = getDefaultPlayerScreenSize();
-                mPlayerView.setPlayerViewDimensions(size.x, size.y);
-            }else{
-                setPlayerFullScreen();
-            }
-        } else {
-            setPlayerFullScreen();
-        }
-    }
-
-    private Point getDefaultPlayerScreenSize() {
-        int height = defaultPlayerHeight;
-        int width = defaultPlayerWidth;
-        return new Point(width, height);
+//        Point size = getRealScreenSize();
+//        mPlayerView.setPlayerViewDimensions(size.x, size.y);
     }
 
     private Point getScreenWithoutNavigationSize() {
@@ -261,9 +223,9 @@ public class PlayerFragment extends Fragment {
     private void showPlayerView() {
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         mPlayerView.setVisibility(RelativeLayout.VISIBLE);
-//        Point size = new Point();
-//        getActivity().getWindowManager().getDefaultDisplay().getSize(size);
-        mPlayerView.setPlayerViewDimensions( defaultPlayerWidth, defaultPlayerHeight, 0, 0 );
+        Point size = new Point();
+        getActivity().getWindowManager().getDefaultDisplay().getSize(size);
+        mPlayerView.setPlayerViewDimensions( size.x, size.y, 0, 0 );
     }
 
     @Override
@@ -276,19 +238,12 @@ public class PlayerFragment extends Fragment {
                 public void run() {
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
-                            Point size;
-                            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                                size = getDefaultPlayerScreenSize();
-                            } else {
-                                size = new Point();
-                                getActivity().getWindowManager().getDefaultDisplay().getSize(size);
-                                View decorView = getActivity().getWindow().getDecorView();
-                                int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-                                decorView.setSystemUiVisibility(uiOptions);
-                            }
-
+                            Point size = new Point();
+                            getActivity().getWindowManager().getDefaultDisplay().getSize(size);
                             mPlayerView.setPlayerViewDimensions(size.x, size.y, 0, 0);
-
+                            View decorView = getActivity().getWindow().getDecorView();
+                            int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+                            decorView.setSystemUiVisibility(uiOptions);
                         }
                     });
                 }

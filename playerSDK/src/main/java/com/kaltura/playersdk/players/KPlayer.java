@@ -21,7 +21,7 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.VideoSurfaceView;
-import com.kaltura.playersdk.Helpers.KPlayerParams;
+import com.kaltura.playersdk.helpers.KPlayerParams;
 
 /**
  * Created by nissopa on 6/15/15.
@@ -44,6 +44,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     protected int mStartPos = 0;
     protected int mPrevProgress = 0;
     protected VideoSurfaceView mSurfaceView;
+    protected boolean mShouldCancelPlay = false;
 
     protected boolean mPrepared = false;
     protected boolean mSeeking = false;
@@ -132,6 +133,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public void play() {
+        if (mShouldCancelPlay) {
+            mShouldCancelPlay = false;
+            return;
+        }
         if ( !mPrepared ) {
             preparePlayer();
         }
@@ -206,6 +211,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         return true;
     }
 
+    @Override
+    public void setShouldCancelPlay(boolean shouldCancelPlay) {
+        mShouldCancelPlay = shouldCancelPlay;
+    }
 
 
 //    @Override

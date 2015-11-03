@@ -19,28 +19,22 @@ import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
-import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
-import com.kaltura.playersdk.Helpers.KStringUtilities;
-import com.kaltura.playersdk.actionHandlers.ShareManager;
-import com.kaltura.playersdk.actionHandlers.ShareStrategyFactory;
-import com.kaltura.playersdk.chromecast.ChromecastHandler;
+import com.kaltura.playersdk.helpers.CacheManager;
+import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
-import com.kaltura.playersdk.events.OnCastDeviceChangeListener;
-import com.kaltura.playersdk.events.OnCastRouteDetectedListener;
-import com.kaltura.playersdk.events.OnShareListener;
-import com.kaltura.playersdk.players.BasePlayerView;
 import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
-import com.kaltura.playersdk.types.PlayerStates;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +52,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private KControlsView mWebView = null;
     private double mCurSec;
     private Activity mActivity;
-    private OnShareListener mShareListener;
+//    private OnShareListener mShareListener;
     private JSONObject nativeActionParams;
     private KPPlayerConfig mConfig;
 
@@ -110,7 +104,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
         mConfig = configuration;
-        mIframeUrl = mConfig.getVideoURL();
+        setComponents(mConfig.getVideoURL());
     }
 
     public void loadPlayerIntoActivity(Activity activity) {
@@ -155,7 +149,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * This method should be called when the main activity is resumed.
      */
     public void resumePlayer() {
-        playerController.recoverPlayer();
+        if (playerController != null) {
+            playerController.recoverPlayer();
+        }
     }
 
     public void removePlayer() {
@@ -171,31 +167,31 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         mPowerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
         // Get a handler that can be used to post to the main thread
         Handler mainHandler = new Handler(context.getMainLooper());
-        Runnable myRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if ( !ChromecastHandler.initialized )
-                    ChromecastHandler.initialize(context, new OnCastDeviceChangeListener() {
-
-                                @Override
-                                public void onCastDeviceChange(CastDevice oldDevice, CastDevice newDevice) {
-                                    if ( ChromecastHandler.selectedDevice != null ) {
-                                        notifyKPlayer("trigger", new String[] { "chromecastDeviceConnected" });
-                                    } else {
-                                        notifyKPlayer("trigger", new String[] { "chromecastDeviceDisConnected" });
-                                    }
-//                                    createPlayerInstance();
-                                }
-                            },
-                            new OnCastRouteDetectedListener(){
-                                @Override
-                                public void onCastRouteDetected() {
-                                    setChromecastVisiblity();
-                                }
-                            });
-            }
-        };
-        mainHandler.post(myRunnable);
+//        Runnable myRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                if ( !ChromecastHandler.initialized )
+//                    ChromecastHandler.initialize(context, new OnCastDeviceChangeListener() {
+//
+//                                @Override
+//                                public void onCastDeviceChange(CastDevice oldDevice, CastDevice newDevice) {
+//                                    if ( ChromecastHandler.selectedDevice != null ) {
+//                                        notifyKPlayer("trigger", new String[] { "chromecastDeviceConnected" });
+//                                    } else {
+//                                        notifyKPlayer("trigger", new String[] { "chromecastDeviceDisConnected" });
+//                                    }
+////                                    createPlayerInstance();
+//                                }
+//                            },
+//                            new OnCastRouteDetectedListener(){
+//                                @Override
+//                                public void onCastRouteDetected() {
+//                                    setChromecastVisiblity();
+//                                }
+//                            });
+//            }
+//        };
+//        mainHandler.post(myRunnable);
     }
 
     public void setActivity( Activity activity ) {
@@ -208,9 +204,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
 
-    public void setOnShareListener(OnShareListener listener) {
-        mShareListener = listener;
-    }
+//    public void setOnShareListener(OnShareListener listener) {
+//        mShareListener = listener;
+//    }
 
     private void setVolumeLevel(double percent) {//Itay
         AudioManager mgr = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
@@ -335,7 +331,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void setChromecastVisiblity() {
-        mWebView.setKDPAttribute("chromecast", "visible", ChromecastHandler.routeInfos.size() > 0 ? "true" : "false");
+//        mWebView.setKDPAttribute("chromecast", "visible", ChromecastHandler.routeInfos.size() > 0 ? "true" : "false");
     }
 
     /*
@@ -349,7 +345,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      */
     public void setComponents(String iframeUrl) {
         if(mWebView == null) {
-            mWebView = new KControlsView(getContext());
+            mWebView = new KControlsView(getContext().getApplicationContext());
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
@@ -364,6 +360,17 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         {
             iframeUrl = iframeUrl + "&iframeembed=true";
             mIframeUrl = iframeUrl;
+            try {
+                URI uri = new URI(iframeUrl);
+                if (mConfig.getCacheSize() > 0) {
+                    CacheManager.getInstance().setHost(uri.getHost());
+                    CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
+                    mWebView.setCacheManager(CacheManager.getInstance());
+                }
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+
             mWebView.loadUrl(iframeUrl);
         }
     }
@@ -538,14 +545,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void contentCompleted(KPlayerController.KPlayer currentPlayer) {
-        if (currentPlayer == null) {
-            playerController.setCurrentPlaybackTime(0);
-        } else {
-            this.mWebView.triggerEvent(KPlayer.EndedKey, null);
-            if (eventListeners != null) {
-                for (KPEventListener listener: eventListeners) {
-                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-                }
+        if (eventListeners != null) {
+            for (KPEventListener listener: eventListeners) {
+                listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
             }
         }
     }
@@ -785,7 +787,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         {
             //workaround to fix weird exception sometimes
             try {
-                ChromecastHandler.showCCDialog(getContext());
+//                ChromecastHandler.showCCDialog(getContext());
             } catch (Exception e ) {
                 Log.d(TAG, "failed to open cc list");
             }
@@ -813,19 +815,19 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     // Native actions
     private void share(JSONObject shareParams) {
-        if(mShareListener != null){
-            try {
-                String videoUrl = (String)shareParams.get("sharedLink");
-                String videoName = (String)shareParams.get("videoName");
-                ShareManager.SharingType type = ShareStrategyFactory.getType(shareParams);
-                if (!mShareListener.onShare(videoUrl, type, videoName)){
-                    ShareManager.share(shareParams, mActivity);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }else {
-            ShareManager.share(shareParams, mActivity);
-        }
+//        if(mShareListener != null){
+//            try {
+//                String videoUrl = (String)shareParams.get("sharedLink");
+//                String videoName = (String)shareParams.get("videoName");
+//                ShareManager.SharingType type = ShareStrategyFactory.getType(shareParams);
+//                if (!mShareListener.onShare(videoUrl, type, videoName)){
+//                    ShareManager.share(shareParams, mActivity);
+//                }
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//        }else {
+//            ShareManager.share(shareParams, mActivity);
+//        }
     }
 }
