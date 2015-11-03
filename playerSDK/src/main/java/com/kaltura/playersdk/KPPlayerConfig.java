@@ -29,7 +29,7 @@ public class KPPlayerConfig implements Serializable{
 	private boolean mEnableHover;
 	private String mUiConfId;
 	private String mPartnerId;
-	private float mCacheSize = 0;
+	private float mCacheSize = 4f;	// 4mb is a sane default.
 
 	public KPPlayerConfig(String domain, String uiConfId, String partnerId) {
 		mDomain = domain;
