@@ -192,18 +192,24 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
-                mIMAPlayer.removeAd();
                 fireIMAEvent(ContentResumeRequestedKey);
                 if (!mContentCompleted) {
                     mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
+                mIMAPlayer.removeAd();
                 break;
             case ALL_ADS_COMPLETED:
-                mPlayerListener.contentCompleted(null);
+                if (mContentCompleted) {
+                    mPlayerListener.contentCompleted(null);
+                }
                 fireIMAEvent(AllAdsCompletedKey);
                 if (mAdsManager != null) {
                     mAdsManager.destroy();
                     mAdsManager = null;
+                    mIMAPlayer.release();
+                    mIMAPlayer = null;
+                    mPlayerListener = null;
+                    mPLayerCallback = null;
                 }
                 break;
             case SKIPPED:
@@ -247,7 +253,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     }
 
     private void fireIMAEvent(String eventName) {
-        if (jsonValue.length() == 0) {
+        if (mPlayerListener != null && jsonValue.length() == 0) {
             mPlayerListener.eventWithJSON(null, eventName, "(null)");
             return;
         }

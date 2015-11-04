@@ -66,7 +66,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     @Override
     public VideoProgressUpdate getAdProgress() {
-        if (mAdPlayer.getDuration() <= 0) {
+        if (mAdPlayer == null || mAdPlayer.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
         if (mListener != null) {
