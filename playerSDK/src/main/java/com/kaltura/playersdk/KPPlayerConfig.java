@@ -1,8 +1,11 @@
 package com.kaltura.playersdk;
 
+import android.net.Uri;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class KPPlayerConfig implements Serializable{
 
@@ -14,28 +17,67 @@ public class KPPlayerConfig implements Serializable{
 	static String sNativeAdIDKey = "&flashvars[nativeAdId]=";
 	static String sEnableHoverKey = "&flashvars[controlBarContainer.hover]=true";
 	static String sIFrameEmbedKey = "&iframeembed=true";
+	
 
+	protected Map<String, String> mParamsMap;
+	protected String mUrl;
 
-
-
-	private Map<String, String> mParamsMap;
-	private String mUrl;
-
-	private String mDomain;
-	private String mWid;
-	private String mUrid;
-	private String mAdvertiserID;
-	private String mEntryId;
-	private boolean mEnableHover;
-	private String mUiConfId;
-	private String mPartnerId;
-	private float mCacheSize = 4f;	// 4mb is a sane default.
+	protected String mDomain;
+	protected String mAdvertiserID;
+	protected String mEntryId;
+	protected boolean mEnableHover;
+	protected String mUiConfId;
+	protected String mPartnerId;
+	protected float mCacheSize = 4f;	// 4mb is a sane default.
 
 	public KPPlayerConfig(String domain, String uiConfId, String partnerId) {
 		mDomain = domain;
 		mUiConfId = uiConfId;
 		mPartnerId = partnerId;
 		mParamsMap = new HashMap<String, String>();
+	}
+	
+	public static KPPlayerConfig valueOf(String url) {
+		KPPlayerConfig config =  new KPPlayerConfig(null, null, null) {
+
+			@Override
+			public String getVideoURL() {
+				// just return the input url, don't build it.
+				return mUrl;
+			}
+
+			// block all setters that would change mURL
+			@Override
+			public KPPlayerConfig setAdvertiserID(String advertiserID) {
+				throw new UnsupportedOperationException("Can't set advertiserID");
+			}
+
+			@Override
+			public KPPlayerConfig setEnableHover(boolean enableHover) {
+				throw new UnsupportedOperationException("Can't set enableHover");
+			}
+
+			@Override
+			public KPPlayerConfig setEntryId(String entryId) {
+				throw new UnsupportedOperationException("Can't set entryId");
+			}
+
+			@Override
+			public KPPlayerConfig addConfig(String key, String value) {
+				throw new UnsupportedOperationException("Can't add config");
+			}
+
+			@Override
+			public String appendConfiguration(String videoURL) {
+				throw new UnsupportedOperationException("Can't append configuration");
+			}
+
+		};
+		Uri uri = Uri.parse(url);
+		config.mDomain = uri.getScheme() + "://" + uri.getAuthority();
+		config.mUrl = url;
+		
+		return config;
 	}
 
 	public KPPlayerConfig addConfig(String key, String value) {
