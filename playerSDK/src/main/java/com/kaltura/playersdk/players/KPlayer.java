@@ -38,7 +38,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     private int mBufferWaitCounter = 0;
 
     protected KPlayerListener listener;
-    protected KPlayerCallback callback;
     protected String mPlayerSource;
     protected boolean mIsReady = false;
     protected int mStartPos = 0;
@@ -82,10 +81,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         this.listener = listener;
     }
 
-    @Override
-    public void setPlayerCallback(KPlayerCallback callback) {
-        this.callback = callback;
-    }
 
 
     @Override
@@ -242,7 +237,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                         listener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(this.getDuration()));
                         listener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
                         listener.eventWithValue(this, KPlayer.CanPlayKey, null);
-                        callback.playerStateChanged(KPlayerController.CAN_PLAY);
+//                        callback.playerStateChanged(KPlayerController.CAN_PLAY);
                     } else {
                         mShouldResumePlayback = false;
                     }
@@ -268,7 +263,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 if (playWhenReady && listener != null) {
                     listener.contentCompleted(this);
                     updateStopState();
-                    callback.playerStateChanged(KPlayerController.ENDED);
+//                    callback.playerStateChanged(KPlayerController.ENDED);
                 }
                 break;
         }
@@ -284,7 +279,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-
+        Log.d("ExoPlayer Error", error.toString());
     }
 
 

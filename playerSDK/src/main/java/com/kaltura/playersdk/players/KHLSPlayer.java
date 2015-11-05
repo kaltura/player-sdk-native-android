@@ -44,7 +44,6 @@ public class KHLSPlayer extends FrameLayout implements
     private static final String TAG = "KHLSPlayer";
     private HLSPlayerViewController mPlayer;
     private KPlayerListener mListener;
-    private KPlayerCallback mCallback;
 
     public KHLSPlayer(Activity activity) {
         super(activity);
@@ -68,10 +67,6 @@ public class KHLSPlayer extends FrameLayout implements
         mListener = listener;
     }
 
-    @Override
-    public void setPlayerCallback(KPlayerCallback callback) {
-        mCallback = callback;
-    }
 
     @Override
     public void setPlayerSource(String playerSource) {
@@ -138,6 +133,7 @@ public class KHLSPlayer extends FrameLayout implements
     public void setShouldCancelPlay(boolean shouldCancelPlay) {
 
     }
+
     //endregion
 
     //region TextTracksInterface
@@ -224,7 +220,7 @@ public class KHLSPlayer extends FrameLayout implements
                 mListener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
                 mListener.eventWithValue(this, KPlayer.CanPlayKey, null);
 //                mPlayer.registerProgressUpdate(this);
-                mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
+//                mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
                 break;
             case LOAD:
 
@@ -237,7 +233,7 @@ public class KHLSPlayer extends FrameLayout implements
                 break;
             case END:
                 mListener.contentCompleted(this);
-                mCallback.playerStateChanged(KPlayerController.ENDED);
+//                mCallback.playerStateChanged(KPlayerController.ENDED);
                 break;
             case SEEKED:
                 mListener.eventWithValue(this, KPlayer.SeekedKey, null);

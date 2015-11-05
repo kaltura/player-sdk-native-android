@@ -1,15 +1,20 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.example.kplayersdk.R;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.kaltura.playersdk.helpers.IMAVideoPlayerController;
 import com.kaltura.playersdk.helpers.KIMAManager;
+import com.kaltura.playersdk.helpers.KStringUtilities;
 
 import java.lang.ref.WeakReference;
 
@@ -17,7 +22,7 @@ import java.lang.ref.WeakReference;
 /**
  * Created by nissopa on 6/14/15.
  */
-public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerListener {
+public class KPlayerController implements KPlayerListener {
     private KPlayer player;
     private String playerClassName;
     private String src;
@@ -38,15 +43,28 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private float mStartPos;
     private boolean isIMAActive = false;
     private boolean isPlayerCanPlay = false;
+    private IMAVideoPlayerController imaVideoPlayerController;
+    private boolean mIsAdPlaying;
 
-    public static final int CAN_PLAY = 1;
-    public static final int SHOULD_PAUSE = 2;
-    public static final int SHOULD_PLAY = 3;
-    public static final int ENDED = 4;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
-        playerListener.eventWithValue(player, eventName, eventValue);
+        KStringUtilities state = new KStringUtilities(eventName);
+        if (imaManager == null && !mIsAdPlaying && state.canPlay()) {
+            isPlayerCanPlay = true;
+            if (mActivity != null) {
+                addAdPlayer();
+            }
+        } else if (mIsAdPlaying && state.isPlay()) {
+            imaVideoPlayerController.onPlay();
+        } else if (mIsAdPlaying && state.isPause()) {
+            imaVideoPlayerController.onPause();
+        } else if (mIsAdPlaying && state.isEnded()) {
+            imaVideoPlayerController.onCompleted();
+        }
+        if (!mIsAdPlaying) {
+            playerListener.eventWithValue(player, eventName, eventValue);
+        }
     }
 
     @Override
@@ -75,7 +93,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public interface KPlayer {
         public void setPlayerListener(KPlayerListener listener);
-        public void setPlayerCallback(KPlayerCallback callback);
         public void setPlayerSource(String playerSource);
         public String getPlayerSource();
         public void setCurrentPlaybackTime(float currentPlaybackTime);
@@ -94,8 +111,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public KPlayerController(KPlayer player, KPlayerListener listener) {
         this.player = player;
         playerListener = listener;
-        this.player.setPlayerListener(listener);
-        this.player.setPlayerCallback(this);
+        player.setPlayerListener(this);
+//        this.player.setPlayerListener(this);
     }
 
     public void addPlayerToController(RelativeLayout playerViewController) {
@@ -115,14 +132,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 //        this.playerClassName = playerClassName;
 //        this.key = key;
         player.setPlayerListener(null);
-        player.setPlayerCallback(null);
+//        player.setPlayerCallback(null);
         parentViewController.removeView((View) player);
         player = newPlayer;
         ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
         ((View)player).setBackgroundColor(Color.RED);
         parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
-        player.setPlayerCallback(this);
+//        player.setPlayerCallback(this);
         player.setPlayerListener(playerListener);
     }
 
@@ -201,22 +218,31 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private void addAdPlayer() {
 
         // Add adPlayer view
-        FrameLayout adPlayerContainer = new FrameLayout(mActivity.get());
-        ViewGroup.LayoutParams lp = parentViewController.getLayoutParams();
-        lp = new ViewGroup.LayoutParams(lp.width, lp.height);
-        parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1, lp);
+//        FrameLayout adPlayerContainer = new FrameLayout(mActivity.get());
+//        ViewGroup.LayoutParams lp = parentViewController.getLayoutParams();
+//        lp = new ViewGroup.LayoutParams(lp.width, lp.height);
+//        LayoutInflater inflater = (LayoutInflater)parentViewController.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        FrameLayout adPlayerContainer = (FrameLayout)inflater.inflate(R.layout.ad_player, parentViewController, false);
+//        parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1);
 
         // Add IMA UI controls view
         RelativeLayout adUiControls = new RelativeLayout(parentViewController.getContext());
         ViewGroup.LayoutParams curLP = parentViewController.getLayoutParams();
         ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);
         parentViewController.addView(adUiControls, controlsLP);
-
+        imaVideoPlayerController = new IMAVideoPlayerController(player);
+        imaVideoPlayerController.setAdPlayerListener(new IMAVideoPlayerController.AdPlayerListener() {
+            @Override
+            public void setIsAdPlaying(boolean isAdPlaying) {
+                mIsAdPlaying = isAdPlaying;
+            }
+        });
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, adUiControls, adTagURL);
-        imaManager.setPlayerListener(this);
-        imaManager.setPlayerCallback(this);
-        imaManager.requestAds(this);
+        imaManager = new KIMAManager(mActivity.get(), imaVideoPlayerController, adUiControls, adTagURL);
+//        imaManager.setPlayerListener(this);
+//        imaManager.setPlayerCallback(this);
+
+        imaManager.requestAds(imaVideoPlayerController);
     }
 
     private void removeAdPlayer() {
@@ -247,40 +273,5 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.locale = locale;
     }
 
-
-    // [START ContentProgressProvider region]
-    @Override
-    public VideoProgressUpdate getContentProgress() {
-        if (player.getDuration() <= 0) {
-            return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
-        }
-        return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);
-    }
-    // [END ContentProgressProvider region]
-
-    @Override
-    public void playerStateChanged(int state) {
-        switch (state) {
-            case KPlayerController.CAN_PLAY:
-                isPlayerCanPlay = true;
-                if (mActivity != null) {
-                    addAdPlayer();
-                }
-                break;
-            case KPlayerController.SHOULD_PLAY:
-                player.play();
-                break;
-            case KPlayerController.SHOULD_PAUSE:
-                player.pause();
-                break;
-            case KPlayerController.ENDED:
-                if (imaManager != null) {
-                    imaManager.contentComplete();
-                } else {
-                    contentCompleted(null);
-                }
-                break;
-        }
-    }
 
 }

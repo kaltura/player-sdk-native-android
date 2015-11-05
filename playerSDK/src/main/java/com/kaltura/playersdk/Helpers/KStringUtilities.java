@@ -38,6 +38,14 @@ public class KStringUtilities {
         return this.string.equals("play");
     }
 
+    public boolean isPause() {
+        return this.string.equals("pause");
+    }
+
+    public boolean isEnded() {
+        return this.string.equals("ended");
+    }
+
     public boolean isSeeked() {
         return this.string.equals("seeked");
     }

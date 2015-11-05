@@ -1,6 +1,5 @@
 package com.kaltura.playersdk.helpers;
 
-import com.kaltura.playersdk.players.KPlayerCallback;
 import com.kaltura.playersdk.players.KPlayerListener;
 
 /**
@@ -11,7 +10,6 @@ public class KPlayerParams {
     private float currentPlaybackTime;
     private String playerSource;
     private KPlayerListener playerListener;
-    private KPlayerCallback playerCallback;
 
     public KPlayerListener getPlayerListener() {
         return playerListener;
@@ -45,13 +43,8 @@ public class KPlayerParams {
         this.playerSource = playerSource;
     }
 
-    public KPlayerCallback getPlayerCallback() {
-        return playerCallback;
-    }
 
-    public void setPlayerCallback(KPlayerCallback playerCallback) {
-        this.playerCallback = playerCallback;
-    }
+
 
 
 }
