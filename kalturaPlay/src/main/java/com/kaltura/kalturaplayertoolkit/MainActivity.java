@@ -72,10 +72,10 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
         
-        KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "29802711", "1831271").setEntryId("1_1fncksnw");
+        KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15067411", "1091").setEntryId("0_0jhktrbo");
 
 
-//        config.setCacheSize(0.8f);
+        config.setCacheSize(0.8f);
         extras.putSerializable("config", config);
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
