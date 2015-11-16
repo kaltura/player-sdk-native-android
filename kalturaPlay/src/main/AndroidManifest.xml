@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<manifest
     package="com.kaltura.kalturaplayertoolkit"
-    android:versionCode="1"
-    android:versionName="0.9">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
 
     <application
@@ -14,72 +12,71 @@
         android:icon="@drawable/play_icon"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat">
-        
+
         <meta-data
-     	android:name="com.google.android.gms.version"
-      	android:value="@integer/google_play_services_version" /> 
-      	
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version"/>
+
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" 
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
-            android:launchMode="singleTop">
-            
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            
-         <intent-filter>
-	        <action android:name="android.intent.action.VIEW" />
-	
-	        <category android:name="android.intent.category.DEFAULT" />
-	        <category android:name="android.intent.category.BROWSABLE" />
-	        
-	        <data
-	            android:host="kalturaplay.appspot.com"
-	            android:pathPrefix="/play"
-	            android:scheme="https" />
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
 
-    	</intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                    android:host="kalturaplay.appspot.com"
+                    android:pathPrefix="/play"
+                    android:scheme="https"/>
+            </intent-filter>
         </activity>
-        
-      <activity
+
+        <activity
             android:name="com.google.sample.castcompanionlibrary.cast.player.VideoCastControllerActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:parentActivityName="com.kaltura.kalturaplayertoolkit.MainActivity"
             android:screenOrientation="portrait"
-    		android:theme="@style/Theme.AppCompat" >
+            android:theme="@style/Theme.AppCompat">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.kaltura.kms.kmsLogin" />
+                android:value="com.kaltura.kms.kmsLogin"/>
 
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
             </intent-filter>
         </activity>
-        
-                   <receiver android:name="com.google.sample.castcompanionlibrary.remotecontrol.VideoIntentReceiver" >
+
+        <receiver android:name="com.google.sample.castcompanionlibrary.remotecontrol.VideoIntentReceiver">
             <intent-filter>
-                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-                <action android:name="com.google.sample.castcompanionlibrary.action.toggleplayback" />
-                <action android:name="com.google.sample.castcompanionlibrary.action.stop" />
+                <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="com.google.sample.castcompanionlibrary.action.toggleplayback"/>
+                <action android:name="com.google.sample.castcompanionlibrary.action.stop"/>
             </intent-filter>
         </receiver>
 
         <service
             android:name="com.google.sample.castcompanionlibrary.notification.VideoCastNotificationService"
-            android:exported="false" >
+            android:exported="false">
             <intent-filter>
-                <action android:name="com.google.sample.castcompanionlibrary.action.toggleplayback" />
-                <action android:name="com.google.sample.castcompanionlibrary.action.stop" />
-                <action android:name="com.google.sample.castcompanionlibrary.action.notificationvisibility" />
+                <action android:name="com.google.sample.castcompanionlibrary.action.toggleplayback"/>
+                <action android:name="com.google.sample.castcompanionlibrary.action.stop"/>
+                <action android:name="com.google.sample.castcompanionlibrary.action.notificationvisibility"/>
             </intent-filter>
         </service>
-        
+
     </application>
 
 </manifest>
