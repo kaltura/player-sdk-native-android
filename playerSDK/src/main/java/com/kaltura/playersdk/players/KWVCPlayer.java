@@ -88,8 +88,15 @@ public class KWVCPlayer
     }
 
     @Override
-    public void setPlayerSource(String playerSource) {
-        mAssetUri = playerSource;
+    public void setPlayerSource(String source) {
+
+        // There is a known issue with some devices, reported mainly against Samsung devices.
+        // When playing http://example.com/file.wvm, try widevine://example.com/file.wvm instead.
+        // We already know this is a .wvm URL, it was checked by KPlayerController.
+        // Only do this replacement for http -- NOT https.
+        source = source.replaceFirst("^http:", "widevine:");
+        
+        mAssetUri = source;
 
         if (mLicenseUri != null) {
             preparePlayer();
