@@ -90,12 +90,6 @@ public class KWVCPlayer
     @Override
     public void setPlayerSource(String source) {
 
-        // There is a known issue with some devices, reported mainly against Samsung devices.
-        // When playing http://example.com/file.wvm, try widevine://example.com/file.wvm instead.
-        // We already know this is a .wvm URL, it was checked by KPlayerController.
-        // Only do this replacement for http -- NOT https.
-        source = source.replaceFirst("^http:", "widevine:");
-        
         mAssetUri = source;
 
         if (mLicenseUri != null) {
@@ -241,18 +235,22 @@ public class KWVCPlayer
     
     private void preparePlayer() {
 
-        if (mPrepareState == PrepareState.Preparing) {
+        if (mAssetUri==null || mLicenseUri==null) {
+            Log.e(TAG, "Prepare error: both assetUri and licenseUri must be set");
             return;
         }
 
-        // Make sure we have both licenseUri and assetUri
-        // This is a private method and the callers make sure both of those fields are set.
-        assert mAssetUri!=null;
-        assert mLicenseUri!=null;
-        
+        if (mPrepareState == PrepareState.Preparing) {
+            Log.v(TAG, "Already preparing");
+            return;
+        }
+
+        // When playing http://example.com/file.wvm, use widevine://example.com/file.wvm instead.
+        // Only replace http URLs, not https.
+        String widevineUri = mAssetUri.replaceFirst("^http:", "widevine:");
+
+        // Start preparing.
         mPrepareState = PrepareState.Preparing;
-        
-        // now really prepare
         mPlayer = new VideoView(getContext());
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
@@ -315,7 +313,7 @@ public class KWVCPlayer
                 }
             }
         });
-        mPlayer.setVideoURI(Uri.parse(mAssetUri));
-        mDrmClient.acquireRights(mAssetUri, mLicenseUri);
+        mPlayer.setVideoURI(Uri.parse(widevineUri));
+        mDrmClient.acquireRights(widevineUri, mLicenseUri);
     }
 }
