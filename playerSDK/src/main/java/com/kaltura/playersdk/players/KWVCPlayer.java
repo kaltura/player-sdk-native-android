@@ -218,7 +218,9 @@ public class KWVCPlayer
             removeView(mPlayer);
             mPlayer = null;
         }
-        mTimeUpdateHandler.removeCallbacks(null);
+        if (mTimeUpdateHandler != null) {
+            mTimeUpdateHandler.removeCallbacks(null);
+        }
         mPrepareState = PrepareState.NotPrepared;
     }
 
