@@ -17,6 +17,7 @@ public class KPPlayerConfig implements Serializable{
 	static String sNativeAdIDKey = "&flashvars[nativeAdId]=";
 	static String sEnableHoverKey = "&flashvars[controlBarContainer.hover]=true";
 	static String sIFrameEmbedKey = "&iframeembed=true";
+	static String sEnableChromecastKey = "&flashvars[chromecast.plugin]=true";
 	
 
 	protected Map<String, String> mParamsMap;
@@ -26,6 +27,7 @@ public class KPPlayerConfig implements Serializable{
 	protected String mAdvertiserID;
 	protected String mEntryId;
 	protected boolean mEnableHover;
+	private boolean mShouldEnableChromecast = true;
 	protected String mUiConfId;
 	protected String mPartnerId;
 	protected float mCacheSize = 4f;	// 4mb is a sane default.
@@ -99,6 +101,10 @@ public class KPPlayerConfig implements Serializable{
 		return videoURL;
 	}
 
+	public void enableChromcast(boolean shouldEnableChromecast) {
+		mShouldEnableChromecast = shouldEnableChromecast;
+	}
+
 	public void setCacheSize (float cacheSize) {
 		mCacheSize = cacheSize;
 	}
@@ -119,6 +125,9 @@ public class KPPlayerConfig implements Serializable{
 			mUrl += key + "=" + mParamsMap.get(key) + "&";
 		}
 		mUrl += "iframeembed=true";
+		if (mShouldEnableChromecast) {
+			mUrl += sEnableChromecastKey;
+		}
 		return mUrl;
 	}
 

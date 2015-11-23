@@ -20,7 +20,12 @@ import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.google.android.gms.cast.CastDevice;
 import com.google.gson.Gson;
+import com.kaltura.playersdk.casting.CastRouterManager;
+import com.kaltura.playersdk.casting.KCastRouterManager;
+import com.kaltura.playersdk.casting.KCastRouterManagerListener;
+import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
@@ -42,7 +47,7 @@ import java.util.Set;
 /**
  * Created by michalradwantzor on 9/24/13.
  */
-public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerListener {
+public class PlayerViewController extends RelativeLayout implements KControlsView.KControlsViewClient, KPlayerListener, CastRouterManager.CastRouterManagerListener {
     public static String TAG = "PlayerViewController";
 
 
@@ -70,6 +75,47 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
     private boolean isFullScreen = false;
+    private CastRouterManager mRouterManager;
+
+    @Override
+    public void didFoundDevices(final boolean didFound) {
+        if (mRouterManager.shouldEnableKalturaCastButton()) {
+            registerReadyEvent(new ReadyEventListener() {
+                @Override
+                public void handler() {
+                    mWebView.setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
+                }
+            });
+        }
+        if (mRouterManager.getAppListener() != null) {
+            mRouterManager.getAppListener().didDetectCastDevices(didFound);
+        }
+    }
+
+    @Override
+    public void updateDetectedDeviceList(boolean shouldAdd, KRouterInfo info) {
+        if (mRouterManager.getAppListener() != null) {
+            if (shouldAdd) {
+                mRouterManager.getAppListener().addedCastDevice(info);
+            } else {
+                mRouterManager.getAppListener().removedCastDevice(info);
+            }
+        }
+    }
+
+    @Override
+    public void castDeviceChanged(CastDevice oldDevice, CastDevice newDevice) {
+        if (mRouterManager.shouldEnableKalturaCastButton()) {
+            if (newDevice == null) {
+                mWebView.triggerEvent("chromecastDeviceDisConnected", null);
+            } else {
+                mWebView.triggerEvent("chromecastDeviceConnected", null);
+            }
+        }
+        if (mRouterManager.getAppListener() != null) {
+            mRouterManager.getAppListener().castDeviceConnectionState(newDevice != null);
+        }
+    }
 
     // trigger timeupdate events
 
@@ -88,6 +134,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public PlayerViewController(Context context) {
         super(context);
         setupPlayerViewController( context );
+    }
+
+    public KCastRouterManager getKCastRouterManager() {
+        if (mRouterManager == null) {
+            mRouterManager = new CastRouterManager(mActivity.getApplicationContext(), "FFCC6D19");
+            mRouterManager.setCastRouterListener(this);
+        }
+        return mRouterManager;
     }
 
     public PlayerViewController(Context context, AttributeSet attrs) {
@@ -357,7 +411,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) )
         {
-            iframeUrl = iframeUrl + "&iframeembed=true";
+//            iframeUrl = iframeUrl + "&iframeembed=true";
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
             if (mConfig.getCacheSize() > 0) {
@@ -778,14 +832,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void showChromecastDeviceList() {
-        if(!mActivity.isFinishing())
-        {
-            //workaround to fix weird exception sometimes
-            try {
-//                ChromecastHandler.showCCDialog(getContext());
-            } catch (Exception e ) {
-                Log.d(TAG, "failed to open cc list");
-            }
+        if(!mActivity.isFinishing() && mRouterManager.getAppListener() != null) {
+            mRouterManager.getAppListener().castButtonClicked();
         }
     }
 
