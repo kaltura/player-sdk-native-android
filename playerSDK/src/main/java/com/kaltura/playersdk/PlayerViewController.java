@@ -30,6 +30,7 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.players.KCCPlayer;
 import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
@@ -110,6 +111,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 mWebView.triggerEvent("chromecastDeviceDisConnected", null);
             } else {
                 mWebView.triggerEvent("chromecastDeviceConnected", null);
+                playerController.switchPlayer(new KCCPlayer(this, ""));
             }
         }
         if (mRouterManager.getAppListener() != null) {
