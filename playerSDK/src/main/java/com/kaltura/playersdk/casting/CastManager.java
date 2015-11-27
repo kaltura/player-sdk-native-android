@@ -7,8 +7,7 @@ import android.support.v7.media.MediaRouter;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-//import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
+import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
 
 import java.util.ArrayList;
 

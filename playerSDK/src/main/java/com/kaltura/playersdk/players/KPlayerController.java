@@ -118,10 +118,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         player.setPlayerCallback(null);
         parentViewController.removeView((View) player);
         player = newPlayer;
-        ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        ((View)player).setBackgroundColor(Color.RED);
-        parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
+        if (player instanceof FrameLayout) {
+            ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
+            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+            parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
+        }
         player.setPlayerCallback(this);
         player.setPlayerListener(playerListener);
     }

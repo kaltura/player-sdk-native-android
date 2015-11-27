@@ -111,7 +111,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 mWebView.triggerEvent("chromecastDeviceDisConnected", null);
             } else {
                 mWebView.triggerEvent("chromecastDeviceConnected", null);
-                playerController.switchPlayer(new KCCPlayer(this, ""));
+                playerController.switchPlayer(new KCCPlayer(mActivity, "FFCC6D19"));
+                playerController.setSrc(playerController.getSrc());
             }
         }
         if (mRouterManager.getAppListener() != null) {
@@ -344,7 +345,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
                 @Override
                 public void fetchHeight(int controlBarHeight) {
-                    if ( playerController.getPlayer() != null && ((FrameLayout)playerController.getPlayer()).getParent() == PlayerViewController.this ) {
+                    if ( playerController.getPlayer() != null && playerController.getPlayer() instanceof FrameLayout && ((FrameLayout)playerController.getPlayer()).getParent() == PlayerViewController.this ) {
                         LayoutParams wvLp = (LayoutParams) ((View) playerController.getPlayer()).getLayoutParams();
 
                         if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
