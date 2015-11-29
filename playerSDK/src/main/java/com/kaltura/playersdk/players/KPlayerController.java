@@ -116,7 +116,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 //        this.key = key;
         player.setPlayerListener(null);
         player.setPlayerCallback(null);
-        parentViewController.removeView((View) player);
+        if (player instanceof FrameLayout) {
+            parentViewController.removeView((View) player);
+        }
+        player.removePlayer();
         player = newPlayer;
         if (player instanceof FrameLayout) {
             ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();

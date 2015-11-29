@@ -98,7 +98,7 @@ public class FullscreenFragment extends Fragment{
 
             @Override
             public void castDeviceConnectionState(boolean isConnected) {
-
+                getDevicesDialog().deviceConnectionStateDidChange(isConnected);
             }
 
             @Override

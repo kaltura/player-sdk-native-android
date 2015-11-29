@@ -72,6 +72,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
 
+        //http://172.20.10.9/html5.kaltura/mwEmbed/mwEmbedFrame.php
         KPPlayerConfig config = new KPPlayerConfig("https://cdnapisec.kaltura.com", "26698911", "1831271").setEntryId("1_1fncksnw");
 
 

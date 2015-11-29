@@ -136,9 +136,9 @@ public class KCCPlayer implements KPlayerController.KPlayer {
                         try {
                             float currentTime = getCurrentPlaybackTime();
                             if (currentTime != 0 && currentTime < getDuration() && mPlayerListener != null) {
-                                mPlayerListener.eventWithValue(KCCPlayer.this, KPlayer.TimeUpdateKey, Float.toString(currentTime));
+//                                mPlayerListener.eventWithValue(KCCPlayer.this, KPlayer.TimeUpdateKey, Float.toString(currentTime));
                             } else if (currentTime >= getDuration()) {
-                                mPlayerCallback.playerStateChanged(KPlayerController.ENDED);
+//                                mPlayerCallback.playerStateChanged(KPlayerController.ENDED);
                             }
                         } catch (IllegalStateException e) {
                             Log.e(TAG, "Looper Exception", e);

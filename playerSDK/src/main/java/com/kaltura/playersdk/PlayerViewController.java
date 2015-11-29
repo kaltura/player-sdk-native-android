@@ -110,6 +110,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             if (newDevice == null) {
                 mWebView.triggerEvent("chromecastDeviceDisConnected", null);
             } else {
+                mWebView.triggerEvent("hideConnectingMessage", null);
                 mWebView.triggerEvent("chromecastDeviceConnected", null);
                 playerController.switchPlayer(new KCCPlayer(mActivity, "FFCC6D19"));
                 playerController.setSrc(playerController.getSrc());
@@ -118,6 +119,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (mRouterManager.getAppListener() != null) {
             mRouterManager.getAppListener().castDeviceConnectionState(newDevice != null);
         }
+    }
+
+    @Override
+    public void connecting() {
+        mWebView.triggerEvent("showConnectingMessage", null);
     }
 
     // trigger timeupdate events

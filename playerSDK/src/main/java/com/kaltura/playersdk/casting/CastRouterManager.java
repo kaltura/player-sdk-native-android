@@ -7,6 +7,7 @@ import android.util.Log;
 
 
 import com.google.android.gms.cast.ApplicationMetadata;
+import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 import com.google.android.libraries.cast.companionlibrary.cast.BaseCastManager;
@@ -38,13 +39,15 @@ public class CastRouterManager implements KCastRouterManager {
 
     @Override
     public void disconnect() {
-        router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED);
+//        router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED);
+        mCastManager.disconnectDevice(true, true, true);
     }
 
     @Override
     public void connectDevice(String deviceId) {
         for (MediaRouter.RouteInfo info: getRouteInfos()) {
             if (info.getId().equals(deviceId)) {
+                mRouterListener.connecting();
                 router.selectRoute(info);
                 return;
             }
@@ -66,6 +69,7 @@ public class CastRouterManager implements KCastRouterManager {
         public void didFoundDevices(boolean didFound);
         public void updateDetectedDeviceList(boolean shouldAdd, KRouterInfo info);
         public void castDeviceChanged(CastDevice oldDevice, CastDevice newDevice);
+        public void connecting();
     }
 
     public CastRouterManager(Context context, String castAppID) {
@@ -115,9 +119,12 @@ public class CastRouterManager implements KCastRouterManager {
                 mRouterListener.castDeviceChanged(null, selectedDevice);
             }
 
+
+
             @Override
             public void onDisconnected() {
 //                invalidateOptionsMenu();
+                mRouterListener.castDeviceChanged(null, null);
             }
 
             @Override
@@ -177,12 +184,12 @@ public class CastRouterManager implements KCastRouterManager {
 
         @Override
         public void onRouteUnselected(MediaRouter router, MediaRouter.RouteInfo route) {
-            CastDevice oldDevice = selectedDevice;
+//            CastDevice oldDevice = selectedDevice;
             mCastManager.onDeviceSelected(null);
-            selectedDevice = null;
-            if (oldDevice != null) {
-                mRouterListener.castDeviceChanged(oldDevice, selectedDevice);
-            }
+//            selectedDevice = null;
+//            if (oldDevice != null) {
+//                mRouterListener.castDeviceChanged(oldDevice, selectedDevice);
+//            }
         }
 
         @Override

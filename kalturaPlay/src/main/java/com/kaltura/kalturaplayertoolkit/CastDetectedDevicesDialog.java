@@ -36,11 +36,26 @@ public class CastDetectedDevicesDialog extends Dialog {
         routeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                listener.routeSelected(mRouteNames.get(position).getRouterId());
+                if (mAdapter.getItem(position).getRouterName().equals("Disconnect")) {
+                    listener.disconnect();
+                } else {
+                    listener.routeSelected(mRouteNames.get(position).getRouterId());
+                }
                 dismiss();
             }
         });
 
+    }
+
+    public void deviceConnectionStateDidChange(boolean isConnected) {
+        mAdapter.clear();
+        if (isConnected) {
+            KRouterInfo disconnect = new KRouterInfo();
+            disconnect.setRouterName("Disconnect");
+            mAdapter.add(disconnect);
+        } else {
+            mAdapter.addAll(mRouteNames);
+        }
     }
 
 
