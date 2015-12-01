@@ -32,6 +32,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean contentEnded;
     private boolean playerReady;
     private KIMAManager imaManager;
+    private KCCPlayer castPlayer;
     private WeakReference<Activity> mActivity;
     private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
@@ -112,20 +113,48 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void switchPlayer(KPlayer newPlayer) {
-//        this.playerClassName = playerClassName;
-//        this.key = key;
         player.setPlayerListener(null);
         player.setPlayerCallback(null);
-        if (player instanceof FrameLayout) {
-            parentViewController.removeView((View) player);
-        }
+        parentViewController.removeView((View) player);
         player.removePlayer();
         player = newPlayer;
-        if (player instanceof FrameLayout) {
-            ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
-            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-            parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
+        ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+        parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
+        player.setPlayerCallback(this);
+        player.setPlayerListener(playerListener);
+    }
+
+    public void play() {
+        if (castPlayer == null) {
+            player.play();
+        } else {
+            castPlayer.play();
         }
+    }
+
+    public void pause() {
+        if (castPlayer == null) {
+            player.pause();
+        } else {
+            castPlayer.pause();
+        }
+    }
+
+    public void startCasting(KCCPlayer castingPlayer) {
+        player.pause();
+        player.setPlayerListener(null);
+        player.setPlayerCallback(null);
+        castPlayer = castingPlayer;
+        castPlayer.setPlayerSource(src);
+        castPlayer.setPlayerCallback(this);
+        castPlayer.setPlayerListener(playerListener);
+        ((View)player).setVisibility(View.INVISIBLE);
+    }
+
+    public void stopCasting() {
+        castPlayer.removePlayer();
+        ((View)player).setVisibility(View.VISIBLE);
         player.setPlayerCallback(this);
         player.setPlayerListener(playerListener);
     }
@@ -232,7 +261,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        this.player.setCurrentPlaybackTime(currentPlaybackTime);
+        if (castPlayer == null) {
+            this.player.setCurrentPlaybackTime(currentPlaybackTime);
+        } else {
+            castPlayer.setCurrentPlaybackTime(currentPlaybackTime);
+        }
     }
 
     public int getAdPlayerHeight() {
