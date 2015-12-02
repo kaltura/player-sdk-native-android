@@ -245,9 +245,7 @@ public class KWVCPlayer
             return;
         }
 
-        // When playing http://example.com/file.wvm, use widevine://example.com/file.wvm instead.
-        // Only replace http URLs, not https.
-        String widevineUri = mAssetUri.replaceFirst("^http:", "widevine:");
+        String widevineUri = getWidevineURI(mAssetUri);
 
         // Start preparing.
         mPrepareState = PrepareState.Preparing;
@@ -315,5 +313,17 @@ public class KWVCPlayer
         });
         mPlayer.setVideoURI(Uri.parse(widevineUri));
         mDrmClient.acquireRights(widevineUri, mLicenseUri);
+    }
+    
+    // Convert file:///local/path/a.wvm to /local/path/a.wvm
+    // Convert http://example.com/path/a.wvm to widevine://example.com/path/a.wvm
+    // Every else remains the same.
+    public static String getWidevineURI(String assetUri) {
+        if (assetUri.startsWith("file:")) {
+            assetUri = Uri.parse(assetUri).getPath();
+        } else if (assetUri.startsWith("http:")) {
+            assetUri = assetUri.replaceFirst("^http:", "widevine:");
+        }
+        return assetUri;
     }
 }

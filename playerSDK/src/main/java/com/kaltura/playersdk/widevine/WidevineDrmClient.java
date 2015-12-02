@@ -11,6 +11,8 @@ import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
 import android.util.Log;
 
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.util.Iterator;
 
 // Based on Widevine for Android demo app
@@ -174,11 +176,41 @@ public class WidevineDrmClient {
 
     public int acquireRights(String assetUri, String licenseServerUri) {
 
+        if (assetUri.startsWith("/")) {
+            return acquireLocalAssetRights(assetUri, licenseServerUri);
+        }
+        
         DrmInfoRequest drmInfoRequest = createDrmInfoRequest(assetUri, licenseServerUri);
+
         int rights = mDrmManager.acquireRights(drmInfoRequest);
 
         logMessage("acquireRights = " + rights + "\n");
 
+        return rights;
+    }
+    
+    public int acquireLocalAssetRights(String assetPath, String licenseServerUri) {
+        DrmInfoRequest drmInfoRequest = createDrmInfoRequest(assetPath, licenseServerUri);
+        FileInputStream fis = null;
+        FileDescriptor fd = null;
+
+        int rights = 0;
+        
+        // A local file needs special treatment -- open and get FD
+        try {
+            fis = new FileInputStream(assetPath);
+            fd = fis.getFD();
+            if (fd != null && fd.valid()) {
+                drmInfoRequest.put("FileDescriptorKey", fd.toString());
+                rights = mDrmManager.acquireRights(drmInfoRequest);
+            }
+        } catch (java.io.IOException e) {
+            Log.e(TAG, "Error opening local file:", e);
+            rights = -1;
+        }
+        
+        logMessage("acquireRights = " + rights + "\n");
+        
         return rights;
     }
 
