@@ -18,10 +18,18 @@ import java.util.Iterator;
 public class WidevineDrmClient {
     
     public static final String TAG = "WidevineDrm";
-    
+
     private final static long DEVICE_IS_PROVISIONED = 0;
     private final static long DEVICE_IS_NOT_PROVISIONED = 1;
     private final static long DEVICE_IS_PROVISIONED_SD_ONLY = 2;
+    
+    public static final String WV_DRM_SERVER_KEY = "WVDRMServerKey";
+    public static final String WV_ASSET_URI_KEY = "WVAssetURIKey";
+    public static final String WV_DEVICE_ID_KEY = "WVDeviceIDKey";
+    public static final String WV_PORTAL_KEY = "WVPortalKey";
+    public static final String WV_DRM_INFO_REQUEST_STATUS_KEY = "WVDrmInfoRequestStatusKey";
+    public static final String WV_DRM_INFO_REQUEST_VERSION_KEY = "WVDrmInfoRequestVersionKey";
+    
     private long mWVDrmInfoRequestStatusKey = DEVICE_IS_PROVISIONED;
     private String mPluginVersion = "";
     public static String WIDEVINE_MIME_TYPE = "video/wvm";
@@ -130,11 +138,11 @@ public class WidevineDrmClient {
                 WIDEVINE_MIME_TYPE);
 
         if (licenseServerUri != null) {
-            rightsAcquisitionInfo.put("WVDRMServerKey", licenseServerUri);
+            rightsAcquisitionInfo.put(WV_DRM_SERVER_KEY, licenseServerUri);
         }
-        rightsAcquisitionInfo.put("WVAssetURIKey", assetUri);
-        rightsAcquisitionInfo.put("WVDeviceIDKey", mDeviceId);
-        rightsAcquisitionInfo.put("WVPortalKey", PORTAL_NAME);
+        rightsAcquisitionInfo.put(WV_ASSET_URI_KEY, assetUri);
+        rightsAcquisitionInfo.put(WV_DEVICE_ID_KEY, mDeviceId);
+        rightsAcquisitionInfo.put(WV_PORTAL_KEY, PORTAL_NAME);
 
         return rightsAcquisitionInfo;
     }
@@ -153,15 +161,15 @@ public class WidevineDrmClient {
 
         DrmInfoRequest request = new DrmInfoRequest(DrmInfoRequest.TYPE_REGISTRATION_INFO,
                 WIDEVINE_MIME_TYPE);
-        request.put("WVPortalKey", portal);
+        request.put(WV_PORTAL_KEY, portal);
         DrmInfo response = mDrmManager.acquireDrmInfo(request);
 
-        String drmInfoRequestStatusKey = (String)response.get("WVDrmInfoRequestStatusKey");
+        String drmInfoRequestStatusKey = (String)response.get(WV_DRM_INFO_REQUEST_STATUS_KEY);
         if (null != drmInfoRequestStatusKey && !drmInfoRequestStatusKey.equals("")) {
             mWVDrmInfoRequestStatusKey = Long.parseLong(drmInfoRequestStatusKey);
         }
 
-        mPluginVersion = (String)response.get("WVDrmInfoRequestVersionKey");
+        mPluginVersion = (String)response.get(WV_DRM_INFO_REQUEST_VERSION_KEY);
     }
 
     public int acquireRights(String assetUri, String licenseServerUri) {
