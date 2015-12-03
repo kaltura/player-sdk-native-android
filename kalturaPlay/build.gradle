@@ -19,6 +19,12 @@ android {
     }
 }
 
+repositories {
+    flatDir {
+        dirs '../playerSDK/libs'
+    }
+}
+
 dependencies {
     compile project(':playerSDK')
     compile 'com.android.support:mediarouter-v7:22.0.1'
