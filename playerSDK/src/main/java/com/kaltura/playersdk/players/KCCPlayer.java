@@ -30,13 +30,15 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
     private KPlayerListener mPlayerListener;
     private KPlayerCallback mPlayerCallback;
     private Handler mHandler = new Handler(Looper.getMainLooper());
+    private Runnable mTimeRunnable;
     private boolean isPlaying = false;
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
+    private boolean mShouldDisconnect = false;
 
 
     private static final String TAG = "KCCPlayer";
 
-    public KCCPlayer(Context context, String applicationId) {
+    public KCCPlayer(Context context) {
         mContext = context;
 
         mMovieMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
@@ -45,6 +47,58 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
         mCastManager.getRemoteMediaPlayer().setOnStatusUpdatedListener(this);
         mCastManager.getRemoteMediaPlayer().setOnPreloadStatusUpdatedListener(this);
     }
+
+    private void startTimer() {
+        mTimeRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    float currentTime = getCurrentPlaybackTime();
+                    if (currentTime != 0 && currentTime < getDuration() && mPlayerListener != null) {
+                        mPlayerListener.eventWithValue(KCCPlayer.this, KPlayer.TimeUpdateKey, Float.toString(currentTime));
+                        Log.d(KCCPlayer.this.getClass().getSimpleName(), "timeupdate :" + currentTime);
+                        float percent = currentTime / getDuration();
+                        Log.d(KCCPlayer.this.getClass().getSimpleName(), "progress :" + percent);
+                        mPlayerListener.eventWithValue(KCCPlayer.this, KPlayer.ProgressKey, Float.toString(percent));
+                    } else if (currentTime >= getDuration()) {
+//                                mPlayerCallback.playerStateChanged(KPlayerController.ENDED);
+                    }
+                } catch (IllegalStateException e) {
+                    Log.e(TAG, "Looper Exception", e);
+                }
+                mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+
+            }
+        };
+        mHandler.post(mTimeRunnable);
+    }
+
+    private void stopTimer() {
+        mHandler.removeMessages(0);
+    }
+
+//    private void startWaitingLoop() {
+//        mBufferWaitCounter = 0;
+//        stopTimer();
+//        mHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                int state = mCastManager.getRemoteMediaPlayer().getMediaStatus().getPlayerState();
+//                if (state == MediaStatus.PLAYER_STATE_IDLE || state == MediaStatus.PLAYER_STATE_BUFFERING) {
+//                    Log.d(KCCPlayer.this.getClass().getSimpleName(), "::::BUFFER LOOP : " + mBufferWaitCounter);
+//                    mBufferWaitCounter++;
+//
+//                    mHandler.postDelayed(this, BUFFER_WAIT_INTERVAL);
+//
+//                } else {
+//                    mPlayerListener.eventWithValue(KCCPlayer.this, KPlayer.SeekedKey, null);
+//                    Log.d(KCCPlayer.this.getClass().getSimpleName(), "::::SEEKED");
+//                    startTimer();
+//                }
+//            }
+//        });
+//    }
 
     @Override
     public void setPlayerListener(KPlayerListener listener) {
@@ -66,7 +120,9 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
                 .build();
 
         try {
-            mCastManager.loadMedia(mMediaInfo, false, (int) (mCurrentPlaybackTime * 1000));
+            mCastManager.loadMedia(mMediaInfo, mCurrentPlaybackTime > 0, 0);
+//            mHandler.removeMessages(0);
+//            startWaitingLoop();
         } catch (TransientNetworkDisconnectionException e) {
             e.printStackTrace();
         } catch (NoConnectionException e) {
@@ -82,11 +138,18 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
     @Override
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         mCurrentPlaybackTime = currentPlaybackTime;
-
+        stopTimer();
         try {
+            if (mPlayerSource != null) {
+                if (currentPlaybackTime == 0.01f) {
+                    mCastManager.seekAndPlay((int)(currentPlaybackTime * 1000));
+                } else {
+                    mCastManager.seek((int) (currentPlaybackTime * 1000));
+                }
 
-            mCastManager.seek((int) (currentPlaybackTime * 1000));
-            mPlayerListener.eventWithValue(this, KPlayer.SeekedKey, null);
+                mPlayerListener.eventWithValue(this, KPlayer.SeekedKey, null);
+                Log.d(KCCPlayer.this.getClass().getSimpleName(), "::::SEEKED");
+            }
 
         } catch (TransientNetworkDisconnectionException e) {
             e.printStackTrace();
@@ -130,26 +193,6 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
         try {
             if ( !isPlaying ) {
                 mCastManager.play();
-                mHandler.removeCallbacks(null);
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        try {
-                            float currentTime = getCurrentPlaybackTime();
-                            if (currentTime != 0 && currentTime < getDuration() && mPlayerListener != null) {
-                                mPlayerListener.eventWithValue(KCCPlayer.this, KPlayer.TimeUpdateKey, Float.toString(currentTime));
-                                mPlayerListener.eventWithValue(KCCPlayer.this, KPlayer.ProgressKey, Float.toString(currentTime / getDuration()));
-                            } else if (currentTime >= getDuration()) {
-//                                mPlayerCallback.playerStateChanged(KPlayerController.ENDED);
-                            }
-                        } catch (IllegalStateException e) {
-                            Log.e(TAG, "Looper Exception", e);
-                        }
-                        mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
-
-                    }
-                });
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -179,7 +222,14 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
 
     @Override
     public void removePlayer() {
-        mHandler.removeMessages(0);
+        if (!isPlaying) {
+            mCastManager.disconnectDevice(true, true, true);
+        } else {
+            pause();
+            mShouldDisconnect = true;
+        }
+//        mPlayerListener = null;
+//        mPlayerCallback = null;
     }
 
     @Override
@@ -199,7 +249,7 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
 
     @Override
     public void onMetadataUpdated() {
-
+        Log.d(getClass().getSimpleName(), "onMetadataUpdated");
     }
 
     @Override
@@ -208,28 +258,52 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
         if (mediaStatus != null) {
             switch (mediaStatus.getPlayerState()) {
                 case MediaStatus.PLAYER_STATE_PLAYING:
+                    Log.d(getClass().getSimpleName(), "PLAYER_STATE_PLAYING");
                     if (!isPlaying) {
                         isPlaying = true;
+                        startTimer();
                         mPlayerListener.eventWithValue(this, KPlayer.PlayKey, null);
                     }
                     break;
                 case MediaStatus.PLAYER_STATE_BUFFERING:
                     Log.d(getClass().getSimpleName(), "PLAYER_STATE_BUFFERING");
+                    isPlaying = false;
+                    stopTimer();
                     break;
                 case MediaStatus.PLAYER_STATE_PAUSED:
+                    Log.d(getClass().getSimpleName(), "PLAYER_STATE_PAUSED");
                     if (isPlaying) {
                         isPlaying = false;
+                        stopTimer();
                         mPlayerListener.eventWithValue(this, KPlayer.PauseKey, null);
+                    }
+                    if (mShouldDisconnect) {
+                        mCastManager.disconnectDevice(true, true, true);
+//                        mHandler = null;
+
                     }
                     break;
                 case MediaStatus.PLAYER_STATE_IDLE:
+                    isPlaying = false;
+                    Log.d(getClass().getSimpleName(), "PLAYER_STATE_IDLE");
                     if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
+                        mPlayerCallback.playerStateChanged(KPlayerController.ENDED);
+                        try {
+                            mCastManager.loadMedia(mMediaInfo, false, 0);
+                        } catch (TransientNetworkDisconnectionException e) {
+                            e.printStackTrace();
+                        } catch (NoConnectionException e) {
+                            e.printStackTrace();
+                        }
+
                         Log.d(getClass().getSimpleName(), "IDLE_REASON_FINISHED");
                     } else if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_INTERRUPTED) {
                         Log.d(getClass().getSimpleName(), "IDLE_REASON_INTERRUPTED");
                     }
                     break;
                 case MediaStatus.PLAYER_STATE_UNKNOWN:
+                    isPlaying = false;
+                    stopTimer();
                     Log.d(getClass().getSimpleName(), "PLAYER_STATE_UNKNOWN");
                     break;
             }
@@ -238,11 +312,15 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
 
     @Override
     public void onPreloadStatusUpdated() {
+        Log.d(getClass().getSimpleName(), "onPreloadStatusUpdated");
         try {
             if (mCastManager.getMediaDuration() > 0) {
                 mPlayerListener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString((float)mCastManager.getMediaDuration() / 1000));
+                Log.d(getClass().getSimpleName(), "durationchange :" + Float.toString((float) mCastManager.getMediaDuration() / 1000));
                 mPlayerListener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
+                Log.d(getClass().getSimpleName(), "loadedmetadata");
                 mPlayerListener.eventWithValue(this, KPlayer.CanPlayKey, null);
+                Log.d(getClass().getSimpleName(), "canplay");
             }
         } catch (TransientNetworkDisconnectionException e) {
             e.printStackTrace();

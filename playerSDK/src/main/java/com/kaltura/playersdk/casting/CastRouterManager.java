@@ -40,7 +40,8 @@ public class CastRouterManager implements KCastRouterManager {
     @Override
     public void disconnect() {
 //        router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED);
-        mCastManager.disconnectDevice(true, true, true);
+//        mCastManager.disconnectDevice(true, true, true);
+        mRouterListener.shouldDisconnectCastDevice();
     }
 
     @Override
@@ -69,6 +70,7 @@ public class CastRouterManager implements KCastRouterManager {
         public void didFoundDevices(boolean didFound);
         public void updateDetectedDeviceList(boolean shouldAdd, KRouterInfo info);
         public void castDeviceChanged(CastDevice oldDevice, CastDevice newDevice);
+        public void shouldDisconnectCastDevice();
         public void connecting();
     }
 

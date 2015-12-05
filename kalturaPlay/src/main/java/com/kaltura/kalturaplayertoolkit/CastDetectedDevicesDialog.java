@@ -48,7 +48,9 @@ public class CastDetectedDevicesDialog extends Dialog {
     }
 
     public void deviceConnectionStateDidChange(boolean isConnected) {
+        ArrayList<KRouterInfo> temp = new ArrayList<>(mRouteNames);
         mAdapter.clear();
+        mRouteNames = new ArrayList<>(temp);
         if (isConnected) {
             KRouterInfo disconnect = new KRouterInfo();
             disconnect.setRouterName("Disconnect");

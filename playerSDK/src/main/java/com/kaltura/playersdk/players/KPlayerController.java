@@ -39,6 +39,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private float mStartPos;
     private boolean isIMAActive = false;
     private boolean isPlayerCanPlay = false;
+    private boolean isCasting = false;
+    private boolean switchingBackFromCasting = false;
 
     public static final int CAN_PLAY = 1;
     public static final int SHOULD_PAUSE = 2;
@@ -126,7 +128,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (castPlayer == null) {
+        if (!isCasting) {
             player.play();
         } else {
             castPlayer.play();
@@ -134,18 +136,22 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void pause() {
-        if (castPlayer == null) {
+        if (!isCasting) {
             player.pause();
         } else {
             castPlayer.pause();
         }
     }
 
-    public void startCasting(KCCPlayer castingPlayer) {
+    public void startCasting(Activity activity) {
+        if (castPlayer == null) {
+            castPlayer = new KCCPlayer(activity);
+        }
         player.pause();
-        player.setPlayerListener(null);
-        player.setPlayerCallback(null);
-        castPlayer = castingPlayer;
+//        player.setPlayerListener(null);
+//        player.setPlayerCallback(null);
+        isCasting = true;
+        castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
         castPlayer.setPlayerSource(src);
         castPlayer.setPlayerCallback(this);
         castPlayer.setPlayerListener(playerListener);
@@ -153,10 +159,20 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void stopCasting() {
+        isCasting = false;
+        switchingBackFromCasting = true;
+        player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
         castPlayer.removePlayer();
-        ((View)player).setVisibility(View.VISIBLE);
+        ((View) player).setVisibility(View.VISIBLE);
         player.setPlayerCallback(this);
         player.setPlayerListener(playerListener);
+        player.play();
+    }
+
+    public void removeCastPlayer() {
+        castPlayer.setPlayerCallback(null);
+        castPlayer.setPlayerListener(null);
+        castPlayer = null;
     }
 
     public float getDuration() {
@@ -214,9 +230,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
-        if (!isIMAActive) {
+        if (!isIMAActive && !switchingBackFromCasting) {
             this.src = src;
             this.player.setPlayerSource(src);
+        } else if (switchingBackFromCasting) {
+            switchingBackFromCasting = false;
         }
     }
 
@@ -261,7 +279,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        if (castPlayer == null) {
+        if (!isCasting) {
             this.player.setCurrentPlaybackTime(currentPlaybackTime);
         } else {
             castPlayer.setCurrentPlaybackTime(currentPlaybackTime);

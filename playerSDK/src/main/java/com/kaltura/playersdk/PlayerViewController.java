@@ -109,16 +109,21 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (mRouterManager.shouldEnableKalturaCastButton()) {
             if (newDevice == null) {
                 mWebView.triggerEvent("chromecastDeviceDisConnected", null);
-                playerController.stopCasting();
+                playerController.removeCastPlayer();
             } else {
                 mWebView.triggerEvent("hideConnectingMessage", null);
                 mWebView.triggerEvent("chromecastDeviceConnected", null);
-                playerController.startCasting(new KCCPlayer(mActivity, "FFCC6D19"));
+                playerController.startCasting(mActivity);
             }
         }
         if (mRouterManager.getAppListener() != null) {
             mRouterManager.getAppListener().castDeviceConnectionState(newDevice != null);
         }
+    }
+
+    @Override
+    public void shouldDisconnectCastDevice() {
+        playerController.stopCasting();
     }
 
     @Override
@@ -592,6 +597,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
                 }
             }
+        }
+        if (!(player instanceof KCCPlayer)) {
+            Log.d(player.getClass().getSimpleName(), eventName);
         }
         this.mWebView.triggerEvent(eventName, eventValue);
     }
