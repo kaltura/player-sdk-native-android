@@ -30,9 +30,9 @@ public class KWVCPlayer
     private WidevineDrmClient mDrmClient;
     @NonNull private KPlayerListener mListener;
     @NonNull private KPlayerCallback mCallback;
-    private Handler mTimeUpdateHandler;
     private boolean mShouldCancelPlay;
     private boolean mShouldPlayWhenReady;
+    private PlayheadTracker mPlayheadTracker;
 
     private enum PrepareState {
         NotPrepared,
@@ -155,32 +155,54 @@ public class KWVCPlayer
         
         assert mPlayer != null;
         mPlayer.start();
-
-        if (mTimeUpdateHandler == null) {
-            mTimeUpdateHandler = new Handler(Looper.getMainLooper());
-        } else {
-            mTimeUpdateHandler.removeCallbacks(null);
+        
+        if (mPlayheadTracker == null) {
+            mPlayheadTracker = new PlayheadTracker();
         }
-
-        mTimeUpdateHandler.postDelayed(new Runnable() {
+        mPlayheadTracker.start();
+        
+        mListener.eventWithValue(this, KPlayer.PlayKey, null);
+    }
+    
+    class PlayheadTracker {
+        Handler mHandler;
+        Runnable mRunnable = new Runnable() {
             @Override
             public void run() {
                 try {
                     float playbackTime = 0;
                     if (mPlayer != null && mPlayer.isPlaying()) {
-                        playbackTime = getCurrentPlaybackTime();
+                        playbackTime = mPlayer.getCurrentPosition() / 1000f;
 //                        Log.i(TAG, "TimeUpdate: " + playbackTime);
                         mListener.eventWithValue(KWVCPlayer.this, KPlayer.TimeUpdateKey, String.valueOf(playbackTime));
                     }
-                    
+
                 } catch (IllegalStateException e) {
                     Log.e(TAG, "Error", e);
                 }
-                mTimeUpdateHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+                if (mHandler != null) {
+                    mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+                }
             }
-        }, PLAYHEAD_UPDATE_INTERVAL);
+        };
+
+        void start() {
+            if (mHandler == null) {
+                mHandler = new Handler(Looper.getMainLooper());
+                mHandler.postDelayed(mRunnable, PLAYHEAD_UPDATE_INTERVAL);
+            } else {
+                Log.d(TAG, "Tracker is already started");
+            }
+        }
         
-        mListener.eventWithValue(this, KPlayer.PlayKey, null);
+        void stop() {
+            if (mHandler != null) {
+                mHandler.removeCallbacks(mRunnable);
+                mHandler = null;
+            } else {
+                Log.d(TAG, "Tracker is not started, nothing to stop");
+            }
+        }
     }
 
     @Override
@@ -189,6 +211,7 @@ public class KWVCPlayer
             mPlayer.pause();
         }
         saveState();
+        mPlayheadTracker.stop();
     }
 
     @Override
@@ -212,8 +235,9 @@ public class KWVCPlayer
             removeView(mPlayer);
             mPlayer = null;
         }
-        if (mTimeUpdateHandler != null) {
-            mTimeUpdateHandler.removeCallbacks(null);
+        if (mPlayheadTracker != null) {
+            mPlayheadTracker.stop();
+            mPlayheadTracker = null;
         }
         mPrepareState = PrepareState.NotPrepared;
     }
