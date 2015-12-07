@@ -41,12 +41,16 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     @Override
     public void stopAd() {
-        mAdPlayer.pause();
+        if (mAdPlayer != null) {
+            mAdPlayer.pause();
+        }
     }
 
     @Override
     public void pauseAd() {
-        mAdPlayer.pause();
+        if (mAdPlayer != null) {
+            mAdPlayer.pause();
+        }
     }
 
     @Override
@@ -66,7 +70,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     @Override
     public VideoProgressUpdate getAdProgress() {
-        if (mAdPlayer.getDuration() <= 0) {
+        if (mAdPlayer == null || mAdPlayer.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
         if (mListener != null) {
@@ -85,12 +89,19 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
                         callback.onPlay();
                     }
+                } else {
+                    for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
+                        callback.onPause();
+                    }
                 }
                 break;
             case ExoPlayer.STATE_ENDED:
+                removeAd();
                 for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
                     callback.onEnded();
                 }
+                break;
+            case ExoPlayer.UNKNOWN_TIME:
                 break;
         }
     }

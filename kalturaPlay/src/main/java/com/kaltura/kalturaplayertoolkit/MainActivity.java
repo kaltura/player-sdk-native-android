@@ -72,13 +72,8 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
         
-//        String iframeUrl;
-        
-//        iframeUrl = new KPPlayerConfig("http://cdnapi.kaltura.com", "20540612", "243342").setEntryId("1_sf5ovm7u").getVideoURL();
-        
-//        Log.d(TAG, "iframeUrl: " + iframeUrl);
-        KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "20540612", "243342");
-        config.setEntryId("1_sf5ovm7u");
+        KPPlayerConfig config = new KPPlayerConfig("https://cdnapisec.kaltura.com", "20540612", "243342").setEntryId("1_sf5ovm7u");
+
         config.setCacheSize(0.8f);
         extras.putSerializable("config", config);
 
@@ -100,7 +95,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
                 e.printStackTrace();
             }
             if (url != null) {
-                extras.putString("config", url);
+                extras.putSerializable("config", KPPlayerConfig.valueOf(url));
                 fragment = new FullscreenFragment();
 
             } else {

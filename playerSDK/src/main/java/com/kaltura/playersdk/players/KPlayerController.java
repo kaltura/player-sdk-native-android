@@ -54,6 +54,12 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
+        if (eventName.equals(KIMAManager.AllAdsCompletedKey)) {
+            isIMAActive = false;
+            mActivity.clear();
+            mActivity = null;
+            removeAdPlayer();
+        }
         playerListener.eventWithJSON(player, eventName, jsonValue);
     }
 
@@ -234,6 +240,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         imaManager.requestAds(this);
     }
 
+    private void removeAdPlayer() {
+        imaManager = null;
+    }
+
     public float getCurrentPlaybackTime() {
         return this.player.getCurrentPlaybackTime();
     }
@@ -287,6 +297,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             case KPlayerController.ENDED:
                 if (imaManager != null) {
                     imaManager.contentComplete();
+                } else {
+                    contentCompleted(null);
                 }
                 break;
         }

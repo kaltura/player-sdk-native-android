@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.PowerManager;
@@ -20,10 +21,10 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
-import com.kaltura.playersdk.helpers.CacheManager;
-import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.helpers.CacheManager;
+import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
@@ -32,8 +33,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Method;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -359,15 +358,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         {
             iframeUrl = iframeUrl + "&iframeembed=true";
             mIframeUrl = iframeUrl;
-            try {
-                URI uri = new URI(iframeUrl);
-                if (mConfig.getCacheSize() > 0) {
-                    CacheManager.getInstance().setHost(uri.getHost());
-                    CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
-                    mWebView.setCacheManager(CacheManager.getInstance());
-                }
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
+            Uri uri = Uri.parse(iframeUrl);
+            if (mConfig.getCacheSize() > 0) {
+                CacheManager.getInstance().setHost(uri.getHost());
+                CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
+                mWebView.setCacheManager(CacheManager.getInstance());
             }
 
             mWebView.loadUrl(iframeUrl);

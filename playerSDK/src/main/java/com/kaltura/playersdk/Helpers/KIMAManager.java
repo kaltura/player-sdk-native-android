@@ -12,8 +12,10 @@ import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.AdsLoader;
 import com.google.ads.interactivemedia.v3.api.AdsManager;
 import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
+import com.google.ads.interactivemedia.v3.api.AdsRenderingSettings;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
+import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
 import com.kaltura.playersdk.players.KPlayerCallback;
@@ -22,6 +24,8 @@ import com.kaltura.playersdk.players.KPlayerListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Collections;
 
 /**
  * Created by nissopa on 6/30/15.
@@ -140,7 +144,9 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         // Attach event and error event listeners.
         mAdsManager.addAdErrorListener(this);
         mAdsManager.addAdEventListener(this);
-        mAdsManager.init();
+        AdsRenderingSettings renderingSettings = ImaSdkFactory.getInstance().createAdsRenderingSettings();
+        renderingSettings.setUiElements(Collections.<UiElement>emptySet());
+        mAdsManager.init(renderingSettings);
     }
 
     /**
@@ -192,18 +198,24 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
-                mIMAPlayer.removeAd();
                 fireIMAEvent(ContentResumeRequestedKey);
                 if (!mContentCompleted) {
                     mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
+//                mIMAPlayer.removeAd();
                 break;
             case ALL_ADS_COMPLETED:
-                mPlayerListener.contentCompleted(null);
+                if (mContentCompleted) {
+                    mPlayerListener.contentCompleted(null);
+                }
                 fireIMAEvent(AllAdsCompletedKey);
                 if (mAdsManager != null) {
                     mAdsManager.destroy();
                     mAdsManager = null;
+                    mIMAPlayer.release();
+                    mIMAPlayer = null;
+                    mPlayerListener = null;
+                    mPLayerCallback = null;
                 }
                 break;
             case SKIPPED:
@@ -247,7 +259,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     }
 
     private void fireIMAEvent(String eventName) {
-        if (jsonValue.length() == 0) {
+        if (mPlayerListener != null && jsonValue.length() == 0) {
             mPlayerListener.eventWithJSON(null, eventName, "(null)");
             return;
         }
