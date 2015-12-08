@@ -216,6 +216,11 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         mShouldCancelPlay = shouldCancelPlay;
     }
 
+    @Override
+    public void setLicenseUri(String licenseUri) {
+        // Irrelevant, no DRM support (yet).
+    }
+
 
 //    @Override
 //    public void setPlayerParams(KPlayerParams params) {

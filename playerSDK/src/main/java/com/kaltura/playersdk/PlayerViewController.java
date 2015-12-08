@@ -25,7 +25,6 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
-import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
@@ -496,8 +495,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         Method bridgeMethod = KStringUtilities.isMethodImplemented(this, functionName);
         Object object = this;
         if (bridgeMethod == null) {
-            bridgeMethod = KStringUtilities.isMethodImplemented(this.playerController.getPlayer(), functionName);
-            object = this.playerController.getPlayer();
+            KPlayerController.KPlayer player = this.playerController.getPlayer();
+            bridgeMethod = KStringUtilities.isMethodImplemented(player, functionName);
+            object = player;
         }
         if (bridgeMethod != null) {
             try {
@@ -667,11 +667,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (args != null && args.length == 2) {
             String attributeName = args[0];
             String attributeValue = args[1];
-            switch (KStringUtilities.attributeEnumFromString(attributeName)) {
+
+            KStringUtilities.Attribute attribute = KStringUtilities.attributeEnumFromString(attributeName);
+            if (attribute == null) {
+                return;
+            }
+            switch (attribute) {
                 case src:
-                    if (KStringUtilities.isHLSSource(attributeValue)) {
-                        playerController.switchPlayer(new KHLSPlayer(mActivity));
-                    }
                     this.playerController.setSrc(attributeValue);
                     break;
                 case currentTime:
@@ -685,8 +687,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case visible:
                     this.triggerEvent("visible", attributeValue);
                     break;
-                case wvServerKey:
-//                    this.playerController.switchPlayer(this.playerController.KWVPlayerClassName, attributeValue);
+                case licenseUri:
+                    this.playerController.setLicenseUri(attributeValue);
                     break;
                 case nativeAction:
                     try {
