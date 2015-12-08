@@ -15,6 +15,8 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
+
+
 /**
  * Created by noamt on 10/27/15.
  */
@@ -33,25 +35,8 @@ public class KWVCPlayer
     private boolean mShouldCancelPlay;
     private boolean mShouldPlayWhenReady;
     private PlayheadTracker mPlayheadTracker;
-
-    private enum PrepareState {
-        NotPrepared,
-        Preparing,
-        Prepared
-    }
     private PrepareState mPrepareState;
-
-    private class PlayerState {
-        boolean playing;
-        int position;
-        
-        void set(boolean playing, int position) {
-            this.playing = playing;
-            this.position = position;
-        }
-    }
     @NonNull private PlayerState mSavedState;
-
 
     public KWVCPlayer(Context context) {
         super(context);
@@ -61,6 +46,18 @@ public class KWVCPlayer
         // Set no-op listeners so we don't have to check for null on use
         setPlayerListener(null);
         setPlayerCallback(null);
+    }
+
+    // Convert file:///local/path/a.wvm to /local/path/a.wvm
+    // Convert http://example.com/path/a.wvm to widevine://example.com/path/a.wvm
+    // Every else remains the same.
+    public static String getWidevineURI(String assetUri) {
+        if (assetUri.startsWith("file:")) {
+            assetUri = Uri.parse(assetUri).getPath();
+        } else if (assetUri.startsWith("http:")) {
+            assetUri = assetUri.replaceFirst("^http:", "widevine:");
+        }
+        return assetUri;
     }
 
     @Override
@@ -88,6 +85,11 @@ public class KWVCPlayer
     }
 
     @Override
+    public String getPlayerSource() {
+        return mAssetUri;
+    }
+
+    @Override
     public void setPlayerSource(String source) {
 
         mAssetUri = source;
@@ -100,11 +102,6 @@ public class KWVCPlayer
     }
 
     @Override
-    public String getPlayerSource() {
-        return mAssetUri;
-    }
-
-    @Override
     public void setLicenseUri(String licenseUri) {
         mLicenseUri = licenseUri;
 
@@ -114,17 +111,17 @@ public class KWVCPlayer
             Log.d(TAG, "setLicenseUri: Waiting for assetUri.");
         }
     }
+
+    @Override
+    public float getCurrentPlaybackTime() {
+        return mPlayer != null ? mPlayer.getCurrentPosition() / 1000f : 0;
+    }
     
     @Override
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if (mPlayer != null) {
             mPlayer.seekTo((int) (currentPlaybackTime * 1000));
         }
-    }
-
-    @Override
-    public float getCurrentPlaybackTime() {
-        return mPlayer != null ? mPlayer.getCurrentPosition() / 1000f : 0;
     }
 
     @Override
@@ -163,47 +160,6 @@ public class KWVCPlayer
         
         mListener.eventWithValue(this, KPlayer.PlayKey, null);
     }
-    
-    class PlayheadTracker {
-        Handler mHandler;
-        Runnable mRunnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    float playbackTime = 0;
-                    if (mPlayer != null && mPlayer.isPlaying()) {
-                        playbackTime = mPlayer.getCurrentPosition() / 1000f;
-//                        Log.i(TAG, "TimeUpdate: " + playbackTime);
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayer.TimeUpdateKey, String.valueOf(playbackTime));
-                    }
-
-                } catch (IllegalStateException e) {
-                    Log.e(TAG, "Error", e);
-                }
-                if (mHandler != null) {
-                    mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
-                }
-            }
-        };
-
-        void start() {
-            if (mHandler == null) {
-                mHandler = new Handler(Looper.getMainLooper());
-                mHandler.postDelayed(mRunnable, PLAYHEAD_UPDATE_INTERVAL);
-            } else {
-                Log.d(TAG, "Tracker is already started");
-            }
-        }
-        
-        void stop() {
-            if (mHandler != null) {
-                mHandler.removeCallbacks(mRunnable);
-                mHandler = null;
-            } else {
-                Log.d(TAG, "Tracker is not started, nothing to stop");
-            }
-        }
-    }
 
     @Override
     public void pause() {
@@ -213,7 +169,7 @@ public class KWVCPlayer
         saveState();
         mPlayheadTracker.stop();
     }
-
+    
     @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
@@ -256,7 +212,7 @@ public class KWVCPlayer
     public void setShouldCancelPlay(boolean shouldCancelPlay) {
         mShouldCancelPlay = shouldCancelPlay;
     }
-    
+
     private void preparePlayer() {
 
         if (mAssetUri==null || mLicenseUri==null) {
@@ -338,16 +294,60 @@ public class KWVCPlayer
         mPlayer.setVideoURI(Uri.parse(widevineUri));
         mDrmClient.acquireRights(widevineUri, mLicenseUri);
     }
+
+    private enum PrepareState {
+        NotPrepared,
+        Preparing,
+        Prepared
+    }
     
-    // Convert file:///local/path/a.wvm to /local/path/a.wvm
-    // Convert http://example.com/path/a.wvm to widevine://example.com/path/a.wvm
-    // Every else remains the same.
-    public static String getWidevineURI(String assetUri) {
-        if (assetUri.startsWith("file:")) {
-            assetUri = Uri.parse(assetUri).getPath();
-        } else if (assetUri.startsWith("http:")) {
-            assetUri = assetUri.replaceFirst("^http:", "widevine:");
+    private class PlayerState {
+        boolean playing;
+        int position;
+        
+        void set(boolean playing, int position) {
+            this.playing = playing;
+            this.position = position;
         }
-        return assetUri;
+    }
+    
+    class PlayheadTracker {
+        Handler mHandler;
+        Runnable mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    float playbackTime = 0;
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        playbackTime = mPlayer.getCurrentPosition() / 1000f;
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayer.TimeUpdateKey, String.valueOf(playbackTime));
+                    }
+
+                } catch (IllegalStateException e) {
+                    Log.e(TAG, "Error", e);
+                }
+                if (mHandler != null) {
+                    mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+                }
+            }
+        };
+
+        void start() {
+            if (mHandler == null) {
+                mHandler = new Handler(Looper.getMainLooper());
+                mHandler.postDelayed(mRunnable, PLAYHEAD_UPDATE_INTERVAL);
+            } else {
+                Log.d(TAG, "Tracker is already started");
+            }
+        }
+        
+        void stop() {
+            if (mHandler != null) {
+                mHandler.removeCallbacks(mRunnable);
+                mHandler = null;
+            } else {
+                Log.d(TAG, "Tracker is not started, nothing to stop");
+            }
+        }
     }
 }
