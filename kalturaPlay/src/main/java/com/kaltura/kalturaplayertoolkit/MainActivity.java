@@ -74,9 +74,19 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         //https://cdnapisec.kaltura.com
         //http://172.20.10.9/html5.kaltura/mwEmbed/mwEmbedFrame.php
         KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.9/html5.kaltura/mwEmbed/mwEmbedFrame.php", "26698911", "1831271").setEntryId("1_1fncksnw");
-
+        config.addConfig("chromecast.receiverLogo", "true");
+        config.addConfig("chromecast.applicationID", "FFCC6D19");
+        config.addConfig("chromecast.useKalturaPlayer", "true");
 
         config.setCacheSize(0.8f);
+
+//        KPPlayerConfig config = new KPPlayerConfig("http://player-stg-eu.ott.kaltura.com/viacomIN/v2.37.2/mwEmbed/mwEmbedFrame.php", "8413353", "");
+//        config.setEntryId("295868");
+//        config.addConfig("liveCore.disableLiveCheck", "true");
+//        config.addConfig("tvpapiGetLicensedLinks.plugin", "true");
+//        config.addConfig("proxyData","{\"initObj\":{\"Locale\":{\"LocaleLanguage\":\"\",\"LocaleCountry\":\"\",\"LocaleDevice\":\"\",\"LocaleUserState\":\"Unknown\"},\"Platform\":\"Cellular\",\"SiteGuid\":\"613999\",\"DomainID\":\"282563\",\"UDID\":\"123456\",\"ApiUser\":\"tvpapi_225\",\"ApiPass\":\"11111\"},\"MediaID\":\"295868\",\"iMediaID\":\"295868\",\"picSize\":\"640x360\",\"mediaType\":\"0\",\"withDynamic\":\"false\"}");
+//        config.addConfig("TVPAPIBaseUrl", "http://stg.eu.tvinci.com/tvpapi_v3_3/gateways/jsonpostgw.aspx?m=");
+//        config.setCacheSize(0.8f);
         extras.putSerializable("config", config);
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());

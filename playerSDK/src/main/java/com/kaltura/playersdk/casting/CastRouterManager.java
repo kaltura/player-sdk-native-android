@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.casting;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
 import android.util.Log;
@@ -10,11 +11,16 @@ import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.cast.companionlibrary.cast.BaseCastManager;
 import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
 import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
 import com.google.android.libraries.cast.companionlibrary.cast.player.VideoCastController;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -23,9 +29,10 @@ import static com.google.android.libraries.cast.companionlibrary.utils.LogUtils.
 /**
  * Created by nissimpardo on 18/11/15.
  */
-public class CastRouterManager implements KCastRouterManager {
+public class CastRouterManager implements KCastRouterManager, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static CastRouterManagerListener mRouterListener;
     private static CastDevice selectedDevice;
+    GoogleApiClient mApiClient;
     private static MediaRouter.Callback callback;
     private static MediaRouteSelector selector;
     private static MediaRouter router;
@@ -33,9 +40,26 @@ public class CastRouterManager implements KCastRouterManager {
     private static boolean shouldEnableKalturaButton =true;
     private KCastRouterManagerListener appListener;
     private static BaseCastManager mCastManager;
+    private Context mContext;
+
+    private boolean mApplicationStarted = false;
+    private boolean mWaitingForReconnect = false;
+    private String mSessionId;
+    private CastDevice mSelectedDevice;
+    private KCastKalturaChannel mKalturaChannel;
 
     public static final double VOLUME_INCREMENT = 0.05;
     public static final int PRELOAD_TIME_S = 20;
+
+
+
+    public interface CastRouterManagerListener {
+        public void didFoundDevices(boolean didFound);
+        public void updateDetectedDeviceList(boolean shouldAdd, KRouterInfo info);
+        public void castDeviceChanged(CastDevice oldDevice, CastDevice newDevice);
+        public void shouldDisconnectCastDevice();
+        public void connecting();
+    }
 
     @Override
     public void disconnect() {
@@ -66,15 +90,55 @@ public class CastRouterManager implements KCastRouterManager {
         shouldEnableKalturaButton = enabled;
     }
 
-    public interface CastRouterManagerListener {
-        public void didFoundDevices(boolean didFound);
-        public void updateDetectedDeviceList(boolean shouldAdd, KRouterInfo info);
-        public void castDeviceChanged(CastDevice oldDevice, CastDevice newDevice);
-        public void shouldDisconnectCastDevice();
-        public void connecting();
+    @Override
+    public void onConnected(Bundle bundle) {
+        if (mWaitingForReconnect) {
+            mWaitingForReconnect = false;
+//            reconnectChannels();
+        } else {
+            try {
+                Cast.CastApi.launchApplication(mApiClient, "YOUR_APPLICATION_ID", false)
+                        .setResultCallback(
+                                new ResultCallback<Cast.ApplicationConnectionResult>() {
+                                    @Override
+                                    public void onResult(Cast.ApplicationConnectionResult result) {
+                                        Status status = result.getStatus();
+                                        if (status.isSuccess()) {
+                                            ApplicationMetadata applicationMetadata =
+                                                    result.getApplicationMetadata();
+                                            String sessionId = result.getSessionId();
+                                            String applicationStatus = result.getApplicationStatus();
+                                            boolean wasLaunched = result.getWasLaunched();
+
+                                        } else {
+                                            teardown();
+                                        }
+                                    }
+                                });
+
+            } catch (Exception e) {
+                Log.e(getClass().getSimpleName(), "Failed to launch application", e);
+            }
+        }
     }
 
-    public CastRouterManager(Context context, String castAppID) {
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+
+
+    public CastRouterManager(Context context) {
+        mContext = context;
+    }
+
+    public void initialize(String castAppID, Context context) {
         // initialize VideoCastManager
         VideoCastManager.
                 initialize(context, castAppID, null, null).
@@ -156,6 +220,91 @@ public class CastRouterManager implements KCastRouterManager {
         return routeInfos;
     }
 
+    private void teardown() {
+        Log.d(getClass().getSimpleName(), "teardown");
+        if (mApiClient != null) {
+            if (mApplicationStarted) {
+                if (mApiClient.isConnected() || mApiClient.isConnecting()) {
+                    try {
+                        Cast.CastApi.stopApplication(mApiClient, mSessionId);
+                        if (mKalturaChannel != null) {
+                            Cast.CastApi.removeMessageReceivedCallbacks(
+                                    mApiClient,
+                                    mKalturaChannel.getNamespace());
+                            mKalturaChannel = null;
+                        }
+                    } catch (IOException e) {
+                        Log.e(getClass().getSimpleName(), "Exception while removing channel", e);
+                    }
+                    mApiClient.disconnect();
+                }
+                mApplicationStarted = false;
+            }
+            mApiClient = null;
+        }
+        mSelectedDevice = null;
+        mWaitingForReconnect = false;
+        mSessionId = null;
+    }
+
+    private Cast.CastOptions.Builder getCastOptionBuilder(CastDevice castDevice) {
+        return Cast.CastOptions
+                .builder(castDevice, new Cast.Listener(){
+                    @Override
+                    public void onApplicationStatusChanged() {
+                        if (mApiClient != null) {
+                            Log.d(getClass().getSimpleName(), "onApplicationStatusChanged: "
+                                    + Cast.CastApi.getApplicationStatus(mApiClient));
+                            switch (Cast.CastApi.getApplicationStatus(mApiClient)) {
+
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onApplicationMetadataChanged(ApplicationMetadata applicationMetadata) {
+                        super.onApplicationMetadataChanged(applicationMetadata);
+                    }
+
+                    @Override
+                    public void onApplicationDisconnected(int statusCode) {
+                        super.onApplicationDisconnected(statusCode);
+                    }
+
+                    @Override
+                    public void onActiveInputStateChanged(int activeInputState) {
+                        super.onActiveInputStateChanged(activeInputState);
+                    }
+
+                    @Override
+                    public void onStandbyStateChanged(int standbyState) {
+                        super.onStandbyStateChanged(standbyState);
+                    }
+
+                    @Override
+                    public void onVolumeChanged() {
+                        super.onVolumeChanged();
+                    }
+                });
+    }
+
+    private void onDeviceSelected(CastDevice castDevice) {
+        mSelectedDevice = castDevice;
+        if (mApiClient == null) {
+            LOGD(getClass().getSimpleName(), "acquiring a connection to Google Play services for " + castDevice);
+            Cast.CastOptions.Builder apiOptionsBuilder = getCastOptionBuilder(castDevice);
+            mApiClient = new GoogleApiClient.Builder(mContext)
+                    .addApi(Cast.API, apiOptionsBuilder.build())
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+            mApiClient.connect();
+        } else if (!mApiClient.isConnected() && !mApiClient.isConnecting()) {
+            mApiClient.connect();
+        }
+    }
+
+
     public KCastRouterManagerListener getAppListener() {
         return appListener;
     }
@@ -170,15 +319,16 @@ public class CastRouterManager implements KCastRouterManager {
         private boolean mRouteAvailable = false;
         @Override
         public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo info) {
-            if (mCastManager.getReconnectionStatus() == BaseCastManager.RECONNECTION_STATUS_FINALIZED) {
-                mCastManager.setReconnectionStatus(BaseCastManager.RECONNECTION_STATUS_INACTIVE);
-                mCastManager.cancelReconnectionTask();
-            }
-            mCastManager.getPreferenceAccessor().saveStringToPreference(
-                    BaseCastManager.PREFS_KEY_ROUTE_ID, info.getId());
-            CastDevice oldDevice = selectedDevice;
-            selectedDevice = CastDevice.getFromBundle(info.getExtras());
-            mCastManager.onDeviceSelected(selectedDevice);
+//            if (mCastManager.getReconnectionStatus() == BaseCastManager.RECONNECTION_STATUS_FINALIZED) {
+//                mCastManager.setReconnectionStatus(BaseCastManager.RECONNECTION_STATUS_INACTIVE);
+//                mCastManager.cancelReconnectionTask();
+//            }
+//            mCastManager.getPreferenceAccessor().saveStringToPreference(
+//                    BaseCastManager.PREFS_KEY_ROUTE_ID, info.getId());
+//            CastDevice oldDevice = selectedDevice;
+//            selectedDevice = CastDevice.getFromBundle(info.getExtras());
+//            mCastManager.onDeviceSelected(selectedDevice);
+
 //            if (oldDevice == null || !selectedDevice.isSameDevice(oldDevice)) {
 //                mRouterListener.castDeviceChanged(oldDevice, selectedDevice);
 //            }

@@ -36,8 +36,6 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
     private boolean mShouldDisconnect = false;
 
 
-    private static final String TAG = "KCCPlayer";
-
     public KCCPlayer(Context context) {
         mContext = context;
 
@@ -65,7 +63,7 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
 //                                mPlayerCallback.playerStateChanged(KPlayerController.ENDED);
                     }
                 } catch (IllegalStateException e) {
-                    Log.e(TAG, "Looper Exception", e);
+                    Log.e(getClass().getSimpleName(), "Looper Exception", e);
                 }
                 mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
 
@@ -112,6 +110,7 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
 
     @Override
     public void setPlayerSource(String playerSource) {
+        Log.d(getClass().getSimpleName(), "Sorece: " + playerSource);
         mPlayerSource = playerSource;
         mMediaInfo =  new MediaInfo.Builder(mPlayerSource)
                 .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
@@ -321,6 +320,7 @@ public class KCCPlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.O
                 Log.d(getClass().getSimpleName(), "loadedmetadata");
                 mPlayerListener.eventWithValue(this, KPlayer.CanPlayKey, null);
                 Log.d(getClass().getSimpleName(), "canplay");
+                mPlayerListener.eventWithValue(this, "hideConnectingMessage", null);
             }
         } catch (TransientNetworkDisconnectionException e) {
             e.printStackTrace();

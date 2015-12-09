@@ -9,6 +9,7 @@ import android.widget.RelativeLayout;
 
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.helpers.KIMAManager;
 
 import java.lang.ref.WeakReference;
@@ -32,7 +33,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean contentEnded;
     private boolean playerReady;
     private KIMAManager imaManager;
-    private KCCPlayer castPlayer;
+    private KCCRemotePlayer castPlayer;
     private WeakReference<Activity> mActivity;
     private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
@@ -143,16 +144,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void startCasting(Activity activity) {
+    public void startCasting(GoogleApiClient apiClient) {
         if (castPlayer == null) {
-            castPlayer = new KCCPlayer(activity);
+            castPlayer = new KCCRemotePlayer(apiClient);
         }
         player.pause();
 //        player.setPlayerListener(null);
 //        player.setPlayerCallback(null);
         isCasting = true;
-        castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
         castPlayer.setPlayerSource(src);
+        castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
         castPlayer.setPlayerCallback(this);
         castPlayer.setPlayerListener(playerListener);
         ((View)player).setVisibility(View.INVISIBLE);
