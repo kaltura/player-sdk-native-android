@@ -15,9 +15,9 @@ public class KRouterCallback extends MediaRouter.Callback {
     private ArrayList<MediaRouter.RouteInfo> mRoutes;
 
     public interface KRouterCallbackListener {
-        public void onDeviceSelected(CastDevice castDeviceSelected);
-        public void onRouteAdded(boolean isAdded, KRouterInfo route);
-        public void onFoundDevices(boolean didFound);
+        void onDeviceSelected(CastDevice castDeviceSelected);
+        void onRouteAdded(boolean isAdded, KRouterInfo route);
+        void onFoundDevices(boolean didFound);
     }
 
     public void setListener(KRouterCallbackListener listener) {

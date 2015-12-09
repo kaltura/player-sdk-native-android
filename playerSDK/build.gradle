@@ -20,7 +20,6 @@ android {
 dependencies {
     compile project(':exoPlayerLib')
     compile project(':googlemediaframework')
-    compile project(':CastCompanionLibrary')
     compile 'com.google.android.gms:play-services-cast:8.3.0'
     compile 'com.android.support:mediarouter-v7:23.1.1'
     compile 'com.android.support:appcompat-v7:23.1.1'
