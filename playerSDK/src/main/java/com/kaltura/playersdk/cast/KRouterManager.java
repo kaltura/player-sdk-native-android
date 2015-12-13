@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.cast;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
@@ -21,6 +22,7 @@ import com.kaltura.playersdk.casting.KRouterInfo;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -50,7 +52,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     public interface KRouterManagerListener extends KRouterCallback.KRouterCallbackListener{
         void onShouldDisconnectCastDevice();
         void onConnecting();
-        void onStartCasting(GoogleApiClient apiClient);
+        void onStartCasting(GoogleApiClient apiClient, CastDevice connectedDevice, String nameSpace);
     }
 
     public KRouterManager(Context context, KRouterManagerListener listener) {
@@ -71,7 +73,24 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        mChannel = new KCastKalturaChannel(nameSpace);
+
+        if (nameSpace != null) {
+            mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
+                @Override
+                public void readyForMedia() {
+//                    mListener.onStartCasting(mApiClient, mSelectedDevice, mChannel.getNamespace());
+                    JSONObject message = new JSONObject();
+                    try {
+                        message.put("mediaSessionId", mSessionId);
+                        message.put("requestId", 9999);
+                        message.put("type", "onPlay");
+                        sendMessage(mChannel.getNamespace(), message.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
         mRouter = MediaRouter.getInstance(mContext);
         mCallback = new KRouterCallback();
         mCallback.setListener(this);
@@ -79,9 +98,14 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
         mRouter.addCallback(mSelector, mCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
     }
 
-    public void sendMessage(String nameSpace, String message) {
+    public MediaRouteSelector getSelector() {
+        return mSelector;
+    }
+
+    public void sendMessage(final String nameSpace, final String message) {
         if (mApiClient != null && mChannel != null) {
             try {
+                Log.d("chromecast.sendMessage", "namespace: " + nameSpace + " message: " + message);
                 Cast.CastApi.sendMessage(mApiClient, nameSpace, message)
                         .setResultCallback(
                                 new ResultCallback<Status>() {
@@ -89,6 +113,8 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                                     public void onResult(Status result) {
                                         if (!result.isSuccess()) {
                                             Log.e(getClass().getSimpleName(), "Sending message failed");
+                                        } else {
+                                            Log.d("chromecast.msgSuccess", "namespace:" + nameSpace + " message:" + message);
                                         }
                                     }
                                 });
@@ -133,7 +159,6 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
 
                 @Override
                 public void onApplicationMetadataChanged(ApplicationMetadata applicationMetadata) {
-//                            super.onApplicationMetadataChanged(applicationMetadata);
                 }
 
                 @Override
@@ -143,17 +168,14 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
 
                 @Override
                 public void onActiveInputStateChanged(int activeInputState) {
-//                            super.onActiveInputStateChanged(activeInputState);
                 }
 
                 @Override
                 public void onStandbyStateChanged(int standbyState) {
-//                            super.onStandbyStateChanged(standbyState);
                 }
 
                 @Override
                 public void onVolumeChanged() {
-//                            super.onVolumeChanged();
                 }
             };
         }
@@ -199,6 +221,8 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                     .addOnConnectionFailedListener(getConnectionFailedListener())
                     .build();
             mApiClient.connect();
+        } else {
+            teardown();
         }
     }
 
@@ -216,7 +240,8 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     @Override
     public void disconnect() {
         mListener.onShouldDisconnectCastDevice();
-        teardown();
+        mRouter.unselect(MediaRouter.UNSELECT_REASON_STOPPED);
+        mSelectedDevice = null;
     }
 
     @Override
@@ -242,7 +267,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
             if (mWaitingForReconnect) {
                 mWaitingForReconnect = false;
 //            reconnectChannels();
-            } else {
+            } else if (mChannel != null){
                 try {
                     Cast.CastApi.launchApplication(mApiClient, mCastAppID, false)
                             .setResultCallback(
@@ -253,11 +278,10 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                                             if (status.isSuccess()) {
                                                 ApplicationMetadata applicationMetadata =
                                                         result.getApplicationMetadata();
-                                                String sessionId = result.getSessionId();
+                                                mSessionId = result.getSessionId();
                                                 String applicationStatus = result.getApplicationStatus();
                                                 boolean wasLaunched = result.getWasLaunched();
                                                 mApplicationStarted = true;
-                                                mListener.onStartCasting(mApiClient);
 
                                                 try {
                                                     Cast.CastApi.setMessageReceivedCallbacks(mApiClient,
@@ -266,6 +290,10 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                                                 } catch (IOException e) {
                                                     Log.e(getClass().getSimpleName(), "Exception while creating channel", e);
                                                 }
+//                                                sendMessage("urn:x-cast:com.kaltura.cast.player", "{'type': 'show', 'target': 'logo'}");
+//                                                sendMessage("urn:x-cast:com.kaltura.cast.player", "{type: \"embed\", publisherID: \"243342\", uiconfID: \"21099702\", entryID: \"0_l1v5vzh3\", debugKalturaPlayer: false}");
+//                                                mListener.onStartCasting(mApiClient, mSelectedDevice, mChannel.getNamespace());
+                                                mListener.onDeviceSelected(mSelectedDevice);
                                             } else {
                                                 teardown();
                                             }
@@ -275,6 +303,8 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                 } catch (Exception e) {
                     Log.d(getClass().getSimpleName(), "Failed to launch application", e);
                 }
+            } else {
+                mListener.onStartCasting(mApiClient, mSelectedDevice, null);
             }
         }
 

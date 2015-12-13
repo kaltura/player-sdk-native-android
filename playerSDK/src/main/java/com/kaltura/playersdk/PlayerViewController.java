@@ -27,17 +27,19 @@ import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
-import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,7 +54,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
 
     private KPlayerController playerController;
-    private KControlsView mWebView = null;
+    public KControlsView mWebView = null;
     private double mCurSec;
     private Activity mActivity;
 //    private OnShareListener mShareListener;
@@ -89,9 +91,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //            playerController.startCasting(mActivity);
             mWebView.triggerEvent("onNativeRequestSessionSuccess", null);
         }
-        if (getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().castDeviceConnectionState(castDeviceSelected != null);
-        }
+
     }
 
     @Override
@@ -123,6 +123,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     @Override
     public void onShouldDisconnectCastDevice() {
         playerController.stopCasting();
+        mWebView.triggerEvent("chromecastDeviceDisConnected", null);
+        if (getRouterManager().getAppListener() != null) {
+            getRouterManager().getAppListener().castDeviceConnectionState(false);
+        }
     }
 
     @Override
@@ -131,8 +135,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     @Override
-    public void onStartCasting(GoogleApiClient apiClient) {
-        playerController.startCasting(apiClient);
+    public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice, String nameSpace) {
+        if (getRouterManager().getAppListener() != null) {
+            getRouterManager().getAppListener().castDeviceConnectionState(true);
+        }
+        playerController.startCasting(apiClient, nameSpace);
     }
 
     // trigger timeupdate events
@@ -409,11 +416,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //            iframeUrl = iframeUrl + "&iframeembed=true";
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
-            if (mConfig.getCacheSize() > 0) {
-                CacheManager.getInstance().setHost(uri.getHost());
-                CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
-                mWebView.setCacheManager(CacheManager.getInstance());
-            }
+//            if (mConfig.getCacheSize() > 0) {
+//                CacheManager.getInstance().setHost(uri.getHost());
+//                CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
+//                mWebView.setCacheManager(CacheManager.getInstance());
+//            }
 
             mWebView.loadUrl(iframeUrl);
         }
@@ -765,6 +772,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
+                    Log.d("chromecast.initialize", attributeValue);
                     break;
             }
         }
@@ -846,12 +854,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void sendCCRecieverMessage(String args) {
-        Log.d(getClass().getSimpleName(), "sendCCRecieverMessage : " + args);
-
+        String decodeArgs = null;
+        JSONArray jsonArgs = null;
+        try {
+            decodeArgs = URLDecoder.decode(args, "UTF-8");
+            Log.d(getClass().getSimpleName(), "sendCCRecieverMessage : " + decodeArgs);
+            jsonArgs = new JSONArray(decodeArgs);
+            getRouterManager().sendMessage(jsonArgs.getString(0), jsonArgs.getString(1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadCCMedia() {
-//        playerController.startCasting(mActivity);
+//        getRouterManager().sendMessage(jsonArgs.getString(0), jsonArgs.getString(1));
     }
 
     private void bindPlayerEvents() {

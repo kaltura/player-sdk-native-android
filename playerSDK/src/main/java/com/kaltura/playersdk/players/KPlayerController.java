@@ -10,7 +10,11 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.helpers.KIMAManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.lang.ref.WeakReference;
 
@@ -144,19 +148,39 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void startCasting(GoogleApiClient apiClient) {
-        if (castPlayer == null) {
-            castPlayer = new KCCRemotePlayer(apiClient);
-        }
-        player.pause();
-//        player.setPlayerListener(null);
-//        player.setPlayerCallback(null);
+    public void startCasting(GoogleApiClient apiClient, final String nameSpace) {
         isCasting = true;
-        castPlayer.setPlayerSource(src);
-        castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
-        castPlayer.setPlayerCallback(this);
-        castPlayer.setPlayerListener(playerListener);
-        ((View)player).setVisibility(View.INVISIBLE);
+//        player.pause();
+        if (castPlayer == null) {
+            castPlayer = new KCCRemotePlayer(apiClient, nameSpace, new KCCRemotePlayer.KCCRemotePlayerListener() {
+                @Override
+                public void remoteMediaPlayerReady() {
+//                    castPlayer.setPlayerCallback(KPlayerController.this);
+//                    castPlayer.setPlayerListener(playerListener);
+//                    if (nameSpace != null) {
+//                        castPlayer.setPlayerSource(src);
+//                    } else {
+//                        playerListener.eventWithValue(castPlayer, "hideConnectingMessage", null);
+//                        playerListener.eventWithValue(castPlayer, "chromecastDeviceConnected", null);
+//                    }
+//                    ((View)player).setVisibility(View.INVISIBLE);
+                }
+
+                @Override
+                public void mediaLoaded() {
+                    castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
+                }
+            });
+            castPlayer.setPlayerCallback(KPlayerController.this);
+            castPlayer.setPlayerListener(playerListener);
+            if (nameSpace == null) {
+                castPlayer.setPlayerSource(src);
+            } else {
+                playerListener.eventWithValue(castPlayer, "hideConnectingMessage", null);
+                playerListener.eventWithValue(castPlayer, "chromecastDeviceConnected", null);
+            }
+            ((View)player).setVisibility(View.INVISIBLE);
+        }
     }
 
     public void stopCasting() {

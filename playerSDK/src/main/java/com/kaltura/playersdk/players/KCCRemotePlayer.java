@@ -23,31 +23,39 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
     private GoogleApiClient mApiClient;
     private KPlayerListener mPlayerListener;
     private String mPlayerSource;
-    private float mCurrentPlaybackTime;
+    private float mCurrentPlaybackTime = 0;
     private boolean isPlaying = false;
-    private boolean isReady = false;
+    private boolean isConnecting = true;
     private MediaInfo mMediaInfo;
+    private KCCRemotePlayerListener mListener;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
 
-    public KCCRemotePlayer(GoogleApiClient apiClient) {
+    public interface KCCRemotePlayerListener {
+        void remoteMediaPlayerReady();
+        void mediaLoaded();
+    }
+
+    public KCCRemotePlayer(GoogleApiClient apiClient, String nameSpace, KCCRemotePlayerListener listener) {
         mApiClient = apiClient;
+        mListener = listener;
         mRemoteMediaPlayer = new RemoteMediaPlayer();
         mRemoteMediaPlayer.setOnStatusUpdatedListener(this);
         mRemoteMediaPlayer.setOnMetadataUpdatedListener(this);
         mRemoteMediaPlayer.setOnPreloadStatusUpdatedListener(this);
         try {
-            Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(),mRemoteMediaPlayer);
+            Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        mListener.remoteMediaPlayerReady();
         mRemoteMediaPlayer.requestStatus(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
                     Log.e(getClass().getSimpleName(), "Failed to request status.");
                 } else {
-
+                    mListener.remoteMediaPlayerReady();
                 }
             }
         });
@@ -62,8 +70,9 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                     float currentTime = getCurrentPlaybackTime();
                     if (currentTime != 0 && currentTime < getDuration() && mPlayerListener != null) {
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.TimeUpdateKey, Float.toString(currentTime));
-                        float percent = currentTime / getDuration();
-                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.ProgressKey, Float.toString(percent));
+                        Log.d(getClass().getSimpleName(), Long.toString(mRemoteMediaPlayer.getApproximateStreamPosition()));
+//                        float percent = currentTime / getDuration();
+//                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.ProgressKey, Float.toString(percent));
                     }
                 } catch (IllegalStateException e) {
                     Log.e(getClass().getSimpleName(), "Looper Exception", e);
@@ -109,13 +118,16 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                         public void onResult(RemoteMediaPlayer.MediaChannelResult result) {
                             if (result.getStatus().isSuccess()) {
                                 Log.d(getClass().getSimpleName(), "Media loaded successfully");
-                                isReady = true;
+                                if (isConnecting) {
+                                    isConnecting = false;
+                                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, "hideConnectingMessage", null);
+                                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, "chromecastDeviceConnected", null);
+                                }
+
                                 mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.DurationChangedKey, Float.toString(getDuration()));
                                 mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.LoadedMetaDataKey, "");
                                 mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.CanPlayKey, null);
-                                if (mCurrentPlaybackTime > 0) {
-                                    setCurrentPlaybackTime(mCurrentPlaybackTime);
-                                }
+                                mListener.mediaLoaded();
                             }
                         }
                     });
@@ -133,8 +145,8 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
 
     @Override
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        mCurrentPlaybackTime = currentPlaybackTime;
-        if (isReady) {
+        if (currentPlaybackTime > 0) {
+            mCurrentPlaybackTime = currentPlaybackTime;
             stopTimer();
             mRemoteMediaPlayer.seek(mApiClient, (long) (currentPlaybackTime * 1000)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                 @Override
@@ -143,8 +155,8 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                     if (status.isSuccess()) {
                         if (isPlaying) {
                             startTimer();
-                            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.SeekedKey, null);
                         }
+                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.SeekedKey, null);
                     } else {
                         Log.w(getClass().getSimpleName(), "Unable to toggle seek: "
                                 + status.getStatusCode());
@@ -156,7 +168,6 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
 
     @Override
     public float getCurrentPlaybackTime() {
-        Log.d(getClass().getSimpleName(), Long.toString(mRemoteMediaPlayer.getApproximateStreamPosition()));
         return mRemoteMediaPlayer.getApproximateStreamPosition() / 1000f;
     }
 
@@ -241,23 +252,22 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                     if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
                         stopTimer();
                         mCurrentPlaybackTime = 0f;
-                        isReady = false;
                         mPlayerListener.eventWithValue(this, KPlayer.EndedKey, null);
                         loadMedia();
                     }
                     break;
                 case MediaStatus.PLAYER_STATE_BUFFERING:
                     break;
+                case MediaStatus.PLAYER_STATE_PLAYING:
+                    Log.d(getClass().getSimpleName(), "PLAYER_STATE_PLAYING");
+                    break;
             }
-        } else {
-            mPlayerListener.eventWithValue(this, "hideConnectingMessage", null);
-            mPlayerListener.eventWithValue(this, "chromecastDeviceConnected", null);
         }
     }
 
     @Override
     public void onMetadataUpdated() {
-
+        Log.d("nameSpace", mRemoteMediaPlayer.getNamespace());
     }
 
     @Override

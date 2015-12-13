@@ -8,6 +8,7 @@ import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,7 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 
-public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
+public class MainActivity extends FragmentActivity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
 	public static String TAG = MainActivity.class.getSimpleName();
 
     @SuppressLint("NewApi") @Override
@@ -73,7 +74,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         }
         //https://cdnapisec.kaltura.com
         //http://172.20.10.9/html5.kaltura/mwEmbed/mwEmbedFrame.php
-        KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.9/html5.kaltura/mwEmbed/mwEmbedFrame.php", "26698911", "1831271").setEntryId("1_1fncksnw");
+        KPPlayerConfig config = new KPPlayerConfig("http://169.254.113.96/html5.kaltura/mwEmbed/mwEmbedFrame.php", "26698911", "1831271").setEntryId("1_1fncksnw");
         config.addConfig("chromecast.receiverLogo", "true");
         config.addConfig("chromecast.applicationID", "FFCC6D19");
         config.addConfig("chromecast.useKalturaPlayer", "true");
