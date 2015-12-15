@@ -135,11 +135,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     @Override
-    public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice, String nameSpace) {
+    public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
         if (getRouterManager().getAppListener() != null) {
             getRouterManager().getAppListener().castDeviceConnectionState(true);
         }
-        playerController.startCasting(apiClient, nameSpace);
+        playerController.startCasting(apiClient);
     }
 
     // trigger timeupdate events
@@ -733,11 +733,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             String attributeValue = args[1];
             switch (KStringUtilities.attributeEnumFromString(attributeName)) {
                 case src:
-                    attributeValue = "https://cfvod.kaltura.com/pd/p/1831271/sp/183127100/serveFlavor/entryId/1_1fncksnw/v/11/flavorId/1_te1fd79w/name/a.mp4";
-                    if (KStringUtilities.isHLSSource(attributeValue)) {
-                        playerController.switchPlayer(new KHLSPlayer(mActivity));
-                    }
-                    this.playerController.setSrc(attributeValue);
+                    this.playerController.setSrc(attributeValue, mActivity);
                     break;
                 case currentTime:
                     if (eventListeners != null) {

@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -46,9 +47,9 @@ public class KHLSPlayer extends FrameLayout implements
     private KPlayerListener mListener;
     private KPlayerCallback mCallback;
 
-    public KHLSPlayer(Activity activity) {
-        super(activity);
-        mPlayer = new HLSPlayerViewController(activity);
+    public KHLSPlayer(Context context) {
+        super(context);
+        mPlayer = new HLSPlayerViewController(context);
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
         mPlayer.registerDurationChanged(this);

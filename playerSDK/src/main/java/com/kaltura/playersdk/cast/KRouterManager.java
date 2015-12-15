@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.cast;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
@@ -52,7 +51,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     public interface KRouterManagerListener extends KRouterCallback.KRouterCallbackListener{
         void onShouldDisconnectCastDevice();
         void onConnecting();
-        void onStartCasting(GoogleApiClient apiClient, CastDevice connectedDevice, String nameSpace);
+        void onStartCasting(GoogleApiClient apiClient, CastDevice connectedDevice);
     }
 
     public KRouterManager(Context context, KRouterManagerListener listener) {
@@ -78,16 +77,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
             mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
                 @Override
                 public void readyForMedia() {
-//                    mListener.onStartCasting(mApiClient, mSelectedDevice, mChannel.getNamespace());
-                    JSONObject message = new JSONObject();
-                    try {
-                        message.put("mediaSessionId", mSessionId);
-                        message.put("requestId", 9999);
-                        message.put("type", "onPlay");
-                        sendMessage(mChannel.getNamespace(), message.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    mListener.onStartCasting(mApiClient, mSelectedDevice);
                 }
             });
         }
@@ -266,7 +256,8 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
         public void onConnected(Bundle bundle) {
             if (mWaitingForReconnect) {
                 mWaitingForReconnect = false;
-//            reconnectChannels();
+
+                // In case of kaltura receiver is loaded, open channel for sneding messages
             } else if (mChannel != null){
                 try {
                     Cast.CastApi.launchApplication(mApiClient, mCastAppID, false)
@@ -276,13 +267,12 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                                         public void onResult(Cast.ApplicationConnectionResult result) {
                                             Status status = result.getStatus();
                                             if (status.isSuccess()) {
-                                                ApplicationMetadata applicationMetadata =
-                                                        result.getApplicationMetadata();
+//                                                ApplicationMetadata applicationMetadata =
+//                                                        result.getApplicationMetadata();
                                                 mSessionId = result.getSessionId();
-                                                String applicationStatus = result.getApplicationStatus();
-                                                boolean wasLaunched = result.getWasLaunched();
+//                                                String applicationStatus = result.getApplicationStatus();
+//                                                boolean wasLaunched = result.getWasLaunched();
                                                 mApplicationStarted = true;
-
                                                 try {
                                                     Cast.CastApi.setMessageReceivedCallbacks(mApiClient,
                                                             mChannel.getNamespace(),
@@ -290,9 +280,6 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                                                 } catch (IOException e) {
                                                     Log.e(getClass().getSimpleName(), "Exception while creating channel", e);
                                                 }
-//                                                sendMessage("urn:x-cast:com.kaltura.cast.player", "{'type': 'show', 'target': 'logo'}");
-//                                                sendMessage("urn:x-cast:com.kaltura.cast.player", "{type: \"embed\", publisherID: \"243342\", uiconfID: \"21099702\", entryID: \"0_l1v5vzh3\", debugKalturaPlayer: false}");
-//                                                mListener.onStartCasting(mApiClient, mSelectedDevice, mChannel.getNamespace());
                                                 mListener.onDeviceSelected(mSelectedDevice);
                                             } else {
                                                 teardown();
@@ -304,7 +291,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                     Log.d(getClass().getSimpleName(), "Failed to launch application", e);
                 }
             } else {
-                mListener.onStartCasting(mApiClient, mSelectedDevice, null);
+                mListener.onStartCasting(mApiClient, mSelectedDevice);
             }
         }
 

@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +11,8 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.helpers.KIMAManager;
-
-import org.json.JSONArray;
-import org.json.JSONException;
+import com.kaltura.playersdk.helpers.KStringUtilities;
 
 import java.lang.ref.WeakReference;
 
@@ -148,22 +146,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void startCasting(GoogleApiClient apiClient, final String nameSpace) {
+    public void startCasting(GoogleApiClient apiClient) {
         isCasting = true;
-//        player.pause();
         if (castPlayer == null) {
-            castPlayer = new KCCRemotePlayer(apiClient, nameSpace, new KCCRemotePlayer.KCCRemotePlayerListener() {
+            castPlayer = new KCCRemotePlayer(apiClient, new KCCRemotePlayer.KCCRemotePlayerListener() {
                 @Override
                 public void remoteMediaPlayerReady() {
-//                    castPlayer.setPlayerCallback(KPlayerController.this);
-//                    castPlayer.setPlayerListener(playerListener);
-//                    if (nameSpace != null) {
-//                        castPlayer.setPlayerSource(src);
-//                    } else {
-//                        playerListener.eventWithValue(castPlayer, "hideConnectingMessage", null);
-//                        playerListener.eventWithValue(castPlayer, "chromecastDeviceConnected", null);
-//                    }
-//                    ((View)player).setVisibility(View.INVISIBLE);
+                    castPlayer.setPlayerCallback(KPlayerController.this);
+                    castPlayer.setPlayerListener(playerListener);
+                    castPlayer.setPlayerSource(src);
+                    ((View)player).setVisibility(View.INVISIBLE);
                 }
 
                 @Override
@@ -171,15 +163,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
                 }
             });
-            castPlayer.setPlayerCallback(KPlayerController.this);
-            castPlayer.setPlayerListener(playerListener);
-            if (nameSpace == null) {
-                castPlayer.setPlayerSource(src);
-            } else {
-                playerListener.eventWithValue(castPlayer, "hideConnectingMessage", null);
-                playerListener.eventWithValue(castPlayer, "chromecastDeviceConnected", null);
-            }
-            ((View)player).setVisibility(View.INVISIBLE);
         }
     }
 
@@ -189,8 +172,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
         castPlayer.removePlayer();
         ((View) player).setVisibility(View.VISIBLE);
-        player.setPlayerCallback(this);
-        player.setPlayerListener(playerListener);
+//        player.setPlayerCallback(this);
+//        player.setPlayerListener(playerListener);
         player.play();
     }
 
@@ -254,8 +237,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         return src;
     }
 
-    public void setSrc(String src) {
-        if (!isIMAActive && !switchingBackFromCasting) {
+    public void setSrc(String src, Context context) {
+        if (!isIMAActive && !switchingBackFromCasting && this.src == null) {
+            if (KStringUtilities.isHLSSource(src)) {
+                this.player = new KHLSPlayer(context);
+            } else {
+                this.player = new com.kaltura.playersdk.players.KPlayer(context);
+            }
             this.src = src;
             this.player.setPlayerSource(src);
         } else if (switchingBackFromCasting) {

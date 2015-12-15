@@ -74,10 +74,11 @@ public class MainActivity extends FragmentActivity implements LoginFragment.OnFr
         }
         //https://cdnapisec.kaltura.com
         //http://172.20.10.9/html5.kaltura/mwEmbed/mwEmbedFrame.php
-        KPPlayerConfig config = new KPPlayerConfig("http://169.254.113.96/html5.kaltura/mwEmbed/mwEmbedFrame.php", "26698911", "1831271").setEntryId("1_1fncksnw");
+        KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.195/html5.kaltura/mwEmbed/mwEmbedFrame.php", "26698911", "1831271").setEntryId("1_1fncksnw");
         config.addConfig("chromecast.receiverLogo", "true");
         config.addConfig("chromecast.applicationID", "FFCC6D19");
         config.addConfig("chromecast.useKalturaPlayer", "true");
+        config.addConfig("chromecast.debugReceiver", "true");
 
         config.setCacheSize(0.8f);
 

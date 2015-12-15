@@ -13,6 +13,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 /**
@@ -36,7 +39,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
         void mediaLoaded();
     }
 
-    public KCCRemotePlayer(GoogleApiClient apiClient, String nameSpace, KCCRemotePlayerListener listener) {
+    public KCCRemotePlayer(GoogleApiClient apiClient, KCCRemotePlayerListener listener) {
         mApiClient = apiClient;
         mListener = listener;
         mRemoteMediaPlayer = new RemoteMediaPlayer();
@@ -48,7 +51,6 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mListener.remoteMediaPlayerReady();
         mRemoteMediaPlayer.requestStatus(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
@@ -180,20 +182,27 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
     public void play() {
         if (!isPlaying) {
             isPlaying = true;
-            mRemoteMediaPlayer.play(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
-                @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                    Status status = mediaChannelResult.getStatus();
-                    if (status.isSuccess()) {
-                        startTimer();
-                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.PlayKey, null);
-                    } else {
-                        isPlaying = false;
-                        Log.w(getClass().getSimpleName(), "Unable to toggle play: "
-                                + status.getStatusCode());
+            JSONObject test = new JSONObject();
+            try {
+                test.put("type", "play");
+                mRemoteMediaPlayer.play(mApiClient, test).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+                    @Override
+                    public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                        Status status = mediaChannelResult.getStatus();
+                        if (status.isSuccess()) {
+                            startTimer();
+                            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.PlayKey, null);
+                        } else {
+                            isPlaying = false;
+                            Log.w(getClass().getSimpleName(), "Unable to toggle play: "
+                                    + status.getStatusCode());
+                        }
                     }
-                }
-            });
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
