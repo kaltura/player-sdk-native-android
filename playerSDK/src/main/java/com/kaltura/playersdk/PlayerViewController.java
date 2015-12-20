@@ -27,6 +27,7 @@ import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.players.KHLSPlayer;
 import com.kaltura.playersdk.players.KPlayer;
@@ -407,8 +408,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             ViewGroup.LayoutParams currLP = getLayoutParams();
             LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
-            this.playerController = new KPlayerController(new KPlayer(mActivity), this);
-            this.playerController.addPlayerToController(this);
+            this.playerController = new KPlayerController(this);
             this.addView(mWebView, wvLp);
         }
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) )

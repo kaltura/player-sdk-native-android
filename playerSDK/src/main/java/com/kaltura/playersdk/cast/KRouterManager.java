@@ -236,6 +236,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
 
     @Override
     public void connectDevice(String deviceId) {
+        mCallback.setRouter(mRouter);
         MediaRouter.RouteInfo selectedRoute = mCallback.routeById(deviceId);
         mRouter.selectRoute(selectedRoute);
         mListener.onConnecting();

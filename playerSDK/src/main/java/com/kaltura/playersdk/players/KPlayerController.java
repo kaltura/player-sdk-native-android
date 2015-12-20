@@ -97,24 +97,22 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
 
-    public KPlayerController(KPlayer player, KPlayerListener listener) {
-        this.player = player;
+    public KPlayerController(KPlayerListener listener) {
         playerListener = listener;
-        this.player.setPlayerListener(listener);
-        this.player.setPlayerCallback(this);
+        this.parentViewController = (RelativeLayout)listener;
     }
 
-    public void addPlayerToController(RelativeLayout playerViewController) {
-        this.parentViewController = playerViewController;
-        ViewGroup.LayoutParams currLP = playerViewController.getLayoutParams();
+    public void addPlayerToController() {
+//        this.parentViewController = playerViewController;
+        ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
 
         // Add background view
-        RelativeLayout mBackgroundRL = new RelativeLayout(playerViewController.getContext());
+        RelativeLayout mBackgroundRL = new RelativeLayout(this.parentViewController.getContext());
         mBackgroundRL.setBackgroundColor(Color.BLACK);
-        playerViewController.addView(mBackgroundRL, currLP);
+        this.parentViewController.addView(mBackgroundRL, parentViewController.getChildCount() - 1, currLP);
 
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        playerViewController.addView((View) this.player, lp);
+        this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
     }
 
     public void switchPlayer(KPlayer newPlayer) {
@@ -147,6 +145,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void startCasting(GoogleApiClient apiClient) {
+        player.pause();
         isCasting = true;
         if (castPlayer == null) {
             castPlayer = new KCCRemotePlayer(apiClient, new KCCRemotePlayer.KCCRemotePlayerListener() {
@@ -169,11 +168,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void stopCasting() {
         isCasting = false;
         switchingBackFromCasting = true;
-        player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
-        castPlayer.removePlayer();
         ((View) player).setVisibility(View.VISIBLE);
-//        player.setPlayerCallback(this);
-//        player.setPlayerListener(playerListener);
+        castPlayer.removePlayer();
+        player.setPlayerCallback(this);
+        player.setPlayerListener(playerListener);
+        player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
         player.play();
     }
 
@@ -244,6 +243,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             } else {
                 this.player = new com.kaltura.playersdk.players.KPlayer(context);
             }
+            addPlayerToController();
+            this.player.setPlayerListener(playerListener);
+            this.player.setPlayerCallback(this);
             this.src = src;
             this.player.setPlayerSource(src);
         } else if (switchingBackFromCasting) {

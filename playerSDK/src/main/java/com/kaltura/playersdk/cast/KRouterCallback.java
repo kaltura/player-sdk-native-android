@@ -12,7 +12,8 @@ import java.util.ArrayList;
  */
 public class KRouterCallback extends MediaRouter.Callback {
     private KRouterCallbackListener mListener;
-    private ArrayList<MediaRouter.RouteInfo> mRoutes;
+    private MediaRouter mRouter;
+    private boolean didFindDevices = false;
 
     public interface KRouterCallbackListener {
         void onDeviceSelected(CastDevice castDeviceSelected);
@@ -23,16 +24,14 @@ public class KRouterCallback extends MediaRouter.Callback {
     public void setListener(KRouterCallbackListener listener) {
         mListener = listener;
     }
-
-    private ArrayList<MediaRouter.RouteInfo> getRoutes() {
-        if (mRoutes == null) {
-            mRoutes = new ArrayList<>();
+    public void setRouter(MediaRouter router) {
+        if (mRouter == null) {
+            mRouter = router;
         }
-        return mRoutes;
     }
 
     public MediaRouter.RouteInfo routeById(String routeId) {
-        for (MediaRouter.RouteInfo info: getRoutes()) {
+        for (MediaRouter.RouteInfo info: mRouter.getRoutes()) {
             if (info.getId().equals(routeId)) {
                 return info;
             }
@@ -52,10 +51,10 @@ public class KRouterCallback extends MediaRouter.Callback {
 
     @Override
     public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
-        if (getRoutes().size() == 0) {
+        if (!didFindDevices) {
             mListener.onFoundDevices(true);
+            didFindDevices = true;
         }
-        getRoutes().add(route);
         KRouterInfo info = new KRouterInfo();
         info.setRouterName(route.getName());
         info.setRouterId(route.getId());
@@ -64,8 +63,8 @@ public class KRouterCallback extends MediaRouter.Callback {
 
     @Override
     public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
-        getRoutes().remove(route);
-        if (getRoutes().size() == 0) {
+        if (router.getRoutes().size() == 0) {
+            didFindDevices = false;
             mListener.onFoundDevices(false);
         }
         KRouterInfo info = new KRouterInfo();

@@ -281,7 +281,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         }
 
     }
-
     @Override
     public void onPlayerError(ExoPlaybackException error) {
 
@@ -352,6 +351,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
         Surface surface = mSurfaceView.getHolder().getSurface();
         if (videoRenderer == null || surface == null || !surface.isValid()) {
+            Log.d(getClass().getSimpleName(), "Surface not ready yet.");
             // We're not ready yet.
             return;
         }
