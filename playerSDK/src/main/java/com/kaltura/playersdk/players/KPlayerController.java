@@ -3,6 +3,7 @@ package com.kaltura.playersdk.players;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -21,6 +22,7 @@ import java.lang.ref.WeakReference;
  * Created by nissopa on 6/14/15.
  */
 public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerListener {
+    private static final String TAG = "KPlayerController";
     private KPlayer player;
     private String playerClassName;
     private String src;
@@ -80,20 +82,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public interface KPlayer {
-        public void setPlayerListener(KPlayerListener listener);
-        public void setPlayerCallback(KPlayerCallback callback);
-        public void setPlayerSource(String playerSource);
-        public String getPlayerSource();
-        public void setCurrentPlaybackTime(float currentPlaybackTime);
-        public float getCurrentPlaybackTime();
-        public float getDuration();
-        public void play();
-        public void pause();
-        public void changeSubtitleLanguage(String languageCode);
-        public void removePlayer();
-        public void recoverPlayer();
-        public boolean isKPlayer();
-        public void setShouldCancelPlay(boolean shouldCancelPlay);
+        void setPlayerListener(KPlayerListener listener);
+        void setPlayerCallback(KPlayerCallback callback);
+        void setPlayerSource(String playerSource);
+        String getPlayerSource();
+        void setCurrentPlaybackTime(float currentPlaybackTime);
+        float getCurrentPlaybackTime();
+        float getDuration();
+        void play();
+        void pause();
+        void changeSubtitleLanguage(String languageCode);
+        void removePlayer();
+        void recoverPlayer();
+        boolean isKPlayer();
+        void setShouldCancelPlay(boolean shouldCancelPlay);
+        void setLicenseUri(String licenseUri);
     }
 
 
@@ -236,21 +239,40 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         return src;
     }
 
-    public void setSrc(String src, Context context) {
-        if (!isIMAActive && !switchingBackFromCasting && this.src == null) {
-            if (KStringUtilities.isHLSSource(src)) {
-                this.player = new KHLSPlayer(context);
-            } else {
-                this.player = new com.kaltura.playersdk.players.KPlayer(context);
-            }
-            addPlayerToController();
-            this.player.setPlayerListener(playerListener);
-            this.player.setPlayerCallback(this);
-            this.src = src;
-            this.player.setPlayerSource(src);
-        } else if (switchingBackFromCasting) {
+    public void setSrc(String src) {
+        if (switchingBackFromCasting) {
             switchingBackFromCasting = false;
+            return;
         }
+
+        if (this.src != null) {
+            return;
+        }
+
+        Context context = parentViewController.getContext();
+
+        // maybe change player
+        String path = Uri.parse(src).getPath();
+        if (path.endsWith(".m3u8")) {
+            // HLS
+            this.player = new KHLSPlayer(context);
+        } else if (path.endsWith(".wvm")) {
+            // Widevine Classic
+            this.player = new KWVCPlayer(context);
+        } else {
+            this.player = new com.kaltura.playersdk.players.KPlayer(context);
+        }
+        addPlayerToController();
+        this.player.setPlayerListener(playerListener);
+        this.player.setPlayerCallback(this);
+        this.src = src;
+        this.player.setPlayerSource(src);
+
+
+    }
+
+    public void setLicenseUri(String uri) {
+        this.player.setLicenseUri(uri);
     }
 
 

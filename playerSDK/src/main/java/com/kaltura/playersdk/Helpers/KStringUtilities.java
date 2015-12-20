@@ -104,7 +104,7 @@ public class KStringUtilities {
     }
 
     public enum Attribute {
-        src, currentTime, visible, wvServerKey, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive, chromecastAppId;
+        src, currentTime, visible, licenseUri, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive, chromecastAppId;
     }
 
     static public String addEventListener(String event) {
@@ -179,7 +179,11 @@ public class KStringUtilities {
 
 
     static public Attribute attributeEnumFromString(String value) {
-        return Attribute.valueOf(value);
+        try {
+            return Attribute.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     static public final String md5(String string) {

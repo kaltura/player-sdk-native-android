@@ -253,6 +253,11 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
     }
 
     @Override
+    public void setLicenseUri(String licenseUri) {
+        // empty
+    }
+
+    @Override
     public void onStatusUpdated() {
         MediaStatus mediaStatus = mRemoteMediaPlayer.getMediaStatus();
         if (mediaStatus != null) {

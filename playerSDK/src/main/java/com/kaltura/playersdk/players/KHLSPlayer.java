@@ -139,6 +139,11 @@ public class KHLSPlayer extends FrameLayout implements
     public void setShouldCancelPlay(boolean shouldCancelPlay) {
 
     }
+
+    @Override
+    public void setLicenseUri(String licenseUri) {
+        // Irrelevant, no DRM support.
+    }
     //endregion
 
     //region TextTracksInterface

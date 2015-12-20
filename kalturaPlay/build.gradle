@@ -8,8 +8,8 @@ android {
         applicationId "com.kaltura.kalturaplayertoolkit"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 3
-        versionName "2.1.1"
+        versionCode 5
+        versionName "2.3.0"
     }
     buildTypes {
         release {
@@ -19,12 +19,14 @@ android {
     }
 }
 
+repositories {
+    flatDir {
+        dirs '../playerSDK/libs'
+    }
+}
+
 dependencies {
     compile project(':playerSDK')
     compile 'com.android.support:mediarouter-v7:23.1.1'
-//    compile 'com.google.android.gms:play-services:8.3.0'
     compile 'com.android.support:appcompat-v7:23.1.1'
-//    compile 'com.google.android.gms:play-services-ads:8.3.0'
-//    compile 'com.google.android.gms:play-services-identity:8.3.0'
-//    compile 'com.google.android.gms:play-services-gcm:8.3.0'
 }

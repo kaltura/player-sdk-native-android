@@ -35,10 +35,7 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data
-                    android:host="kalturaplay.appspot.com"
-                    android:pathPrefix="/play"
-                    android:scheme="https"/>
+                <data android:host="kgit.html5video.org" android:pathPrefix="/kplay" android:scheme="https"/>
             </intent-filter>
         </activity>
 

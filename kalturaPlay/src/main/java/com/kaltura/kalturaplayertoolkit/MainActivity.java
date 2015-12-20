@@ -8,7 +8,6 @@ import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,11 +15,8 @@ import android.webkit.WebView;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
-
-public class MainActivity extends FragmentActivity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
+public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
 	public static String TAG = MainActivity.class.getSimpleName();
 
     @SuppressLint("NewApi") @Override
@@ -72,23 +68,10 @@ public class MainActivity extends FragmentActivity implements LoginFragment.OnFr
         if (extras == null) {
             extras = new Bundle();
         }
-        //https://cdnapisec.kaltura.com
-        //http://172.20.10.9/html5.kaltura/mwEmbed/mwEmbedFrame.php
-        KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.195/html5.kaltura/mwEmbed/mwEmbedFrame.php", "26698911", "1831271").setEntryId("1_1fncksnw");
-        config.addConfig("chromecast.receiverLogo", "true");
-        config.addConfig("chromecast.applicationID", "FFCC6D19");
-        config.addConfig("chromecast.useKalturaPlayer", "true");
-        config.addConfig("chromecast.debugReceiver", "true");
+        
+        KPPlayerConfig config = new KPPlayerConfig("https://cdnapisec.kaltura.com", "20540612", "243342").setEntryId("1_sf5ovm7u");
 
         config.setCacheSize(0.8f);
-
-//        KPPlayerConfig config = new KPPlayerConfig("http://player-stg-eu.ott.kaltura.com/viacomIN/v2.37.2/mwEmbed/mwEmbedFrame.php", "8413353", "");
-//        config.setEntryId("295868");
-//        config.addConfig("liveCore.disableLiveCheck", "true");
-//        config.addConfig("tvpapiGetLicensedLinks.plugin", "true");
-//        config.addConfig("proxyData","{\"initObj\":{\"Locale\":{\"LocaleLanguage\":\"\",\"LocaleCountry\":\"\",\"LocaleDevice\":\"\",\"LocaleUserState\":\"Unknown\"},\"Platform\":\"Cellular\",\"SiteGuid\":\"613999\",\"DomainID\":\"282563\",\"UDID\":\"123456\",\"ApiUser\":\"tvpapi_225\",\"ApiPass\":\"11111\"},\"MediaID\":\"295868\",\"iMediaID\":\"295868\",\"picSize\":\"640x360\",\"mediaType\":\"0\",\"withDynamic\":\"false\"}");
-//        config.addConfig("TVPAPIBaseUrl", "http://stg.eu.tvinci.com/tvpapi_v3_3/gateways/jsonpostgw.aspx?m=");
-//        config.setCacheSize(0.8f);
         extras.putSerializable("config", config);
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
@@ -101,21 +84,20 @@ public class MainActivity extends FragmentActivity implements LoginFragment.OnFr
 
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
-            String url = null;
-            try {
-                url = URLDecoder.decode(uri.toString(), "UTF-8").replace("https://kalturaplay.appspot.com/play?", "");
-            } catch (UnsupportedEncodingException e) {
-                Log.w(TAG, "couldn't decode/split intent url");
-                e.printStackTrace();
-            }
-            if (url != null) {
-                extras.putSerializable("config", KPPlayerConfig.valueOf(url));
-                fragment = new FullscreenFragment();
 
-            } else {
-                Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
+            if (uri == null) {
+                Log.e(TAG, "Can't load player; no data uri");
+                return;
             }
-
+            
+            String embedFrameURL = uri.getQueryParameter("embedFrameURL");
+            if (embedFrameURL == null) {
+                Log.e(TAG, "Can't load player; uri does not contain embedFrameURL parameter");
+                return;
+            }
+            
+            extras.putSerializable("config", KPPlayerConfig.valueOf(embedFrameURL));
+            fragment = new FullscreenFragment();
         }
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
