@@ -20,6 +20,8 @@ import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.casting.KCastRouterManagerListener;
+import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 
@@ -35,6 +37,7 @@ public class FullscreenFragment extends Fragment{
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = FullscreenFragment.class.getSimpleName();
     private View mFragmentView = null;
+    private CastDetectedDevicesDialog mDevicesDialog;
 //    private static final String ARG_PARAM1 = "param1";
 //    private static final String ARG_PARAM2 = "param2";
 
@@ -87,6 +90,33 @@ public class FullscreenFragment extends Fragment{
         
         mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
         mPlayerView.loadPlayerIntoActivity(getActivity());
+        mPlayerView.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
+            @Override
+            public void castButtonClicked() {
+                getDevicesDialog().show();
+            }
+
+            @Override
+            public void castDeviceConnectionState(boolean isConnected) {
+                getDevicesDialog().deviceConnectionStateDidChange(isConnected);
+            }
+
+            @Override
+            public void didDetectCastDevices(boolean didDetect) {
+
+            }
+
+            @Override
+            public void addedCastDevice(KRouterInfo info) {
+                getDevicesDialog().addCastDevice(info);
+            }
+
+            @Override
+            public void removedCastDevice(KRouterInfo info) {
+                getDevicesDialog().removeCastDevice(info);
+            }
+        });
+        mPlayerView.getKCastRouterManager().enableKalturaCastButton(true);
         mPlayerView.addEventListener(new KPEventListener() {
             @Override
             public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
@@ -172,6 +202,23 @@ public class FullscreenFragment extends Fragment{
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+    }
+
+    private CastDetectedDevicesDialog getDevicesDialog() {
+        if (mDevicesDialog == null) {
+            mDevicesDialog = new CastDetectedDevicesDialog(getActivity(), new CastDetectedDevicesDialog.CastDetectedDevicesDialogListener() {
+                @Override
+                public void disconnect() {
+                    mPlayerView.getKCastRouterManager().disconnect();
+                }
+
+                @Override
+                public void routeSelected(String castDeviceId) {
+                    mPlayerView.getKCastRouterManager().connectDevice(castDeviceId);
+                }
+            });
+        }
+        return mDevicesDialog;
     }
 
 

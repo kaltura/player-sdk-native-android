@@ -11,7 +11,9 @@ import android.widget.RelativeLayout;
 
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.helpers.KIMAManager;
+import com.kaltura.playersdk.helpers.KStringUtilities;
 
 import java.lang.ref.WeakReference;
 
@@ -35,12 +37,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean contentEnded;
     private boolean playerReady;
     private KIMAManager imaManager;
+    private KCCRemotePlayer castPlayer;
     private WeakReference<Activity> mActivity;
     private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
     private float mStartPos;
     private boolean isIMAActive = false;
     private boolean isPlayerCanPlay = false;
+    private boolean isCasting = false;
+    private boolean switchingBackFromCasting = false;
 
     public static final int CAN_PLAY = 1;
     public static final int SHOULD_PAUSE = 2;
@@ -94,38 +99,90 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         void setLicenseUri(String licenseUri);
     }
 
-    public KPlayerController(KPlayer player, KPlayerListener listener) {
-        this.player = player;
+
+    public KPlayerController(KPlayerListener listener) {
         playerListener = listener;
-        this.player.setPlayerListener(listener);
-        this.player.setPlayerCallback(this);
+        this.parentViewController = (RelativeLayout)listener;
     }
 
-    public void addPlayerToController(RelativeLayout playerViewController) {
-        this.parentViewController = playerViewController;
-        ViewGroup.LayoutParams currLP = playerViewController.getLayoutParams();
+    public void addPlayerToController() {
+//        this.parentViewController = playerViewController;
+        ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
 
         // Add background view
-        RelativeLayout mBackgroundRL = new RelativeLayout(playerViewController.getContext());
+        RelativeLayout mBackgroundRL = new RelativeLayout(this.parentViewController.getContext());
         mBackgroundRL.setBackgroundColor(Color.BLACK);
-        playerViewController.addView(mBackgroundRL, currLP);
+        this.parentViewController.addView(mBackgroundRL, parentViewController.getChildCount() - 1, currLP);
 
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        playerViewController.addView((View) this.player, lp);
+        this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
     }
 
     public void switchPlayer(KPlayer newPlayer) {
-//        this.playerClassName = playerClassName;
-//        this.key = key;
         player.setPlayerListener(null);
         player.setPlayerCallback(null);
         parentViewController.removeView((View) player);
+        player.removePlayer();
         player = newPlayer;
         ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
         parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
         player.setPlayerCallback(this);
         player.setPlayerListener(playerListener);
+    }
+
+    public void play() {
+        if (!isCasting) {
+            player.play();
+        } else {
+            castPlayer.play();
+        }
+    }
+
+    public void pause() {
+        if (!isCasting) {
+            player.pause();
+        } else {
+            castPlayer.pause();
+        }
+    }
+
+    public void startCasting(GoogleApiClient apiClient) {
+        player.pause();
+        isCasting = true;
+        if (castPlayer == null) {
+            castPlayer = new KCCRemotePlayer(apiClient, new KCCRemotePlayer.KCCRemotePlayerListener() {
+                @Override
+                public void remoteMediaPlayerReady() {
+                    castPlayer.setPlayerCallback(KPlayerController.this);
+                    castPlayer.setPlayerListener(playerListener);
+                    castPlayer.setPlayerSource(src);
+                    ((View)player).setVisibility(View.INVISIBLE);
+                }
+
+                @Override
+                public void mediaLoaded() {
+                    castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
+                }
+            });
+        }
+    }
+
+    public void stopCasting() {
+        isCasting = false;
+        switchingBackFromCasting = true;
+        ((View) player).setVisibility(View.VISIBLE);
+        castPlayer.removePlayer();
+        player.setPlayerCallback(this);
+        player.setPlayerListener(playerListener);
+        player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
+        player.play();
+    }
+
+    public void removeCastPlayer() {
+        castPlayer.setPlayerCallback(null);
+        castPlayer.setPlayerListener(null);
+        castPlayer = null;
     }
 
     public float getDuration() {
@@ -183,27 +240,37 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
-        
-        if (isIMAActive) {
+        if (switchingBackFromCasting) {
+            switchingBackFromCasting = false;
+            return;
+        }
+
+        if (this.src != null) {
             return;
         }
 
         Context context = parentViewController.getContext();
-        
+
         // maybe change player
         String path = Uri.parse(src).getPath();
         if (path.endsWith(".m3u8")) {
             // HLS
-            switchPlayer(new KHLSPlayer(context));
+            this.player = new KHLSPlayer(context);
         } else if (path.endsWith(".wvm")) {
             // Widevine Classic
-            switchPlayer(new KWVCPlayer(context));
+            this.player = new KWVCPlayer(context);
+        } else {
+            this.player = new com.kaltura.playersdk.players.KPlayer(context);
         }
-        
+        addPlayerToController();
+        this.player.setPlayerListener(playerListener);
+        this.player.setPlayerCallback(this);
         this.src = src;
-        this.player.setPlayerSource(this.src);
+        this.player.setPlayerSource(src);
+
+
     }
-    
+
     public void setLicenseUri(String uri) {
         this.player.setLicenseUri(uri);
     }
@@ -249,7 +316,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        this.player.setCurrentPlaybackTime(currentPlaybackTime);
+        if (!isCasting) {
+            this.player.setCurrentPlaybackTime(currentPlaybackTime);
+        } else {
+            castPlayer.setCurrentPlaybackTime(currentPlaybackTime);
+        }
     }
 
     public int getAdPlayerHeight() {

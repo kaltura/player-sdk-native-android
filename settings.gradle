@@ -1,4 +1,3 @@
-include ':castCompanionLibraryandroid'
 include ':exoPlayerLib'
 include ':googlemediaframework'
 include ':playerSDK'

@@ -104,7 +104,7 @@ public class KStringUtilities {
     }
 
     public enum Attribute {
-        src, currentTime, visible, licenseUri, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive;
+        src, currentTime, visible, licenseUri, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive, chromecastAppId;
     }
 
     static public String addEventListener(String event) {

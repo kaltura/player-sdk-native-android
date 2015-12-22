@@ -26,7 +26,7 @@ import com.kaltura.playersdk.helpers.KPlayerParams;
 /**
  * Created by nissopa on 6/15/15.
  */
-public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener, SurfaceHolder.Callback {
+public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, ExoPlayer.Listener, MediaCodecVideoTrackRenderer.EventListener {
 
     private int NUM_OF_RENFERERS = 2;
     private static final String TAG = KPlayer.class.getSimpleName();
@@ -69,12 +69,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     public KPlayer(Context context) {
         super(context);
-        addSurface();
     }
 
     public KPlayer(Context context, AttributeSet attributes) {
         super(context, attributes);
-        addSurface();
     }
 
     @Override
@@ -286,7 +284,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         }
 
     }
-
     @Override
     public void onPlayerError(ExoPlaybackException error) {
 
@@ -319,58 +316,59 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     }
 
-
-
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        if ( mShouldResumePlayback ) {
-            play();
-        }
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
-
     private void preparePlayer() {
         mPrepared = true;
         mPrevProgress = 0;
 
 
-        mExoPlayer = ExoPlayer.Factory.newInstance(NUM_OF_RENFERERS);
-        mExoPlayer.addListener(this);
 //        mExoPlayer.seekTo(0);
 
 
 
         SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
         Handler handler = new Handler(Looper.getMainLooper());
-        TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 1);
-        TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
+        final TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 1);
+        final TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
 
-        Surface surface = mSurfaceView.getHolder().getSurface();
-        if (videoRenderer == null || surface == null || !surface.isValid()) {
-            // We're not ready yet.
-            return;
-        }
-        mExoPlayer.prepare(videoRenderer, audioRenderer);
-        mExoPlayer.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
-    }
-
-    private void addSurface() {
         mSurfaceView = new VideoSurfaceView( getContext() );
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mSurfaceView, lp);
-        mSurfaceView.getHolder().addCallback(this);
-    }
+        mSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceCreated");
 
+                if (mShouldResumePlayback) {
+                    play();
+                } else {
+                    mExoPlayer = ExoPlayer.Factory.newInstance(NUM_OF_RENFERERS);
+                    mExoPlayer.addListener(KPlayer.this);
+
+                    Surface surface = mSurfaceView.getHolder().getSurface();
+                    if (surface == null || !surface.isValid()) {
+                        Log.d(getClass().getSimpleName(), "Surface not ready yet.");
+                        // We're not ready yet.
+                        return;
+                    }
+                    mExoPlayer.prepare(videoRenderer, audioRenderer);
+                    mExoPlayer.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
+                }
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                Log.d(TAG, "surfaceChanged");
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceDestroyed");
+            }
+        });
+
+
+
+    }
 
     private void updateStopState() {
         if ( mHandler != null ) {
