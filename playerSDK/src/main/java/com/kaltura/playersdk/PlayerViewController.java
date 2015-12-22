@@ -8,7 +8,6 @@ import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.PowerManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -27,9 +26,7 @@ import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
-import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
-import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 
@@ -37,7 +34,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -63,8 +59,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
 
     private String mIframeUrl = null;
-
-    private PowerManager mPowerManager;
 
     private boolean mWvMinimized = false;
 
@@ -158,7 +152,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public PlayerViewController(Context context) {
         super(context);
-        setupPlayerViewController( context );
     }
 
     public KCastRouterManager getKCastRouterManager() {
@@ -174,13 +167,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public PlayerViewController(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setupPlayerViewController( context );
     }
 
     public PlayerViewController(Context context, AttributeSet attrs,
                                 int defStyle) {
         super(context, attrs, defStyle);
-        setupPlayerViewController( context );
     }
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
@@ -243,10 +234,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (eventListeners != null) {
             eventListeners = null;
         }
-    }
-
-    private void setupPlayerViewController( final Context context) {
-        mPowerManager = (PowerManager) context.getSystemService(context.POWER_SERVICE);
     }
 
     public void setActivity( Activity activity ) {
