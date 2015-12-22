@@ -26,6 +26,7 @@ import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
@@ -397,16 +398,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             this.playerController = new KPlayerController(this);
             this.addView(mWebView, wvLp);
         }
-        if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) )
-        {
-//            iframeUrl = iframeUrl + "&iframeembed=true";
+        if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) ) {
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
-//            if (mConfig.getCacheSize() > 0) {
-//                CacheManager.getInstance().setHost(uri.getHost());
-//                CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
-//                mWebView.setCacheManager(CacheManager.getInstance());
-//            }
+            if (mConfig.getCacheSize() > 0) {
+                CacheManager.getInstance().setHost(uri.getHost());
+                CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
+                mWebView.setCacheManager(CacheManager.getInstance());
+            }
 
             mWebView.loadUrl(iframeUrl);
         }
