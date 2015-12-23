@@ -4,23 +4,23 @@
 Player SDK Native Android
 =========================
 
-**Note**: The Kaltura native player component is in beta. If your a Kaltura customer please contact your Kaltura customer success manager to help facilitate use of this component. 
+**Note**: The Kaltura native player component is in beta. If your a Kaltura customer please contact your Kaltura customer success manager to help facilitate use of this component.
 
-The Kaltura player-sdk-native component enables embedding the [kaltura player](http://player.kaltura.com) into native environments. This enables full HTML5 player platform, without limitations of HTML5 video tag API in Android platforms. Currently for Android this enables: 
-* Inline playback with HTML controls ( disable controls during ads etc. ) 
+The Kaltura player-sdk-native component enables embedding the [kaltura player](http://player.kaltura.com) into native environments. This enables full HTML5 player platform, without limitations of HTML5 video tag API in Android platforms. Currently for Android this enables:
+* Inline playback with HTML controls ( disable controls during ads etc. )
 * Widevine DRM support
-* AutoPlay 
+* AutoPlay
 * Volume Control
 * Full [player.kaltura.com](http://player.kaltura.com) feature set for themes and plugins
 * HLS Playback
-* DFP IMA SDK 
+* DFP IMA SDK
 
 
-For a full list of native embed advantages see native controls table within the [player toolkit basic usage guide](http://knowledge.kaltura.com/kaltura-player-v2-toolkit-theme-skin-guide). 
+For a full list of native embed advantages see native controls table within the [player toolkit basic usage guide](http://knowledge.kaltura.com/kaltura-player-v2-toolkit-theme-skin-guide).
 
-The Kaltura player-sdk-native component can be embedded into both native apps, and hybrid native apps ( via standard dynamic embed syntax ) 
+The Kaltura player-sdk-native component can be embedded into both native apps, and hybrid native apps ( via standard dynamic embed syntax )
 
-Future support will include: 
+Future support will include:
 * PlayReady DRM
 * Multiple stream playback
 * Offline viewing
@@ -40,21 +40,15 @@ Quick Start Guide
 2. Add reference to PlayerSDK module from your project:
 ```
 
-#####Select _`settings.gradle`_ and add:
+#####Select _`settings.gradle`_ and add:uz
 
 ```
-include ':castCompanionLibraryandroid'
-project(':castCompanionLibraryandroid').projectDir=new File('../player-sdk-native-android/castCompanionLibraryandroid')
- 
 include ':exoPlayerLib'
 project(':exoPlayerLib').projectDir=new File('../player-sdk-native-android/exoPlayerLib')
- 
+
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir=new File('../player-sdk-native-android/googlemediaframework')
- 
-include ':hLSPlayerSDK'
-project(':hLSPlayerSDK').projectDir=new File('../player-sdk-native-android/hLSPlayerSDK')
- 
+
 include ':playerSDK'
 project(':playerSDK').projectDir=new File(‘../player-sdk-native-android/playerSDK')
 ```
@@ -68,7 +62,7 @@ project(':playerSDK').projectDir=new File(‘../player-sdk-native-android/player
 Now, you are linked to the playerSDK by reference. Be sure that you cloned the playerSDK to the same folder of your project.
 
 
-Make sure that you cloned the **_player-sdk-native-android_** project to the same folder of your project, if you prefer to clone it else where, you should update the _**`settings.gradle`**_. 
+Make sure that you cloned the **_player-sdk-native-android_** project to the same folder of your project, if you prefer to clone it else where, you should update the _**`settings.gradle`**_.
 
 API Overview
 =====
