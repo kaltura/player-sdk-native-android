@@ -17,11 +17,6 @@ android {
     }
 }
 
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-}
 
 dependencies {
     compile project(':exoPlayerLib')
@@ -31,5 +26,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.google.code.gson:gson:2.3.1'
     compile fileTree(dir: 'libs', include: ['ima-sdk-*.jar'])
-    compile(name:'HLSPlayerSDK', ext:'aar')
+    compile 'com.kaltura.hlsplayersdk:hlsplayer:0.29.3'
 }

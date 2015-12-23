@@ -19,11 +19,6 @@ android {
     }
 }
 
-repositories {
-    flatDir {
-        dirs '../playerSDK/libs'
-    }
-}
 
 dependencies {
     compile project(':playerSDK')
