@@ -40,7 +40,7 @@ Quick Start Guide
 2. Add reference to PlayerSDK module from your project:
 ```
 
-#####Select _`settings.gradle`_ and add:uz
+#####Select _`settings.gradle`_ and add:
 
 ```
 include ':exoPlayerLib'
