@@ -83,8 +83,7 @@ API Overview
 
         KPPlayerConfig config = new  KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271");
         config.setEntryId("1_o426d3i4");
-        mPlayerView.setComponents(config.getVideoURL());
-        mPlayerView.addEventListener(new KPEventListener() {
+        mPlayerView.initWithConfiguration(config);        mPlayerView.addEventListener(new KPEventListener() {
             @Override
             public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
                 Log.d("KPlayer State Changed", state.toString());
