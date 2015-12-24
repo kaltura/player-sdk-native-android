@@ -20,7 +20,6 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.gson.Gson;
 import com.kaltura.playersdk.cast.KRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
@@ -596,46 +595,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private void pause() {
         playerController.pause();
     }
-
-    private static class ErrorBuilder {
-        String errorMessage;
-        int errorId;
-
-        public ErrorBuilder()
-        {
-
-        }
-
-        public ErrorBuilder setErrorMessage(String errorMessage){
-            this.errorMessage = errorMessage;
-            return this;
-        }
-
-
-        public ErrorBuilder setErrorId(int errorId){
-            this.errorId = errorId;
-            return this;
-        }
-
-        public ErrorObject build(){
-            return new ErrorObject(this);
-        }
-
-        public static class ErrorObject{
-            String errorMessage;
-            int errorId;
-            private ErrorObject(ErrorBuilder builder){
-                errorMessage = builder.errorMessage;
-                errorId = builder.errorId;
-            }
-
-            @Override
-            public String toString() {
-                return new Gson().toJson(this);
-            }
-        }
-    }
-
+    
     public void registerReadyEvent(ReadyEventListener listener) {
         if (mIsJsCallReadyRegistration) {
             listener.handler();
