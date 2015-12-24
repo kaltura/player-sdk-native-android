@@ -24,7 +24,6 @@ dependencies {
     compile 'com.google.android.gms:play-services-cast:8.3.0'
     compile 'com.android.support:mediarouter-v7:23.1.1'
     compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.google.code.gson:gson:2.3.1'
-    compile fileTree(dir: 'libs', include: ['ima-sdk-*.jar'])
     compile 'com.kaltura.hlsplayersdk:hlsplayer:0.29.3'
+    compile fileTree(dir: 'libs', include: ['ima-sdk-*.jar'])
 }

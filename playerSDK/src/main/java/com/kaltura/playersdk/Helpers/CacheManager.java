@@ -9,29 +9,29 @@ import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Created by nissimpardo on 25/10/15.
  */
 public class CacheManager {
+    private static final String TAG = "CacheManager";
+    public static final String CACHED_STRINGS_JSON = "CachedStrings.json";
     private static CacheManager ourInstance = new CacheManager();
-    private HashMap<String, Object> mCacheConditions;
+    private JSONObject mCacheConditions;
     private Context mContext;
     private CacheSQLHelper mSQLHelper;
     private String mHost;
@@ -71,55 +71,66 @@ public class CacheManager {
         return mCachePath;
     }
 
-    private HashMap<String, Object> getCacheConditions() {
-        if (mCacheConditions == null) {
-            StringBuffer sb = new StringBuffer();
-            BufferedReader br = null;
-            try {
-                br = new BufferedReader(new InputStreamReader(mContext.getAssets().open(
-                        "CachedStrings.json")));
-                String temp;
-                while ((temp = br.readLine()) != null)
-                    sb.append(temp);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+    private static String readAssetAsString(Context context, String asset) {
+        BufferedInputStream is = null;
+        String string = null;
+        try {
+            is = new BufferedInputStream(context.getAssets().open(asset));
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
+            int oneByte;
+            while ((oneByte = is.read()) != -1) {
+                bytes.write(oneByte);
+            }
+            string = bytes.toString();
+        } catch (IOException e) {
+            Log.e(TAG, "Can't read " + asset, e);
+        } finally {
+            if (is != null) {
                 try {
-                    br.close(); // stop reading
+                    is.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Can't close " + asset, e);
                 }
             }
-            Type type = new TypeToken<HashMap<String, Object>>(){}.getType();
-            Gson gson = new Gson();
-            mCacheConditions = gson.fromJson(sb.toString(), type);
         }
+        return string;
+    }
+    
+    private JSONObject getCacheConditions() {
+        
+        if (mCacheConditions == null) {
+            String string = readAssetAsString(mContext, CACHED_STRINGS_JSON);
+            if (string != null) {
+                try {
+                    mCacheConditions = new JSONObject(string);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Invalid json", e);
+                }
+            }
+        }
+
         return mCacheConditions;
-    }
-
-    public LinkedTreeMap<String, Object> getSubStrings() {
-         return (LinkedTreeMap)getCacheConditions().get("substring");
-    }
-
-    public LinkedTreeMap<String, Object> getWithDomain() {
-        return (LinkedTreeMap)getCacheConditions().get("withDomain");
     }
 
     public boolean shouldStore(Uri uri) throws URISyntaxException {
         String uriString = uri.toString();
-        if (mHost.equals(uri.getHost())) {
-            for (String key: getWithDomain().keySet()) {
-                if (uriString.contains(key)) {
+        JSONObject conditions = getCacheConditions();
+
+        String key = mHost.equals(uri.getHost()) ? "withDomain" : "substring";
+
+        try {
+            JSONObject object = conditions.getJSONObject(key);
+            for (Iterator<String> it = object.keys(); it.hasNext(); ) {
+                String str = it.next();
+                if (uriString.contains(str)) {
                     return true;
                 }
             }
-        } else {
-            for (String key: getSubStrings().keySet()) {
-                if (uriString.contains(key)) {
-                    return true;
-                }
-            }
+
+        } catch (JSONException e) {
+            Log.w(TAG, "Can't find required configuration data in " + CACHED_STRINGS_JSON, e);
         }
+
         return false;
     }
 
