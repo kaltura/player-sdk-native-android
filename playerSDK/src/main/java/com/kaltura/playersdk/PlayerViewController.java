@@ -70,6 +70,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
+    private PlayerViewControllerAdapter mAapter;
     private boolean isFullScreen = false;
 
     private KRouterManager routerManager;
@@ -151,6 +152,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         void handler(String evaluateResponse);
     }
 
+    public interface PlayerViewControllerAdapter {
+        String localURLForEntryId(String entryId);
+    }
+
     public PlayerViewController(Context context) {
         super(context);
     }
@@ -208,6 +213,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (listener != null && eventListeners != null && eventListeners.contains(listener)) {
             eventListeners.remove(listener);
         }
+    }
+
+    public void setPlayerViewControllerAdapter(PlayerViewControllerAdapter adapter) {
+        mAapter = adapter;
     }
 
     /**
@@ -724,6 +733,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
             switch (attribute) {
                 case src:
+                    String offlineUrl = mAapter != null ? mAapter.localURLForEntryId(mConfig.getEntryId()) : null;
+                    if (offlineUrl != null) {
+                        attributeValue = offlineUrl;
+                    }
                     this.playerController.setSrc(attributeValue);
                     break;
                 case currentTime:
