@@ -34,7 +34,7 @@ public class KWVCPlayer
     @NonNull private KPlayerCallback mCallback;
     private boolean mShouldCancelPlay;
     private boolean mShouldPlayWhenReady;
-    private PlayheadTracker mPlayheadTracker;
+    @Nullable private PlayheadTracker mPlayheadTracker;
     private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
 
@@ -167,7 +167,9 @@ public class KWVCPlayer
             mPlayer.pause();
         }
         saveState();
-        mPlayheadTracker.stop();
+        if (mPlayheadTracker != null) {
+            mPlayheadTracker.stop();
+        }
     }
     
     @Override
@@ -317,7 +319,7 @@ public class KWVCPlayer
             @Override
             public void run() {
                 try {
-                    float playbackTime = 0;
+                    float playbackTime;
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayer.TimeUpdateKey, String.valueOf(playbackTime));

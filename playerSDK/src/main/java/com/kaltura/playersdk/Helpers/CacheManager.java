@@ -156,11 +156,12 @@ public class CacheManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public WebResourceResponse getResponse(WebResourceRequest request) throws IOException, URISyntaxException {
-        if (!shouldStore(request.getUrl())) {
+        Uri requestUrl = request.getUrl();
+        if (!shouldStore(requestUrl)) {
             return null;
         }
         InputStream inputStream = null;
-        final String fileName = KStringUtilities.md5(request.getUrl().toString());
+        final String fileName = KStringUtilities.md5(requestUrl.toString());
         String filePath = getCachePath() + fileName;
         String contentType = null;
         String encoding = null;
@@ -175,7 +176,7 @@ public class CacheManager {
             URL url = null;
             HttpURLConnection connection = null;
             try {
-                url = new URL(request.getUrl().toString());
+                url = new URL(requestUrl.toString());
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod(request.getMethod());
                 for (String key : request.getRequestHeaders().keySet()) {
@@ -183,6 +184,9 @@ public class CacheManager {
                 }
                 connection.connect();
                 contentType = connection.getContentType();
+                if (contentType == null) {
+                    contentType = "";
+                }
                 String[] contentTypeParts = TextUtils.split(contentType, ";");
                 if (contentTypeParts.length >= 2) {
                     contentType = contentTypeParts[0].trim();
@@ -200,10 +204,11 @@ public class CacheManager {
                 });
 
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error loading URL " + requestUrl, e);
+                return null;
             }
         }
-        Log.d("Stored Responses", contentType + " " + encoding + " " + request.getUrl().toString());
+        Log.d("Stored Responses", contentType + " " + encoding + " " + requestUrl.toString());
         return new WebResourceResponse(contentType, encoding, inputStream);
     }
 }

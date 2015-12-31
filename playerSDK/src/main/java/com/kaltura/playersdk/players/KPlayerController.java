@@ -13,7 +13,6 @@ import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.helpers.KIMAManager;
-import com.kaltura.playersdk.helpers.KStringUtilities;
 
 import java.lang.ref.WeakReference;
 
@@ -24,24 +23,15 @@ import java.lang.ref.WeakReference;
 public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerListener {
     private static final String TAG = "KPlayerController";
     private KPlayer player;
-    private String playerClassName;
     private String src;
     private String adTagURL;
-    private float currentPlaybackTime;
     private int adPlayerHeight;
     private String locale;
     private RelativeLayout parentViewController;
-    private String key;
-    private float currentTime;
-    private boolean isSeeked;
-    private boolean contentEnded;
-    private boolean playerReady;
     private KIMAManager imaManager;
     private KCCRemotePlayer castPlayer;
     private WeakReference<Activity> mActivity;
-    private KPlayer switchedPlayer = null;
     private KPlayerListener playerListener;
-    private float mStartPos;
     private boolean isIMAActive = false;
     private boolean isPlayerCanPlay = false;
     private boolean isCasting = false;
@@ -73,7 +63,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (!isIMAActive) {
             player.setCurrentPlaybackTime(0);
             playerListener.eventWithValue(player, "ended", null);
-        } else if (isIMAActive && currentPlayer == null) {
+        } else if (currentPlayer == null) {
             isIMAActive = false;
             player.setShouldCancelPlay(true);
             playerListener.eventWithValue(player, "ended", null);
@@ -116,19 +106,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
         this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
-    }
-
-    public void switchPlayer(KPlayer newPlayer) {
-        player.setPlayerListener(null);
-        player.setPlayerCallback(null);
-        parentViewController.removeView((View) player);
-        player.removePlayer();
-        player = newPlayer;
-        ViewGroup.LayoutParams currLP = parentViewController.getLayoutParams();
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        parentViewController.addView((View) player, parentViewController.getChildCount() - 1, lp);
-        player.setPlayerCallback(this);
-        player.setPlayerListener(playerListener);
     }
 
     public void play() {
@@ -209,8 +186,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void destroy() {
-        player.removePlayer();
-        player = null;
+        if (player != null) {
+            player.removePlayer();
+            player = null;
+        }
         playerListener = null;
         if (imaManager != null) {
             imaManager.destroy();
@@ -224,15 +203,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public KPlayer getPlayer() {
         return this.player;
-    }
-
-
-    public void setPlayerClassName(String playerClassName) {
-        this.playerClassName = playerClassName;
-    }
-
-    public String getPlayerClassName() {
-        return this.playerClassName;
     }
 
     public String getSrc() {
@@ -280,7 +250,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         isIMAActive = true;
         player.setShouldCancelPlay(true);
         this.adTagURL = adTagURL;
-        mActivity = new WeakReference<Activity>(activity);
+        mActivity = new WeakReference<>(activity);
         if (isPlayerCanPlay) {
             addAdPlayer();
         }
