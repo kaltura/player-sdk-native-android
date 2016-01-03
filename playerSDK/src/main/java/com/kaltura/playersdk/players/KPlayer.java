@@ -20,7 +20,7 @@ import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
-import com.google.android.exoplayer.VideoSurfaceView;
+import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
 import com.kaltura.playersdk.helpers.KPlayerParams;
 
 /**
@@ -41,7 +41,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     protected KPlayerCallback callback;
     protected String mPlayerSource;
     protected boolean mIsReady = false;
-    protected int mStartPos = 0;
+    protected long mStartPos = 0;
     protected int mPrevProgress = 0;
     protected VideoSurfaceView mSurfaceView;
     protected boolean mShouldCancelPlay = false;
@@ -156,7 +156,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 public void run() {
                     if (mExoPlayer != null) {
                         try {
-                            int position = mExoPlayer.getCurrentPosition();
+                            long position = mExoPlayer.getCurrentPosition();
                             if (position != 0 && position < KPlayer.this.getDuration() * 1000 && isPlaying() && listener != null) {
                                 listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float) position / 1000));
                             }
@@ -297,7 +297,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     }
 
     @Override
-    public void onVideoSizeChanged(int width, int height) {
+    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         mSurfaceView.setVideoWidthHeightRatio(height == 0 ? 1 : (float) width / height);
     }
 
@@ -316,6 +316,11 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
     }
 
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+        
+    }
+
     private void preparePlayer() {
         mPrepared = true;
         mPrevProgress = 0;
@@ -325,9 +330,9 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
 
 
 
-        SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null, NUM_OF_RENFERERS);
+        SampleSource sampleSource = new FrameworkSampleSource(getContext(), Uri.parse(mVideoUrl), null);
         Handler handler = new Handler(Looper.getMainLooper());
-        final TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, handler, this, 1);
+        final TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(getContext(), sampleSource, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, handler, this, 50);
         final TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
 
         mSurfaceView = new VideoSurfaceView( getContext() );

@@ -110,6 +110,15 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   }
 
   /**
+   * The {@link PlaybackControlLayer.PlayCallback} implementation will be called when the player
+   * plays the video (e.g. to request IMA ads) upon user taps on the play button.
+   */
+  public interface PlayCallback {
+
+    public void onPlay();
+  }
+
+  /**
    * Message handler which allows us to send delayed messages to the {@link PlaybackControlLayer}
    * This is useful for fading out the view after a certain time.
    */
@@ -269,6 +278,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
    */
   private FullscreenCallback fullscreenCallback;
 
+  private PlayCallback playCallback;
   /**
    * The message handler which deals with displaying progress and fading out the media controls
    * We use it so that we can make the view fade out after a timeout (by sending a delayed message).
@@ -446,7 +456,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     textColor = DEFAULT_TEXT_COLOR;
     chromeColor = DEFAULT_CHROME_COLOR;
     controlColor = DEFAULT_CONTROL_TINT_COLOR;
-    seekbarColor = DEFAULT_CONTROL_TINT_COLOR;
+    // Since the seek bar doens't use image assets, we can't use TRANSPARENT as the default tint
+    // because that would make it invisible, so instead we use the default text tint (White).
+    seekbarColor = DEFAULT_TEXT_COLOR;
 
     if (logoDrawable != null) {
       logoImageView.setImageDrawable(logoDrawable);
@@ -646,8 +658,8 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     handler.sendEmptyMessage(SHOW_PROGRESS);
 
     Message msg = handler.obtainMessage(FADE_OUT);
+    handler.removeMessages(FADE_OUT);
     if (timeout > 0) {
-      handler.removeMessages(FADE_OUT);
       handler.sendMessageDelayed(msg, timeout);
     }
   }
@@ -711,6 +723,9 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
   @Override
   public void onPlay() {
     updatePlayPauseButton();
+    if (playCallback != null) {
+      playCallback.onPlay();
+    }
   }
 
   /**
@@ -1008,7 +1023,7 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     fullscreenButton.setColorFilter(controlColor);
     pausePlayButton.setColorFilter(controlColor);
     seekBar.getProgressDrawable().setColorFilter(seekbarColor, PorterDuff.Mode.SRC_ATOP);
-    seekBar.getThumb().setColorFilter(controlColor, PorterDuff.Mode.SRC_ATOP);
+    seekBar.getThumb().setColorFilter(seekbarColor, PorterDuff.Mode.SRC_ATOP);
 
     // Hide the thumb drawable if the SeekBar is disabled
     if (canSeek) {
@@ -1072,5 +1087,12 @@ public class PlaybackControlLayer implements Layer, PlayerControlCallback {
     }
 
     return position;
+  }
+
+  /**
+   * Set play callback
+   */
+  public void setPlayCallback(PlayCallback playCallback) {
+    this.playCallback = playCallback;
   }
 }

@@ -1,4 +1,3 @@
-include ':exoPlayerLib'
 include ':googlemediaframework'
 include ':playerSDK'
 include ':kalturaPlay'

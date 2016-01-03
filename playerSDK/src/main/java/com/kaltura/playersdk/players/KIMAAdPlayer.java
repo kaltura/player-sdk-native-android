@@ -101,8 +101,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                     callback.onEnded();
                 }
                 break;
-            case ExoPlayer.UNKNOWN_TIME:
-                break;
         }
     }
 
@@ -114,7 +112,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     @Override
-    public void onVideoSizeChanged(int width, int height) {
+    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
 
     }
     // [END ExoplayerWrapper.PlaybackListener region]

@@ -25,8 +25,10 @@ public class Video {
    * A list of available video formats which Exoplayer can play.
    */
   public static enum VideoType {
-    DASH_VOD,
-    MP4
+    DASH,
+    MP4,
+    HLS,
+    OTHER
   }
 
   /**
