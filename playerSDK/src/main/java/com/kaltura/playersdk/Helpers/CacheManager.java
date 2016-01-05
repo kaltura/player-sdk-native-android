@@ -9,11 +9,12 @@ import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 
+import com.kaltura.playersdk.Utilities;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -70,36 +71,11 @@ public class CacheManager {
         }
         return mCachePath;
     }
-
-    private static String readAssetAsString(Context context, String asset) {
-        BufferedInputStream is = null;
-        String string = null;
-        try {
-            is = new BufferedInputStream(context.getAssets().open(asset));
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
-            int oneByte;
-            while ((oneByte = is.read()) != -1) {
-                bytes.write(oneByte);
-            }
-            string = bytes.toString();
-        } catch (IOException e) {
-            Log.e(TAG, "Can't read " + asset, e);
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "Can't close " + asset, e);
-                }
-            }
-        }
-        return string;
-    }
     
     private JSONObject getCacheConditions() {
         
         if (mCacheConditions == null) {
-            String string = readAssetAsString(mContext, CACHED_STRINGS_JSON);
+            String string = Utilities.readAssetToString(mContext, CACHED_STRINGS_JSON);
             if (string != null) {
                 try {
                     mCacheConditions = new JSONObject(string);
