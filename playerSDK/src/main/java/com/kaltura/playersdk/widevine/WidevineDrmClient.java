@@ -13,6 +13,7 @@ import android.util.Log;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Iterator;
 
 // Based on Widevine for Android demo app
@@ -40,7 +41,18 @@ public class WidevineDrmClient {
     private String mDeviceId;
     private DrmManagerClient mDrmManager;
 
-    
+    public void setEventListener(EventListener eventListener) {
+        mEventListener = eventListener;
+    }
+
+    private EventListener mEventListener;
+
+    public interface EventListener {
+        void onError(DrmErrorEvent event);
+        void onEvent(DrmEvent event);
+    }
+
+
     public WidevineDrmClient(Context context) {
         
         mDeviceId = new DeviceUuidFactory(context).getDeviceUuid().toString();
@@ -48,26 +60,38 @@ public class WidevineDrmClient {
         mDrmManager = new DrmManagerClient(context);
 
         mDrmManager.setOnInfoListener(new DrmManagerClient.OnInfoListener() {
-            // @Override
+            @Override
             public void onInfo(DrmManagerClient client, DrmInfoEvent event) {
                 logEvent(event);
+                if (mEventListener != null) {
+                    mEventListener.onEvent(event);
+                }
             }
         });
 
         mDrmManager.setOnEventListener(new DrmManagerClient.OnEventListener() {
-
+            @Override
             public void onEvent(DrmManagerClient client, DrmEvent event) {
                 logEvent(event);
+                if (mEventListener != null) {
+                    mEventListener.onEvent(event);
+                }
             }
         });
 
         mDrmManager.setOnErrorListener(new DrmManagerClient.OnErrorListener() {
+            @Override
             public void onError(DrmManagerClient client, DrmErrorEvent event) {
                 logEvent(event);
+                if (mEventListener != null) {
+                    mEventListener.onError(event);
+                }
             }
         });
+        
+        registerPortal();
     }
-
+    
     private void logEvent(DrmEvent event) {
 //		if (! BuildConfig.DEBUG) {
 //			// Basic log
@@ -159,8 +183,9 @@ public class WidevineDrmClient {
                 (mWVDrmInfoRequestStatusKey == DEVICE_IS_PROVISIONED_SD_ONLY));
     }
 
-    public void registerPortal(String portal) {
+    public void registerPortal() {
 
+        String portal = PORTAL_NAME;
         DrmInfoRequest request = new DrmInfoRequest(DrmInfoRequest.TYPE_REGISTRATION_INFO,
                 WIDEVINE_MIME_TYPE);
         request.put(WV_PORTAL_KEY, portal);
@@ -182,7 +207,11 @@ public class WidevineDrmClient {
         
         DrmInfoRequest drmInfoRequest = createDrmInfoRequest(assetUri, licenseServerUri);
 
-        int rights = mDrmManager.acquireRights(drmInfoRequest);
+        DrmInfo drmInfo = mDrmManager.acquireDrmInfo(drmInfoRequest);
+        if (drmInfo == null) {
+            return DrmManagerClient.ERROR_UNKNOWN;
+        }
+        int rights = mDrmManager.processDrmInfo(drmInfo);
 
         logMessage("acquireRights = " + rights + "\n");
 
@@ -192,26 +221,41 @@ public class WidevineDrmClient {
     public int acquireLocalAssetRights(String assetPath, String licenseServerUri) {
         DrmInfoRequest drmInfoRequest = createDrmInfoRequest(assetPath, licenseServerUri);
         FileInputStream fis = null;
-        FileDescriptor fd = null;
 
         int rights = 0;
-        
+        DrmInfo drmInfo;
         // A local file needs special treatment -- open and get FD
         try {
             fis = new FileInputStream(assetPath);
-            fd = fis.getFD();
+            FileDescriptor fd = fis.getFD();
             if (fd != null && fd.valid()) {
                 drmInfoRequest.put("FileDescriptorKey", fd.toString());
-                rights = mDrmManager.acquireRights(drmInfoRequest);
+                drmInfo = mDrmManager.acquireDrmInfo(drmInfoRequest);
+                if (drmInfo == null) {
+                    throw new IOException("DrmManagerClient couldn't prepare request for asset " + assetPath);
+                }
+                rights = mDrmManager.processDrmInfo(drmInfo);
             }
         } catch (java.io.IOException e) {
             Log.e(TAG, "Error opening local file:", e);
             rights = -1;
+        } finally {
+            safeClose(fis);
         }
         
         logMessage("acquireRights = " + rights + "\n");
         
         return rights;
+    }
+
+    private static void safeClose(FileInputStream fis) {
+        if (fis != null) {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to close file", e);
+            }
+        }
     }
 
     public int checkRightsStatus(String assetUri) {
