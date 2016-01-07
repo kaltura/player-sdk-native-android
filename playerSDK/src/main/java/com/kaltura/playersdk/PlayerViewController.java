@@ -136,6 +136,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         playerController.startCasting(apiClient);
     }
 
+    @Override
+    public void setOnTouchListener(OnTouchListener l) {
+        mWebView.setOnTouchListener(l);
+    }
+
     // trigger timeupdate events
 
     public interface EventListener {
