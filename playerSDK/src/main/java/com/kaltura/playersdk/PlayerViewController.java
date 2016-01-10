@@ -8,6 +8,7 @@ import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -69,7 +70,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
-    private PlayerViewControllerAdapter mAapter;
+    private URLProvider mURLProvider;
     private boolean isFullScreen = false;
 
     private KRouterManager routerManager;
@@ -128,7 +129,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void onConnecting() {
         mWebView.triggerEvent("showConnectingMessage", null);
     }
-
+    
     @Override
     public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
         if (getRouterManager().getAppListener() != null) {
@@ -151,8 +152,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         void handler(String evaluateResponse);
     }
 
-    public interface PlayerViewControllerAdapter {
-        String localURLForEntryId(String entryId);
+    public interface URLProvider {
+        @NonNull String getURL(String entryId, String currentURL);
     }
 
     public PlayerViewController(Context context) {
@@ -214,8 +215,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    public void setPlayerViewControllerAdapter(PlayerViewControllerAdapter adapter) {
-        mAapter = adapter;
+    public void setURLProvider(URLProvider urlProvider) {
+        mURLProvider = urlProvider;
     }
 
     /**
@@ -693,9 +694,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
             switch (attribute) {
                 case src:
-                    String offlineUrl = mAapter != null ? mAapter.localURLForEntryId(mConfig.getEntryId()) : null;
-                    if (offlineUrl != null) {
-                        attributeValue = offlineUrl;
+                    if (mURLProvider != null) {
+                        // attributeValue is the selected source -- allow override.
+                        attributeValue = mURLProvider.getURL(mConfig.getEntryId(), attributeValue);
                     }
                     this.playerController.setSrc(attributeValue);
                     break;
