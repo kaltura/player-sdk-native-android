@@ -1,9 +1,14 @@
 package com.kaltura.playersdk;
 
 import android.net.Uri;
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -79,6 +84,38 @@ public class KPPlayerConfig implements Serializable{
 		config.mDomain = uri.getScheme() + "://" + uri.getAuthority();
 		config.mUrl = url;
 		
+		return config;
+	}
+	
+	public static KPPlayerConfig fromJSONObject(JSONObject configJSON) {
+		KPPlayerConfig config = null;
+		try {
+			JSONObject base = configJSON.getJSONObject("base");
+			config = new KPPlayerConfig(base.getString("server"), base.getString("uiConfId"), base.getString("partnerId"));
+			
+			if (base.has("entryId")) {
+				config.setEntryId(base.getString("entryId"));
+			}
+			if (base.has("advertiserId")) {
+				config.setAdvertiserID(base.getString("advertiserId"));
+			}
+			if (base.has("cacheSize")) {
+				config.setCacheSize((float)base.getDouble("cacheSize"));
+			}
+
+			JSONObject extra = configJSON.getJSONObject("extra");
+
+			for (Iterator<String> it = extra.keys(); it.hasNext(); ) {
+				String key = it.next();
+				Object value = extra.opt(key);
+				if (value != null) {
+					config.addConfig(key, value.toString());
+				}
+			}
+		} catch (JSONException e) {
+			Log.e("JSON Error", "", e);
+			return null;
+		}
 		return config;
 	}
 
