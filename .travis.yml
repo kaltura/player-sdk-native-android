@@ -15,23 +15,22 @@ script:
 - ./gradlew assembleRelease
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk
+- pull-artifacts-upload.sh
 deploy:
-  - provider: releases
-    draft: true
-    skip_cleanup: true
-    file:
-      - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
-      - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
-      - castCompanionLibraryandroid/build/outputs/aar/castCompanionLibraryandroid-release.aar
-      - exoPlayerLib/build/outputs/aar/exoPlayerLib-release.aar
-      - googlemediaframework/build/outputs/aar/googlemediaframework-release.aar
-      - playerSDK/build/outputs/aar/playerSDK-release.aar
-    on:
-      tags: true
-    api-key:
-      secure: "TklD17qRdJATf4gBnRwmxA7/FNBS37BY69hGgFrI8wSNRpoL/QeD3pLDvAiwZaWwZtTdTvb8GKGI9KCFKwR8DqoqxMqpyazPlgqd76INQ9jhVuY8kIwn+kDJQBhT4wmYOqKcuzICG5RJF76fJc7FE/KKVvKkgyG8jRL+Vh826do="
-  - provider: script
-    script: pull-artifacts-upload.sh
+  provider: releases
+  draft: true
+  skip_cleanup: true
+  file:
+    - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
+    - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
+    - castCompanionLibraryandroid/build/outputs/aar/castCompanionLibraryandroid-release.aar
+    - exoPlayerLib/build/outputs/aar/exoPlayerLib-release.aar
+    - googlemediaframework/build/outputs/aar/googlemediaframework-release.aar
+    - playerSDK/build/outputs/aar/playerSDK-release.aar
+  on:
+    tags: true
+  api-key:
+    secure: "TklD17qRdJATf4gBnRwmxA7/FNBS37BY69hGgFrI8wSNRpoL/QeD3pLDvAiwZaWwZtTdTvb8GKGI9KCFKwR8DqoqxMqpyazPlgqd76INQ9jhVuY8kIwn+kDJQBhT4wmYOqKcuzICG5RJF76fJc7FE/KKVvKkgyG8jRL+Vh826do="
 notifications:
   email:
     recipients:
