@@ -9,29 +9,30 @@ import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
+import com.kaltura.playersdk.Utilities;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Created by nissimpardo on 25/10/15.
  */
 public class CacheManager {
+    private static final String TAG = "CacheManager";
+    public static final String CACHED_STRINGS_JSON = "CachedStrings.json";
     private static CacheManager ourInstance = new CacheManager();
-    private HashMap<String, Object> mCacheConditions;
+    private JSONObject mCacheConditions;
     private Context mContext;
     private CacheSQLHelper mSQLHelper;
     private String mHost;
@@ -70,56 +71,42 @@ public class CacheManager {
         }
         return mCachePath;
     }
-
-    private HashMap<String, Object> getCacheConditions() {
+    
+    private JSONObject getCacheConditions() {
+        
         if (mCacheConditions == null) {
-            StringBuffer sb = new StringBuffer();
-            BufferedReader br = null;
-            try {
-                br = new BufferedReader(new InputStreamReader(mContext.getAssets().open(
-                        "CachedStrings.json")));
-                String temp;
-                while ((temp = br.readLine()) != null)
-                    sb.append(temp);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+            String string = Utilities.readAssetToString(mContext, CACHED_STRINGS_JSON);
+            if (string != null) {
                 try {
-                    br.close(); // stop reading
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    mCacheConditions = new JSONObject(string);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Invalid json", e);
                 }
             }
-            Type type = new TypeToken<HashMap<String, Object>>(){}.getType();
-            Gson gson = new Gson();
-            mCacheConditions = gson.fromJson(sb.toString(), type);
         }
+
         return mCacheConditions;
-    }
-
-    public LinkedTreeMap<String, Object> getSubStrings() {
-         return (LinkedTreeMap)getCacheConditions().get("substring");
-    }
-
-    public LinkedTreeMap<String, Object> getWithDomain() {
-        return (LinkedTreeMap)getCacheConditions().get("withDomain");
     }
 
     public boolean shouldStore(Uri uri) throws URISyntaxException {
         String uriString = uri.toString();
-        if (mHost.equals(uri.getHost())) {
-            for (String key: getWithDomain().keySet()) {
-                if (uriString.contains(key)) {
+        JSONObject conditions = getCacheConditions();
+
+        String key = mHost.equals(uri.getHost()) ? "withDomain" : "substring";
+
+        try {
+            JSONObject object = conditions.getJSONObject(key);
+            for (Iterator<String> it = object.keys(); it.hasNext(); ) {
+                String str = it.next();
+                if (uriString.contains(str)) {
                     return true;
                 }
             }
-        } else {
-            for (String key: getSubStrings().keySet()) {
-                if (uriString.contains(key)) {
-                    return true;
-                }
-            }
+
+        } catch (JSONException e) {
+            Log.w(TAG, "Can't find required configuration data in " + CACHED_STRINGS_JSON, e);
         }
+
         return false;
     }
 
@@ -145,11 +132,12 @@ public class CacheManager {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public WebResourceResponse getResponse(WebResourceRequest request) throws IOException, URISyntaxException {
-        if (!shouldStore(request.getUrl())) {
+        Uri requestUrl = request.getUrl();
+        if (!shouldStore(requestUrl)) {
             return null;
         }
         InputStream inputStream = null;
-        final String fileName = KStringUtilities.md5(request.getUrl().toString());
+        final String fileName = KStringUtilities.md5(requestUrl.toString());
         String filePath = getCachePath() + fileName;
         String contentType = null;
         String encoding = null;
@@ -164,7 +152,7 @@ public class CacheManager {
             URL url = null;
             HttpURLConnection connection = null;
             try {
-                url = new URL(request.getUrl().toString());
+                url = new URL(requestUrl.toString());
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod(request.getMethod());
                 for (String key : request.getRequestHeaders().keySet()) {
@@ -172,6 +160,9 @@ public class CacheManager {
                 }
                 connection.connect();
                 contentType = connection.getContentType();
+                if (contentType == null) {
+                    contentType = "";
+                }
                 String[] contentTypeParts = TextUtils.split(contentType, ";");
                 if (contentTypeParts.length >= 2) {
                     contentType = contentTypeParts[0].trim();
@@ -189,10 +180,11 @@ public class CacheManager {
                 });
 
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error loading URL " + requestUrl, e);
+                return null;
             }
         }
-        Log.d("Stored Responses", contentType + " " + encoding + " " + request.getUrl().toString());
+        Log.d("Stored Responses", contentType + " " + encoding + " " + requestUrl.toString());
         return new WebResourceResponse(contentType, encoding, inputStream);
     }
 }

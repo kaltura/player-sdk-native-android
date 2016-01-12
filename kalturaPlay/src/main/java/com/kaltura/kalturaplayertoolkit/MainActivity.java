@@ -15,9 +15,6 @@ import android.webkit.WebView;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
 	public static String TAG = MainActivity.class.getSimpleName();
@@ -72,8 +69,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
         
-        KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15067411", "1091").setEntryId("0_0jhktrbo");
-
+        KPPlayerConfig config = new KPPlayerConfig("https://cdnapisec.kaltura.com", "20540612", "243342").setEntryId("1_sf5ovm7u");
 
         config.setCacheSize(0.8f);
         extras.putSerializable("config", config);
@@ -88,21 +84,20 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
 
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
-            String url = null;
-            try {
-                url = URLDecoder.decode(uri.toString(), "UTF-8").replace("https://kalturaplay.appspot.com/play?", "");
-            } catch (UnsupportedEncodingException e) {
-                Log.w(TAG, "couldn't decode/split intent url");
-                e.printStackTrace();
-            }
-            if (url != null) {
-                extras.putSerializable("config", KPPlayerConfig.valueOf(url));
-                fragment = new FullscreenFragment();
 
-            } else {
-                Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
+            if (uri == null) {
+                Log.e(TAG, "Can't load player; no data uri");
+                return;
             }
-
+            
+            String embedFrameURL = uri.getQueryParameter("embedFrameURL");
+            if (embedFrameURL == null) {
+                Log.e(TAG, "Can't load player; uri does not contain embedFrameURL parameter");
+                return;
+            }
+            
+            extras.putSerializable("config", KPPlayerConfig.valueOf(embedFrameURL));
+            fragment = new FullscreenFragment();
         }
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());

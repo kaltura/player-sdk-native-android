@@ -23,7 +23,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     public static final String Size = "Size";
 
     public interface KSQLHelperDeleteListener {
-        public void fileDeleted(String fileId);
+        void fileDeleted(String fileId);
     }
 
     public CacheSQLHelper(Context context) {
@@ -69,10 +69,12 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         String query = "SELECT SUM(Size) FROM KCacheTable";
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
+        long size = 0;
         if (cursor.moveToFirst()) {
-            return cursor.getInt(0);
+            size = cursor.getInt(0);
         }
-        return 0;
+        cursor.close();
+        return size;
     }
 
     public void updateDate(String fileId) {
@@ -113,7 +115,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         boolean stop = false;
-        ArrayList<String> deletedIds = new ArrayList();
+        ArrayList<String> deletedIds = new ArrayList<>();
         while (!stop) {
             if (cursor.moveToFirst()) {
                 int size = cursor.getInt(4);
@@ -131,15 +133,16 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     }
 
     public HashMap<String, Object> fetchParamsForFile(String fileName) {
-        String query = "Select * FROM " + TABLE_NAME + " WHERE " + id + " =  \"" + fileName + "\"";
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{id, Encoding,MimeType}, id + "=?", new String[]{fileName}, null, null, null);
+
+        HashMap<String , Object> params = null;
         if (cursor.moveToFirst()) {
-            HashMap<String , Object> params = new HashMap<>();
+            params = new HashMap<>();
             params.put(Encoding, cursor.getString(1));
             params.put(MimeType, cursor.getString(2));
-            return params;
         }
-        return null;
+        cursor.close();
+        return params;
     }
 }

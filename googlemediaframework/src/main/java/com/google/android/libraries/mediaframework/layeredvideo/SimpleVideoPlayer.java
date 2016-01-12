@@ -62,6 +62,11 @@ public class SimpleVideoPlayer {
   private final VideoSurfaceLayer videoSurfaceLayer;
 
   /**
+   * Set whether the video should play immediately.
+   */
+  private boolean autoplay;
+
+  /**
    * @param activity The activity that will contain the video player.
    * @param container The {@link FrameLayout} which will contain the video player.
    * @param video The video that should be played.
@@ -73,7 +78,7 @@ public class SimpleVideoPlayer {
                            Video video,
                            String videoTitle,
                            boolean autoplay) {
-    this(activity, container, video, videoTitle, autoplay, null);
+    this(activity, container, video, videoTitle, autoplay, 0, null);
   }
 
   /**
@@ -90,12 +95,14 @@ public class SimpleVideoPlayer {
                            Video video,
                            String videoTitle,
                            boolean autoplay,
+                           int startPostitionMs,
                            PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
     this.activity = activity;
 
     playbackControlLayer = new PlaybackControlLayer(videoTitle, fullscreenCallback);
     subtitleLayer = new SubtitleLayer();
     videoSurfaceLayer = new VideoSurfaceLayer(autoplay);
+    this.autoplay = autoplay;
 
     List<Layer> layers = new ArrayList<Layer>();
     layers.add(videoSurfaceLayer);
@@ -108,6 +115,10 @@ public class SimpleVideoPlayer {
         layers);
 
     layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
+
+    if (startPostitionMs > 0) {
+      layerManager.getExoplayerWrapper().seekTo(startPostitionMs);
+    }
   }
 
   /**
@@ -232,7 +243,7 @@ public class SimpleVideoPlayer {
   public void play() {
     // Set the autoplay for the video surface layer in case the surface hasn't been created yet.
     // This way, when the surface is created, it will automatically start playing.
-    videoSurfaceLayer.setAutoplay(true);
+    videoSurfaceLayer.setAutoplay(autoplay);
 
     layerManager.getControl().start();
   }
@@ -254,6 +265,14 @@ public class SimpleVideoPlayer {
    */
   public void setFullscreenCallback(PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
     playbackControlLayer.setFullscreenCallback(fullscreenCallback);
+  }
+
+  /**
+   * Set the callback which will be called when the player plays video.
+   * @param playCallback The callback.
+   */
+  public void setPlayCallback(PlaybackControlLayer.PlayCallback playCallback) {
+    playbackControlLayer.setPlayCallback(playCallback);
   }
 
   /**
