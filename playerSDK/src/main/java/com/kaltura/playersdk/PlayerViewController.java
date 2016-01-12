@@ -69,6 +69,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
+    private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
 
     private KRouterManager routerManager;
@@ -127,7 +128,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void onConnecting() {
         mWebView.triggerEvent("showConnectingMessage", null);
     }
-
+    
     @Override
     public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
         if (getRouterManager().getAppListener() != null) {
@@ -153,6 +154,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public interface EvaluateListener {
         void handler(String evaluateResponse);
+    }
+
+    public interface SourceURLProvider {
+        String getURL(String entryId, String currentURL);
     }
 
     public PlayerViewController(Context context) {
@@ -212,6 +217,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (listener != null && eventListeners != null && eventListeners.contains(listener)) {
             eventListeners.remove(listener);
         }
+    }
+
+    public void setCustomSourceURLProvider(SourceURLProvider provider) {
+        mCustomSourceURLProvider = provider;
+    }
+    
+    private String getOverrideURL(String entryId, String currentURL) {
+        if (mCustomSourceURLProvider != null) {
+            String overrideURL = mCustomSourceURLProvider.getURL(entryId, currentURL);
+            if (overrideURL != null) {
+                return overrideURL;
+            }
+        }
+        return currentURL;
     }
 
     /**
@@ -689,6 +708,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
             switch (attribute) {
                 case src:
+                    // attributeValue is the selected source -- allow override.
+                    attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
                     this.playerController.setSrc(attributeValue);
                     break;
                 case currentTime:

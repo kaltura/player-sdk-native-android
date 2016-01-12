@@ -23,19 +23,28 @@ public class KPPlayerConfig implements Serializable{
 	static String sEnableHoverKey = "&flashvars[controlBarContainer.hover]=true";
 	static String sIFrameEmbedKey = "&iframeembed=true";
 	static String sEnableChromecastKey = "&flashvars[chromecast.plugin]=true";
-	
 
-	protected Map<String, String> mParamsMap;
-	protected String mUrl;
 
-	protected String mDomain;
-	protected String mAdvertiserID;
-	protected String mEntryId;
-	protected boolean mEnableHover;
-	private boolean mShouldEnableChromecast = false;
-	protected String mUiConfId;
-	protected String mPartnerId;
-	protected float mCacheSize = 4f;	// 4mb is a sane default.
+	Map<String, String> mParamsMap;
+	String mUrl;
+
+	String mDomain;
+	String mAdvertiserID;
+	String mEntryId;
+	boolean mEnableHover;
+	boolean mShouldEnableChromecast = false;
+	String mUiConfId;
+	String mPartnerId;
+	float mCacheSize = 4f;	// 4mb is a sane default.
+	String mKS;
+
+	public String getPartnerId() {
+		return mPartnerId;
+	}
+
+	public String getDomain() {
+		return mDomain;
+	}
 
 	public KPPlayerConfig(String domain, String uiConfId, String partnerId) {
 		mDomain = domain;
@@ -198,5 +207,14 @@ public class KPPlayerConfig implements Serializable{
 
 	public String getUiConfId() {
 		return mUiConfId;
+	}
+
+	public KPPlayerConfig setKS(String KS) {
+		mKS = KS;
+		return this;
+	}
+
+	public String getKS() {
+		return mKS;
 	}
 }
