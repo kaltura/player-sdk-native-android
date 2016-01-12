@@ -15,6 +15,7 @@ script:
 - ./gradlew assembleRelease
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk
+- ./pull-artifacts-upload.sh
 deploy:
   provider: releases
   draft: true
