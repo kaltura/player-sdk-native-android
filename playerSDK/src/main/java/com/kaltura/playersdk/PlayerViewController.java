@@ -70,6 +70,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private Set<KPEventListener> eventListeners;
     private boolean isFullScreen = false;
 
+    @Override
+    public void setOnTouchListener(OnTouchListener l) {
+        mWebView.setOnTouchListener(l);
+    }
+
     // trigger timeupdate events
 
     public interface EventListener {

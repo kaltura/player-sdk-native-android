@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -20,9 +21,14 @@ import com.kaltura.playersdk.helpers.KStringUtilities;
 /**
  * Created by nissopa on 6/7/15.
  */
-public class KControlsView extends WebView {
+public class KControlsView extends WebView implements View.OnTouchListener {
 
     private static final String TAG = "KControlsView";
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        return false;
+    }
 
     public interface KControlsViewClient {
         public void handleHtml5LibCall(String functionName, int callbackId, String args);
