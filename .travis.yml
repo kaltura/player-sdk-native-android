@@ -23,8 +23,6 @@ deploy:
   file:
     - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
     - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
-    - castCompanionLibraryandroid/build/outputs/aar/castCompanionLibraryandroid-release.aar
-    - exoPlayerLib/build/outputs/aar/exoPlayerLib-release.aar
     - googlemediaframework/build/outputs/aar/googlemediaframework-release.aar
     - playerSDK/build/outputs/aar/playerSDK-release.aar
   on:
