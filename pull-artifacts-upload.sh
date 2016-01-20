@@ -21,6 +21,6 @@ upload_artifacts() {
 # Set variables and upload files
 
 ARTIFACT_UPLOAD_PLATFORM=android
-ARTIFACTS_TO_UPLOAD=kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
+ARTIFACTS_TO_UPLOAD="kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk testapp/build/outputs/apk/testapp-debug.apk"
 
 upload_artifacts

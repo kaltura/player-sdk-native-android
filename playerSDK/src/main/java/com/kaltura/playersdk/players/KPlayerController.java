@@ -104,6 +104,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
+        if (isIMAActive) {
+            return;
+        }
         if (!isCasting) {
             player.play();
         } else {
@@ -325,9 +328,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SHOULD_PLAY:
+                isIMAActive = false;
                 player.play();
                 break;
             case KPlayerCallback.SHOULD_PAUSE:
+                isIMAActive = true;
                 player.pause();
                 break;
             case KPlayerCallback.ENDED:
