@@ -37,11 +37,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean isCasting = false;
     private boolean switchingBackFromCasting = false;
 
-    public static final int CAN_PLAY = 1;
-    public static final int SHOULD_PAUSE = 2;
-    public static final int SHOULD_PLAY = 3;
-    public static final int ENDED = 4;
-
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
         playerListener.eventWithValue(player, eventName, eventValue);
@@ -323,19 +318,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     @Override
     public void playerStateChanged(int state) {
         switch (state) {
-            case KPlayerController.CAN_PLAY:
+            case KPlayerCallback.CAN_PLAY:
                 isPlayerCanPlay = true;
                 if (mActivity != null) {
                     addAdPlayer();
                 }
                 break;
-            case KPlayerController.SHOULD_PLAY:
+            case KPlayerCallback.SHOULD_PLAY:
                 player.play();
                 break;
-            case KPlayerController.SHOULD_PAUSE:
+            case KPlayerCallback.SHOULD_PAUSE:
                 player.pause();
                 break;
-            case KPlayerController.ENDED:
+            case KPlayerCallback.ENDED:
                 if (imaManager != null) {
                     imaManager.contentComplete();
                 } else {
