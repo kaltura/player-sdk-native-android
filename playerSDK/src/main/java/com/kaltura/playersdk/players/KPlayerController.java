@@ -57,21 +57,22 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void contentCompleted(KPlayer currentPlayer) {
         if (!isIMAActive) {
             player.setCurrentPlaybackTime(0);
-            playerListener.eventWithValue(player, "ended", null);
+            playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         } else if (currentPlayer == null) {
             isIMAActive = false;
             player.setShouldCancelPlay(true);
-            playerListener.eventWithValue(player, "ended", null);
+            playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         }
         playerListener.contentCompleted(currentPlayer);
     }
 
     public interface KPlayer {
+
         void setPlayerListener(KPlayerListener listener);
         void setPlayerCallback(KPlayerCallback callback);
         void setPlayerSource(String playerSource);
         String getPlayerSource();
-        void setCurrentPlaybackTime(float currentPlaybackTime);
+        void setCurrentPlaybackTime(float playbackTime);
         float getCurrentPlaybackTime();
         float getDuration();
         void play();

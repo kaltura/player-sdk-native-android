@@ -2,6 +2,7 @@ package com.kaltura.playersdk.players;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.cast.Cast;
@@ -150,7 +151,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
             stopTimer();
             mRemoteMediaPlayer.seek(mApiClient, (long) (currentPlaybackTime * 1000)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                 @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                public void onResult(@NonNull RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                     Status status = mediaChannelResult.getStatus();
                     if (status.isSuccess()) {
                         if (isPlaying) {
@@ -182,7 +183,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
             isPlaying = true;
             mRemoteMediaPlayer.play(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                 @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                public void onResult(@NonNull RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                     Status status = mediaChannelResult.getStatus();
                     if (status.isSuccess()) {
                         startTimer();
@@ -204,7 +205,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
             isPlaying = false;
             mRemoteMediaPlayer.pause(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                 @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                public void onResult(@NonNull RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                     Status status = mediaChannelResult.getStatus();
                     if (status.isSuccess()) {
                         stopTimer();
