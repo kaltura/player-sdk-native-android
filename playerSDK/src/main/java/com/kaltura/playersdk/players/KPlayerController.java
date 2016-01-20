@@ -229,7 +229,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             // Widevine Classic
             this.player = new KWVCPlayer(context);
         } else {
-            this.player = new com.kaltura.playersdk.players.KPlayer(context);
+            this.player = new com.kaltura.playersdk.players.KExoPlayer(context);
         }
         addPlayerToController();
         this.player.setPlayerListener(playerListener);
