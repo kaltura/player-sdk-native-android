@@ -639,7 +639,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * Move the seek head to the given position.
    * @param positionMs A number of milliseconds after the start of the video.
    */
-  public void seekTo(int positionMs) {
+  public void seekTo(long positionMs) {
     player.seekTo(positionMs);
   }
 

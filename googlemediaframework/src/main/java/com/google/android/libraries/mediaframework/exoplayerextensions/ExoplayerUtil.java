@@ -89,6 +89,7 @@ public class ExoplayerUtil {
           urlConnection.setRequestProperty(requestProperty.getKey(), requestProperty.getValue());
         }
       }
+      urlConnection.connect();
       if (data != null) {
         OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
         out.write(data);

@@ -19,6 +19,8 @@ package com.google.android.libraries.mediaframework.exoplayerextensions;
 import android.content.Context;
 import android.net.Uri;
 
+import com.google.android.exoplayer.drm.MediaDrmCallback;
+
 /**
  * Generate a renderer builder appropriate for rendering a video.
  */
@@ -30,7 +32,8 @@ public class RendererBuilderFactory {
    * @param video The video which will be played.
    */
   public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
-                                                                       Video video) {
+                                                                       Video video,
+                                                                       MediaDrmCallback mediaDrmCallback) {
     switch (video.getVideoType()) {
       case HLS:
         return new HlsRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx),
@@ -38,7 +41,7 @@ public class RendererBuilderFactory {
       case DASH:
         return new DashRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx),
                                        video.getUrl(),
-                                       new WidevineTestMediaDrmCallback(video.getContentId()));
+                                       mediaDrmCallback);
       case MP4:
         return new ExtractorRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx), Uri.parse(video.getUrl()));
       case OTHER:
@@ -46,5 +49,11 @@ public class RendererBuilderFactory {
       default:
         return null;
     }
+  }
+  
+  public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
+                                                                       Video video) {
+    
+    return createRendererBuilder(ctx, video, null);
   }
 }
