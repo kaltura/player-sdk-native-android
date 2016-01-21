@@ -23,6 +23,7 @@ deploy:
   file:
     - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
     - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
+    - testapp/build/outputs/apk/testapp-debug.apk
   on:
     tags: true
   api-key: $GH_TOKEN
