@@ -1,4 +1,4 @@
-package helpers;
+package com.kaltura.helpers;
 
 import android.content.Context;
 

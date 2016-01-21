@@ -1,4 +1,4 @@
-package helpers;
+package com.kaltura.helpers;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -55,7 +55,7 @@ public class VideoDownloader extends AsyncTask<String, Long, String> {
             }
             URLConnection connection = url.openConnection();
             connection.connect();
-            mFileLength = new Integer(connection.getContentLength());
+            mFileLength = connection.getContentLength();
             InputStream inputStream = new BufferedInputStream(url.openStream());
             OutputStream outputStream = new FileOutputStream(getCachePath() + mFileName);
             byte data[] = new byte[1024];
@@ -65,7 +65,7 @@ public class VideoDownloader extends AsyncTask<String, Long, String> {
                 total += count;
                 // publishing the progress....
                 if (mFileLength > 0) {
-                    publishProgress(new Long(total));
+                    publishProgress(total);
                 }
                 outputStream.write(data, 0, count);
             }
@@ -81,7 +81,7 @@ public class VideoDownloader extends AsyncTask<String, Long, String> {
     @Override
     protected void onProgressUpdate(Long... values) {
         if (mFileLength > 0) {
-            mListener.onProgressUpdated(values[0].longValue() / mFileLength.floatValue());
+            mListener.onProgressUpdated(values[0] / mFileLength.floatValue());
         }
     }
 

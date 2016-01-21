@@ -10,7 +10,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
+import com.kaltura.helpers.AssetsFetcher;
+import com.kaltura.helpers.VideoDownloader;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
@@ -18,11 +21,7 @@ import com.kaltura.playersdk.PlayerViewController;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import helpers.AssetsFetcher;
-import helpers.VideoDownloader;
-
 public class OfflineActivity extends Activity implements DemoAdapter.MyClickListener, PlayerFragment.OnFragmentInteractionListener, PlayerViewController.SourceURLProvider {
-    private KPPlayerConfig mConfig;
     private HashMap<String, String> values;
     private PlayerFragment mPlayerFragment;
     DemoAdapter adapter;
@@ -75,8 +74,7 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
         });
         downloader.execute(url);
     }
-
-
+    
     private void getLicensce(final DownloadCell view) {
         LocalAssetsManager.registerAsset(this, getConfig(), getValues().get("FlavourId"), getValues().get("OfflineURL"), new LocalAssetsManager.AssetEventListener() {
             @Override
@@ -89,9 +87,13 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
 
             @Override
             public void onFailed(String assetPath, Exception error) {
+                final String errorMessage = error != null ? error.getMessage() : "<unknown error>";
                 view.post(new Runnable() {
                     @Override
-                    public void run() {view.getTextView().setText("Licensce Error");}
+                    public void run() {
+                        view.getTextView().setText("Licensce Error");
+                        Toast.makeText(view.getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                    }
                 });
             }
 
