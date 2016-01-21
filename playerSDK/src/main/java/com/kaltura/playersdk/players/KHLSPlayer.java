@@ -205,7 +205,7 @@ public class KHLSPlayer extends FrameLayout implements
     @Override
     public void onPlayheadUpdated(int msec) {
         float updateTimeVal = msec - mPlayer.getPlaybackWindowStartTime();
-        mListener.eventWithValue(this, KPlayer.TimeUpdateKey, Float.toString(updateTimeVal / 1000));
+        mListener.eventWithValue(this, KPlayerListener.TimeUpdateKey, Float.toString(updateTimeVal / 1000));
     }
     //endregion
 
@@ -226,26 +226,26 @@ public class KHLSPlayer extends FrameLayout implements
     public boolean onStateChanged(PlayerStates state) {
         switch (state) {
             case START:
-                mListener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
-                mListener.eventWithValue(this, KPlayer.CanPlayKey, null);
+                mListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
+                mListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
 //                mPlayer.registerProgressUpdate(this);
-                mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
+                mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
                 break;
             case LOAD:
 
                 break;
             case PLAY:
-                mListener.eventWithValue(this, KPlayer.PlayKey, null);
+                mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
                 break;
             case PAUSE:
-                mListener.eventWithValue(this, KPlayer.PauseKey, null);
+                mListener.eventWithValue(this, KPlayerListener.PauseKey, null);
                 break;
             case END:
                 mListener.contentCompleted(this);
-                mCallback.playerStateChanged(KPlayerController.ENDED);
+                mCallback.playerStateChanged(KPlayerCallback.ENDED);
                 break;
             case SEEKED:
-                mListener.eventWithValue(this, KPlayer.SeekedKey, null);
+                mListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
                 break;
             case SEEKING:
                 break;
@@ -257,7 +257,7 @@ public class KHLSPlayer extends FrameLayout implements
     //region com.kaltura.hlsplayersdk.events.OnProgressListener
     @Override
     public void onProgressUpdate(int progress) {
-        mListener.eventWithValue(this, KPlayer.ProgressKey, Float.toString((float)progress / mPlayer.getDuration()));
+        mListener.eventWithValue(this, KPlayerListener.ProgressKey, Float.toString((float)progress / mPlayer.getDuration()));
     }
     //endregion
 
@@ -313,7 +313,7 @@ public class KHLSPlayer extends FrameLayout implements
             Log.wtf(TAG, "JSONException in put can only happen with double values", e);
         }
 
-        mListener.eventWithJSON(this, KPlayer.FlavorsListChangedKey, jsonResponse.toString());
+        mListener.eventWithJSON(this, KPlayerListener.FlavorsListChangedKey, jsonResponse.toString());
     }
     //endregion
 
@@ -326,7 +326,7 @@ public class KHLSPlayer extends FrameLayout implements
         } catch (JSONException e) {
             Log.wtf(TAG, "JSONException in put can only happen with double values", e);
         }
-        mListener.eventWithJSON(this, KPlayer.SourceSwitchingStartedKey, jsonResponse.toString());
+        mListener.eventWithJSON(this, KPlayerListener.SourceSwitchingStartedKey, jsonResponse.toString());
     }
 
     @Override
@@ -337,14 +337,14 @@ public class KHLSPlayer extends FrameLayout implements
         } catch (JSONException e) {
             Log.wtf(TAG, "JSONException in put can only happen with double values", e);
         }
-        mListener.eventWithJSON(this, KPlayer.SourceSwitchingEndKey, jsonResponse.toString());
+        mListener.eventWithJSON(this, KPlayerListener.SourceSwitchingEndKey, jsonResponse.toString());
     }
     //endregion
 
     //region OnDurationChangedListener
     @Override
     public void onDurationChanged(int msec) {
-        mListener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(msec / 1000));
+        mListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(msec / 1000));
     }
     //endregion
 

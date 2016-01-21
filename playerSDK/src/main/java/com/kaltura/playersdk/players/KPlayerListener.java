@@ -4,9 +4,22 @@ package com.kaltura.playersdk.players;
  * Created by nissopa on 6/14/15.
  */
 public interface KPlayerListener {
-    public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue);
-    public void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue);
-    public void contentCompleted(KPlayerController.KPlayer currentPlayer);
+    String PlayKey = "play";
+    String PauseKey = "pause";
+    String DurationChangedKey = "durationchange";
+    String LoadedMetaDataKey = "loadedmetadata";
+    String TimeUpdateKey = "timeupdate";
+    String ProgressKey = "progress";
+    String EndedKey = "ended";
+    String SeekedKey = "seeked";
+    String CanPlayKey = "canplay";
+    String FlavorsListChangedKey = "flavorsListChanged";
+    String SourceSwitchingStartedKey = "sourceSwitchingStarted";
+    String SourceSwitchingEndKey = "sourceSwitchingEnd";
+
+    void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue);
+    void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue);
+    void contentCompleted(KPlayerController.KPlayer currentPlayer);
 }
 
 

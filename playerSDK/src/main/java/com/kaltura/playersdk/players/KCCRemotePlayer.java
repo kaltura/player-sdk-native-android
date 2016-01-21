@@ -69,7 +69,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                 try {
                     float currentTime = getCurrentPlaybackTime();
                     if (currentTime != 0 && currentTime < getDuration() && mPlayerListener != null) {
-                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.TimeUpdateKey, Float.toString(currentTime));
+                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(currentTime));
                         Log.d(TAG, Long.toString(mRemoteMediaPlayer.getApproximateStreamPosition()));
 //                        float percent = currentTime / getDuration();
 //                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.ProgressKey, Float.toString(percent));
@@ -124,9 +124,9 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                                     mPlayerListener.eventWithValue(KCCRemotePlayer.this, "chromecastDeviceConnected", null);
                                 }
 
-                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.DurationChangedKey, Float.toString(getDuration()));
-                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.LoadedMetaDataKey, "");
-                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.CanPlayKey, null);
+                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.DurationChangedKey, Float.toString(getDuration()));
+                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.LoadedMetaDataKey, "");
+                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.CanPlayKey, null);
                                 mListener.mediaLoaded();
                             }
                         }
@@ -156,7 +156,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                         if (isPlaying) {
                             startTimer();
                         }
-                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.SeekedKey, null);
+                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.SeekedKey, null);
                     } else {
                         Log.w(TAG, "Unable to toggle seek: "
                                 + status.getStatusCode());
@@ -186,7 +186,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                     Status status = mediaChannelResult.getStatus();
                     if (status.isSuccess()) {
                         startTimer();
-                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.PlayKey, null);
+                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PlayKey, null);
                     } else {
                         isPlaying = false;
                         Log.w(TAG, "Unable to toggle play: "
@@ -208,7 +208,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                     Status status = mediaChannelResult.getStatus();
                     if (status.isSuccess()) {
                         stopTimer();
-                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.PauseKey, null);
+                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PauseKey, null);
                     } else {
                         isPlaying = true;
                         Log.w(TAG, "Unable to toggle pause: "
@@ -258,7 +258,7 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
                     if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
                         stopTimer();
                         mCurrentPlaybackTime = 0f;
-                        mPlayerListener.eventWithValue(this, KPlayer.EndedKey, null);
+                        mPlayerListener.eventWithValue(this, KPlayerListener.EndedKey, null);
                         loadMedia();
                     }
                     break;

@@ -19,7 +19,6 @@ import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
 import com.kaltura.playersdk.players.KPlayerCallback;
-import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 
 import org.json.JSONException;
@@ -195,12 +194,12 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 break;
             case CONTENT_PAUSE_REQUESTED:
                 fireIMAEvent(ContentPauseRequestedKey);
-                mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
+                mPLayerCallback.playerStateChanged(KPlayerCallback.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
                 fireIMAEvent(ContentResumeRequestedKey);
                 if (!mContentCompleted) {
-                    mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
+                    mPLayerCallback.playerStateChanged(KPlayerCallback.SHOULD_PLAY);
                 }
 //                mIMAPlayer.removeAd();
                 break;
