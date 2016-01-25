@@ -15,6 +15,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.helpers.KIMAManager;
 
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -83,6 +85,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         boolean isKPlayer();
         void setShouldCancelPlay(boolean shouldCancelPlay);
         void setLicenseUri(String licenseUri);
+    }
+    
+    public Set<SupportedFormat> supportedFormats(Context context) {
+        // TODO: dynamically determine available players, use reflection.
+
+        Set<SupportedFormat> formats = new HashSet<>();
+
+        // All known players
+        formats.addAll(KExoPlayer.supportedFormats(context));
+        formats.addAll(KWVCPlayer.supportedFormats(context));
+        formats.addAll(KHLSPlayer.supportedFormats(context));
+        
+        return formats;
     }
 
 

@@ -15,6 +15,8 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
+import java.util.Collections;
+import java.util.Set;
 
 
 /**
@@ -37,10 +39,23 @@ public class KWVCPlayer
     @Nullable private PlayheadTracker mPlayheadTracker;
     private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
+    
+    public static Set<SupportedFormat> supportedFormats(Context context) {
+        if (WidevineDrmClient.isSupported(context)) {
+            return Collections.singleton(SupportedFormat.CLASSIC_WIDEVINE);
+        }
+        return Collections.emptySet();
+    }
 
+    /**
+     * Construct a new Widevine Classic player.
+     * @param context
+     * @throws UnsupportedOperationException if Widevine Classic is not supported by platform.
+     */
     public KWVCPlayer(Context context) {
         super(context);
         mDrmClient = new WidevineDrmClient(context);
+        
         mSavedState = new PlayerState();
         
         // Set no-op listeners so we don't have to check for null on use

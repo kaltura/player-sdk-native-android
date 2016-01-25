@@ -29,13 +29,16 @@ import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
+import com.kaltura.playersdk.players.SupportedFormat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -420,6 +423,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
             this.playerController = new KPlayerController(this);
             this.addView(mWebView, wvLp);
+            pushSupportedMediaFormats();
         }
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) ) {
             mIframeUrl = iframeUrl;
@@ -859,7 +863,26 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-
+    private void pushSupportedMediaFormats() {
+        
+        Set<SupportedFormat> supportedFormats = playerController.supportedFormats(getContext());
+        JSONObject json = new JSONObject();
+        try {
+            for (SupportedFormat format : supportedFormats) {
+                json.accumulate(format.drm, format.mimeType);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Error creating supported formats json", e);
+            return;
+        }
+        
+        String js = "window.kNativeSdkSupportedFormats=" + json.toString();
+        try {
+            mWebView.loadUrl("javascript:" + URLEncoder.encode(js, "UTF8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError("No UTF8"); // can't really happen, UTF8 is Android's default encoding.
+        }
+    }
 
 
     // Native actions

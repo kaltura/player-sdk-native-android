@@ -25,7 +25,9 @@ import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -47,6 +49,22 @@ public class KExoPlayer extends FrameLayout implements KPlayerController.KPlayer
     private VideoSurfaceView mSurfaceView;
     private boolean mSeeking;
 
+    public static Set<SupportedFormat> supportedFormats(Context context) {
+        Set<SupportedFormat> set = new HashSet<>();
+        // Clear dash and mp4 are always supported.
+        set.add(SupportedFormat.DASH_CLEAR);
+        set.add(SupportedFormat.MP4_CLEAR);
+        
+        // Encrypted dash is only supported in Android v4.3 and up -- needs MediaDrm class.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // Make sure Widevine is supported.
+            if (MediaDrm.isCryptoSchemeSupported(ExoplayerUtil.WIDEVINE_UUID)) {
+                set.add(SupportedFormat.DASH_WIDEVINE);
+            }
+        }
+        return set;
+    }
+    
     public KExoPlayer(Context context) {
         super(context);
     }
