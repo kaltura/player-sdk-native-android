@@ -863,6 +863,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    private void executeJS(String js) {
+        try {
+            mWebView.loadUrl("javascript:" + URLEncoder.encode(js, "UTF8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("No UTF8", e); // can't really happen, UTF8 is Android's default encoding.
+        }
+    }
+    
     private void pushSupportedMediaFormats() {
         
         Set<SupportedFormat> supportedFormats = playerController.supportedFormats(getContext());
@@ -888,12 +896,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             return;
         }
         
-        String js = "window.kNativeSdkSupportedFormats=" + json.toString();
-        try {
-            mWebView.loadUrl("javascript:" + URLEncoder.encode(js, "UTF8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("No UTF8", e); // can't really happen, UTF8 is Android's default encoding.
-        }
+        executeJS("window.kNativeSDK=window.kNativeSDK||{}");
+        executeJS("window.kNativeSDK.supportedFormats=" + json);
     }
 
 
