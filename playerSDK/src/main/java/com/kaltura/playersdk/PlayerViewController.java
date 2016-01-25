@@ -867,10 +867,22 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         
         Set<SupportedFormat> supportedFormats = playerController.supportedFormats(getContext());
         JSONObject json = new JSONObject();
+        
         try {
+            JSONObject drm = new JSONObject();
+            JSONObject clear = new JSONObject();
             for (SupportedFormat format : supportedFormats) {
-                json.accumulate(format.drm, format.mimeType);
+                if (format.drm == null) {
+                    clear.put(format.mimeType, true);
+                } else {
+                    if (!drm.has(format.mimeType)) {
+                        drm.put(format.mimeType, new JSONArray());
+                    }
+                    drm.accumulate(format.mimeType, format.drm);
+                }
             }
+            json.put("drm", drm);
+            json.put("clear", clear);
         } catch (JSONException e) {
             Log.e(TAG, "Error creating supported formats json", e);
             return;
@@ -880,7 +892,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         try {
             mWebView.loadUrl("javascript:" + URLEncoder.encode(js, "UTF8"));
         } catch (UnsupportedEncodingException e) {
-            throw new AssertionError("No UTF8"); // can't really happen, UTF8 is Android's default encoding.
+            throw new IllegalStateException("No UTF8", e); // can't really happen, UTF8 is Android's default encoding.
         }
     }
 
