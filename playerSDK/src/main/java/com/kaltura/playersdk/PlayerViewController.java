@@ -872,41 +872,39 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
     
     private void pushSupportedMediaFormats() {
+        // Result:
+        // window.kNativeSDK.supportedFormats={"drmTypes":["video/wvm","application/dash+xml"],"clearTypes":["application/vnd.apple.mpegurl","video/mp4","application/dash+xml"],"allTypes":["application/vnd.apple.mpegurl","video/wvm","video/mp4","application/dash+xml"]}
         
         Set<SupportedFormat> supportedFormats = playerController.supportedFormats(getContext());
-        JSONObject json = new JSONObject();
+        
+        Set<String> drmTypes = new HashSet<>();
+        Set<String> clearTypes = new HashSet<>();
+        Set<String> allTypes = new HashSet<>();
+
+        for (SupportedFormat format : supportedFormats) {
+            if (format.drm == null) {
+                clearTypes.add(format.mimeType);
+            } else {
+                drmTypes.add(format.mimeType);
+            }
+            allTypes.add(format.mimeType);
+        }
+
+        String json;
         
         try {
-            JSONObject drm = new JSONObject();
-            JSONObject clear = new JSONObject();
-            JSONObject all = new JSONObject();
-            for (SupportedFormat format : supportedFormats) {
-                if (format.drm == null) {
-                    clear.put(format.mimeType, true);
-                } else {
-                    appendAsJSONObject(drm, format);
-                }
-
-                // also add to "all"
-                appendAsJSONObject(all, format);
-            }
-            json.put("drm", drm);
-            json.put("clear", clear);
-            json.put("all", all);
+            json = new JSONObject()
+                    .put("drmTypes", new JSONArray(drmTypes))
+                    .put("clearTypes", new JSONArray(clearTypes))
+                    .put("allTypes", new JSONArray(allTypes)).toString();
+                    
         } catch (JSONException e) {
             Log.e(TAG, "Error creating supported formats json", e);
             return;
         }
-        
-        executeJS("window.kNativeSDK=window.kNativeSDK||{}");
-        executeJS("window.kNativeSDK.supportedFormats=" + json.toString());
-    }
 
-    private void appendAsJSONObject(JSONObject container, SupportedFormat format) throws JSONException {
-        if (!container.has(format.mimeType)) {
-            container.put(format.mimeType, new JSONArray());
-        }
-        container.accumulate(format.mimeType, format.drm);
+        executeJS("window.kNativeSDK=window.kNativeSDK||{}");
+        executeJS("window.kNativeSDK.supportedFormats=" + json);
     }
 
 
