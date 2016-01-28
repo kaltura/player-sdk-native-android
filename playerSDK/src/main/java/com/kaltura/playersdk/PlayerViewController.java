@@ -216,6 +216,22 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    public KPPlayerConfig getConfig() {
+        return mConfig;
+    }
+
+    public void changeMedia(String entryId) {
+        if (entryId != null && entryId.length() > 0) {
+            JSONObject entryJson = new JSONObject();
+            try {
+                entryJson.put("entryId", entryId);
+                sendNotification("changeMedia", entryJson.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void removeEventListener(KPEventListener listener) {
         if (listener != null && eventListeners != null && eventListeners.contains(listener)) {
             eventListeners.remove(listener);
@@ -589,6 +605,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     //
     @Override
     public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue) {
+        Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
             for (KPEventListener listener : eventListeners) {
@@ -604,6 +621,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue) {
+        Log.d("EventWithJSON", "Name: " + eventName + " Value: " + jsonValue);
         this.mWebView.triggerEventWithJSON(eventName, jsonValue);
     }
 
@@ -741,6 +759,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
+//                    attributeValue = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator=]";
                     playerController.initIMA(attributeValue, mActivity);
                     break;
                 case goLive:

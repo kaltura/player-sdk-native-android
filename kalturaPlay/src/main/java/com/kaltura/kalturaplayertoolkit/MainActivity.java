@@ -68,9 +68,13 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if (extras == null) {
             extras = new Bundle();
         }
-        
-        KPPlayerConfig config = new KPPlayerConfig("https://cdnapisec.kaltura.com", "20540612", "243342").setEntryId("1_sf5ovm7u");
 
+        KPPlayerConfig config = new KPPlayerConfig("http://169.254.160.49/html5.kaltura/mwEmbed/mwEmbedFrame.php", "15128121", "1091").setEntryId("0_vpdvoc48");
+        config.addConfig("EmbedPlayer.ShowPosterOnStop", "false");
+//        config.addConfig("Kaltura.LeadHLSOnAndroid", "true");
+//        config.addConfig("doubleClick.plugin", "false");
+//        config.addConfig("doubleClick.path", "http://cdnbakmi.kaltura.com/content/uiconf/ps/veria/kdp3.9.1/plugins/doubleclickPlugin.swf");
+//        config.addConfig("doubleClick.adTagUrl", "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=xml_vmap1&unviewed_position_start=1&cust_params=sample_ar%3Dpremidpost&cmsid=496&vid=short_onecue&correlator=[timestamp]");
         config.setCacheSize(0.8f);
         extras.putSerializable("config", config);
 

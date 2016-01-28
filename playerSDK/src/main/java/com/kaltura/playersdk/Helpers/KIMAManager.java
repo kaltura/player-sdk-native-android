@@ -19,6 +19,7 @@ import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
 import com.kaltura.playersdk.players.KPlayerCallback;
+import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 
 import org.json.JSONException;
@@ -55,6 +56,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private KPlayerCallback mPLayerCallback;
 
     private boolean mContentCompleted;
+    
 
     private JSONObject jsonValue = new JSONObject();
 
@@ -164,6 +166,9 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 // AdEventType.LOADED will be fired when ads are ready to be played.
                 // AdsManager.start() begins ad playback. This method is ignored for VMAP or ad
                 // rules playlists, as the SDK will automatically start executing the playlist.
+
+                fireIMAEvent(ContentPauseRequestedKey);
+
                 mAdsManager.start();
                 jsonValue.put(IsLinearKey, ad.isLinear());
                 jsonValue.put(AdIDKey, ad.getAdId());
@@ -193,21 +198,20 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 fireIMAEvent(AdClickedKey);
                 break;
             case CONTENT_PAUSE_REQUESTED:
-                fireIMAEvent(ContentPauseRequestedKey);
-                mPLayerCallback.playerStateChanged(KPlayerCallback.SHOULD_PAUSE);
+                mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
-                fireIMAEvent(ContentResumeRequestedKey);
+//                fireIMAEvent(ContentResumeRequestedKey);
                 if (!mContentCompleted) {
-                    mPLayerCallback.playerStateChanged(KPlayerCallback.SHOULD_PLAY);
+                    mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
 //                mIMAPlayer.removeAd();
                 break;
             case ALL_ADS_COMPLETED:
+                fireIMAEvent(AllAdsCompletedKey);
                 if (mContentCompleted) {
                     mPlayerListener.contentCompleted(null);
                 }
-                fireIMAEvent(AllAdsCompletedKey);
                 if (mAdsManager != null) {
                     mAdsManager.destroy();
                     mAdsManager = null;
