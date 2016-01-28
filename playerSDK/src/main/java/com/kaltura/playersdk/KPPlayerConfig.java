@@ -130,7 +130,7 @@ public class KPPlayerConfig implements Serializable{
 
 	public KPPlayerConfig addConfig(String key, String value) {
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
-			String configKey = "flashvars[" + key + "]";
+			String configKey = "flashvars%5B" + key + "%5D";
 			mParamsMap.put(configKey, value);
 		}
 		return this;

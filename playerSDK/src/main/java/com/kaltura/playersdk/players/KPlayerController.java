@@ -337,6 +337,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
             case KPlayerCallback.ENDED:
                 if (imaManager != null) {
+                    isIMAActive = true;
                     imaManager.contentComplete();
                 } else {
                     contentCompleted(null);
