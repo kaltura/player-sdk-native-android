@@ -51,19 +51,6 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     protected boolean mShouldResumePlayback = false;
     protected KPlayerParams mParams;
 
-    static protected String PlayKey = "play";
-    static protected String PauseKey = "pause";
-    static protected String DurationChangedKey = "durationchange";
-    static protected String LoadedMetaDataKey = "loadedmetadata";
-    static protected String TimeUpdateKey = "timeupdate";
-    static protected String ProgressKey = "progress";
-    static public String EndedKey = "ended";
-    static protected String SeekedKey = "seeked";
-    static protected String CanPlayKey = "canplay";
-    static protected String FlavorsListChangedKey = "flavorsListChanged";
-    public static final String SourceSwitchingStartedKey = "sourceSwitchingStarted";
-    public static final String SourceSwitchingEndKey = "sourceSwitchingEnd";
-
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -104,7 +91,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
         if ( mIsReady ) {
             mSeeking = true;
             if (listener != null) {
-                listener.eventWithValue(this, KPlayer.SeekedKey, null);
+                listener.eventWithValue(this, KPlayerListener.SeekedKey, null);
             }
             mExoPlayer.seekTo( (int)(currentPlaybackTime * 1000) );
         }
@@ -158,7 +145,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                         try {
                             long position = mExoPlayer.getCurrentPosition();
                             if (position != 0 && position < KPlayer.this.getDuration() * 1000 && isPlaying() && listener != null) {
-                                listener.eventWithValue(KPlayer.this, KPlayer.TimeUpdateKey, Float.toString((float) position / 1000));
+                                listener.eventWithValue(KPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString((float) position / 1000));
                             }
                         } catch (IllegalStateException e) {
                             Log.e(TAG, "Looper Exception", e);
@@ -242,10 +229,10 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 if ( !mIsReady ) {
                     mIsReady = true;
                     if (listener != null && !mShouldResumePlayback) {
-                        listener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(this.getDuration()));
-                        listener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
-                        listener.eventWithValue(this, KPlayer.CanPlayKey, null);
-                        callback.playerStateChanged(KPlayerController.CAN_PLAY);
+                        listener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration()));
+                        listener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
+                        listener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
+                        callback.playerStateChanged(KPlayerCallback.CAN_PLAY);
                     } else {
                         mShouldResumePlayback = false;
                     }
@@ -271,7 +258,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
                 if (playWhenReady && listener != null) {
                     listener.contentCompleted(this);
                     updateStopState();
-                    callback.playerStateChanged(KPlayerController.ENDED);
+                    callback.playerStateChanged(KPlayerCallback.ENDED);
                 }
                 break;
         }
@@ -280,7 +267,7 @@ public class KPlayer extends FrameLayout implements KPlayerController.KPlayer, E
     @Override
     public void onPlayWhenReadyCommitted() {
         if (listener != null) {
-            listener.eventWithValue(this, mExoPlayer.getPlayWhenReady() ? KPlayer.PlayKey : KPlayer.PauseKey, null);
+            listener.eventWithValue(this, mExoPlayer.getPlayWhenReady() ? KPlayerListener.PlayKey : KPlayerListener.PauseKey, null);
         }
 
     }

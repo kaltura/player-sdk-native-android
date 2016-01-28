@@ -158,7 +158,7 @@ public class KWVCPlayer
         }
         mPlayheadTracker.start();
         
-        mListener.eventWithValue(this, KPlayer.PlayKey, null);
+        mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
     }
 
     @Override
@@ -239,7 +239,7 @@ public class KWVCPlayer
             @Override
             public void onCompletion(MediaPlayer mp) {
                 mListener.contentCompleted(KWVCPlayer.this);
-                mCallback.playerStateChanged(KPlayerController.ENDED);
+                mCallback.playerStateChanged(KPlayerCallback.ENDED);
             }
         });
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
@@ -272,7 +272,7 @@ public class KWVCPlayer
                     @Override
                     public void onSeekComplete(MediaPlayer mp) {
                         saveState();
-                        mListener.eventWithValue(kplayer, KPlayer.SeekedKey, null);
+                        mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
                     }
                 });
 
@@ -281,10 +281,10 @@ public class KWVCPlayer
                     mPlayer.seekTo(mSavedState.position);
                     play();
                 } else {
-                    mListener.eventWithValue(kplayer, KPlayer.DurationChangedKey, String.valueOf(kplayer.getDuration()));
-                    mListener.eventWithValue(kplayer, KPlayer.LoadedMetaDataKey, "");
-                    mListener.eventWithValue(kplayer, KPlayer.CanPlayKey, null);
-                    mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
+                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, String.valueOf(kplayer.getDuration()));
+                    mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
+                    mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
+                    mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
 
                     if (mShouldPlayWhenReady) {
                         play();
@@ -322,7 +322,7 @@ public class KWVCPlayer
                     float playbackTime;
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayer.TimeUpdateKey, String.valueOf(playbackTime));
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, String.valueOf(playbackTime));
                     }
 
                 } catch (IllegalStateException e) {
