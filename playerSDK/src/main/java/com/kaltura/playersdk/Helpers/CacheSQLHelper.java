@@ -56,9 +56,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         values.put(Size, 0);
         SQLiteDatabase db = getWritableDatabase();
         db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-        if (db.isOpen()) {
-            db.close();
-        }
+//        if (db.isOpen()) {
+//            db.close();
+//        }
     }
 
     public void removeFile(String fileId) {
@@ -82,9 +82,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         data.put(LastUsed, System.currentTimeMillis());
         SQLiteDatabase db = getWritableDatabase();
         db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-        if (db.isOpen()) {
-            db.close();
-        }
+//        if (db.isOpen()) {
+//            db.close();
+//        }
     }
 
     public void updateFileSize(String fileId, long fileSize) {
@@ -93,9 +93,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         data.put(LastUsed, System.currentTimeMillis());
         SQLiteDatabase db = getWritableDatabase();
         db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-        if (db.isOpen()) {
-            db.close();
-        }
+//        if (db.isOpen()) {
+//            db.close();
+//        }
     }
 
     public long sizeForId(String fileId) {
