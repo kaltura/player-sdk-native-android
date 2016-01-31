@@ -36,6 +36,7 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
 
                 <data android:host="kgit.html5video.org" android:pathPrefix="/kplay" android:scheme="https"/>
+                <data android:host="kgit.html5video.org" android:pathPrefix="/kplay" android:scheme="http"/>
             </intent-filter>
         </activity>
 
