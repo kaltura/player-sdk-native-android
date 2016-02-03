@@ -52,12 +52,21 @@ public class WidevineDrmClient {
         void onEvent(DrmEvent event);
     }
 
-
+    public static boolean isSupported(Context context) {
+        return new DrmManagerClient(context).canHandle("", WIDEVINE_MIME_TYPE);
+    }
+    
+    
     public WidevineDrmClient(Context context) {
+
+        mDrmManager = new DrmManagerClient(context);
+
+        // Detect if this device can play widevine classic
+        if (! mDrmManager.canHandle("", WIDEVINE_MIME_TYPE)) {
+            throw new UnsupportedOperationException("Widevine Classic is not supported");
+        }
         
         mDeviceId = new DeviceUuidFactory(context).getDeviceUuid().toString();
-        
-        mDrmManager = new DrmManagerClient(context);
 
         mDrmManager.setOnInfoListener(new DrmManagerClient.OnInfoListener() {
             @Override

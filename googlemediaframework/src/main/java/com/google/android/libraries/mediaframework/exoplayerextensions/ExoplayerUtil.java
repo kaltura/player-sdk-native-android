@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
+import android.util.Log;
 
 import com.google.android.exoplayer.ExoPlayerLibraryInfo;
 
@@ -89,6 +90,7 @@ public class ExoplayerUtil {
           urlConnection.setRequestProperty(requestProperty.getKey(), requestProperty.getValue());
         }
       }
+      urlConnection.connect();
       if (data != null) {
         OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
         out.write(data);
@@ -96,6 +98,15 @@ public class ExoplayerUtil {
       }
       InputStream in = new BufferedInputStream(urlConnection.getInputStream());
       return convertInputStreamToByteArray(in);
+    } catch (IOException e) {
+      String details;
+      if (urlConnection != null) {
+        details = "; code=" + urlConnection.getResponseCode() + " (" + urlConnection.getResponseMessage() + ")";
+      } else {
+        details = "";
+      }
+      Log.e("ExoplayerUtil", "executePost: Request failed" + details, e);
+      throw e;
     } finally {
       if (urlConnection != null) {
         urlConnection.disconnect();

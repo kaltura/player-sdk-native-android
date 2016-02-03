@@ -15,6 +15,8 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
+import java.util.Collections;
+import java.util.Set;
 
 
 /**
@@ -37,10 +39,23 @@ public class KWVCPlayer
     @Nullable private PlayheadTracker mPlayheadTracker;
     private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
+    
+    public static Set<MediaFormat> supportedFormats(Context context) {
+        if (WidevineDrmClient.isSupported(context)) {
+            return Collections.singleton(MediaFormat.wvm_widevine);
+        }
+        return Collections.emptySet();
+    }
 
+    /**
+     * Construct a new Widevine Classic player.
+     * @param context
+     * @throws UnsupportedOperationException if Widevine Classic is not supported by platform.
+     */
     public KWVCPlayer(Context context) {
         super(context);
         mDrmClient = new WidevineDrmClient(context);
+        
         mSavedState = new PlayerState();
         
         // Set no-op listeners so we don't have to check for null on use
@@ -281,7 +296,7 @@ public class KWVCPlayer
                     mPlayer.seekTo(mSavedState.position);
                     play();
                 } else {
-                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, String.valueOf(kplayer.getDuration()));
+                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration()));
                     mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
                     mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
                     mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
@@ -322,7 +337,7 @@ public class KWVCPlayer
                     float playbackTime;
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, String.valueOf(playbackTime));
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
                     }
 
                 } catch (IllegalStateException e) {

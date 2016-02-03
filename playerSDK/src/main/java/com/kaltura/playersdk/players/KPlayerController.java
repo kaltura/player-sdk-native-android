@@ -15,6 +15,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.helpers.KIMAManager;
 
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -57,21 +59,22 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void contentCompleted(KPlayer currentPlayer) {
         if (!isIMAActive) {
             player.setCurrentPlaybackTime(0);
-            playerListener.eventWithValue(player, "ended", null);
+            playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         } else if (currentPlayer == null) {
             isIMAActive = false;
             player.setShouldCancelPlay(true);
-            playerListener.eventWithValue(player, "ended", null);
+            playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         }
         playerListener.contentCompleted(currentPlayer);
     }
 
     public interface KPlayer {
+
         void setPlayerListener(KPlayerListener listener);
         void setPlayerCallback(KPlayerCallback callback);
         void setPlayerSource(String playerSource);
         String getPlayerSource();
-        void setCurrentPlaybackTime(float currentPlaybackTime);
+        void setCurrentPlaybackTime(float playbackTime);
         float getCurrentPlaybackTime();
         float getDuration();
         void play();
@@ -82,6 +85,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         boolean isKPlayer();
         void setShouldCancelPlay(boolean shouldCancelPlay);
         void setLicenseUri(String licenseUri);
+    }
+    
+    public static Set<MediaFormat> supportedFormats(Context context) {
+        // TODO: dynamically determine available players, use reflection.
+
+        Set<MediaFormat> formats = new HashSet<>();
+
+        // All known players
+        formats.addAll(KExoPlayer.supportedFormats(context));
+        formats.addAll(KWVCPlayer.supportedFormats(context));
+        formats.addAll(KHLSPlayer.supportedFormats(context));
+        
+        return formats;
     }
 
 
@@ -228,7 +244,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             // Widevine Classic
             this.player = new KWVCPlayer(context);
         } else {
-            this.player = new com.kaltura.playersdk.players.KPlayer(context);
+            this.player = new com.kaltura.playersdk.players.KExoPlayer(context);
         }
         addPlayerToController();
         this.player.setPlayerListener(playerListener);

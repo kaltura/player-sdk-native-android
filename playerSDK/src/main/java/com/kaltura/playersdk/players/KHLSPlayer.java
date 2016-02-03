@@ -18,10 +18,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by nissopa on 7/6/15.
@@ -45,6 +47,10 @@ public class KHLSPlayer extends FrameLayout implements
     private HLSPlayerViewController mPlayer;
     private KPlayerListener mListener;
     private KPlayerCallback mCallback;
+
+    public static Set<MediaFormat> supportedFormats(Context context) {
+        return Collections.singleton(MediaFormat.hls_clear);
+    }
 
     public KHLSPlayer(Context context) {
         super(context);
