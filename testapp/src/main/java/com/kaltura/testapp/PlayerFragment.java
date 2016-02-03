@@ -69,6 +69,10 @@ public class PlayerFragment extends Fragment {
         mPlayerView.releaseAndSavePosition();
     }
 
+    public void removePlayer() {
+        mPlayerView.removePlayer();
+    }
+
     public void killPlayer() {
         mPlayerView.removePlayer();
         mPlayerView = null;

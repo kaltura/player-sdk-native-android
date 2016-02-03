@@ -71,7 +71,8 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
     @Override
     public void onBackPressed() {
         if (getFragmentManager().getBackStackEntryCount() > 0) {
-            mPlayerFragment.pausePlayer();
+            mPlayerFragment.killPlayer();
+            mPlayerFragment = null;
             getFragmentManager().popBackStack();
             findViewById(R.id.button).setVisibility(View.VISIBLE);
         }

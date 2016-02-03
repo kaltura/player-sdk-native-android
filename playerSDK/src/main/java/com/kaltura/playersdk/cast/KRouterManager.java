@@ -123,6 +123,12 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
         return mAppListener;
     }
 
+    public void release() {
+        teardown();
+        mRouter.removeCallback(mCallback);
+    }
+
+
     private ConnectionCallbacks getConnectionCallbacks() {
         if (mConnectionCallbacks == null) {
             mConnectionCallbacks = new ConnectionCallbacks();
