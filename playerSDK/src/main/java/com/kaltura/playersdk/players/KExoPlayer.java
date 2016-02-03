@@ -49,17 +49,17 @@ public class KExoPlayer extends FrameLayout implements KPlayerController.KPlayer
     private VideoSurfaceView mSurfaceView;
     private boolean mSeeking;
 
-    public static Set<SupportedFormat> supportedFormats(Context context) {
-        Set<SupportedFormat> set = new HashSet<>();
-        // Clear dash and mp4 are always supported.
-        set.add(SupportedFormat.DASH_CLEAR);
-        set.add(SupportedFormat.MP4_CLEAR);
+    public static Set<MediaFormat> supportedFormats(Context context) {
+        Set<MediaFormat> set = new HashSet<>();
+        // Clear dash and mp4 are always supported by this player.
+        set.add(MediaFormat.dash_clear);
+        set.add(MediaFormat.mp4_clear);
         
         // Encrypted dash is only supported in Android v4.3 and up -- needs MediaDrm class.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // Make sure Widevine is supported.
             if (MediaDrm.isCryptoSchemeSupported(ExoplayerUtil.WIDEVINE_UUID)) {
-                set.add(SupportedFormat.DASH_WIDEVINE);
+                set.add(MediaFormat.dash_widevine);
             }
         }
         return set;

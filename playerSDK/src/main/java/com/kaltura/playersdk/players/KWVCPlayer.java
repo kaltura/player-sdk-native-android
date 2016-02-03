@@ -40,9 +40,9 @@ public class KWVCPlayer
     private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
     
-    public static Set<SupportedFormat> supportedFormats(Context context) {
+    public static Set<MediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
-            return Collections.singleton(SupportedFormat.CLASSIC_WIDEVINE);
+            return Collections.singleton(MediaFormat.wvm_widevine);
         }
         return Collections.emptySet();
     }

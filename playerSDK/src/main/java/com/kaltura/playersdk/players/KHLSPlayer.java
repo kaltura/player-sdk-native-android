@@ -48,8 +48,8 @@ public class KHLSPlayer extends FrameLayout implements
     private KPlayerListener mListener;
     private KPlayerCallback mCallback;
 
-    public static Set<SupportedFormat> supportedFormats(Context context) {
-        return Collections.singleton(SupportedFormat.HLS_CLEAR);
+    public static Set<MediaFormat> supportedFormats(Context context) {
+        return Collections.singleton(MediaFormat.hls_clear);
     }
 
     public KHLSPlayer(Context context) {

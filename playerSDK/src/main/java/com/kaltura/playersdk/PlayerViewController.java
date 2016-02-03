@@ -8,6 +8,7 @@ import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -29,16 +30,14 @@ import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
-import com.kaltura.playersdk.players.SupportedFormat;
+import com.kaltura.playersdk.players.MediaFormat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -189,7 +188,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
         mConfig = configuration;
+
         setComponents(mConfig.getVideoURL());
+        
 //        setComponents("http://player-stg-eu.ott.kaltura.com/viacomIN/v2.37.2/mwEmbed/mwEmbedFrame.php/uiconf_id/8413353?wid=_&entry_id=295868&flashvars[proxyData]={%22initObj%22:{%22Locale%22:{%22LocaleLanguage%22:%22%22,%22LocaleCountry%22:%22%22,%22LocaleDevice%22:%22%22,%22LocaleUserState%22:%22Unknown%22},%22Platform%22:%22Cellular%22,%22SiteGuid%22:%22613999%22,%22DomainID%22:%22282563%22,%22UDID%22:%22123456%22,%22ApiUser%22:%22tvpapi_225%22,%22ApiPass%22:%2211111%22},%22MediaID%22:%22295868%22,%22iMediaID%22:%22295868%22,%22picSize%22:%22640x360%22,%22mediaType%22:%220%22,%22withDynamic%22:%22false%22}&flashvars[tvpapiGetLicensedLinks.plugin]=true&flashvars[TVPAPIBaseUrl]=http://stg.eu.tvinci.com/tvpapi_v3_3/gateways/jsonpostgw.aspx?m=&flashvars[liveCore.disableLiveCheck]=true&iframeembed=true&flashvars[chromecast.plugin]=true");
     }
 
@@ -439,8 +440,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
             this.playerController = new KPlayerController(this);
             this.addView(mWebView, wvLp);
-            pushSupportedMediaFormats();
+            
         }
+        
+        iframeUrl += "#" + buildSupportedMediaFormats();
+
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) ) {
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
@@ -882,51 +886,26 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    private void executeJS(String js) {
-        try {
-            mWebView.loadUrl("javascript:" + URLEncoder.encode(js, "UTF8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("No UTF8", e); // can't really happen, UTF8 is Android's default encoding.
-        }
-    }
-    
-    private void pushSupportedMediaFormats() {
-        // Result:
-        // window.kNativeSDK.supportedFormats={"drmTypes":["video/wvm","application/dash+xml"],"clearTypes":["application/vnd.apple.mpegurl","video/mp4","application/dash+xml"],"allTypes":["application/vnd.apple.mpegurl","video/wvm","video/mp4","application/dash+xml"]}
-        
-        Set<SupportedFormat> supportedFormats = playerController.supportedFormats(getContext());
-        
+
+    private String buildSupportedMediaFormats() {
+        Set<MediaFormat> supportedFormats = KPlayerController.supportedFormats(getContext());
+
         Set<String> drmTypes = new HashSet<>();
-        Set<String> clearTypes = new HashSet<>();
         Set<String> allTypes = new HashSet<>();
 
-        for (SupportedFormat format : supportedFormats) {
-            if (format.drm == null) {
-                clearTypes.add(format.mimeType);
-            } else {
-                drmTypes.add(format.mimeType);
+        for (MediaFormat format : supportedFormats) {
+            if (format.drm != null) {
+                drmTypes.add(format.shortName);
             }
-            allTypes.add(format.mimeType);
+            allTypes.add(format.shortName);
         }
-
-        String json;
         
-        try {
-            json = new JSONObject()
-                    .put("drmTypes", new JSONArray(drmTypes))
-                    .put("clearTypes", new JSONArray(clearTypes))
-                    .put("allTypes", new JSONArray(allTypes)).toString();
-                    
-        } catch (JSONException e) {
-            Log.e(TAG, "Error creating supported formats json", e);
-            return;
-        }
-
-        executeJS("window.kNativeSDK=window.kNativeSDK||{}");
-        executeJS("window.kNativeSDK.supportedFormats=" + json);
+        return new Uri.Builder()
+                .appendQueryParameter("nativeSdkDrmFormats", TextUtils.join(",", drmTypes))
+                .appendQueryParameter("nativeSdkAllFormats", TextUtils.join(",", allTypes))
+                .build().getQuery();
     }
-
-
+    
     // Native actions
     private void share(JSONObject shareParams) {
 //        if(mShareListener != null){

@@ -87,10 +87,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         void setLicenseUri(String licenseUri);
     }
     
-    public Set<SupportedFormat> supportedFormats(Context context) {
+    public static Set<MediaFormat> supportedFormats(Context context) {
         // TODO: dynamically determine available players, use reflection.
 
-        Set<SupportedFormat> formats = new HashSet<>();
+        Set<MediaFormat> formats = new HashSet<>();
 
         // All known players
         formats.addAll(KExoPlayer.supportedFormats(context));
