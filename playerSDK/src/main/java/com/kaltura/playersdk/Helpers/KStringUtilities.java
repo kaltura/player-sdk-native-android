@@ -132,7 +132,7 @@ public class KStringUtilities {
     }
 
     static public String sendNotification(String notificationName, String params) {
-        return JSMethod(SendNotification, "\"" + notificationName + "\"," + params);
+        return JSMethod(SendNotification, "'" + notificationName + "'," + params);
     }
 
     static public String[] fetchArgs(String jsonString) {
@@ -156,7 +156,10 @@ public class KStringUtilities {
     }
 
     static private String JSMethod(String action, String params) {
-        return JavaScriptPrefix + action +"(\"" + params + "\")";
+        if (params.equals("null")) {
+            return JavaScriptPrefix + action + "()";
+        }
+        return JavaScriptPrefix + action +"(" + params + ")";
     }
 
     static private String JSMethod(String action, String param1, String param2) {
