@@ -13,8 +13,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.kaltura.playersdk.KPPlayerConfig;
+import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPlayerState;
+
 public class MainActivity extends AppCompatActivity implements PlayerFragment.OnFragmentInteractionListener, View.OnClickListener {
     private PlayerFragment mPlayerFragment;
+    private PlayerViewController mPlayer;
+    private Button mPreloadButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
         button.setOnClickListener(this);
         button = (Button)findViewById(R.id.button2);
         button.setOnClickListener(this);
+        mPreloadButton = (Button)findViewById(R.id.button3);
+        mPreloadButton.setOnClickListener(this);
     }
 
     @Override
@@ -98,6 +107,32 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
             if (!isPlayer) {
                 mPlayerFragment.resumePlayer();
             }
+        } else if (v.getId() == R.id.button3) {
+            mPlayer = (PlayerViewController)findViewById(R.id.player);
+//            mPlayer.setVisibility(View.VISIBLE);
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.39.rc8/mwEmbedFrame.php", "32855491", "1424501");
+            config.setEntryId("1_32865911");
+            mPlayer.loadPlayerIntoActivity(this);
+            mPlayer.initWithConfiguration(config);
+            mPlayer.addEventListener(new KPEventListener() {
+                @Override
+                public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                    if (state == KPlayerState.READY) {
+                        mPlayer.setVisibility(View.VISIBLE);
+                        mPreloadButton.setText("Remove Player");
+                    }
+                }
+
+                @Override
+                public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+
+                }
+
+                @Override
+                public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+
+                }
+            });
         } else {
             Intent intent = new Intent(this, OfflineActivity.class);
             startActivity(intent);

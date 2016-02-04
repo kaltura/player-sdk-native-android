@@ -7,21 +7,40 @@
     android:background="#ffffea56">
 
 
+    <com.kaltura.playersdk.PlayerViewController
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
+        android:visibility="invisible"
+        android:id="@+id/player">
+    </com.kaltura.playersdk.PlayerViewController>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Load Player"
         android:id="@+id/button"
-        android:layout_alignParentTop="true"
+        android:layout_above="@+id/button2"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="68dp"/>
+        android:layout_marginBottom="59dp"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Offline Tester"
         android:id="@+id/button2"
-        android:layout_below="@+id/button"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="76dp" />
+        android:layout_marginBottom="56dp"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Preload Player"
+        android:id="@+id/button3"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
+
 </RelativeLayout>
