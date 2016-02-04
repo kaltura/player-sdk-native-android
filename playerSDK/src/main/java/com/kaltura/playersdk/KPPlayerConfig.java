@@ -122,9 +122,6 @@ public class KPPlayerConfig implements Serializable{
 		Uri.Builder builder = new Uri.Builder();
 		
 		// First add basic fields
-		builder.appendQueryParameter(sWidKey, "_" + getPartnerId());
-		builder.appendQueryParameter(sUiConfIdKey, getUiConfId());
-
 		if (mPartnerId != null) {
 			builder.appendQueryParameter(sWidKey, "_" + mPartnerId);
 		}
