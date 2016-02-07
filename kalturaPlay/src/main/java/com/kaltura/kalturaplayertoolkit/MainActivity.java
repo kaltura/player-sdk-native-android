@@ -95,7 +95,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
                 return;
             }
             
-            extras.putSerializable("config", KPPlayerConfig.valueOf(embedFrameURL));
+            extras.putSerializable("config", KPPlayerConfig.fromEmbedFrameURL(embedFrameURL));
             fragment = new FullscreenFragment();
         }
 
