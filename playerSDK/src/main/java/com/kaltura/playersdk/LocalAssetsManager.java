@@ -62,44 +62,43 @@ public class LocalAssetsManager {
         // NOTE: this method currently only supports (and assumes) Widevine Classic.
 
         // Preflight: check that all parameters are valid.
-        final String serverURL = checkNotNullOrEmpty(entry.getDomain(), "entry.domain");
-        final String ks = checkNotNullOrEmpty(entry.getKS(), "entry.ks");
-        final String entryId = checkNotNullOrEmpty(entry.getEntryId(), "entry.entryId");
-        final String partnerId = (String) checkNotNull(entry.getPartnerId(), "partnerId");
-        final String uiConfId = checkNotNullOrEmpty(entry.getUiConfId(), "entry.uiConfId");
-        checkNotEmpty(flavor, "flavor");    // can be null but not empty
+        checkNotNullOrEmpty(entry.getServerURL(), "entry.domain");
+        checkNotNullOrEmpty(entry.getUiConfId(), "entry.uiConfId");
+        checkNotNullOrEmpty(entry.getEntryId(), "entry.entryId");
+        checkNotNullOrEmpty(flavor, "flavor");
         checkNotNullOrEmpty(localPath, "localPath");
+        checkNotNull(entry.getPartnerId(), "partnerId");    // can be an empty string
         checkNotNull(context, "context");
+        
+        
+        final DRMScheme drmScheme = DRMScheme.WidevineClassic;
 
         new Thread() {
             @Override
             public void run() {
-                registerWidevineAsset(serverURL, partnerId, uiConfId, entryId, ks, flavor, listener, localPath, context);
+                Uri licenseUri;
+                try {
+                    licenseUri = prepareLicenseUri(entry, flavor, drmScheme);
+                    registerWidevineClassicAsset(context, localPath, licenseUri, listener);
+                } catch (JSONException e) {
+                    Log.e(TAG, "JSON error", e);
+                    if (listener != null) {
+                        listener.onFailed(localPath, e);
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "IO error", e);
+                    if (listener != null) {
+                        listener.onFailed(localPath, e);
+                    }
+                }
             }
         }.start();
         
 
         return true;
     }
-
-    private static void registerWidevineAsset(String serverURL, String partnerId, String uiConfId, String entryId, String ks, @Nullable String flavor, @Nullable final AssetEventListener listener, @NonNull final String localPath, @NonNull Context context) {
-        Uri licenseUri;
-        try {
-            licenseUri = prepareLicenseUri(serverURL, partnerId, uiConfId, entryId, ks, flavor, DRMScheme.WidevineClassic);
-        } catch (JSONException e) {
-            Log.e(TAG, "JSON error", e);
-            if (listener != null) {
-                listener.onFailed(localPath, e);
-            }
-            return;
-        } catch (IOException e) {
-            Log.e(TAG, "IO error", e);
-            if (listener != null) {
-                listener.onFailed(localPath, e);
-            }
-            return;
-        }
-
+    
+    private static void registerWidevineClassicAsset(@NonNull Context context, @NonNull final String localPath, Uri licenseUri, @Nullable final AssetEventListener listener) {
         WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
         widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
             @Override
@@ -132,10 +131,10 @@ public class LocalAssetsManager {
         return false; // TODO
     }
 
-    private static Uri prepareLicenseUri(String serverURL, String partnerId, String uiConfId, String entryId, String ks, @Nullable String flavor, @NonNull DRMScheme drmScheme) throws IOException, JSONException {
+    private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DRMScheme drmScheme) throws IOException, JSONException {
 
         // load license data
-        Uri getLicenseDataURL = prepareGetLicenseDataURL(serverURL, partnerId, uiConfId, entryId, ks, drmScheme);
+        Uri getLicenseDataURL = prepareGetLicenseDataURL(config, flavor, drmScheme);
         String licenseData = Utilities.loadStringFromURL(getLicenseDataURL, JSON_BYTE_LIMIT);
         
         // parse license data
@@ -144,24 +143,19 @@ public class LocalAssetsManager {
             throw new IOException("Error getting license data: " + licenseDataJSON.getJSONObject("error").getString("message"));
         }
         
-        JSONObject licenseUris = licenseDataJSON.getJSONObject("licenseUri");
-
-        if (flavor == null) {
-            // select any flavor
-            flavor = licenseUris.keys().next();
-        }
+        String licenseUri = licenseDataJSON.getString("licenseUri");
         
-        return Uri.parse(licenseUris.getString(flavor));
+        return Uri.parse(licenseUri);
     }
 
-    private static Uri prepareGetLicenseDataURL(String serverURL, String partnerId, String uiConfId, String entryId, String ks, DRMScheme drmScheme) throws IOException, JSONException {
-        Uri serviceURL = Uri.parse(serverURL);
+    private static Uri prepareGetLicenseDataURL(KPPlayerConfig config, String flavor, DRMScheme drmScheme) throws IOException, JSONException {
 
+        Uri serviceURL = Uri.parse(config.getServerURL());
         // URL may either point to the root of the server or to mwEmbedFrame.php. Resolve this.
         if (serviceURL.getPath().endsWith("/mwEmbedFrame.php")) {
             serviceURL = Utilities.stripLastPathSegment(serviceURL);
         } else {
-            serviceURL = resolvePlayerRootURL(serviceURL, partnerId, uiConfId, ks);
+            serviceURL = resolvePlayerRootURL(serviceURL, config.getPartnerId(), config.getUiConfId(), config.getKS());
         }
 
         // Now serviceURL is something like "http://cdnapi.kaltura.com/html5/html5lib/v2.38.3".
@@ -177,18 +171,12 @@ public class LocalAssetsManager {
                 break;
         }
 
-        // Build service URL
-        serviceURL = serviceURL.buildUpon()
+        return serviceURL.buildUpon()
                 .appendPath("services.php")
+                .encodedQuery(config.getQueryString())
                 .appendQueryParameter("service", "getLicenseData")
-                .appendQueryParameter("ks", ks)
-                .appendQueryParameter("wid", partnerId)
-                .appendQueryParameter("entry_id", entryId)
-                .appendQueryParameter("uiconf_id", uiConfId)
                 .appendQueryParameter("drm", drmName)
-                .build();
-        
-        return serviceURL;
+                .appendQueryParameter("flavor_id", flavor).build();
     }
 
     private static Uri resolvePlayerRootURL(Uri serverURL, String partnerId, String uiConfId, String ks) throws IOException, JSONException {
