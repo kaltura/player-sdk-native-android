@@ -34,6 +34,12 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
         mPreloadButton.setOnClickListener(this);
     }
 
+    private void updateButtons(int visibility) {
+        findViewById(R.id.button2).setVisibility(visibility);
+        findViewById(R.id.button).setVisibility(visibility);
+        mPreloadButton.setVisibility(visibility);
+    }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -82,8 +88,11 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
             mPlayerFragment.pausePlayer();
             getFragmentManager().popBackStack();
             findViewById(R.id.button).setVisibility(View.VISIBLE);
-        }
-        else {
+        } else if (mPlayer != null) {
+            mPlayer.setVisibility(View.INVISIBLE);
+            mPlayer.sendNotification("doPause", null);
+            updateButtons(View.VISIBLE);
+        } else {
             super.onBackPressed();
         }
     }
@@ -110,38 +119,38 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
         } else if (v.getId() == R.id.button3) {
             // when the vidoe is ready to play show the player and start playing
             if (mPreloadButton.getText().equals("Ready To Play")) {
-                findViewById(R.id.button2).setVisibility(View.INVISIBLE);
-                findViewById(R.id.button).setVisibility(View.INVISIBLE);
-                mPreloadButton.setVisibility(View.INVISIBLE);
+                updateButtons(View.INVISIBLE);
                 mPlayer.setVisibility(View.VISIBLE);
                 mPlayer.sendNotification("doPlay", null);
                 // start loading the player while is hidden
             } else if (mPreloadButton.getText().equals("Preload Player")) {
 
                 mPreloadButton.setText("Loading Player..");
-                mPlayer = (PlayerViewController) findViewById(R.id.player);
-                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "32855491", "1424501");
-                config.setEntryId("1_32865911");
-                mPlayer.loadPlayerIntoActivity(this);
-                mPlayer.initWithConfiguration(config);
-                mPlayer.addEventListener(new KPEventListener() {
-                    @Override
-                    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-                        if (state == KPlayerState.READY) {
-                            mPreloadButton.setText("Ready To Play");
+                if (mPlayer == null) {
+                    mPlayer = (PlayerViewController) findViewById(R.id.player);
+                    KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "32855491", "1424501");
+                    config.setEntryId("1_32865911");
+                    mPlayer.loadPlayerIntoActivity(this);
+                    mPlayer.initWithConfiguration(config);
+                    mPlayer.addEventListener(new KPEventListener() {
+                        @Override
+                        public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                            if (state == KPlayerState.READY) {
+                                mPreloadButton.setText("Ready To Play");
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+                        @Override
+                        public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
 
-                    }
+                        }
 
-                    @Override
-                    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+                        @Override
+                        public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
 
-                    }
-                });
+                        }
+                    });
+                }
             }
         } else {
             Intent intent = new Intent(this, OfflineActivity.class);
