@@ -146,6 +146,10 @@ public class KPPlayerConfig implements Serializable{
 	public void setChromecastEnabled(boolean chromecastEnabled) {
 		addConfig("chromecast.plugin", String.valueOf(chromecastEnabled));
 	}
+	
+	public void setHideControlsOnPlay(boolean hide) {
+		addConfig("controlBarContainer.hover", Boolean.toString(hide));
+	}
 
 	public void setCacheSize (float cacheSize) {
 		mCacheSize = cacheSize;
