@@ -33,7 +33,7 @@ import java.util.UUID;
 /**
  * Created by noamt on 18/01/2016.
  */
-public class KExoPlayer extends FrameLayout implements KPlayerController.KPlayer, ExoplayerWrapper.PlaybackListener {
+public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener {
 
     private static final String TAG = "KExoPlayer";
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -71,9 +71,9 @@ public class KExoPlayer extends FrameLayout implements KPlayerController.KPlayer
 
     private KPlayerListener noopPlayerListener() {
         return new KPlayerListener() {
-            public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue) {}
-            public void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue) {}
-            public void contentCompleted(KPlayerController.KPlayer currentPlayer) {}
+            public void eventWithValue(KPlayer player, String eventName, String eventValue) {}
+            public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {}
+            public void contentCompleted(KPlayer currentPlayer) {}
         };
     }
     
@@ -170,11 +170,6 @@ public class KExoPlayer extends FrameLayout implements KPlayerController.KPlayer
             }
         });
         this.addView(mSurfaceView, layoutParams);
-    }
-
-    @Override
-    public String getPlayerSource() {
-        return mSourceURL;
     }
 
     private float kplayerTime(long exoPlayerTime) {
@@ -305,11 +300,6 @@ public class KExoPlayer extends FrameLayout implements KPlayerController.KPlayer
     @Override
     public void recoverPlayer() {
         // TODO
-    }
-
-    @Override
-    public boolean isKPlayer() {
-        return false;
     }
 
     @Override

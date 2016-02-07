@@ -17,9 +17,9 @@ public interface KPlayerListener {
     String SourceSwitchingStartedKey = "sourceSwitchingStarted";
     String SourceSwitchingEndKey = "sourceSwitchingEnd";
 
-    void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue);
-    void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue);
-    void contentCompleted(KPlayerController.KPlayer currentPlayer);
+    void eventWithValue(KPlayer player, String eventName, String eventValue);
+    void eventWithJSON(KPlayer player, String eventName, String jsonValue);
+    void contentCompleted(KPlayer currentPlayer);
 }
 
 

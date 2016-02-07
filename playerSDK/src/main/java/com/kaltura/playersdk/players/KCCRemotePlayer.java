@@ -19,7 +19,7 @@ import java.io.IOException;
 /**
  * Created by nissimpardo on 08/12/15.
  */
-public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPlayer.OnStatusUpdatedListener, RemoteMediaPlayer.OnMetadataUpdatedListener, RemoteMediaPlayer.OnPreloadStatusUpdatedListener {
+public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdatedListener, RemoteMediaPlayer.OnMetadataUpdatedListener, RemoteMediaPlayer.OnPreloadStatusUpdatedListener {
     private static final String TAG = "KCCRemotePlayer";
     private RemoteMediaPlayer mRemoteMediaPlayer;
     private GoogleApiClient mApiClient;
@@ -140,11 +140,6 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
     }
 
     @Override
-    public String getPlayerSource() {
-        return mPlayerSource;
-    }
-
-    @Override
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if (currentPlaybackTime > 0) {
             mCurrentPlaybackTime = currentPlaybackTime;
@@ -233,11 +228,6 @@ public class KCCRemotePlayer implements KPlayerController.KPlayer, RemoteMediaPl
     @Override
     public void recoverPlayer() {
 
-    }
-
-    @Override
-    public boolean isKPlayer() {
-        return false;
     }
 
     @Override

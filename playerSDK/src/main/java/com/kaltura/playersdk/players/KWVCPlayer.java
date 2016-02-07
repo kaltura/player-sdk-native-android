@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public class KWVCPlayer 
         extends FrameLayout
-        implements KPlayerController.KPlayer {
+        implements KPlayer {
 
     private static final String TAG = "KWVCPlayer";
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -80,9 +80,9 @@ public class KWVCPlayer
         if (listener == null) {
             // Create a no-op listener
             listener = new KPlayerListener() {
-                public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue) {}
-                public void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue) {}
-                public void contentCompleted(KPlayerController.KPlayer currentPlayer) {}
+                public void eventWithValue(KPlayer player, String eventName, String eventValue) {}
+                public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {}
+                public void contentCompleted(KPlayer currentPlayer) {}
             };
         }
         mListener = listener;
@@ -97,11 +97,6 @@ public class KWVCPlayer
             };
         }
         mCallback = callback;
-    }
-
-    @Override
-    public String getPlayerSource() {
-        return mAssetUri;
     }
 
     @Override
@@ -218,11 +213,6 @@ public class KWVCPlayer
     @Override
     public void recoverPlayer() {
         
-    }
-
-    @Override
-    public boolean isKPlayer() {
-        return false;
     }
 
     @Override
