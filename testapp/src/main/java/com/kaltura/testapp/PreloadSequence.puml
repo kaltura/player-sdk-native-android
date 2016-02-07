@@ -1,0 +1,16 @@
+@startuml
+Button -> MainActivity: Change the title to //**"Loading Player.."**//
+note left
+ the text of
+ the button
+ is "Preload Player"
+ end note
+MainActivity -> PlayerViewController: Load player
+note right: the player is invisible
+PlayerViewController --> MainActivity: Player is ready to play
+MainActivity -> Button: Change the title to //**"Ready To Play"**//
+Button -> MainActivity
+MainActivity -> PlayerViewController: Show player and start playing
+
+
+@enduml
