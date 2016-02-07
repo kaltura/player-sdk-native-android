@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
         if (mPlayerFragment != null && !isFinishing()) {
             mPlayerFragment.killPlayer();
             mPlayerFragment = null;
-            ((Button)findViewById(R.id.button)).setVisibility(View.VISIBLE);
+            findViewById(R.id.button).setVisibility(View.VISIBLE);
         }
     }
 
@@ -107,32 +107,43 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
             if (!isPlayer) {
                 mPlayerFragment.resumePlayer();
             }
+            // if Preload clicked
         } else if (v.getId() == R.id.button3) {
-            mPlayer = (PlayerViewController)findViewById(R.id.player);
-//            mPlayer.setVisibility(View.VISIBLE);
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.39.rc8/mwEmbedFrame.php", "32855491", "1424501");
-            config.setEntryId("1_32865911");
-            mPlayer.loadPlayerIntoActivity(this);
-            mPlayer.initWithConfiguration(config);
-            mPlayer.addEventListener(new KPEventListener() {
-                @Override
-                public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-                    if (state == KPlayerState.READY) {
-                        mPlayer.setVisibility(View.VISIBLE);
-                        mPreloadButton.setText("Remove Player");
+            // when the vidoe is ready to play show the player and start playing
+            if (mPreloadButton.getText().equals("Ready To Play")) {
+                findViewById(R.id.button2).setVisibility(View.INVISIBLE);
+                findViewById(R.id.button).setVisibility(View.INVISIBLE);
+                mPreloadButton.setVisibility(View.INVISIBLE);
+                mPlayer.setVisibility(View.VISIBLE);
+                mPlayer.sendNotification("doPlay", null);
+                // start loading the player while is hidden
+            } else if (mPreloadButton.getText().equals("Preload Player")) {
+
+                mPreloadButton.setText("Loading Player..");
+                mPlayer = (PlayerViewController) findViewById(R.id.player);
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "32855491", "1424501");
+                config.setEntryId("1_32865911");
+                mPlayer.loadPlayerIntoActivity(this);
+                mPlayer.initWithConfiguration(config);
+                mPlayer.addEventListener(new KPEventListener() {
+                    @Override
+                    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                        if (state == KPlayerState.READY) {
+                            mPreloadButton.setText("Ready To Play");
+                        }
                     }
-                }
 
-                @Override
-                public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+                    @Override
+                    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
 
-                }
+                    }
 
-                @Override
-                public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+                    @Override
+                    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
 
-                }
-            });
+                    }
+                });
+            }
         } else {
             Intent intent = new Intent(this, OfflineActivity.class);
             startActivity(intent);

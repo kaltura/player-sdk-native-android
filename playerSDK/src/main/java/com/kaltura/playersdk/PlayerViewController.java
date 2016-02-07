@@ -8,6 +8,7 @@ import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -533,9 +534,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     // Kaltura Player external API
     // /////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void sendNotification(String noteName, JSONObject noteBody) {
-        notifyKPlayer("sendNotification", new String[]{noteName, noteBody.toString()});
-    }
+//    public void sendNotification(String noteName, JSONObject noteBody) {
+//        notifyKPlayer("sendNotification", new String[]{noteName, noteBody.toString()});
+//    }
 
 
 
@@ -711,7 +712,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         mWebView.evaluate(expression, expressionID);
     }
 
-    public void sendNotification(String notificationName, String params) {
+    public void sendNotification(String notificationName,@Nullable String params) {
         if (notificationName == null) {
             notificationName = "null";
         }
