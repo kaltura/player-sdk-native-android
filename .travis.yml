@@ -11,7 +11,7 @@ android:
   - extra-android-m2repository
   - extra-google-m2repository
 script:
-- ./gradlew assembleDebug
+- ./gradlew assembleDebug --stacktrace
 - ./gradlew assembleRelease
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
