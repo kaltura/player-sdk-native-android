@@ -29,6 +29,7 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
@@ -590,7 +591,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         Method bridgeMethod = KStringUtilities.isMethodImplemented(this, functionName);
         Object object = this;
         if (bridgeMethod == null) {
-            KPlayerController.KPlayer player = this.playerController.getPlayer();
+            KPlayer player = this.playerController.getPlayer();
             bridgeMethod = KStringUtilities.isMethodImplemented(player, functionName);
             object = player;
         }
@@ -614,7 +615,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     //
     @Override
-    public void eventWithValue(KPlayerController.KPlayer player, String eventName, String eventValue) {
+    public void eventWithValue(KPlayer player, String eventName, String eventValue) {
         Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
@@ -630,13 +631,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     @Override
-    public void eventWithJSON(KPlayerController.KPlayer player, String eventName, String jsonValue) {
+    public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
         Log.d("EventWithJSON", "Name: " + eventName + " Value: " + jsonValue);
         this.mWebView.triggerEventWithJSON(eventName, jsonValue);
     }
 
     @Override
-    public void contentCompleted(KPlayerController.KPlayer currentPlayer) {
+    public void contentCompleted(KPlayer currentPlayer) {
         if (eventListeners != null) {
             for (KPEventListener listener: eventListeners) {
                 listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
@@ -794,7 +795,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             return;
         }
 
-        KPlayerController.KPlayer player = playerController.getPlayer();
+        KPlayer player = playerController.getPlayer();
         if (player instanceof QualityTracksInterface) {
             QualityTracksInterface adaptivePlayer = (QualityTracksInterface) player;
             adaptivePlayer.switchQualityTrack(flavorIndex);

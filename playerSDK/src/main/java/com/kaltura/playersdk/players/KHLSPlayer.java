@@ -29,7 +29,7 @@ import java.util.Set;
  * Created by nissopa on 7/6/15.
  */
 public class KHLSPlayer extends FrameLayout implements
-        KPlayerController.KPlayer,
+        KPlayer,
         TextTracksInterface,
         AlternateAudioTracksInterface,
         QualityTracksInterface,
@@ -87,11 +87,6 @@ public class KHLSPlayer extends FrameLayout implements
     }
 
     @Override
-    public String getPlayerSource() {
-        return mPlayer.getVideoUrl();
-    }
-
-    @Override
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         mPlayer.seek((int)(currentPlaybackTime * 1000) + mPlayer.getPlaybackWindowStartTime());
     }
@@ -133,11 +128,6 @@ public class KHLSPlayer extends FrameLayout implements
     @Override
     public void recoverPlayer() {
         mPlayer.recoverRelease();
-    }
-
-    @Override
-    public boolean isKPlayer() {
-        return false;
     }
 
     @Override

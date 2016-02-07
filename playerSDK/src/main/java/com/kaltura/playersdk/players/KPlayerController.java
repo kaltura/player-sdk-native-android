@@ -68,25 +68,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         playerListener.contentCompleted(currentPlayer);
     }
 
-    public interface KPlayer {
-
-        void setPlayerListener(KPlayerListener listener);
-        void setPlayerCallback(KPlayerCallback callback);
-        void setPlayerSource(String playerSource);
-        String getPlayerSource();
-        void setCurrentPlaybackTime(float playbackTime);
-        float getCurrentPlaybackTime();
-        float getDuration();
-        void play();
-        void pause();
-        void changeSubtitleLanguage(String languageCode);
-        void removePlayer();
-        void recoverPlayer();
-        boolean isKPlayer();
-        void setShouldCancelPlay(boolean shouldCancelPlay);
-        void setLicenseUri(String licenseUri);
-    }
-    
     public static Set<MediaFormat> supportedFormats(Context context) {
         // TODO: dynamically determine available players, use reflection.
 
