@@ -1,12 +1,11 @@
 package com.kaltura.testapp;
 
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -99,11 +98,11 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                 mPlayerFragment = new PlayerFragment();
                 isPlayer = true;
             }
-            FragmentTransaction transaction = getFragmentManager().beginTransaction().setCustomAnimations(R.anim.slide_up, R.anim.slide_down);
-//        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left);
-            transaction.add(R.id.fragment_container, mPlayerFragment);
-            transaction.addToBackStack(mPlayerFragment.getClass().getName());
-            transaction.commit();
+            getFragmentManager().beginTransaction()
+                    .setCustomAnimations(R.anim.slide_up, R.anim.slide_down)
+                    .add(R.id.fragment_container, mPlayerFragment)
+                    .addToBackStack(mPlayerFragment.getClass().getName())
+                    .commit();
             if (!isPlayer) {
                 mPlayerFragment.resumePlayer();
             }

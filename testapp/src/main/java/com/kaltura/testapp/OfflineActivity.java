@@ -1,7 +1,6 @@
 package com.kaltura.testapp;
 
 import android.app.Activity;
-import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
@@ -22,7 +21,6 @@ import helpers.AssetsFetcher;
 import helpers.VideoDownloader;
 
 public class OfflineActivity extends Activity implements DemoAdapter.MyClickListener, PlayerFragment.OnFragmentInteractionListener, PlayerViewController.SourceURLProvider {
-    private KPPlayerConfig mConfig;
     private HashMap<String, String> values;
     private PlayerFragment mPlayerFragment;
     DemoAdapter adapter;
@@ -31,7 +29,6 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_offline);
         ArrayList<HashMap<String, Object>> cells = AssetsFetcher.loadJSONArrayFromAssets(this, "demoParams.json");
-        Log.d("test", cells.toString());
         RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setBackgroundColor(Color.RED);
@@ -61,9 +58,8 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
                 } else {
                     ArrayList<?> test = AssetsFetcher.loadConfigFromFile(OfflineActivity.this);
                     if (test != null) {
-                        HashMap<String, String> config = (HashMap<String, String>)test.get(0);
-                        config.put("Config URl", url);
-                        adapter.loadRemoteConfig((HashMap)test.get(0));
+                        HashMap<String, String> config = (HashMap<String, String>) test.get(0);
+                        adapter.loadRemoteConfig(config);
                     }
                 }
             }
@@ -127,11 +123,11 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
                 }
                 findViewById(R.id.recyclerView).setVisibility(View.INVISIBLE);
                 mPlayerFragment.setPlayerConfig(getConfig());
-                FragmentTransaction transaction = getFragmentManager().beginTransaction().setCustomAnimations(R.anim.slide_up, R.anim.slide_down);
-//        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left);
-                transaction.add(R.id.fragment_container, mPlayerFragment);
-                transaction.addToBackStack(mPlayerFragment.getClass().getName());
-                transaction.commit();
+                getFragmentManager().beginTransaction()
+                        .setCustomAnimations(R.anim.slide_up, R.anim.slide_down)
+                        .add(R.id.fragment_container, mPlayerFragment)
+                        .addToBackStack(mPlayerFragment.getClass().getName())
+                        .commit();
                 if (!isPlayer) {
                     mPlayerFragment.resumePlayer();
                 }
@@ -151,7 +147,7 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
                     SharedPreferences.Editor editor = getSharedPreferences("KalturaPrefs", MODE_PRIVATE).edit();
                     url = "http://192.168.160.195/demoConfig.json";
                     editor.putString("configURL", url);
-                    editor.commit();
+                    editor.apply();
                 }
                 fetchFile(v, null, "config.json", url);
                 break;
@@ -163,7 +159,7 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
         if (key.equals("Config URl")) {
             SharedPreferences.Editor editor = getSharedPreferences("KalturaPrefs", MODE_PRIVATE).edit();
             editor.putString("configURL", text);
-            editor.commit();
+            editor.apply();
         }
         getValues().put(key, text);
     }
