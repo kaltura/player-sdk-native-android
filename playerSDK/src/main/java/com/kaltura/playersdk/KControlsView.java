@@ -106,6 +106,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     }
 
     public void sendNotification(String notification, String params) {
+        Log.d("JavaSCRIPT", KStringUtilities.sendNotification(notification, params));
         this.loadUrl(KStringUtilities.sendNotification(notification, params));
     }
 
