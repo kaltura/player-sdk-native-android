@@ -76,7 +76,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         // All known players
         formats.addAll(KExoPlayer.supportedFormats(context));
         formats.addAll(KWVCPlayer.supportedFormats(context));
-        formats.addAll(KHLSPlayer.supportedFormats(context));
+//        formats.addAll(KHLSPlayer.supportedFormats(context));
         
         return formats;
     }
@@ -98,6 +98,12 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
         this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
+    }
+
+    public void replacePlayer() {
+        ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+        this.parentViewController.addView((View)this.player, 1, lp);
     }
 
     public void play() {
@@ -210,11 +216,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             return;
         }
 
-        if (this.src != null) {
-            return;
-        }
-
         Context context = parentViewController.getContext();
+        boolean shouldReplacePlayer = false;
+        if (this.player != null) {
+            parentViewController.removeView((View)this.player);
+            this.player.removePlayer();
+            shouldReplacePlayer = true;
+        }
 
         // maybe change player
         String path = Uri.parse(src).getPath();
@@ -227,13 +235,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         } else {
             this.player = new com.kaltura.playersdk.players.KExoPlayer(context);
         }
-        addPlayerToController();
+        if (shouldReplacePlayer) {
+            replacePlayer();
+        } else {
+            addPlayerToController();
+        }
         this.player.setPlayerListener(playerListener);
         this.player.setPlayerCallback(this);
         this.src = src;
         this.player.setPlayerSource(src);
-
-
     }
 
     public void setLicenseUri(String uri) {
@@ -326,6 +336,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
             case KPlayerCallback.SHOULD_PLAY:
                 isIMAActive = false;
+                player.setShouldCancelPlay(false);
                 player.play();
                 break;
             case KPlayerCallback.SHOULD_PAUSE:
