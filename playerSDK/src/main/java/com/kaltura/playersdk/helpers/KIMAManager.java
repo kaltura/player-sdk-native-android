@@ -201,7 +201,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
                 break;
             case CONTENT_RESUME_REQUESTED:
-//                fireIMAEvent(ContentResumeRequestedKey);
+                fireIMAEvent(ContentResumeRequestedKey);
                 if (!mContentCompleted) {
                     mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
