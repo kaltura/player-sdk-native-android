@@ -1,4 +1,4 @@
-include ':googlemediaframework', ':playersCollection'
+include ':googlemediaframework', ':playersCollection', ':nativeControlls'
 include ':playerSDK'
 include ':kalturaPlay'
 include ':testapp'

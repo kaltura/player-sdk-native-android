@@ -69,7 +69,7 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
 
-        KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.195/html5.kaltura/mwEmbed/mwEmbedFrame.php", "15128121", "1091").setEntryId("0_vpdvoc48");
+        KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.16/html5.kaltura/mwEmbed/mwEmbedFrame.php", "32855491", "1424501").setEntryId("1_ypo9wae3");
         config.addConfig("EmbedPlayer.ShowPosterOnStop", "false");
 //        config.addConfig("Kaltura.LeadHLSOnAndroid", "true");
 //        config.addConfig("doubleClick.plugin", "false");

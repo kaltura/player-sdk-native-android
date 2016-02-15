@@ -128,8 +128,8 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                 mPreloadButton.setText("Loading Player..");
                 if (mPlayer == null) {
                     mPlayer = (PlayerViewController) findViewById(R.id.player);
-                    KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "32855491", "1424501");
-                    config.setEntryId("1_32865911");
+                    KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "31638861", "1831271");
+                    config.setEntryId("1_8kpa8n7f");
                     mPlayer.loadPlayerIntoActivity(this);
                     mPlayer.initWithConfiguration(config);
                     mPlayer.addEventListener(new KPEventListener() {
