@@ -118,8 +118,8 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
             // if Preload clicked
         } else if (v.getId() == R.id.button3) {
             // when the vidoe is ready to play show the player and start playing
-            if (mPreloadButton.getText().equals("Ready To Play")) {
-                updateButtons(View.INVISIBLE);
+            if (!mPreloadButton.getText().equals("Preload Player")) {
+//                updateButtons(View.INVISIBLE);
                 mPlayer.setVisibility(View.VISIBLE);
                 mPlayer.sendNotification("doPlay", null);
                 // start loading the player while is hidden
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                 mPreloadButton.setText("Loading Player..");
                 if (mPlayer == null) {
                     mPlayer = (PlayerViewController) findViewById(R.id.player);
-                    KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "32855491", "1424501");
+                    final KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "32855491", "1424501");
                     config.setEntryId("1_32865911");
                     mPlayer.loadPlayerIntoActivity(this);
                     mPlayer.initWithConfiguration(config);
@@ -153,8 +153,11 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                 }
             }
         } else {
-            Intent intent = new Intent(this, OfflineActivity.class);
-            startActivity(intent);
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc8", "26698911", "1831271");
+            config.setEntryId("1_1fncksnw");
+            mPlayer.changeMedia("0_vs3e2h32");
+//            Intent intent = new Intent(this, OfflineActivity.class);
+//            startActivity(intent);
         }
     }
 }
