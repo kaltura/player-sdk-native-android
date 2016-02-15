@@ -34,7 +34,6 @@ public class WidevineDrmClient {
     public static final String WV_DRM_INFO_REQUEST_VERSION_KEY = "WVDrmInfoRequestVersionKey";
     
     private long mWVDrmInfoRequestStatusKey = DEVICE_IS_PROVISIONED;
-    private String mPluginVersion = "";
     public static String WIDEVINE_MIME_TYPE = "video/wvm";
     public static String PORTAL_NAME = "kaltura";
 
@@ -53,7 +52,10 @@ public class WidevineDrmClient {
     }
 
     public static boolean isSupported(Context context) {
-        return new DrmManagerClient(context).canHandle("", WIDEVINE_MIME_TYPE);
+        DrmManagerClient drmManagerClient = new DrmManagerClient(context);
+        boolean canHandle = drmManagerClient.canHandle("", WIDEVINE_MIME_TYPE);
+        drmManagerClient.release();
+        return canHandle;
     }
     
     
@@ -108,7 +110,7 @@ public class WidevineDrmClient {
 //			return;
 //		}
         String eventTypeString = null;
-        String eventClass = null;
+        String eventClass;
         // pbpaste | perl -ne 'if (/.+public static final int (\w+).+/) {print qq(case DrmInfoEvent.$1: eventTypeString="$1"; break;\n);}'
         int eventType = event.getType();
         if (event instanceof DrmInfoEvent) {
@@ -205,7 +207,7 @@ public class WidevineDrmClient {
             mWVDrmInfoRequestStatusKey = Long.parseLong(drmInfoRequestStatusKey);
         }
 
-        mPluginVersion = (String)response.get(WV_DRM_INFO_REQUEST_VERSION_KEY);
+        String pluginVersion = (String) response.get(WV_DRM_INFO_REQUEST_VERSION_KEY);
     }
 
     public int acquireRights(String assetUri, String licenseServerUri) {
