@@ -9,8 +9,10 @@ android:
   - extra-android-m2repository
   - extra-google-m2repository
 script:
-- ./gradlew assembleDebug
-- ./gradlew assembleRelease
+- ./gradlew :kalturaPlay:assembleRelease
+- ./gradlew :testapp:assembleRelease
+- ./gradlew :kalturaPlay:assembleDebug
+- ./gradlew :testapp:assembleDebug
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
 - ./pull-artifacts-upload.sh
