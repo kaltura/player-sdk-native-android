@@ -1,4 +1,3 @@
-sudo: false
 language: android
 android:
   components:
@@ -9,11 +8,10 @@ android:
   - extra-android-m2repository
   - extra-google-m2repository
 script:
-- ./gradlew :kalturaPlay:assembleDebug
-- ./gradlew :kalturaPlay:assembleRelease
-- ./gradlew :testapp:assembleDebug
+- ./gradlew assembleDebug
+- ./gradlew assembleRelease
 after_success:
-- ls -lh kalturaPlay/build/outputs/apk
+- ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
 - ./pull-artifacts-upload.sh
 deploy:
   provider: releases
@@ -21,7 +19,7 @@ deploy:
   skip_cleanup: true
   file:
     - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
-    - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
+    - testapp/build/outputs/apk/testapp-debug.apk
   on:
     tags: true
   api-key: $GH_TOKEN
