@@ -4,15 +4,18 @@ android:
   components:
   - platform-tools
   - tools
-  - build-tools-22.0.1
+  - build-tools-23.0.2
+  - android-23
   - android-22
   - extra-android-m2repository
   - extra-google-m2repository
 script:
-- ./gradlew assembleDebug
-- ./gradlew assembleRelease
+- ./gradlew :kalturaPlay:assembleDebug
+- ./gradlew :kalturaPlay:assembleRelease
+- ./gradlew :testapp:assembleDebug || true
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk
+- ./pull-artifacts-upload.sh
 deploy:
   provider: releases
   draft: true
@@ -20,14 +23,9 @@ deploy:
   file:
     - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
     - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
-    - castCompanionLibraryandroid/build/outputs/aar/castCompanionLibraryandroid-release.aar
-    - exoPlayerLib/build/outputs/aar/exoPlayerLib-release.aar
-    - googlemediaframework/build/outputs/aar/googlemediaframework-release.aar
-    - playerSDK/build/outputs/aar/playerSDK-release.aar
   on:
     tags: true
-  api-key:
-    secure: "TklD17qRdJATf4gBnRwmxA7/FNBS37BY69hGgFrI8wSNRpoL/QeD3pLDvAiwZaWwZtTdTvb8GKGI9KCFKwR8DqoqxMqpyazPlgqd76INQ9jhVuY8kIwn+kDJQBhT4wmYOqKcuzICG5RJF76fJc7FE/KKVvKkgyG8jRL+Vh826do="
+  api-key: $GH_TOKEN
 notifications:
   email:
     recipients:

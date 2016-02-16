@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -101,8 +102,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                     callback.onEnded();
                 }
                 break;
-            case ExoPlayer.UNKNOWN_TIME:
-                break;
         }
     }
 
@@ -114,7 +113,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     @Override
-    public void onVideoSizeChanged(int width, int height) {
+    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
 
     }
     // [END ExoplayerWrapper.PlaybackListener region]

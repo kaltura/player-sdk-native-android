@@ -1,6 +1,6 @@
 package com.kaltura.playersdk.players;
 
-import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -18,16 +18,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by nissopa on 7/6/15.
  */
 public class KHLSPlayer extends FrameLayout implements
-        KPlayerController.KPlayer,
+        KPlayer,
         TextTracksInterface,
         AlternateAudioTracksInterface,
         QualityTracksInterface,
@@ -46,9 +48,13 @@ public class KHLSPlayer extends FrameLayout implements
     private KPlayerListener mListener;
     private KPlayerCallback mCallback;
 
-    public KHLSPlayer(Activity activity) {
-        super(activity);
-        mPlayer = new HLSPlayerViewController(activity);
+    public static Set<MediaFormat> supportedFormats(Context context) {
+        return Collections.singleton(MediaFormat.hls_clear);
+    }
+
+    public KHLSPlayer(Context context) {
+        super(context);
+        mPlayer = new HLSPlayerViewController(context);
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
         mPlayer.registerDurationChanged(this);
@@ -78,11 +84,6 @@ public class KHLSPlayer extends FrameLayout implements
         if ( mPlayer.getVideoUrl() == null || !playerSource.equals(mPlayer.getVideoUrl())) {
             mPlayer.setVideoUrl(playerSource);
         }
-    }
-
-    @Override
-    public String getPlayerSource() {
-        return mPlayer.getVideoUrl();
     }
 
     @Override
@@ -130,13 +131,13 @@ public class KHLSPlayer extends FrameLayout implements
     }
 
     @Override
-    public boolean isKPlayer() {
-        return false;
+    public void setShouldCancelPlay(boolean shouldCancelPlay) {
+
     }
 
     @Override
-    public void setShouldCancelPlay(boolean shouldCancelPlay) {
-
+    public void setLicenseUri(String licenseUri) {
+        // Irrelevant, no DRM support.
     }
     //endregion
 
@@ -200,7 +201,7 @@ public class KHLSPlayer extends FrameLayout implements
     @Override
     public void onPlayheadUpdated(int msec) {
         float updateTimeVal = msec - mPlayer.getPlaybackWindowStartTime();
-        mListener.eventWithValue(this, KPlayer.TimeUpdateKey, Float.toString(updateTimeVal / 1000));
+        mListener.eventWithValue(this, KPlayerListener.TimeUpdateKey, Float.toString(updateTimeVal / 1000));
     }
     //endregion
 
@@ -221,26 +222,26 @@ public class KHLSPlayer extends FrameLayout implements
     public boolean onStateChanged(PlayerStates state) {
         switch (state) {
             case START:
-                mListener.eventWithValue(this, KPlayer.LoadedMetaDataKey, "");
-                mListener.eventWithValue(this, KPlayer.CanPlayKey, null);
+                mListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
+                mListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
 //                mPlayer.registerProgressUpdate(this);
-                mCallback.playerStateChanged(KPlayerController.CAN_PLAY);
+                mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
                 break;
             case LOAD:
 
                 break;
             case PLAY:
-                mListener.eventWithValue(this, KPlayer.PlayKey, null);
+                mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
                 break;
             case PAUSE:
-                mListener.eventWithValue(this, KPlayer.PauseKey, null);
+                mListener.eventWithValue(this, KPlayerListener.PauseKey, null);
                 break;
             case END:
                 mListener.contentCompleted(this);
-                mCallback.playerStateChanged(KPlayerController.ENDED);
+                mCallback.playerStateChanged(KPlayerCallback.ENDED);
                 break;
             case SEEKED:
-                mListener.eventWithValue(this, KPlayer.SeekedKey, null);
+                mListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
                 break;
             case SEEKING:
                 break;
@@ -252,7 +253,7 @@ public class KHLSPlayer extends FrameLayout implements
     //region com.kaltura.hlsplayersdk.events.OnProgressListener
     @Override
     public void onProgressUpdate(int progress) {
-        mListener.eventWithValue(this, KPlayer.ProgressKey, Float.toString((float)progress / mPlayer.getDuration()));
+        mListener.eventWithValue(this, KPlayerListener.ProgressKey, Float.toString((float)progress / mPlayer.getDuration()));
     }
     //endregion
 
@@ -308,7 +309,7 @@ public class KHLSPlayer extends FrameLayout implements
             Log.wtf(TAG, "JSONException in put can only happen with double values", e);
         }
 
-        mListener.eventWithJSON(this, KPlayer.FlavorsListChangedKey, jsonResponse.toString());
+        mListener.eventWithJSON(this, KPlayerListener.FlavorsListChangedKey, jsonResponse.toString());
     }
     //endregion
 
@@ -321,7 +322,7 @@ public class KHLSPlayer extends FrameLayout implements
         } catch (JSONException e) {
             Log.wtf(TAG, "JSONException in put can only happen with double values", e);
         }
-        mListener.eventWithJSON(this, KPlayer.SourceSwitchingStartedKey, jsonResponse.toString());
+        mListener.eventWithJSON(this, KPlayerListener.SourceSwitchingStartedKey, jsonResponse.toString());
     }
 
     @Override
@@ -332,14 +333,14 @@ public class KHLSPlayer extends FrameLayout implements
         } catch (JSONException e) {
             Log.wtf(TAG, "JSONException in put can only happen with double values", e);
         }
-        mListener.eventWithJSON(this, KPlayer.SourceSwitchingEndKey, jsonResponse.toString());
+        mListener.eventWithJSON(this, KPlayerListener.SourceSwitchingEndKey, jsonResponse.toString());
     }
     //endregion
 
     //region OnDurationChangedListener
     @Override
     public void onDurationChanged(int msec) {
-        mListener.eventWithValue(this, KPlayer.DurationChangedKey, Float.toString(msec / 1000));
+        mListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(msec / 1000));
     }
     //endregion
 

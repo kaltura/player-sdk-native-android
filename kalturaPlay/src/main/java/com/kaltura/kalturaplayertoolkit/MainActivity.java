@@ -15,9 +15,6 @@ import android.webkit.WebView;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 
 public class MainActivity extends Activity implements LoginFragment.OnFragmentInteractionListener, PlayerFragment.OnFragmentInteractionListener, FullscreenFragment.OnFragmentInteractionListener{
 	public static String TAG = MainActivity.class.getSimpleName();
@@ -71,10 +68,13 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         if (extras == null) {
             extras = new Bundle();
         }
-        
-        KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");
 
-
+        KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.41.rc5/mwEmbedFrame.php", "33214012", "1741222").setEntryId("0_vs3e2h32");
+        config.addConfig("EmbedPlayer.ShowPosterOnStop", "false");
+//        config.addConfig("Kaltura.LeadHLSOnAndroid", "true");
+//        config.addConfig("doubleClick.plugin", "false");
+//        config.addConfig("doubleClick.path", "http://cdnbakmi.kaltura.com/content/uiconf/ps/veria/kdp3.9.1/plugins/doubleclickPlugin.swf");
+//        config.addConfig("doubleClick.adTagUrl", "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=xml_vmap1&unviewed_position_start=1&cust_params=sample_ar%3Dpremidpost&cmsid=496&vid=short_onecue&correlator=[timestamp]");
         config.setCacheSize(0.8f);
         extras.putSerializable("config", config);
 
@@ -88,21 +88,20 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
 
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             Uri uri = intent.getData();
-            String url = null;
-            try {
-                url = URLDecoder.decode(uri.toString(), "UTF-8").replace("https://kalturaplay.appspot.com/play?", "");
-            } catch (UnsupportedEncodingException e) {
-                Log.w(TAG, "couldn't decode/split intent url");
-                e.printStackTrace();
-            }
-            if (url != null) {
-                extras.putSerializable("config", KPPlayerConfig.valueOf(url));
-                fragment = new FullscreenFragment();
 
-            } else {
-                Log.w(TAG, "didn't load iframe, invalid iframeUrl parameter was passed");
+            if (uri == null) {
+                Log.e(TAG, "Can't load player; no data uri");
+                return;
             }
-
+            
+            String embedFrameURL = uri.getQueryParameter("embedFrameURL");
+            if (embedFrameURL == null) {
+                Log.e(TAG, "Can't load player; uri does not contain embedFrameURL parameter");
+                return;
+            }
+            
+            extras.putSerializable("config", KPPlayerConfig.fromEmbedFrameURL(embedFrameURL));
+            fragment = new FullscreenFragment();
         }
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());

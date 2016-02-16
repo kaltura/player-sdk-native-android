@@ -1,5 +1,4 @@
-include ':castCompanionLibraryandroid'
-include ':exoPlayerLib'
 include ':googlemediaframework'
 include ':playerSDK'
 include ':kalturaPlay'
+include ':testapp'

@@ -2,101 +2,153 @@ package com.kaltura.playersdk;
 
 import android.net.Uri;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 
 public class KPPlayerConfig implements Serializable{
 
 	/// Key names of the video request
-	static String sWidKey = "wid";
-	static String sUiConfIdKey = "uiconf_id";
-	static String sEntryIdKey = "entry_id";
-	static String sUridKey = "urid";
-	static String sNativeAdIDKey = "&flashvars[nativeAdId]=";
-	static String sEnableHoverKey = "&flashvars[controlBarContainer.hover]=true";
-	static String sIFrameEmbedKey = "&iframeembed=true";
-	
+	private static final String sKsKey = "ks";
+	private static final String sWidKey = "wid";
+	private static final String sUiConfIdKey = "uiconf_id";
+	private static final String sEntryIdKey = "entry_id";
 
-	protected Map<String, String> mParamsMap;
-	protected String mUrl;
+	private String mServerURL;
+	private String mEntryId;
+	private String mUiConfId;
+	private String mPartnerId;
+	private float mCacheSize = 100f;	// 100mb is a sane default.
+	private String mKS;
+	private Map<String, String> mExtraConfig = new HashMap<>();
 
-	protected String mDomain;
-	protected String mAdvertiserID;
-	protected String mEntryId;
-	protected boolean mEnableHover;
-	protected String mUiConfId;
-	protected String mPartnerId;
-	protected float mCacheSize = 4f;	// 4mb is a sane default.
+	public String getPartnerId() {
+		return mPartnerId;
+	}
 
-	public KPPlayerConfig(String domain, String uiConfId, String partnerId) {
-		mDomain = domain;
+	public String getServerURL() {
+		return mServerURL;
+	}
+
+	public KPPlayerConfig(String serverURL, String uiConfId, String partnerId) {
+		mServerURL = serverURL;
 		mUiConfId = uiConfId;
 		mPartnerId = partnerId;
-		mParamsMap = new HashMap<String, String>();
 	}
 	
-	public static KPPlayerConfig valueOf(String url) {
-		KPPlayerConfig config =  new KPPlayerConfig(null, null, null) {
+	private KPPlayerConfig() {}
 
+	/**
+	 * Creates a KPPlayerConfig object that wraps the given EmbedFrame URL.
+	 * The returned object is immutable, except for cache size. The other fields are not even set,
+	 * so their getters will return null.
+	 * @param url EmbedFrame URL.
+	 * @return new KPPlayerConfig.
+     */
+	public static KPPlayerConfig fromEmbedFrameURL(String url) {
+		final String embedFrameURL = url;
+		KPPlayerConfig config =  new KPPlayerConfig() {
+			
 			@Override
 			public String getVideoURL() {
-				// just return the input url, don't build it.
-				return mUrl;
+				// just return the input embedFrameURL, don't build it.
+				return embedFrameURL;
 			}
 
-			// block all setters that would change mURL
-			@Override
-			public KPPlayerConfig setAdvertiserID(String advertiserID) {
-				throw new UnsupportedOperationException("Can't set advertiserID");
-			}
-
-			@Override
-			public KPPlayerConfig setEnableHover(boolean enableHover) {
-				throw new UnsupportedOperationException("Can't set enableHover");
-			}
-
+			// Block the setters that would change the url.
 			@Override
 			public KPPlayerConfig setEntryId(String entryId) {
 				throw new UnsupportedOperationException("Can't set entryId");
 			}
 
 			@Override
+			public KPPlayerConfig setKS(String KS) {
+				throw new UnsupportedOperationException("Can't set ks");
+			}
+			
+			@Override
 			public KPPlayerConfig addConfig(String key, String value) {
 				throw new UnsupportedOperationException("Can't add config");
 			}
-
-			@Override
-			public String appendConfiguration(String videoURL) {
-				throw new UnsupportedOperationException("Can't append configuration");
-			}
-
 		};
-		Uri uri = Uri.parse(url);
-		config.mDomain = uri.getScheme() + "://" + uri.getAuthority();
-		config.mUrl = url;
+		Uri uri = Uri.parse(embedFrameURL);
+		config.mServerURL = uri.getScheme() + "://" + uri.getAuthority();
 		
+		return config;
+	}
+	
+	public static KPPlayerConfig fromJSONObject(JSONObject configJSON) throws JSONException {
+
+		JSONObject base = configJSON.getJSONObject("base");
+		JSONObject extra = configJSON.getJSONObject("extra");
+
+		KPPlayerConfig config = new KPPlayerConfig(
+				base.getString("server"), 
+				base.getString("uiConfId"), 
+				base.getString("partnerId"));
+		
+		if (base.has("entryId")) {
+			config.setEntryId(base.getString("entryId"));
+		}
+		if (base.has("ks")) {
+			config.setKS(base.getString("ks"));
+		}
+
+		for (Iterator<String> it = extra.keys(); it.hasNext(); ) {
+			String key = it.next();
+			Object value = extra.opt(key);
+			if (value != null) {
+				config.addConfig(key, value.toString());
+			}
+		}
 		return config;
 	}
 
 	public KPPlayerConfig addConfig(String key, String value) {
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
-			String configKey = "flashvars[" + key + "]";
-			mParamsMap.put(configKey, value);
+			
+			mExtraConfig.put(key, value);
 		}
 		return this;
 	}
+	
+	public String getQueryString() {
 
-	public String appendConfiguration(String videoURL) {
-		if (mAdvertiserID != null && mAdvertiserID.length() > 0) {
-			videoURL += sNativeAdIDKey + mAdvertiserID;
+		Uri.Builder builder = new Uri.Builder();
+		
+		// First add basic fields
+		if (mPartnerId != null) {
+			builder.appendQueryParameter(sWidKey, "_" + mPartnerId);
 		}
-		if (mEnableHover) {
-			videoURL += sEnableHoverKey;
+		if (mUiConfId != null) {
+			builder.appendQueryParameter(sUiConfIdKey, mUiConfId);
 		}
-		videoURL += sIFrameEmbedKey;
-		return videoURL;
+		if (mEntryId != null) {
+			builder.appendQueryParameter(sEntryIdKey, mEntryId);
+		}
+		if (mKS != null) {
+			builder.appendQueryParameter(sKsKey, mKS);
+		}
+		
+		// Then the extras
+		for (Map.Entry<String, String> entry : mExtraConfig.entrySet()) {
+			builder.appendQueryParameter("flashvars[" + entry.getKey() + "]", entry.getValue());
+		}
+
+		return builder.build().getEncodedQuery();
+	}
+
+	public void setChromecastEnabled(boolean chromecastEnabled) {
+		addConfig("chromecast.plugin", String.valueOf(chromecastEnabled));
+	}
+	
+	public void setHideControlsOnPlay(boolean hide) {
+		addConfig("controlBarContainer.hover", Boolean.toString(hide));
 	}
 
 	public void setCacheSize (float cacheSize) {
@@ -108,36 +160,17 @@ public class KPPlayerConfig implements Serializable{
 	}
 
 	public String getVideoURL() {
-		mUrl = mDomain + "/p/" + mPartnerId + "/sp/" + mPartnerId + "00/embedIframeJs/uiconf_id/" + mUiConfId;
+		Uri.Builder builder = Uri.parse(mServerURL).buildUpon();
+		builder.appendPath("p").appendPath(mPartnerId).appendPath("sp").appendPath(mPartnerId + "00")
+				.appendPath("embedIframeJs").appendPath("uiconf_id").appendPath(mUiConfId);
+		
 		if (mEntryId != null) {
-			mUrl += "/entry_id/" + mEntryId + "?";
-		} else {
-			mUrl += "?";
+			builder.appendPath(sEntryIdKey).appendPath(mEntryId);
 		}
-		mUrl += "wid=_" + mPartnerId + "&";
-		for (String key: mParamsMap.keySet()) {
-			mUrl += key + "=" + mParamsMap.get(key) + "&";
-		}
-		mUrl += "iframeembed=true";
-		return mUrl;
-	}
+		
+		builder.appendQueryParameter("iframeembed", "true");
 
-	public String getAdvertiserID() {
-		return mAdvertiserID;
-	}
-
-	public KPPlayerConfig setAdvertiserID(String advertiserID) {
-		mAdvertiserID = advertiserID;
-		return this;
-	}
-
-	public boolean isEnableHover() {
-		return mEnableHover;
-	}
-
-	public KPPlayerConfig setEnableHover(boolean enableHover) {
-		mEnableHover = enableHover;
-		return this;
+		return builder.build().toString() + "&" + getQueryString(); 
 	}
 
 	public String getEntryId() {
@@ -146,11 +179,19 @@ public class KPPlayerConfig implements Serializable{
 
 	public KPPlayerConfig setEntryId(String entryId) {
 		mEntryId = entryId;
-		mParamsMap.put(sEntryIdKey, entryId);
 		return this;
 	}
 
 	public String getUiConfId() {
 		return mUiConfId;
+	}
+
+	public KPPlayerConfig setKS(String KS) {
+		mKS = KS;
+		return this;
+	}
+
+	public String getKS() {
+		return mKS;
 	}
 }
