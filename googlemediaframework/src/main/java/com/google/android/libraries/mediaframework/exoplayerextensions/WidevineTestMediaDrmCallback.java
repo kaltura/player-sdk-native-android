@@ -28,8 +28,6 @@ import android.text.TextUtils;
 
 import com.google.android.exoplayer.drm.MediaDrmCallback;
 
-import org.apache.http.client.ClientProtocolException;
-
 import java.io.IOException;
 import java.util.UUID;
 
@@ -59,7 +57,7 @@ public class WidevineTestMediaDrmCallback implements MediaDrmCallback {
 
   @Override
   public byte[] executeProvisionRequest(UUID uuid, ProvisionRequest request)
-      throws ClientProtocolException, IOException {
+      throws IOException {
     String url = request.getDefaultUrl() + "&signedRequest=" + new String(request.getData());
     return ExoplayerUtil.executePost(url, null, null);
   }
