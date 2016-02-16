@@ -12,8 +12,10 @@ set -ue
 
 upload_artifacts() {
     for F in $ARTIFACTS_TO_UPLOAD; do
-        curl "$ARTIFACT_UPLOAD_URL" -F token="$ARTIFACT_UPLOAD_TOKEN" \
-            -F pull="$TRAVIS_PULL_REQUEST" -F platform="$ARTIFACT_UPLOAD_PLATFORM" -F upfile=@"$F"
+        if [ -f ${F} ]; then
+            curl "$ARTIFACT_UPLOAD_URL" -F token="$ARTIFACT_UPLOAD_TOKEN" \
+                -F pull="$TRAVIS_PULL_REQUEST" -F platform="$ARTIFACT_UPLOAD_PLATFORM" -F upfile=@"$F"
+        fi
     done
 }
 

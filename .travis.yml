@@ -4,17 +4,17 @@ android:
   components:
   - platform-tools
   - tools
-  - build-tools-22.0.1
   - build-tools-23.0.2
   - android-23
   - android-22
   - extra-android-m2repository
   - extra-google-m2repository
 script:
-- ./gradlew assembleDebug --stacktrace
-- ./gradlew assembleRelease
+- ./gradlew :kalturaPlay:assembleDebug
+- ./gradlew :kalturaPlay:assembleRelease
+- ./gradlew :testapp:assembleDebug || true
 after_success:
-- ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
+- ls -lh kalturaPlay/build/outputs/apk
 - ./pull-artifacts-upload.sh
 deploy:
   provider: releases
