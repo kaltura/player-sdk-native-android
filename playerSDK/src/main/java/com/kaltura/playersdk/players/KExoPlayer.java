@@ -229,10 +229,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             mSavedState.position = 0;
         }
 
-        if (isPlaying()) {
-            mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
-        }
-
         startPlaybackTimeReporter();
     }
     
@@ -241,7 +237,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         stopPlaybackTimeReporter();
         if (this.isPlaying() && mExoPlayer != null) {
             setPlayWhenReady(false);
-            mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
         }
     }
     
@@ -329,6 +324,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             case ExoPlayer.STATE_BUFFERING:
                 break;
             case ExoPlayer.STATE_READY:
+                if (mReadiness == Readiness.Ready && !playWhenReady) {
+                    mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
+                }
                 // ExoPlayer is ready.
                 if (mReadiness != Readiness.Ready) {
                     mReadiness = Readiness.Ready;
@@ -343,6 +341,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
                     mSeeking = false;
                     startPlaybackTimeReporter();
+                }
+
+                if (playWhenReady) {
+                    mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
                 }
                 break;
 
