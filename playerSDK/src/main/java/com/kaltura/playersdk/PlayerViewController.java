@@ -675,13 +675,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             @Override
             public void handler() {
                 if (mPlayerEventsHash == null) {
-                    mPlayerEventsHash = new HashMap<String, ArrayList<HashMap<String,EventListener>>>();
+                    mPlayerEventsHash = new HashMap();
                 }
-                ArrayList<HashMap<String, EventListener>> listenerArr = (ArrayList<HashMap<String, EventListener>>)mPlayerEventsHash.get(event);
+                ArrayList<HashMap<String, EventListener>> listenerArr = (ArrayList)mPlayerEventsHash.get(event);
                 if (listenerArr == null) {
-                    listenerArr = new ArrayList<HashMap<String, EventListener>>();
+                    listenerArr = new ArrayList();
                 }
-                HashMap<String, EventListener> addedEvent = new HashMap<String, EventListener>();
+                HashMap<String, EventListener> addedEvent = new HashMap();
                 addedEvent.put(eventID, listener);
                 listenerArr.add(addedEvent);
                 mPlayerEventsHash.put(event, listenerArr);
