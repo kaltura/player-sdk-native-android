@@ -8,6 +8,12 @@ android:
   - android-23
   - extra-android-m2repository
   - extra-google-m2repository
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+before_cache:
+  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 script:
 - ./gradlew :kalturaPlay:assembleRelease
 - ./gradlew :testapp:assembleRelease
