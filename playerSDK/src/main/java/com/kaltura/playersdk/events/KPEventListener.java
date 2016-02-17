@@ -7,6 +7,7 @@ import com.kaltura.playersdk.PlayerViewController;
  */
 public interface KPEventListener {
     void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state);
-    void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime);
     void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn);
 }
+
+
