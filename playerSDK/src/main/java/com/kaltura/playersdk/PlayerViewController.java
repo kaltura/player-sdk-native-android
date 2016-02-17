@@ -27,6 +27,7 @@ import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.events.OnPlayheadUpdateListener;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.players.KPlayer;
@@ -73,6 +74,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
+    private Set<OnPlayheadUpdateListener> mOnPlayheadUpdateListeners;
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
 
@@ -216,6 +218,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 eventListeners = new HashSet<>();
             }
             eventListeners.add(listener);
+        }
+    }
+
+    public void addOnPlayheadUpdateListener(OnPlayheadUpdateListener listener) {
+        if (listener != null) {
+            if (mOnPlayheadUpdateListeners == null) {
+                mOnPlayheadUpdateListeners = new HashSet<>();
+            }
+            mOnPlayheadUpdateListeners.add(listener);
         }
     }
 
@@ -628,9 +639,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             for (KPEventListener listener : eventListeners) {
                 if (KPlayerState.getStateForEventName(eventName) != null) {
                     listener.onKPlayerStateChanged(this, KPlayerState.getStateForEventName(eventName));
-                } else if (event.isTimeUpdate()) {
-                    listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
                 }
+            }
+        }
+        if (event.isTimeUpdate() && mOnPlayheadUpdateListeners != null) {
+            for (OnPlayheadUpdateListener listener: mOnPlayheadUpdateListeners) {
+                listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
             }
         }
         this.mWebView.triggerEvent(eventName, eventValue);
