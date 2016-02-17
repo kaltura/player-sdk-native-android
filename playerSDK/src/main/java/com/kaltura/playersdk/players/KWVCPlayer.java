@@ -281,6 +281,13 @@ public class KWVCPlayer
                     }
                 });
 
+                mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                    @Override
+                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
+                    }
+                });
+
                 if (mSavedState.playing) {
                     // we were already playing, so just resume playback from the saved position
                     mPlayer.seekTo(mSavedState.position);
