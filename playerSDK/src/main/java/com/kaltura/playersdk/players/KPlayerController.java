@@ -176,7 +176,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void removePlayer() {
         if (player != null) {
-            player.removePlayer();
+            player.freezePlayer();
         }
     }
 

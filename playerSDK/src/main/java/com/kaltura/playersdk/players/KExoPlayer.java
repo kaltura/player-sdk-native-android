@@ -146,18 +146,21 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                mExoPlayer = new ExoplayerWrapper(rendererBuilder);
-                Surface surface = holder.getSurface();
-                if (surface != null && surface.isValid()) {
-                    mExoPlayer.setSurface(surface);
+                if (mExoPlayer == null) {
+                    mExoPlayer = new ExoplayerWrapper(rendererBuilder);
+                    Surface surface = holder.getSurface();
+                    if (surface != null && surface.isValid()) {
+                        mExoPlayer.setSurface(surface);
+                    } else {
+                        Log.e(TAG, "Surface not ready yet");
+                        return;
+                    }
+                    mExoPlayer.addListener(KExoPlayer.this);
+
+                    mExoPlayer.prepare();
                 } else {
-                    Log.e(TAG, "Surface not ready yet");
-                    return;
+                    mExoPlayer.setSurface(holder.getSurface());
                 }
-                mExoPlayer.addListener(KExoPlayer.this);
-
-                mExoPlayer.prepare();
-
             }
 
             @Override
@@ -168,6 +171,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
                 Log.d(TAG, "surfaceDestroyed");
+                if (mExoPlayer != null) {
+                    mExoPlayer.blockingClearSurface();
+                }
             }
         });
         this.addView(mSurfaceView, layoutParams);
@@ -279,7 +285,15 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         }
     }
 
-
+    @Override
+    public void freezePlayer() {
+        pause();
+        saveState();
+        stopPlaybackTimeReporter();
+        if (mExoPlayer != null) {
+            mExoPlayer.blockingClearSurface();
+        }
+    }
 
     @Override
     public void removePlayer() {
@@ -295,7 +309,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     
     @Override
     public void recoverPlayer() {
-        // TODO
+        prepare();
+        setCurrentPlaybackTime(mSavedState.position);
+        play();
     }
 
     @Override
