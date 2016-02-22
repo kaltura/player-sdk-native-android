@@ -65,6 +65,7 @@ public class KHLSPlayer extends FrameLayout implements
         mPlayer.registerAudioTracksList(this);
         mPlayer.registerQualitySwitchingChange(this);
         mPlayer.registerQualityTracksList(this);
+        mPlayer.registerProgressUpdate(this);
         mPlayer.initialize();
     }
 
@@ -224,7 +225,6 @@ public class KHLSPlayer extends FrameLayout implements
             case START:
                 mListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
                 mListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
-//                mPlayer.registerProgressUpdate(this);
                 mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
                 break;
             case LOAD:
@@ -253,7 +253,7 @@ public class KHLSPlayer extends FrameLayout implements
     //region com.kaltura.hlsplayersdk.events.OnProgressListener
     @Override
     public void onProgressUpdate(int progress) {
-        mListener.eventWithValue(this, KPlayerListener.ProgressKey, Float.toString((float)progress / mPlayer.getDuration()));
+        mListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, progress < 100 ? "true" : "false");
     }
     //endregion
 
