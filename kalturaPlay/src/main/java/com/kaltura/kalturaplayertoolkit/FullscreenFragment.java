@@ -161,6 +161,10 @@ public class FullscreenFragment extends Fragment{
         if (bundle != null && (config = (KPPlayerConfig)bundle.getSerializable("config")) != null){
             mPlayerView.initWithConfiguration(config);
         }
+        else{
+            Log.e("ConfigNotLoaded", "Couldn't read config data check if it was initialized.");
+            return null;
+        }
 
         return mFragmentView;
     }
