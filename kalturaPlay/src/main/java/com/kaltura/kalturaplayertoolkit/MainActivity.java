@@ -75,9 +75,10 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
         //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.202/html5.kaltura/mwEmbed/mwEmbedFrame.php", "28013271", "1878761").setEntryId("1_k64id08u"); //LIVE DVR
         KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "28013271", "1878761").setEntryId("1_k64id08u"); //LIVE DVR
         extras.putSerializable("config", config);
-        config.addConfig("closedCaptions.displayCaptions", "true");
         //config.addConfig("Kaltura.LeadHLSOnAndroid", "true");
-
+        config.addConfig("closedCaptions.displayCaptions", "true");
+        config.addConfig("EmbedPlayer.ShowPosterOnStop", "false");
+        config.setCacheSize(0.8f);
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
