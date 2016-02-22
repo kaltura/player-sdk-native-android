@@ -122,8 +122,13 @@ public class KHLSPlayer extends FrameLayout implements
     }
 
     @Override
-    public void removePlayer() {
+    public void freezePlayer() {
         mPlayer.release();
+    }
+
+    @Override
+    public void removePlayer() {
+        mPlayer.destroy();
     }
 
     @Override
