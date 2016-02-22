@@ -187,6 +187,11 @@ public class KWVCPlayer
         // TODO: forward to player
     }
 
+    @Override
+    public void freezePlayer() {
+
+    }
+
     private void saveState() {
         if (mPlayer != null) {
             mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
