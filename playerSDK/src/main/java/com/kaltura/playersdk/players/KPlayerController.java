@@ -226,10 +226,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
         // maybe change player
         String path = Uri.parse(src).getPath();
-        if (path.endsWith(".m3u8")) {
-            // HLS
-            this.player = new KHLSPlayer(context);
-        } else if (path.endsWith(".wvm")) {
+        if (path.endsWith(".wvm")) {
             // Widevine Classic
             this.player = new KWVCPlayer(context);
         } else {

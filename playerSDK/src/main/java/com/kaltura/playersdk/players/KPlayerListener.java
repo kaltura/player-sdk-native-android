@@ -17,6 +17,7 @@ public interface KPlayerListener {
     String SourceSwitchingStartedKey = "sourceSwitchingStarted";
     String SourceSwitchingEndKey = "sourceSwitchingEnd";
     String BufferingChangeKey = "bufferchange";
+    String TextTracksReceived = "textTracksReceived";
 
     void eventWithValue(KPlayer player, String eventName, String eventValue);
     void eventWithJSON(KPlayer player, String eventName, String jsonValue);

@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
@@ -17,15 +18,28 @@ import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.drm.MediaDrmCallback;
+import com.google.android.exoplayer.metadata.id3.BinaryFrame;
+import com.google.android.exoplayer.metadata.id3.GeobFrame;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer.metadata.id3.PrivFrame;
+import com.google.android.exoplayer.metadata.id3.TxxxFrame;
+import com.google.android.exoplayer.util.MimeTypes;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -33,9 +47,15 @@ import java.util.UUID;
 /**
  * Created by noamt on 18/01/2016.
  */
-public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener {
+public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener, ExoplayerWrapper.Id3MetadataListener {
 
     private static final String TAG = "KExoPlayer";
+
+    public static final int TYPE_VIDEO = 0;
+    public static final int TYPE_AUDIO = 1;
+    public static final int TYPE_TEXT = 2;
+    public static final int TYPE_METADATA = 3;
+
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
     @NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
     @NonNull private KPlayerCallback mPlayerCallback = noopEventListener();
@@ -55,7 +75,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         // Clear dash and mp4 are always supported by this player.
         set.add(MediaFormat.dash_clear);
         set.add(MediaFormat.mp4_clear);
-        
+        set.add(MediaFormat.hls_clear);
+
+
         // Encrypted dash is only supported in Android v4.3 and up -- needs MediaDrm class.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // Make sure Widevine is supported.
@@ -155,7 +177,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     return;
                 }
                 mExoPlayer.addListener(KExoPlayer.this);
-
+                mExoPlayer.setMetadataListener(KExoPlayer.this);
                 mExoPlayer.prepare();
 
             }
@@ -338,6 +360,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 if (mReadiness != Readiness.Ready) {
                     mReadiness = Readiness.Ready;
                     // TODO what about mShouldResumePlayback?
+                    String trackJson =  getLanguagesTracksJson(TYPE_TEXT);
+                    String trackJson1 = getBitRateTracksJson(TYPE_VIDEO, false);
+                    String trackJson2 = getAudioFreqRateTracksJson(TYPE_AUDIO);
+                    if (trackJson != null) {
+                        //mPlayerListener.eventWithJSON(this, KPlayerListener.TextTracksReceived, trackJson);
+                    }
                     mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration()));
                     mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
                     mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
@@ -386,13 +414,210 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void onError(Exception e) {
         Log.e(TAG, "player error", e);
         // TODO: anything?
+        //if (mExoPlayer != null) {
+        //    mExoPlayer.prepare();
+        //}
+
     }
 
     @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        mSurfaceView.setVideoWidthHeightRatio((float)width / height);
+        mSurfaceView.setVideoWidthHeightRatio((float) width / height);
     }
-    
+
+    @Override
+    public void onId3Metadata(List<Id3Frame> id3Frames) {
+        for (Id3Frame id3Frame : id3Frames) {
+            if (id3Frame instanceof TxxxFrame) {
+                TxxxFrame txxxFrame = (TxxxFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
+                        txxxFrame.description, txxxFrame.value));
+            } else if (id3Frame instanceof PrivFrame) {
+                PrivFrame privFrame = (PrivFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
+            } else if (id3Frame instanceof GeobFrame) {
+                GeobFrame geobFrame = (GeobFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
+                        geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
+            } else {
+                String timestampJson = getID3TagTimestamp((BinaryFrame) id3Frame); // tested on Kaltura LIVE Stream only
+                Log.i(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
+            }
+        }
+    }
+
+    private String getID3TagTimestamp(BinaryFrame entry) {
+        try {
+            byte[] data = (byte[]) entry.data;
+            byte[] dataDec = Arrays.copyOf(data, data.length - 1);
+            dataDec = Arrays.copyOfRange(dataDec, 1, dataDec.length);
+
+            String id3TagJSON = new String(dataDec);
+            JSONObject jsonObject = new JSONObject(id3TagJSON);
+            String timestamp = jsonObject.getString("timestamp");
+            long longTS = Double.valueOf(timestamp).longValue();
+            return id3TagJSON;
+        } catch (JSONException e) {
+            Log.e(TAG, "JSON Parsing failed for ID3 Tag", e);
+            return null;
+        }
+    }
+
+    private String getLanguagesTracksJson(final int trackType) {
+        if (mExoPlayer == null) {
+            return null;
+        }
+        int trackCount = mExoPlayer.getTrackCount(trackType);
+
+        if (trackCount == 0) {
+            return null;
+        }
+
+        JSONObject langObj = new JSONObject();
+        JSONArray langsArray = new JSONArray();
+
+        try {
+            JSONObject mixedObj = new JSONObject();
+            mixedObj.put("index", 0);
+            mixedObj.put("label", "Off");
+            langsArray.put(mixedObj);
+
+            for (int i = 0; i < trackCount; i++) {
+                com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(trackType, i);
+                mixedObj = new JSONObject();
+                mixedObj.put("index", i+1);
+                mixedObj.put("label", mediaFormat.trackId);
+                langsArray.put(mixedObj);
+            }
+            langObj.put("languages", langsArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return langObj.toString();
+    }
+
+    private String getAudioFreqRateTracksJson(final int trackType) {
+        if (mExoPlayer == null) {
+            return null;
+        }
+        int trackCount = mExoPlayer.getTrackCount(trackType);
+
+        if (trackCount == 0) {
+            return null;
+        }
+
+        JSONObject langObj = new JSONObject();
+        JSONArray langsArray = new JSONArray();
+
+        try {
+            JSONObject mixedObj = new JSONObject();
+            mixedObj.put("id", 0);
+            mixedObj.put("stream_label", "Auto");
+            langsArray.put(mixedObj);
+
+            for (int i = 0; i < trackCount; i++) {
+                com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(trackType, i);
+                mixedObj = new JSONObject();
+                mixedObj.put("index", i);
+                mixedObj.put("stream_label", buildAudioPropertyString(mediaFormat));
+                langsArray.put(mixedObj);
+            }
+            langObj.put("languages", langsArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return langObj.toString();
+    }
+
+    private String getBitRateTracksJson(final int trackType, boolean includeAutoSource) {
+        if (mExoPlayer == null) {
+            return null;
+        }
+        int trackCount = mExoPlayer.getTrackCount(trackType);
+
+        if (trackCount == 0) {
+            return null;
+        }
+
+        JSONObject sourceObj = new JSONObject();
+        JSONArray sourcesArray = new JSONArray();
+
+        try {
+
+            JSONObject mixedObj = new JSONObject();
+            int index = 0;
+            for (int i = 0; i < trackCount; i++) {
+                com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(trackType, i);
+                if(includeAutoSource == false && mediaFormat.bitrate == -1){
+                    continue;
+                }
+
+                mixedObj = new JSONObject();
+                mixedObj.put("assetid", index);
+                mixedObj.put("bandwidth", buildBitrateString(mediaFormat));
+                mixedObj.put("height", mediaFormat.height);
+                mixedObj.put("mimeType", mediaFormat.mimeType);
+                mixedObj.put("src", "undefined");
+                mixedObj.put("type", mediaFormat.mimeType);
+                sourcesArray.put(mixedObj);
+                index++;
+            }
+            sourceObj.put("sources", sourcesArray);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return sourceObj.toString();
+    }
+
+    private String buildTrackName(com.google.android.exoplayer.MediaFormat format) {
+        if (format.adaptive) {
+            return "auto";
+        }
+        String trackName;
+        if (MimeTypes.isVideo(format.mimeType)) {
+            trackName = joinWithSeparator(joinWithSeparator(buildResolutionString(format),
+                    buildBitrateString(format)), buildTrackIdString(format));
+        } else if (MimeTypes.isAudio(format.mimeType)) {
+            trackName = joinWithSeparator(joinWithSeparator(joinWithSeparator(buildLanguageString(format),
+                            buildAudioPropertyString(format)), buildBitrateString(format)),
+                    buildTrackIdString(format));
+        } else { //text/vtt
+            trackName = joinWithSeparator(joinWithSeparator(buildLanguageString(format),
+                    buildBitrateString(format)), buildTrackIdString(format));
+        }
+        return trackName.length() == 0 ? "unknown" : trackName;
+    }
+
+    private String joinWithSeparator(String first, String second) {
+        return first.length() == 0 ? second : (second.length() == 0 ? first : first + ", " + second);
+    }
+
+    private String buildResolutionString(com.google.android.exoplayer.MediaFormat format) {
+        return format.width == com.google.android.exoplayer.MediaFormat.NO_VALUE || format.height == com.google.android.exoplayer.MediaFormat.NO_VALUE
+                ? "" : format.width + "x" + format.height;
+    }
+
+    private  String buildTrackIdString(com.google.android.exoplayer.MediaFormat format) {
+        return format == null ? "" : " (" + format.trackId + ")";
+    }
+
+    private String buildAudioPropertyString(com.google.android.exoplayer.MediaFormat format) {
+        return format.channelCount == com.google.android.exoplayer.MediaFormat.NO_VALUE || format.sampleRate == com.google.android.exoplayer.MediaFormat.NO_VALUE
+                ? "" : /*format.channelCount + "ch, " + */format.sampleRate + "Hz";
+    }
+    private String buildLanguageString(com.google.android.exoplayer.MediaFormat format) {
+        return TextUtils.isEmpty(format.language) || "und".equals(format.language) ? ""
+                : format.language;
+    }
+
+    private String buildBitrateString(com.google.android.exoplayer.MediaFormat format) {
+        return format.bitrate == com.google.android.exoplayer.MediaFormat.NO_VALUE ? ""
+                : String.format(Locale.US, "%.2fMbit", format.bitrate / 1000000f);
+    }
+
     // Utility classes
     private enum Readiness {
         Idle,
