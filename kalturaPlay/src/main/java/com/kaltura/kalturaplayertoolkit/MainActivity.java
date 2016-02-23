@@ -69,16 +69,8 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
 
-        //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4"); // COFFEE
-
-        //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");
-        //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.202/html5.kaltura/mwEmbed/mwEmbedFrame.php", "28013271", "1878761").setEntryId("1_k64id08u"); //LIVE DVR
-        KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "28013271", "1878761").setEntryId("1_k64id08u"); //LIVE DVR
-        extras.putSerializable("config", config);
-        //config.addConfig("Kaltura.LeadHLSOnAndroid", "true");
-        config.addConfig("closedCaptions.displayCaptions", "true");
-        config.addConfig("EmbedPlayer.ShowPosterOnStop", "false");
-        config.setCacheSize(0.8f);
+        KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");        
+        extras.putSerializable("config", config); 
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }
