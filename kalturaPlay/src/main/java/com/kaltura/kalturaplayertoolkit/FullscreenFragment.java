@@ -228,10 +228,9 @@ public class FullscreenFragment extends Fragment{
 
     private void setFullScreen (){
         View decorView = getActivity().getWindow().getDecorView(); //navigation view
-        int uiOptions = FULL_SCREEN_FLAG;
-        decorView.setSystemUiVisibility(uiOptions);
-//        Point size = getRealScreenSize();
-//        mPlayerView.setPlayerViewDimensions(size.x, size.y);
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        //    Point size = getRealScreenSize();
+        //    mPlayerView.setPlayerViewDimensions(size.x, size.y);
     }
 
     private Point getScreenWithoutNavigationSize() {
