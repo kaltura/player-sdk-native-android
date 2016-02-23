@@ -76,8 +76,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         // All known players
         formats.addAll(KExoPlayer.supportedFormats(context));
         formats.addAll(KWVCPlayer.supportedFormats(context));
-        formats.addAll(KHLSPlayer.supportedFormats(context));
-        
         return formats;
     }
 
@@ -176,7 +174,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void removePlayer() {
         if (player != null) {
-            player.removePlayer();
+            player.freezePlayer();
         }
     }
 
@@ -224,12 +222,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             shouldReplacePlayer = true;
         }
 
-        // maybe change player
+        // Select player
         String path = Uri.parse(src).getPath();
-        if (path.endsWith(".m3u8")) {
-            // HLS
-            this.player = new KHLSPlayer(context);
-        } else if (path.endsWith(".wvm")) {
+        if (path.endsWith(".wvm")) {
             // Widevine Classic
             this.player = new KWVCPlayer(context);
         } else {
