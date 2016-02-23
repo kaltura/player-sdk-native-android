@@ -33,10 +33,9 @@ import java.util.UUID;
 /**
  * Created by noamt on 18/01/2016.
  */
-public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener{
+public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener {
 
     private static final String TAG = "KExoPlayer";
-
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
     @NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
     @NonNull private KPlayerCallback mPlayerCallback = noopEventListener();
@@ -57,7 +56,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         set.add(MediaFormat.dash_clear);
         set.add(MediaFormat.mp4_clear);
         set.add(MediaFormat.hls_clear);
-
 
         // Encrypted dash is only supported in Android v4.3 and up -- needs MediaDrm class.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
@@ -159,7 +157,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         return;
                     }
                     mExoPlayer.addListener(KExoPlayer.this);
+                    
                     mExoPlayer.prepare();
+                    
                 } else {
                     mExoPlayer.setSurface(holder.getSurface());
                 }
@@ -409,7 +409,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        mSurfaceView.setVideoWidthHeightRatio((float) width / height);
+        mSurfaceView.setVideoWidthHeightRatio((float)width / height);
     }
 
     // Utility classes
