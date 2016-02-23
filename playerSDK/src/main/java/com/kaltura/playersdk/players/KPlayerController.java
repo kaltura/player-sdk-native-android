@@ -264,7 +264,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         lp = new ViewGroup.LayoutParams(lp.width, lp.height);
         parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1, lp);
 
-        // Add IMA UI controls view
+        // Add IMA UI KControls view
         RelativeLayout adUiControls = new RelativeLayout(parentViewController.getContext());
         ViewGroup.LayoutParams curLP = parentViewController.getLayoutParams();
         ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);

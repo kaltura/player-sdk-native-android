@@ -16,27 +16,57 @@ import android.webkit.WebViewClient;
 
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KControls;
 
 
 /**
  * Created by nissopa on 6/7/15.
  */
-public class KControlsView extends WebView implements View.OnTouchListener {
+public class KControlsView extends WebView implements View.OnTouchListener, KControls {
 
     private static final String TAG = "KControlsView";
+    private boolean isSeeked = false;
+    private boolean isReplay = false;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         return false;
     }
 
+    @Override
+    public void play() {
+        sendNotification("doPlay", null);
+    }
+
+    @Override
+    public void pause() {
+        sendNotification("doPause", null);
+    }
+
+    @Override
+    public void seek(double seconds) {
+        sendNotification("doSeek", Double.toString(seconds));
+    }
+
+    @Override
+    public void replay() {
+        isReplay = true;
+        seek(0.1);
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                play();
+            }
+        }, 100);
+    }
+
     public interface KControlsViewClient {
-        public void handleHtml5LibCall(String functionName, int callbackId, String args);
-        public void openURL(String url);
+        void handleHtml5LibCall(String functionName, int callbackId, String args);
+        void openURL(String url);
     }
 
     public interface ControlsBarHeightFetcher {
-        public void fetchHeight(int height);
+        void fetchHeight(int height);
     }
 
     private KControlsViewClient controlsViewClient;
@@ -141,7 +171,8 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             }
             KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
-                KControlsView.this.controlsViewClient.handleHtml5LibCall(urlUtil.getAction(), 1, urlUtil.getArgsString());
+                String action = urlUtil.getAction();
+                KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
                 return true;
             } else if (!urlUtil.isEmbedFrame()) {
                 KControlsView.this.controlsViewClient.openURL(url);
