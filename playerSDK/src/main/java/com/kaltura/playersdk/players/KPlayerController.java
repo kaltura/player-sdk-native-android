@@ -222,7 +222,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             shouldReplacePlayer = true;
         }
 
-        // maybe change player
+        // Select player
         String path = Uri.parse(src).getPath();
         if (path.endsWith(".wvm")) {
             // Widevine Classic
