@@ -55,7 +55,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         // Clear dash and mp4 are always supported by this player.
         set.add(MediaFormat.dash_clear);
         set.add(MediaFormat.mp4_clear);
-        
+        set.add(MediaFormat.hls_clear);
+
         // Encrypted dash is only supported in Android v4.3 and up -- needs MediaDrm class.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // Make sure Widevine is supported.
@@ -156,8 +157,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         return;
                     }
                     mExoPlayer.addListener(KExoPlayer.this);
-
+                    
                     mExoPlayer.prepare();
+                    
                 } else {
                     mExoPlayer.setSurface(holder.getSurface());
                 }
@@ -353,6 +355,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 // ExoPlayer is ready.
                 if (mReadiness != Readiness.Ready) {
                     mReadiness = Readiness.Ready;
+
                     // TODO what about mShouldResumePlayback?
                     mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration()));
                     mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
@@ -408,7 +411,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         mSurfaceView.setVideoWidthHeightRatio((float)width / height);
     }
-    
+
     // Utility classes
     private enum Readiness {
         Idle,

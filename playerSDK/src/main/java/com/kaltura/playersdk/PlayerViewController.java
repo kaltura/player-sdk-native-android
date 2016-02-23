@@ -266,7 +266,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * This method should be called when the main activity is paused.
      */
     public void releaseAndSavePosition() {
-        playerController.removePlayer();
+        if (playerController != null)
+         playerController.removePlayer();
     }
 
     /**

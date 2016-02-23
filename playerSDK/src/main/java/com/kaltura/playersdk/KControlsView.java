@@ -124,7 +124,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
     @JavascriptInterface
     public void onData(String value) {
-        if (this.fetcher != null) {
+        if (this.fetcher != null && value != null) {
             int height = Integer.parseInt(value) + 5;
             this.fetcher.fetchHeight(height);
             this.fetcher = null;
