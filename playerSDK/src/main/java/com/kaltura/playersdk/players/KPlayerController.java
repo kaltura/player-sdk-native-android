@@ -76,8 +76,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         // All known players
         formats.addAll(KExoPlayer.supportedFormats(context));
         formats.addAll(KWVCPlayer.supportedFormats(context));
-        //formats.addAll(KHLSPlayer.supportedFormats(context));
-        
         return formats;
     }
 
