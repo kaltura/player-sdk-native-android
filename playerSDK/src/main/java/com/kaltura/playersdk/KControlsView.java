@@ -14,9 +14,13 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.players.KPlayerListener;
+
+import javax.xml.datatype.Duration;
 
 
 /**
@@ -25,8 +29,9 @@ import com.kaltura.playersdk.interfaces.KMediaControl;
 public class KControlsView extends WebView implements View.OnTouchListener, KMediaControl {
 
     private static final String TAG = "KControlsView";
-    private boolean isSeeked = false;
-    private boolean isReplay = false;
+    private boolean mCanPause = false;
+    private int mCurrentPosition = 0;
+    private int mDuration = 0;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -34,7 +39,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     }
 
     @Override
-    public void play() {
+    public void start() {
         sendNotification("doPlay", null);
     }
 
@@ -50,14 +55,43 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
     @Override
     public void replay() {
-        isReplay = true;
         seek(0.1);
         postDelayed(new Runnable() {
             @Override
             public void run() {
-                play();
+                start();
             }
         }, 100);
+    }
+
+    @Override
+    public boolean canPause() {
+        return mCanPause;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return mCurrentPosition;
+    }
+
+    @Override
+    public int getDuration() {
+        return mDuration;
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mCanPause;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return mCurrentPosition > 0;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return mCurrentPosition < mDuration;
     }
 
     public interface KControlsViewClient {
@@ -145,6 +179,20 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     }
 
     public void triggerEvent(String event, String value) {
+        switch (KPlayerState.getStateForEventName(event)) {
+            case PLAYING:
+                mCanPause = true;
+                break;
+            case PAUSED:
+                mCanPause = false;
+                break;
+        }
+        if (event.equals(KPlayerListener.TimeUpdateKey)) {
+            mCurrentPosition = (int)(Double.parseDouble(value) * 1000);
+        }
+        if (event.equals(KPlayerListener.DurationChangedKey)) {
+            mDuration = (int)(Double.parseDouble(value) * 1000);
+        }
         this.loadUrl(KStringUtilities.triggerEvent(event, value));
     }
 
