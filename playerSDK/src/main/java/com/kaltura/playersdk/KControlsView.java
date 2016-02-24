@@ -16,13 +16,13 @@ import android.webkit.WebViewClient;
 
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
-import com.kaltura.playersdk.interfaces.KControls;
+import com.kaltura.playersdk.interfaces.KMediaControl;
 
 
 /**
  * Created by nissopa on 6/7/15.
  */
-public class KControlsView extends WebView implements View.OnTouchListener, KControls {
+public class KControlsView extends WebView implements View.OnTouchListener, KMediaControl {
 
     private static final String TAG = "KControlsView";
     private boolean isSeeked = false;
