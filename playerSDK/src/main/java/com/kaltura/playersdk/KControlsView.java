@@ -20,8 +20,6 @@ import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayerListener;
 
-import javax.xml.datatype.Duration;
-
 
 /**
  * Created by nissopa on 6/7/15.
