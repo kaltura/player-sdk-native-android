@@ -29,6 +29,7 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KControls;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
@@ -186,6 +187,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public PlayerViewController(Context context, AttributeSet attrs,
                                 int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    public KControls getControls() {
+        return mWebView;
     }
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
@@ -483,7 +488,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
 
         if ( this.getChildCount() > 1 ) {
-            //last child is the controls webview
+            //last child is the KControls webview
             this.addView( newChild , this.getChildCount() -1, oldChild.getLayoutParams() );
         }
     }
