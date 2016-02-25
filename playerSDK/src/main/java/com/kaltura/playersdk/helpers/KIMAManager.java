@@ -114,6 +114,14 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         mPLayerCallback = callback;
     }
 
+    public void pause() {
+        mAdsManager.pause();
+    }
+
+    public void resume() {
+        mAdsManager.resume();
+    }
+
     /**
      * Request video ads from the given VAST ad tag.
      * @param adTagUrl URL of the ad's VAST XML

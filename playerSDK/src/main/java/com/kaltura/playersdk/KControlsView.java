@@ -53,13 +53,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
     @Override
     public void replay() {
-        seek(0.1);
-        postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                start();
-            }
-        }, 100);
+        sendNotification("doReplay", null);
     }
 
     @Override

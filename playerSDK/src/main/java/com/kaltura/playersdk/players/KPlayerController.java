@@ -176,11 +176,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player != null) {
             player.freezePlayer();
         }
+        if (isIMAActive && imaManager != null) {
+            imaManager.pause();
+        }
     }
 
     public void recoverPlayer() {
         if (player != null) {
             player.recoverPlayer();
+        }
+        if (isIMAActive && imaManager != null) {
+            imaManager.resume();
         }
     }
 
@@ -313,7 +319,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     // [START ContentProgressProvider region]
     @Override
     public VideoProgressUpdate getContentProgress() {
-        if (player.getDuration() <= 0) {
+        if (player == null || player.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
         return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);
