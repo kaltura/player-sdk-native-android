@@ -177,19 +177,23 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     }
 
     public void triggerEvent(String event, String value) {
-        switch (KPlayerState.getStateForEventName(event)) {
+        KPlayerState kState = KPlayerState.getStateForEventName(event);
+        switch (kState) {
             case PLAYING:
                 mCanPause = true;
                 break;
             case PAUSED:
                 mCanPause = false;
                 break;
+            case UNKNOWN:
+                //Log.w("TAG", ", unsupported event name : " + event);
+                break;
         }
         if (event.equals(KPlayerListener.TimeUpdateKey)) {
-            mCurrentPosition = (int)(Double.parseDouble(value) * 1000);
+            mCurrentPosition = (int) (Double.parseDouble(value) * 1000);
         }
         if (event.equals(KPlayerListener.DurationChangedKey)) {
-            mDuration = (int)(Double.parseDouble(value) * 1000);
+            mDuration = (int) (Double.parseDouble(value) * 1000);
         }
         this.loadUrl(KStringUtilities.triggerEvent(event, value));
     }
