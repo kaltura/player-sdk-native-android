@@ -69,7 +69,8 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
 
-        KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");        extras.putSerializable("config", config);
+        KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");        
+        extras.putSerializable("config", config); 
 
         FragmentUtilities.loadFragment(false, fragment, extras, getFragmentManager());
     }

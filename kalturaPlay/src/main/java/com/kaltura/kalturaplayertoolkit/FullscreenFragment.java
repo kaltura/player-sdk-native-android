@@ -161,6 +161,10 @@ public class FullscreenFragment extends Fragment{
         if (bundle != null && (config = (KPPlayerConfig)bundle.getSerializable("config")) != null){
             mPlayerView.initWithConfiguration(config);
         }
+        else{
+            Log.e("ConfigNotLoaded", "Couldn't read config data check if it was initialized.");
+            return null;
+        }
 
         return mFragmentView;
     }
@@ -224,10 +228,9 @@ public class FullscreenFragment extends Fragment{
 
     private void setFullScreen (){
         View decorView = getActivity().getWindow().getDecorView(); //navigation view
-        int uiOptions = FULL_SCREEN_FLAG;
-        decorView.setSystemUiVisibility(uiOptions);
-//        Point size = getRealScreenSize();
-//        mPlayerView.setPlayerViewDimensions(size.x, size.y);
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        //    Point size = getRealScreenSize();
+        //    mPlayerView.setPlayerViewDimensions(size.x, size.y);
     }
 
     private Point getScreenWithoutNavigationSize() {
