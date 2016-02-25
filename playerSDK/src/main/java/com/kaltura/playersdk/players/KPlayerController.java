@@ -313,7 +313,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     // [START ContentProgressProvider region]
     @Override
     public VideoProgressUpdate getContentProgress() {
-        if (player.getDuration() <= 0) {
+        if (player == null || player.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
         return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);

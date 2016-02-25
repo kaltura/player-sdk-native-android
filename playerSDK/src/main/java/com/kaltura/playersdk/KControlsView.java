@@ -25,8 +25,6 @@ import com.kaltura.playersdk.interfaces.KMediaControl;
 public class KControlsView extends WebView implements View.OnTouchListener, KMediaControl {
 
     private static final String TAG = "KControlsView";
-    private boolean isSeeked = false;
-    private boolean isReplay = false;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -50,14 +48,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
     @Override
     public void replay() {
-        isReplay = true;
-        seek(0.1);
-        postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                play();
-            }
-        }, 100);
+        sendNotification("doReplay", null);
     }
 
     public interface KControlsViewClient {
