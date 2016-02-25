@@ -176,11 +176,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player != null) {
             player.freezePlayer();
         }
+        if (isIMAActive && imaManager != null) {
+            imaManager.pause();
+        }
     }
 
     public void recoverPlayer() {
         if (player != null) {
             player.recoverPlayer();
+        }
+        if (isIMAActive && imaManager != null) {
+            imaManager.resume();
         }
     }
 
