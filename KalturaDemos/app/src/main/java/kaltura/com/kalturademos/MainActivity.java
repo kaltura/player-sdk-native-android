@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
+    private boolean onCreate = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mPlayPauseButton.setOnClickListener(this);
         mSeekBar = (SeekBar)findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(this);
+        onCreate = true;
         getPlayer();
     }
 
@@ -52,6 +54,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private RelativeLayout getPlayerContainer() {
         return (RelativeLayout)findViewById(R.id.playerContainer);
+    }
+
+    @Override
+    protected void onPause() {
+        if (mPlayer != null) {
+            mPlayer.releaseAndSavePosition();
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        if (onCreate) {
+            onCreate = false;
+        } else {
+            mPlayer.resumePlayer();
+        }
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mPlayer != null) {
+            mPlayer.removePlayer();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -78,13 +106,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if (mPlayPauseButton.getText().equals("Play")) {
-            mPlayPauseButton.setText("Pause");
-            getPlayer().sendNotification("doPlay", null);
+        if (v.getId() != R.id.replay) {
+            if (mPlayPauseButton.getText().equals("Play")) {
+                mPlayPauseButton.setText("Pause");
+                getPlayer().sendNotification("doPlay", null);
+            } else {
+                mPlayPauseButton.setText("Play");
+                getPlayer().sendNotification("doPause", null);
+            }
         } else {
-            mPlayPauseButton.setText("Play");
-            getPlayer().sendNotification("doPause", null);
+            mPlayer.sendNotification("doSeek", "0.1");
+            mPlayer.sendNotification("doPlay", null);
+            mPlayPauseButton.setText("Pause");
         }
+
     }
 
     @Override
@@ -108,7 +143,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-
+        if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
+            findViewById(R.id.replay).setVisibility(View.VISIBLE);
+        } else if (state == KPlayerState.PLAYING) {
+            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override

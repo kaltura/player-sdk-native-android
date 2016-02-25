@@ -43,14 +43,12 @@ Quick Start Guide
 #####Select _`settings.gradle`_ and add:
 
 ```
-include ':exoPlayerLib'
-project(':exoPlayerLib').projectDir=new File('../player-sdk-native-android/exoPlayerLib')
-
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir=new File('../player-sdk-native-android/googlemediaframework')
 
 include ':playerSDK'
-project(':playerSDK').projectDir=new File(‘../player-sdk-native-android/playerSDK')
+project(':playerSDK').projectDir=new File('../player-sdk-native-android/playerSDK')
+
 ```
 #####Right click on your app folder ->_`Open Module Settings`_.
 

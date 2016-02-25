@@ -187,6 +187,11 @@ public class KWVCPlayer
         // TODO: forward to player
     }
 
+    @Override
+    public void freezePlayer() {
+
+    }
+
     private void saveState() {
         if (mPlayer != null) {
             mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
@@ -278,6 +283,13 @@ public class KWVCPlayer
                     public void onSeekComplete(MediaPlayer mp) {
                         saveState();
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                    }
+                });
+
+                mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                    @Override
+                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
                     }
                 });
 
