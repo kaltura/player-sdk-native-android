@@ -5,6 +5,7 @@ package com.kaltura.playersdk.events;
  */
 
 public enum KPlayerState {
+    UNKNOWN("unknown"),
     LOADED("loaded"),
     READY("canplay"),
     PLAYING("play"),
@@ -12,6 +13,7 @@ public enum KPlayerState {
     SEEKED("seeked"),
     SEEKING("seeking"),
     ENDED("ended");
+
 
     private String stringValue;
     KPlayerState(String toString) {
@@ -35,7 +37,7 @@ public enum KPlayerState {
             case "ended":
                 return ENDED;
         }
-        return null;
+        return UNKNOWN;
     }
 
     @Override

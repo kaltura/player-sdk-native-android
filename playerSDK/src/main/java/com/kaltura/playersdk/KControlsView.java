@@ -14,29 +14,91 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.players.KPlayerListener;
 
 
 /**
  * Created by nissopa on 6/7/15.
  */
-public class KControlsView extends WebView implements View.OnTouchListener {
+public class KControlsView extends WebView implements View.OnTouchListener, KMediaControl {
 
     private static final String TAG = "KControlsView";
+    private boolean mCanPause = false;
+    private int mCurrentPosition = 0;
+    private int mDuration = 0;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         return false;
     }
 
+    @Override
+    public void start() {
+        sendNotification("doPlay", null);
+    }
+
+    @Override
+    public void pause() {
+        sendNotification("doPause", null);
+    }
+
+    @Override
+    public void seek(double seconds) {
+        sendNotification("doSeek", Double.toString(seconds));
+    }
+
+    @Override
+    public void replay() {
+        seek(0.1);
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                start();
+            }
+        }, 100);
+    }
+
+    @Override
+    public boolean canPause() {
+        return mCanPause;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return mCurrentPosition;
+    }
+
+    @Override
+    public int getDuration() {
+        return mDuration;
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mCanPause;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return mCurrentPosition > 0;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return mCurrentPosition < mDuration;
+    }
+
     public interface KControlsViewClient {
-        public void handleHtml5LibCall(String functionName, int callbackId, String args);
-        public void openURL(String url);
+        void handleHtml5LibCall(String functionName, int callbackId, String args);
+        void openURL(String url);
     }
 
     public interface ControlsBarHeightFetcher {
-        public void fetchHeight(int height);
+        void fetchHeight(int height);
     }
 
     private KControlsViewClient controlsViewClient;
@@ -115,6 +177,24 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     }
 
     public void triggerEvent(String event, String value) {
+        KPlayerState kState = KPlayerState.getStateForEventName(event);
+        switch (kState) {
+            case PLAYING:
+                mCanPause = true;
+                break;
+            case PAUSED:
+                mCanPause = false;
+                break;
+            case UNKNOWN:
+                //Log.w("TAG", ", unsupported event name : " + event);
+                break;
+        }
+        if (event.equals(KPlayerListener.TimeUpdateKey)) {
+            mCurrentPosition = (int) (Double.parseDouble(value) * 1000);
+        }
+        if (event.equals(KPlayerListener.DurationChangedKey)) {
+            mDuration = (int) (Double.parseDouble(value) * 1000);
+        }
         this.loadUrl(KStringUtilities.triggerEvent(event, value));
     }
 
@@ -124,7 +204,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
     @JavascriptInterface
     public void onData(String value) {
-        if (this.fetcher != null) {
+        if (this.fetcher != null && value != null) {
             int height = Integer.parseInt(value) + 5;
             this.fetcher.fetchHeight(height);
             this.fetcher = null;
@@ -141,7 +221,8 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             }
             KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
-                KControlsView.this.controlsViewClient.handleHtml5LibCall(urlUtil.getAction(), 1, urlUtil.getArgsString());
+                String action = urlUtil.getAction();
+                KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
                 return true;
             } else if (!urlUtil.isEmbedFrame()) {
                 KControlsView.this.controlsViewClient.openURL(url);
