@@ -1,12 +1,9 @@
 package com.kaltura.playersdk.helpers;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 
 import com.kaltura.playersdk.Utilities;
@@ -20,10 +17,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by nissimpardo on 25/10/15.
@@ -71,9 +69,9 @@ public class CacheManager {
         }
         return mCachePath;
     }
-    
+
     private JSONObject getCacheConditions() {
-        
+
         if (mCacheConditions == null) {
             String string = Utilities.readAssetToString(mContext, CACHED_STRINGS_JSON);
             if (string != null) {
@@ -88,7 +86,7 @@ public class CacheManager {
         return mCacheConditions;
     }
 
-    public boolean shouldStore(Uri uri) throws URISyntaxException {
+    public boolean shouldStore(Uri uri) {
         String uriString = uri.toString();
         JSONObject conditions = getCacheConditions();
 
@@ -130,9 +128,20 @@ public class CacheManager {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public WebResourceResponse getResponse(WebResourceRequest request) throws IOException, URISyntaxException {
-        Uri requestUrl = request.getUrl();
+    private void appendHeaders(HttpURLConnection connection, Map<String, String> headers, String method) {
+        try {
+            connection.setRequestMethod(method);
+        } catch (ProtocolException e) {
+            Log.e(TAG, "Invalid method " + method, e);
+            // This can't really happen. But if it did, and we're on a debug build, the app should crash.
+            throw new IllegalArgumentException(e);
+        }
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            connection.setRequestProperty(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) throws IOException {
         if (!shouldStore(requestUrl)) {
             return null;
         }
@@ -154,10 +163,7 @@ public class CacheManager {
             try {
                 url = new URL(requestUrl.toString());
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod(request.getMethod());
-                for (String key : request.getRequestHeaders().keySet()) {
-                    connection.setRequestProperty(key, request.getRequestHeaders().get(key));
-                }
+                appendHeaders(connection, headers, method);
                 connection.connect();
                 contentType = connection.getContentType();
                 if (contentType == null) {
@@ -172,7 +178,7 @@ public class CacheManager {
                 inputStream = new CachingInputStream(filePath, url.openStream(), new CachingInputStream.KInputStreamListener() {
                     @Override
                     public void streamClosed(long fileSize, String filePath) {
-                        int trimLength = (int)getCachePath().length();
+                        int trimLength = getCachePath().length();
                         String fileId = filePath.substring(trimLength);
                         mSQLHelper.updateFileSize(fileId, fileSize);
                         deleteLessUsedFiles(fileSize);
