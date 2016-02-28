@@ -2,6 +2,7 @@ package com.kaltura.playersdk;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
@@ -19,6 +20,9 @@ import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayerListener;
+
+import java.io.InputStream;
+import java.io.StringBufferInputStream;
 
 
 /**
@@ -98,7 +102,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     private KControlsViewClient controlsViewClient;
     private String entryId;
     private ControlsBarHeightFetcher fetcher;
-    private Context mContext;
+    public Context mContext;
     private CacheManager mCacheManager;
 
     private static String AddJSListener = "addJsListener";
@@ -122,6 +126,18 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         getSettings().setAllowFileAccess(true);
         getSettings().setDomStorageEnabled(true);
         this.addJavascriptInterface(this, "android");
+//        WebSettings settings = this.getSettings();
+//        settings.setSupportMultipleWindows(true);
+//        getSettings().setDomStorageEnabled(true);
+//        getSettings().setBuiltInZoomControls(false);
+//        getSettings().setAllowFileAccess(true);
+//        getSettings().setUseWideViewPort(false);
+//        getSettings().setAllowContentAccess(true);
+//        getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+
+
+        //this.addJavascriptInterface(new JavaScriptInterface(getContext()), "android");
+        //this.addJavascriptInterface(new JsObject(this), "android");
         this.setWebViewClient(new CustomWebViewClient());
         this.setWebChromeClient(new WebChromeClient());
         this.getSettings().setUserAgentString(this.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer");
@@ -163,14 +179,25 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
     public void sendNotification(String notification, String params) {
         Log.d("JavaSCRIPT", KStringUtilities.sendNotification(notification, params));
+
         this.loadUrl(KStringUtilities.sendNotification(notification, params));
+        //run(KStringUtilities.sendNotification(notification, params));
     }
 
+
+//    public void run(final String scriptSrc) {
+//        this.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                loadUrl("javascript:" + scriptSrc);
+//            }
+//        });
+//    }
     public void setKDPAttribute(String pluginName, String propertyName, String value) {
         this.loadUrl(KStringUtilities.setKDPAttribute(pluginName, propertyName, value));
     }
-
-    public void triggerEvent(String event, String value) {
+    //@JavascriptInterface
+    public void triggerEvent(final String event, final String value) {
         KPlayerState kState = KPlayerState.getStateForEventName(event);
         switch (kState) {
             case PLAYING:
@@ -189,7 +216,25 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         if (event.equals(KPlayerListener.DurationChangedKey)) {
             mDuration = (int) (Double.parseDouble(value) * 1000);
         }
-        this.loadUrl(KStringUtilities.triggerEvent(event, value));
+
+        //Log.e("GILAD", "triggerEvent: " + event);
+        loadUrl(KStringUtilities.triggerEvent(event, value));
+
+//this.loadUrl("(function(){elt.innerHTML='Hello World!';})()");
+//        new Handler(Looper.getMainLooper()).post(new Runnable() {
+//            @Override
+//            public void run() {
+//                loadUrl(KStringUtilities.triggerEvent(event, value));
+//            }
+//        });
+       // run(KStringUtilities.triggerEvent(event, value));
+//        ((Activity)mContext).runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                loadUrl(KStringUtilities.triggerEvent(event, value));
+//            }
+//        });
+
     }
 
     public void triggerEventWithJSON(String event, String jsonString) {
@@ -207,8 +252,13 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
 
     private class CustomWebViewClient extends WebViewClient {
+
+
+
         @Override
+        @JavascriptInterface
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            Log.e("GILAD", "shouldOverrideUrlLoading: " + url);
             Log.d(TAG, "shouldOverrideUrlLoading: " + url);
             if (url == null) {
                 return false;
@@ -216,6 +266,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
                 String action = urlUtil.getAction();
+                Log.e("GILAD", "action: " + action);
                 KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
                 return true;
             } else if (!urlUtil.isEmbedFrame()) {
@@ -225,10 +276,31 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             return false;
         }
 
-
+        @Override
+        public WebResourceResponse shouldInterceptRequest(final WebView view, String url) {
+            Log.e("GILAD", "TEDT URL : " + url);
+            if (url.contains("js-frame:")) {
+                KStringUtilities urlUtil = new KStringUtilities(url);
+                String action = urlUtil.getAction();
+                Log.e("GILAD", "action: " + action);
+                KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
+                //TODO - if I call to open url in else like in "shouldOverrideUrlLoading" it does not work
+                return getWebResourceResponseFromString();
+            } else {
+                return null;
+            }
+        }
+        private WebResourceResponse getWebResourceResponseFromString() {
+            return getUtf8EncodedWebResourceResponse(new StringBufferInputStream("JS-FRAME"));
+        }
+        private WebResourceResponse getUtf8EncodedWebResourceResponse(InputStream data) {
+            return new WebResourceResponse("text/plain", "UTF-8", data);
+        }
         @Override
         public void onPageFinished(WebView view, String url) {
+            Log.e("GILAD", "onPageFinished: " + url);
         }
+
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
@@ -254,6 +326,24 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                 return response;
             }
             return null;
+        }
+    }
+
+    public class JsObject {
+        private View view;
+        JsObject(View view){
+            this.view = view;
+        }
+        @JavascriptInterface
+        public void setVisible() {
+            ((Activity) mContext).runOnUiThread(new Runnable() {
+
+                @Override
+                public void run() {
+                    view.setVisibility(View.VISIBLE);
+
+                }
+            });
         }
     }
 

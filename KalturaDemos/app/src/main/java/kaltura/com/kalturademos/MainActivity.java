@@ -3,8 +3,8 @@ package kaltura.com.kalturademos;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         setContentView(R.layout.activity_main);
 
@@ -49,10 +50,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
+            //KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
+
+
+            //192.168.163.63
+            //KPPlayerConfig config = new KPPlayerConfig("http://localhost:8080/html5.kaltura/mwEmbed/mwEmbedFrame.php", "33502041", "2068231").setEntryId("1_6q4u0wxw");
+            KPPlayerConfig config = new KPPlayerConfig("http://192.168.163.63/html5.kaltura/mwEmbed/mwEmbedFrame.php", "33502041", "2068231").setEntryId("1_6q4u0wxw");
+            //KPPlayerConfig config = new KPPlayerConfig("http://localhost:8080/html5.kaltura/mwEmbed/mwEmbedFrame.php", "28013271", "1878761").setEntryId("1_k64id08u"); //LIVE DVR
+            String KALTURA_AUTOPLAY = "autoPlay";
+
             config.addConfig("controlBarContainer.plugin", "false");
             config.addConfig("topBarContainer.plugin", "false");
             config.addConfig("largePlayBtn.plugin", "false");
+            config.addConfig(KALTURA_AUTOPLAY, Boolean.FALSE.toString());
+
+            config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
+
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
         }
