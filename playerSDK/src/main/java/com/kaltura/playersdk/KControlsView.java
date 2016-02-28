@@ -126,18 +126,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         getSettings().setAllowFileAccess(true);
         getSettings().setDomStorageEnabled(true);
         this.addJavascriptInterface(this, "android");
-//        WebSettings settings = this.getSettings();
-//        settings.setSupportMultipleWindows(true);
-//        getSettings().setDomStorageEnabled(true);
-//        getSettings().setBuiltInZoomControls(false);
-//        getSettings().setAllowFileAccess(true);
-//        getSettings().setUseWideViewPort(false);
-//        getSettings().setAllowContentAccess(true);
-//        getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
-
-
-        //this.addJavascriptInterface(new JavaScriptInterface(getContext()), "android");
-        //this.addJavascriptInterface(new JsObject(this), "android");
         this.setWebViewClient(new CustomWebViewClient());
         this.setWebChromeClient(new WebChromeClient());
         this.getSettings().setUserAgentString(this.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer");
@@ -181,18 +169,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         Log.d("JavaSCRIPT", KStringUtilities.sendNotification(notification, params));
 
         this.loadUrl(KStringUtilities.sendNotification(notification, params));
-        //run(KStringUtilities.sendNotification(notification, params));
     }
 
 
-//    public void run(final String scriptSrc) {
-//        this.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                loadUrl("javascript:" + scriptSrc);
-//            }
-//        });
-//    }
     public void setKDPAttribute(String pluginName, String propertyName, String value) {
         this.loadUrl(KStringUtilities.setKDPAttribute(pluginName, propertyName, value));
     }
@@ -217,24 +196,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             mDuration = (int) (Double.parseDouble(value) * 1000);
         }
 
-        //Log.e("GILAD", "triggerEvent: " + event);
         loadUrl(KStringUtilities.triggerEvent(event, value));
-
-//this.loadUrl("(function(){elt.innerHTML='Hello World!';})()");
-//        new Handler(Looper.getMainLooper()).post(new Runnable() {
-//            @Override
-//            public void run() {
-//                loadUrl(KStringUtilities.triggerEvent(event, value));
-//            }
-//        });
-       // run(KStringUtilities.triggerEvent(event, value));
-//        ((Activity)mContext).runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                loadUrl(KStringUtilities.triggerEvent(event, value));
-//            }
-//        });
-
     }
 
     public void triggerEventWithJSON(String event, String jsonString) {
@@ -252,13 +214,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
 
     private class CustomWebViewClient extends WebViewClient {
-
-
-
         @Override
         @JavascriptInterface
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.e("GILAD", "shouldOverrideUrlLoading: " + url);
             Log.d(TAG, "shouldOverrideUrlLoading: " + url);
             if (url == null) {
                 return false;
@@ -266,7 +224,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
                 String action = urlUtil.getAction();
-                Log.e("GILAD", "action: " + action);
                 KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
                 return true;
             } else if (!urlUtil.isEmbedFrame()) {
@@ -276,48 +233,23 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             return false;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public WebResourceResponse shouldInterceptRequest(final WebView view, String url) {
-            Log.e("GILAD", "TEDT URL : " + url);
-            if (url.contains("js-frame:")) {
+            KStringUtilities urlUtil = new KStringUtilities(url);
+            if (urlUtil.isJSFrame()) {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                    KStringUtilities urlUtil = new KStringUtilities(url);
                     String action = urlUtil.getAction();
-                    Log.e("GILAD", "action: " + action);
                     KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
-                    //TODO - if I call to open url in else like in "shouldOverrideUrlLoading" it does not work
-                    return getWebResourceResponseFromString();
+                    return new WebResourceResponse("text/plain", "UTF-8", new StringBufferInputStream("JS-FRAME"));
                 }
-                return null;
-            } else {
-                return null;
-            }
-        }
-        private WebResourceResponse getWebResourceResponseFromString() {
-            return getUtf8EncodedWebResourceResponse(new StringBufferInputStream("JS-FRAME"));
-        }
-        private WebResourceResponse getUtf8EncodedWebResourceResponse(InputStream data) {
-            return new WebResourceResponse("text/plain", "UTF-8", data);
-        }
-        @Override
-        public void onPageFinished(WebView view, String url) {
-            Log.e("GILAD", "onPageFinished: " + url);
-        }
-
-
-        @Override
-        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-            Log.d(TAG, "Webview Error: " + description);
-        }
-
-        @Override
-        public void onLoadResource(WebView view, String url) {
+            } 
+            return null;
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-//            Log.d(TAG, "WebResponse: " + request.getUrl());
             if (mCacheManager != null) {
                 WebResourceResponse response = null;
                 try {
@@ -331,23 +263,4 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             return null;
         }
     }
-
-    public class JsObject {
-        private View view;
-        JsObject(View view){
-            this.view = view;
-        }
-        @JavascriptInterface
-        public void setVisible() {
-            ((Activity) mContext).runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    view.setVisibility(View.VISIBLE);
-
-                }
-            });
-        }
-    }
-
 }
