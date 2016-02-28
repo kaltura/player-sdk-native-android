@@ -280,12 +280,15 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         public WebResourceResponse shouldInterceptRequest(final WebView view, String url) {
             Log.e("GILAD", "TEDT URL : " + url);
             if (url.contains("js-frame:")) {
-                KStringUtilities urlUtil = new KStringUtilities(url);
-                String action = urlUtil.getAction();
-                Log.e("GILAD", "action: " + action);
-                KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
-                //TODO - if I call to open url in else like in "shouldOverrideUrlLoading" it does not work
-                return getWebResourceResponseFromString();
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                    KStringUtilities urlUtil = new KStringUtilities(url);
+                    String action = urlUtil.getAction();
+                    Log.e("GILAD", "action: " + action);
+                    KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
+                    //TODO - if I call to open url in else like in "shouldOverrideUrlLoading" it does not work
+                    return getWebResourceResponseFromString();
+                }
+                return null;
             } else {
                 return null;
             }
