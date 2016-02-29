@@ -1,12 +1,9 @@
 package com.kaltura.playersdk.helpers;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 
 import com.kaltura.playersdk.Utilities;
@@ -21,11 +18,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by nissimpardo on 25/10/15.
@@ -90,7 +86,7 @@ public class CacheManager {
         return mCacheConditions;
     }
 
-    public boolean shouldStore(Uri uri) throws URISyntaxException {
+    public boolean shouldStore(Uri uri) {
         String uriString = uri.toString();
         JSONObject conditions = getCacheConditions();
 
@@ -132,35 +128,20 @@ public class CacheManager {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private Uri getUri(Object request) {
-        if (request instanceof String) {
-            return Uri.parse((String)request);
+    private void appendHeaders(HttpURLConnection connection, Map<String, String> headers, String method) {
+        try {
+            connection.setRequestMethod(method);
+        } catch (ProtocolException e) {
+            Log.e(TAG, "Invalid method " + method, e);
+            // This can't really happen. But if it did, and we're on a debug build, the app should crash.
+            throw new IllegalArgumentException(e);
         }
-        if (request instanceof WebResourceRequest) {
-            return ((WebResourceRequest)request).getUrl();
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
-        return null;
     }
-
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private HttpURLConnection appendHeaders(HttpURLConnection connection, Object request) {
-        if (request instanceof WebResourceRequest) {
-            try {
-                connection.setRequestMethod(((WebResourceRequest)request).getMethod());
-            } catch (ProtocolException e) {
-                e.printStackTrace();
-            }
-            for (String key : ((WebResourceRequest)request).getRequestHeaders().keySet()) {
-                connection.setRequestProperty(key, ((WebResourceRequest)request).getRequestHeaders().get(key));
-            }
-        }
-        return connection;
-    }
-
-    public WebResourceResponse getResponse(Object request) throws IOException, URISyntaxException {
-        Uri requestUrl = getUri(request);
+    
+    public WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) throws IOException {
         if (!shouldStore(requestUrl)) {
             return null;
         }
@@ -182,7 +163,7 @@ public class CacheManager {
             try {
                 url = new URL(requestUrl.toString());
                 connection = (HttpURLConnection) url.openConnection();
-                appendHeaders(connection, request);
+                appendHeaders(connection, headers, method);
                 connection.connect();
                 contentType = connection.getContentType();
                 if (contentType == null) {

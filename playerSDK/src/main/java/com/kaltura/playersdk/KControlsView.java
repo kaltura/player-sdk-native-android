@@ -2,9 +2,10 @@ package com.kaltura.playersdk;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Looper;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,9 +23,9 @@ import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayerListener;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 
 /**
@@ -205,22 +206,18 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         this.loadUrl(KStringUtilities.triggerEventWithJSON(event, jsonString));
     }
 
-    private WebResourceResponse webResourceResponse(Object object) {
-        if (object == null) {
-            try {
-                return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("JS-FRAME".getBytes("UTF-8")));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+    private WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) {
+        // Only handle http(s)
+        if (!requestUrl.getScheme().startsWith("http")) {
+            Log.d(TAG, "Will not handle " + requestUrl);
+            return null;
         }
-        WebResourceResponse response = null;
+        mCacheManager.setContext(mContext);
         try {
-            mCacheManager.setContext(mContext);
-            response = mCacheManager.getResponse(object);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return mCacheManager.getResponse(requestUrl, headers, method);
+        } catch (IOException e) {
+            return null;
         }
-        return response;
     }
 
     @JavascriptInterface
@@ -234,43 +231,57 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
 
     private class CustomWebViewClient extends WebViewClient {
-        @Override
-        @JavascriptInterface
+
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Log.d(TAG, "shouldOverrideUrlLoading: " + url);
             if (url == null) {
                 return false;
             }
-            KStringUtilities urlUtil = new KStringUtilities(url);
+            final KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
-                String action = urlUtil.getAction();
-                KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
-                return true;
-            } else if (!urlUtil.isEmbedFrame()) {
-                KControlsView.this.controlsViewClient.openURL(url);
+                final String action = urlUtil.getAction();
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
+                    }
+                };
+                if (Looper.myLooper() == Looper.getMainLooper()) {
+                    runnable.run();
+                } else {
+                    post(runnable);
+                }
                 return true;
             }
             return false;
         }
+        
+        private WebResourceResponse textResponse(String text) {
+            return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("JS-FRAME".getBytes()));
+        }
+        
+        private WebResourceResponse handleWebRequest(WebView view, String url, Map<String, String> headers, String method) {
+            final KStringUtilities urlUtil = new KStringUtilities(url);
+            
+            // On some devices, shouldOverrideUrlLoading() misses the js-frame call.
+            if (shouldOverrideUrlLoading(view, url)) {
+                return textResponse("JS-FRAME");
+            }
+            
+            
+            return getResponse(Uri.parse(url), headers, method);
+        }
 
         @SuppressWarnings("deprecation")
         @Override
-        public WebResourceResponse shouldInterceptRequest(final WebView view, String url) {
-            KStringUtilities urlUtil = new KStringUtilities(url);
-            if (urlUtil.isJSFrame()) {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                    String action = urlUtil.getAction();
-                    KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
-                    return webResourceResponse(null);
-                }
-            }
-            return webResourceResponse(url);
+        public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            return handleWebRequest(view, url, Collections.<String, String>emptyMap(), "GET");
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            return webResourceResponse(request);
+            return handleWebRequest(view, request.getUrl().toString(), request.getRequestHeaders(), request.getMethod());
         }
     }
 }
