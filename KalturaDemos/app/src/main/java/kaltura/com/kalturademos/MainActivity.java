@@ -18,9 +18,6 @@ import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -52,63 +49,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-
-            String cfg="{\n" +
-                    "  \"base\": {\n" +
-                    "    \"server\": \"http://player-as.ott.kaltura.com/viacom18/v2.39_viacom_v0.4.1/mwEmbed/mwEmbedFrame.php\",\n" +
-                    "    \"partnerId\": \"\",\n" +
-                    "    \"uiConfId\": \"32626752\",\n" +
-                    "    \"entryId\": \"374130\"\n" +
-                    "  },\n" +
-                    "  \"extra\": {\n" +
-                    "    \"watermark.plugin\": \"true\",\n" +
-                    "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
-                    "    \"watermark.title\": \"Viacom18\",\n" +
-                    "    \"watermark.cssClass\": \"topRight\",\n" +
-                    "    \n" +
-                    "    \"controlBarContainer.hover\": true,\n" +
-                    "    \"controlBarContainer.plugin\": true,\n" +
-                    "    \"adultPlayer.plugin\": true,\n" +
-                    "    \n" +
-                    "    \"liveCore.disableLiveCheck\": true,\n" +
-                    "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
-                    "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
-                    "    \"proxyData\": {\n" +
-                    "      \"MediaID\": \"374130\",\n" +
-                    "      \"iMediaID\": \"374130\",\n" +
-                    "      \"mediaType\": \"0\",\n" +
-                    "      \"picSize\": \"640x360\",\n" +
-                    "      \"withDynamic\": \"false\",\n" +
-                    "      \"initObj\": {\n" +
-                    "        \"ApiPass\": \"11111\",\n" +
-                    "        \"ApiUser\": \"tvpapi_225\",\n" +
-                    "        \"DomainID\": 0,\n" +
-                    "        \"Locale\": {\n" +
-                    "            \"LocaleCountry\": \"null\",\n" +
-                    "            \"LocaleDevice\": \"null\",\n" +
-                    "            \"LocaleLanguage\": \"null\",\n" +
-                    "            \"LocaleUserState\": \"Unknown\"\n" +
-                    "        },\n" +
-                    "        \"Platform\": \"Cellular\",\n" +
-                    "        \"SiteGuid\": \"\",\n" +
-                    "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
-                    "      }\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "}\n";
-
-
-
-//            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-            KPPlayerConfig config = null;
-            try {
-                config = KPPlayerConfig.fromJSONObject(new JSONObject(cfg));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-//            config.addConfig("controlBarContainer.plugin", "false");
-//            config.addConfig("topBarContainer.plugin", "false");
-//            config.addConfig("largePlayBtn.plugin", "false");
+            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
+            config.addConfig("controlBarContainer.plugin", "false");
+            config.addConfig("topBarContainer.plugin", "false");
+            config.addConfig("largePlayBtn.plugin", "false");
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
         }
