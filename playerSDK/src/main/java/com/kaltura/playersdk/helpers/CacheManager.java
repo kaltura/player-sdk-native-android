@@ -20,8 +20,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -131,8 +133,34 @@ public class CacheManager {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public WebResourceResponse getResponse(WebResourceRequest request) throws IOException, URISyntaxException {
-        Uri requestUrl = request.getUrl();
+    private Uri getUri(Object request) {
+        if (request instanceof String) {
+            return Uri.parse((String)request);
+        }
+        if (request instanceof WebResourceRequest) {
+            return ((WebResourceRequest)request).getUrl();
+        }
+        return null;
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private HttpURLConnection appendHeaders(HttpURLConnection connection, Object request) {
+        if (request instanceof WebResourceRequest) {
+            try {
+                connection.setRequestMethod(((WebResourceRequest)request).getMethod());
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            }
+            for (String key : ((WebResourceRequest)request).getRequestHeaders().keySet()) {
+                connection.setRequestProperty(key, ((WebResourceRequest)request).getRequestHeaders().get(key));
+            }
+        }
+        return connection;
+    }
+
+    public WebResourceResponse getResponse(Object request) throws IOException, URISyntaxException {
+        Uri requestUrl = getUri(request);
         if (!shouldStore(requestUrl)) {
             return null;
         }
@@ -154,10 +182,7 @@ public class CacheManager {
             try {
                 url = new URL(requestUrl.toString());
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod(request.getMethod());
-                for (String key : request.getRequestHeaders().keySet()) {
-                    connection.setRequestProperty(key, request.getRequestHeaders().get(key));
-                }
+                appendHeaders(connection, request);
                 connection.connect();
                 contentType = connection.getContentType();
                 if (contentType == null) {
@@ -172,7 +197,7 @@ public class CacheManager {
                 inputStream = new CachingInputStream(filePath, url.openStream(), new CachingInputStream.KInputStreamListener() {
                     @Override
                     public void streamClosed(long fileSize, String filePath) {
-                        int trimLength = (int)getCachePath().length();
+                        int trimLength = getCachePath().length();
                         String fileId = filePath.substring(trimLength);
                         mSQLHelper.updateFileSize(fileId, fileSize);
                         deleteLessUsedFiles(fileSize);

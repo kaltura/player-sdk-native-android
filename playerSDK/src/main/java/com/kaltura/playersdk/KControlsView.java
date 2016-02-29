@@ -21,8 +21,10 @@ import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayerListener;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
+import java.io.UnsupportedEncodingException;
 
 
 /**
@@ -203,6 +205,24 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         this.loadUrl(KStringUtilities.triggerEventWithJSON(event, jsonString));
     }
 
+    private WebResourceResponse webResourceResponse(Object object) {
+        if (object == null) {
+            try {
+                return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("JS-FRAME".getBytes("UTF-8")));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+        WebResourceResponse response = null;
+        try {
+            mCacheManager.setContext(mContext);
+            response = mCacheManager.getResponse(object);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
     @JavascriptInterface
     public void onData(String value) {
         if (this.fetcher != null && value != null) {
@@ -241,26 +261,16 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
                     String action = urlUtil.getAction();
                     KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
-                    return new WebResourceResponse("text/plain", "UTF-8", new StringBufferInputStream("JS-FRAME"));
+                    return webResourceResponse(null);
                 }
-            } 
-            return null;
+            }
+            return webResourceResponse(url);
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            if (mCacheManager != null) {
-                WebResourceResponse response = null;
-                try {
-                    mCacheManager.setContext(mContext);
-                    response = mCacheManager.getResponse(request);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return response;
-            }
-            return null;
+            return webResourceResponse(request);
         }
     }
 }
