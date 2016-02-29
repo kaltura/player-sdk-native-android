@@ -105,13 +105,13 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     private KControlsViewClient controlsViewClient;
     private String entryId;
     private ControlsBarHeightFetcher fetcher;
-    public Context mContext;
+    private Context mContext;
     private CacheManager mCacheManager;
 
     private static String AddJSListener = "addJsListener";
     private static String RemoveJSListener = "removeJsListener";
 
-    @SuppressLint("JavascriptInterface")
+    @SuppressLint("SetJavaScriptEnabled")
     public KControlsView(Context context) {
         super(context);
         mContext = context;
@@ -135,9 +135,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         this.setBackgroundColor(0);
     }
-
-
-
+    
 
     public void setKControlsViewClient(KControlsViewClient client) {
         this.controlsViewClient = client;
@@ -178,7 +176,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     public void setKDPAttribute(String pluginName, String propertyName, String value) {
         this.loadUrl(KStringUtilities.setKDPAttribute(pluginName, propertyName, value));
     }
-    //@JavascriptInterface
+
     public void triggerEvent(final String event, final String value) {
         KPlayerState kState = KPlayerState.getStateForEventName(event);
         switch (kState) {
@@ -257,7 +255,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         }
         
         private WebResourceResponse textResponse(String text) {
-            return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("JS-FRAME".getBytes()));
+            return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream(text.getBytes()));
         }
         
         private WebResourceResponse handleWebRequest(WebView view, String url, Map<String, String> headers, String method) {
