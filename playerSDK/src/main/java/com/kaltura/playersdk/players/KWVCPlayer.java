@@ -167,8 +167,10 @@ public class KWVCPlayer
             mPlayheadTracker = new PlayheadTracker();
         }
         mPlayheadTracker.start();
-        
-        mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+
+        if ((mPlayer.getCurrentPosition()/1000f < mPlayer.getDuration()/1000f)) {// && ((mPlayer.getCurrentPosition() + 20) < mPlayer.getDuration())) {
+            mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+        }
     }
 
     @Override
@@ -278,6 +280,15 @@ public class KWVCPlayer
                     public void onSeekComplete(MediaPlayer mp) {
                         saveState();
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+
+                        if ((mPlayer.getCurrentPosition()/1000f == mPlayer.getDuration()/1000f) || ((mPlayer.getCurrentPosition()/1000f + 20) >= mPlayer.getDuration()/1000f)) {
+                            mPlayer.stopPlayback();
+                            mListener.contentCompleted(KWVCPlayer.this);
+                            mSavedState.playing = false;
+                            mShouldCancelPlay = true;
+                            //mPlayer.stopPlayback();
+                            saveState();
+                        }
                     }
                 });
 
