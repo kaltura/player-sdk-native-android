@@ -43,6 +43,16 @@
                 android:layout_toRightOf="@+id/button"/>
         </RelativeLayout>
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Replay"
+            android:id="@+id/replay"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:visibility="invisible"
+            android:onClick="onClick"/>
+
     </RelativeLayout>
 
 

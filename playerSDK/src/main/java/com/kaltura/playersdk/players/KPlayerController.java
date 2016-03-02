@@ -76,8 +76,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         // All known players
         formats.addAll(KExoPlayer.supportedFormats(context));
         formats.addAll(KWVCPlayer.supportedFormats(context));
-        formats.addAll(KHLSPlayer.supportedFormats(context));
-        
         return formats;
     }
 
@@ -176,13 +174,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void removePlayer() {
         if (player != null) {
-            player.removePlayer();
+            player.freezePlayer();
+        }
+        if (isIMAActive && imaManager != null) {
+            imaManager.pause();
         }
     }
 
     public void recoverPlayer() {
         if (player != null) {
             player.recoverPlayer();
+        }
+        if (isIMAActive && imaManager != null) {
+            imaManager.resume();
         }
     }
 
@@ -224,12 +228,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             shouldReplacePlayer = true;
         }
 
-        // maybe change player
+        // Select player
         String path = Uri.parse(src).getPath();
-        if (path.endsWith(".m3u8")) {
-            // HLS
-            this.player = new KHLSPlayer(context);
-        } else if (path.endsWith(".wvm")) {
+        if (path.endsWith(".wvm")) {
             // Widevine Classic
             this.player = new KWVCPlayer(context);
         } else {
@@ -269,7 +270,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         lp = new ViewGroup.LayoutParams(lp.width, lp.height);
         parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1, lp);
 
-        // Add IMA UI controls view
+        // Add IMA UI KMediaControl view
         RelativeLayout adUiControls = new RelativeLayout(parentViewController.getContext());
         ViewGroup.LayoutParams curLP = parentViewController.getLayoutParams();
         ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);
@@ -318,7 +319,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     // [START ContentProgressProvider region]
     @Override
     public VideoProgressUpdate getContentProgress() {
-        if (player.getDuration() <= 0) {
+        if (player == null || player.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
         return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);

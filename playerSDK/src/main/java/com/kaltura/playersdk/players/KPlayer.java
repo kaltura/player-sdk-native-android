@@ -23,6 +23,8 @@ public interface KPlayer {
 
     void changeSubtitleLanguage(String languageCode);
 
+    void freezePlayer();
+
     void removePlayer();
 
     void recoverPlayer();

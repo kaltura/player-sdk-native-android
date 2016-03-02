@@ -7,6 +7,10 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +79,7 @@ public class Utilities {
 
     @NonNull
     public static String stripLastPathSegment(String path) {
-        path = path.substring(0, path.lastIndexOf('/', path.length()-2));
+        path = path.substring(0, path.lastIndexOf('/', path.length() - 2));
         return path;
     }
 
@@ -85,5 +89,18 @@ public class Utilities {
         conn.connect();
         InputStream is = conn.getInputStream();
         return fullyReadInputStream(is, byteLimit).toString();
+    }
+
+    public static boolean isJSONValid(String jsonStr) {
+        try {
+            new JSONObject(jsonStr);
+        } catch (JSONException ex) {
+            try {
+                new JSONArray(jsonStr);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
     }
 }
