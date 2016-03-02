@@ -38,6 +38,7 @@ notifications:
       - noam.tamim@kaltura.com
       - itay.kinnrot@kaltura.com
       - nissim.pardo@kaltura.com
+      - gilad.nadav@kaltura.com
     on_success: change
     on_failure: always
     
