@@ -14,6 +14,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.kaltura.playersdk.Utilities;
 import com.kaltura.playersdk.casting.KCastKalturaChannel;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
@@ -61,21 +62,27 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
 
     public void initialize(String castAppIdsInJSON) {
         JSONArray ids = null;
-        String nameSpace = "";
-        try {
-            ids = new JSONArray(castAppIdsInJSON);
-            if (ids.length() == 2) {
-                mCastAppID = (String)ids.get(0);
-                nameSpace = (String)ids.get(1);
-                mListener.onConnecting();
+        String CC_MESSAGE_NAMESPACE = "urn:x-cast:com.kaltura.cast.player";
+        if (Utilities.isJSONValid(castAppIdsInJSON)) {
+            try {
+                ids = new JSONArray(castAppIdsInJSON);
+                if (ids.length() == 2) {
+                    mCastAppID = (String) ids.get(0);
+                    CC_MESSAGE_NAMESPACE = (String) ids.get(1);
+                    mListener.onConnecting();
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Error parsing json", e);
+                return;
             }
-        } catch (JSONException e) {
-            Log.e(TAG, "Error parsing json", e);
-            return;
+        }
+        else{
+            mCastAppID = castAppIdsInJSON;
         }
 
-        if (nameSpace != null) {
-            mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
+        if (CC_MESSAGE_NAMESPACE != null) {
+            mChannel = new KCastKalturaChannel(CC_MESSAGE_NAMESPACE, new KCastKalturaChannel.KCastKalturaChannelListener() {
+
                 @Override
                 public void readyForMedia() {
                     mListener.onStartCasting(mApiClient, mSelectedDevice);
