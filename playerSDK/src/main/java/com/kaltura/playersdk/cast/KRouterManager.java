@@ -62,13 +62,13 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
 
     public void initialize(String castAppIdsInJSON) {
         JSONArray ids = null;
-        String CC_MESSAGE_NAMESPACE = "urn:x-cast:com.kaltura.cast.player";
+        String nameSpace = null;
         if (Utilities.isJSONValid(castAppIdsInJSON)) {
             try {
                 ids = new JSONArray(castAppIdsInJSON);
                 if (ids.length() == 2) {
                     mCastAppID = (String) ids.get(0);
-                    CC_MESSAGE_NAMESPACE = (String) ids.get(1);
+                    nameSpace = (String) ids.get(1);
                     mListener.onConnecting();
                 }
             } catch (JSONException e) {
@@ -80,8 +80,8 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
             mCastAppID = castAppIdsInJSON;
         }
 
-        if (CC_MESSAGE_NAMESPACE != null) {
-            mChannel = new KCastKalturaChannel(CC_MESSAGE_NAMESPACE, new KCastKalturaChannel.KCastKalturaChannelListener() {
+        if (nameSpace != null && nameSpace.length() > 0) {
+            mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
 
                 @Override
                 public void readyForMedia() {
