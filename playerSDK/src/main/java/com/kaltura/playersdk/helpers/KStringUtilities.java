@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 /**
  * Created by nissopa on 6/7/15.
@@ -17,6 +18,7 @@ public class KStringUtilities {
     private static String SetKDPAttribute = "setKDPAttribute";
     private static String TriggerEvent = "trigger";
     private static String SendNotification = "sendNotification";
+    private static String LocalContentId = "localContentId";
 
     private String string;
     private String argsString;
@@ -187,6 +189,22 @@ public class KStringUtilities {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    static public String extractLocalContentId(String url) {
+        String[] components = url.split("#");
+        if (components != null && components.length == 2) {
+            String[] hashTagComponents = components[1].split("&");
+            if (hashTagComponents != null) {
+                for (int i = 0; i < hashTagComponents.length; i++) {
+                    String[] param = hashTagComponents[i].split("=");
+                    if (param != null && param.length == 2 && param[0].equals(LocalContentId)) {
+                        return param[1];
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     static public final String md5(String string) {
