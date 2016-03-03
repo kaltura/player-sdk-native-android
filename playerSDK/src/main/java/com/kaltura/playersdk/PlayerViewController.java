@@ -242,7 +242,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
-            mWebView.loadUrl(config.getVideoURL() + "#" + buildSupportedMediaFormats());
+            mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
         }
     }
 
@@ -462,7 +462,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             
         }
 
-        iframeUrl += "#" + buildSupportedMediaFormats();
+        iframeUrl += buildSupportedMediaFormats();
 
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) ) {
             mIframeUrl = iframeUrl;
