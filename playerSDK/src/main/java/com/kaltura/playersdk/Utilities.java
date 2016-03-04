@@ -90,17 +90,4 @@ public class Utilities {
         InputStream is = conn.getInputStream();
         return fullyReadInputStream(is, byteLimit).toString();
     }
-
-    public static boolean isJSONValid(String jsonStr) {
-        try {
-            new JSONObject(jsonStr);
-        } catch (JSONException ex) {
-            try {
-                new JSONArray(jsonStr);
-            } catch (JSONException ex1) {
-                return false;
-            }
-        }
-        return true;
-    }
 }

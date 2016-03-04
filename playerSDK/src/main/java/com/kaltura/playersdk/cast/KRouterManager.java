@@ -63,7 +63,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     public void initialize(String castAppIdsInJSON) {
         JSONArray ids = null;
         String nameSpace = null;
-        if (Utilities.isJSONValid(castAppIdsInJSON)) {
+
             try {
                 ids = new JSONArray(castAppIdsInJSON);
                 if (ids.length() == 2) {
@@ -72,13 +72,11 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                     mListener.onConnecting();
                 }
             } catch (JSONException e) {
-                Log.e(TAG, "Error parsing json", e);
-                return;
+                mCastAppID = castAppIdsInJSON;
             }
-        }
-        else{
-            mCastAppID = castAppIdsInJSON;
-        }
+
+
+
 
         if (nameSpace != null && nameSpace.length() > 0) {
             mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
