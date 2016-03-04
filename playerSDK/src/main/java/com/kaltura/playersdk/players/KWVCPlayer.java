@@ -123,20 +123,20 @@ public class KWVCPlayer
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
-        return mPlayer != null ? mPlayer.getCurrentPosition() / 1000f : 0;
+    public long getCurrentPlaybackTime() {
+        return mPlayer != null ? mPlayer.getCurrentPosition() : 0;
     }
     
     @Override
-    public void setCurrentPlaybackTime(float currentPlaybackTime) {
+    public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
-            mPlayer.seekTo((int) (currentPlaybackTime * 1000));
+            mPlayer.seekTo((int) (currentPlaybackTime));
         }
     }
 
     @Override
-    public float getDuration() {
-        return mPlayer != null ? mPlayer.getDuration() / 1000f : 0;
+    public long getDuration() {
+        return mPlayer != null ? mPlayer.getDuration() : 0;
     }
 
     @Override
@@ -185,6 +185,11 @@ public class KWVCPlayer
     @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
+    }
+
+    @Override
+    public void freezePlayer() {
+
     }
 
     private void saveState() {
@@ -281,12 +286,19 @@ public class KWVCPlayer
                     }
                 });
 
+                mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                    @Override
+                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
+                    }
+                });
+
                 if (mSavedState.playing) {
                     // we were already playing, so just resume playback from the saved position
                     mPlayer.seekTo(mSavedState.position);
                     play();
                 } else {
-                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration()));
+                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
                     mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
                     mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
                     mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
