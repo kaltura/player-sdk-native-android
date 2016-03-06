@@ -10,48 +10,57 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3"
-        android:id="@+id/playerContainer">
-        <com.kaltura.playersdk.PlayerViewController
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/player">
-        </com.kaltura.playersdk.PlayerViewController>
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        android:layout_weight="3">
 
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Play"
-                android:id="@+id/button"
-                android:layout_centerVertical="true"
-                android:layout_alignParentStart="false"
-                android:layout_alignParentLeft="true"
-                android:layout_marginRight="10dp"/>
-
-            <SeekBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/seekBar"
-                android:layout_centerVertical="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_toRightOf="@+id/button"/>
-        </RelativeLayout>
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Replay"
             android:id="@+id/replay"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
             android:visibility="invisible"
-            android:onClick="onClick"/>
+            android:onClick="onClick"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true" />
+
+        <com.kaltura.playersdk.PlayerViewController
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/player"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true">
+
+        </com.kaltura.playersdk.PlayerViewController>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:id="@+id/playerContainer">
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play"
+            android:id="@+id/button"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <SeekBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignBottom="@+id/button"
+            android:layout_toRightOf="@+id/button"
+            android:layout_toEndOf="@+id/button" />
+
 
     </RelativeLayout>
 

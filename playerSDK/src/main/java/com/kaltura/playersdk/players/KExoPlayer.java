@@ -180,36 +180,28 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         });
         this.addView(mSurfaceView, layoutParams);
     }
-
-    private float kplayerTime(long exoPlayerTime) {
-        return exoPlayerTime / 1000f;
-    }
-    
-    private long exoPlayerTime(float kplayerTime) {
-        return (long) (kplayerTime * 1000);
-    }
     
     @Override
-    public void setCurrentPlaybackTime(float time) {
+    public void setCurrentPlaybackTime(long time) {
         mSeeking = true;
         stopPlaybackTimeReporter();
         if (mExoPlayer != null) {
-            mExoPlayer.seekTo(exoPlayerTime(time));
+            mExoPlayer.seekTo(time);
         }
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
+    public long getCurrentPlaybackTime() {
         if (mExoPlayer != null) {
-            return kplayerTime(mExoPlayer.getCurrentPosition());
+            return mExoPlayer.getCurrentPosition();
         }
         return 0;
     }
 
     @Override
-    public float getDuration() {
+    public long getDuration() {
         if (mExoPlayer != null) {
-            return kplayerTime(mExoPlayer.getDuration());
+            return mExoPlayer.getDuration();
         }
         return 0;
     }
@@ -268,9 +260,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
     private void maybeReportPlaybackTime() {
-        float position = getCurrentPlaybackTime();
+        long position = getCurrentPlaybackTime();
         if (position != 0 && position < getDuration() && isPlaying()) {
-            mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(position));
+            mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(position / 1000f));
         }
     }
 
@@ -357,7 +349,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     mReadiness = Readiness.Ready;
 
                     // TODO what about mShouldResumePlayback?
-                    mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration()));
+                    mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
                     mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
                     mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
                     mPlayerCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
@@ -421,9 +413,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     private class PlayerState {
         boolean playing;
-        float position;
+        long position;
 
-        void set(boolean playing, float position) {
+        void set(boolean playing, long position) {
             this.playing = playing;
             this.position = position;
         }

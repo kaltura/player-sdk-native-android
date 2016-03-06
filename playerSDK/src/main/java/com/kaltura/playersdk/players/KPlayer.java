@@ -11,11 +11,11 @@ public interface KPlayer {
 
     void setPlayerSource(String playerSource);
 
-    void setCurrentPlaybackTime(float playbackTime);
+    void setCurrentPlaybackTime(long playbackTime);
 
-    float getCurrentPlaybackTime();
+    long getCurrentPlaybackTime();
 
-    float getDuration();
+    long getDuration();
 
     void play();
 

@@ -163,7 +163,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public float getDuration() {
         if (player != null) {
-            return player.getDuration();
+            return player.getDuration() / 1000f;
         }
         return 0;
     }
@@ -288,14 +288,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public float getCurrentPlaybackTime() {
-        return this.player.getCurrentPlaybackTime();
+        return this.player.getCurrentPlaybackTime() / 1000f;
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if (!isCasting) {
-            this.player.setCurrentPlaybackTime(currentPlaybackTime);
+            this.player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
         } else {
-            castPlayer.setCurrentPlaybackTime(currentPlaybackTime);
+            castPlayer.setCurrentPlaybackTime((long)currentPlaybackTime * 1000);
         }
     }
 
@@ -322,7 +322,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null || player.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
-        return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);
+        return new VideoProgressUpdate(player.getCurrentPlaybackTime(), player.getDuration());
     }
     // [END ContentProgressProvider region]
 
