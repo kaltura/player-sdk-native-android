@@ -146,7 +146,11 @@ public class CacheManager {
             return null;
         }
         InputStream inputStream = null;
-        final String fileName = KStringUtilities.md5(requestUrl.toString());
+        String fileName = KStringUtilities.md5(requestUrl.toString());
+        String localContentId = KStringUtilities.extractLocalContentId(requestUrl.toString());
+        if (localContentId.equals(KStringUtilities.LocalContentId)) {
+            fileName = localContentId;
+        }
         String filePath = getCachePath() + fileName;
         String contentType = null;
         String encoding = null;
@@ -160,35 +164,31 @@ public class CacheManager {
         } else {
             URL url = null;
             HttpURLConnection connection = null;
-            try {
-                url = new URL(requestUrl.toString());
-                connection = (HttpURLConnection) url.openConnection();
-                appendHeaders(connection, headers, method);
-                connection.connect();
-                contentType = connection.getContentType();
-                if (contentType == null) {
-                    contentType = "";
-                }
-                String[] contentTypeParts = TextUtils.split(contentType, ";");
-                if (contentTypeParts.length >= 2) {
-                    contentType = contentTypeParts[0].trim();
-                    encoding = contentTypeParts[1].trim();
-                }
-                mSQLHelper.addFile(fileName, contentType, encoding);
-                inputStream = new CachingInputStream(filePath, url.openStream(), new CachingInputStream.KInputStreamListener() {
-                    @Override
-                    public void streamClosed(long fileSize, String filePath) {
-                        int trimLength = getCachePath().length();
-                        String fileId = filePath.substring(trimLength);
-                        mSQLHelper.updateFileSize(fileId, fileSize);
-                        deleteLessUsedFiles(fileSize);
-                    }
-                });
-
-            } catch (Exception e) {
-                Log.e(TAG, "Error loading URL " + requestUrl, e);
-                return null;
+            url = new URL(requestUrl.toString());
+            connection = (HttpURLConnection) url.openConnection();
+            appendHeaders(connection, headers, method);
+            connection.connect();
+            contentType = connection.getContentType();
+            if (contentType == null) {
+                contentType = "";
             }
+            String[] contentTypeParts = TextUtils.split(contentType, ";");
+            if (contentTypeParts.length >= 2) {
+                contentType = contentTypeParts[0].trim();
+                encoding = contentTypeParts[1].trim();
+            }
+            mSQLHelper.addFile(fileName, contentType, encoding);
+            inputStream = new CachingInputStream(filePath, url.openStream(), new CachingInputStream.KInputStreamListener() {
+                @Override
+                public void streamClosed(long fileSize, String filePath) {
+                    int trimLength = getCachePath().length();
+                    String fileId = filePath.substring(trimLength);
+                    mSQLHelper.updateFileSize(fileId, fileSize);
+                    deleteLessUsedFiles(fileSize);
+                }
+            });
+
+
         }
         Log.d("Stored Responses", contentType + " " + encoding + " " + requestUrl.toString());
         return new WebResourceResponse(contentType, encoding, inputStream);

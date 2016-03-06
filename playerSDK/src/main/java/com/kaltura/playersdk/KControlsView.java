@@ -259,14 +259,11 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         }
         
         private WebResourceResponse handleWebRequest(WebView view, String url, Map<String, String> headers, String method) {
-            final KStringUtilities urlUtil = new KStringUtilities(url);
-            
             // On some devices, shouldOverrideUrlLoading() misses the js-frame call.
             if (shouldOverrideUrlLoading(view, url)) {
                 return textResponse("JS-FRAME");
             }
-            
-            
+
             return getResponse(Uri.parse(url), headers, method);
         }
 

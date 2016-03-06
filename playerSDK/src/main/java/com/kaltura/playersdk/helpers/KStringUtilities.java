@@ -18,7 +18,7 @@ public class KStringUtilities {
     private static String SetKDPAttribute = "setKDPAttribute";
     private static String TriggerEvent = "trigger";
     private static String SendNotification = "sendNotification";
-    private static String LocalContentId = "localContentId";
+    public static String LocalContentId = "localContentId";
 
     private String string;
     private String argsString;

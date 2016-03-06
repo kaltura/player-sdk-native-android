@@ -8,13 +8,17 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.webkit.WebResourceResponse;
 
+import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 
 /**
@@ -76,6 +80,19 @@ public class LocalAssetsManager {
         new Thread() {
             @Override
             public void run() {
+                CacheManager.getInstance().setHost(entry.getServerURL());
+                CacheManager.getInstance().setCacheSize(entry.getCacheSize());
+                try {
+                    CacheManager.getInstance().getResponse(Uri.parse(entry.getVideoURL()), Collections.<String, String>emptyMap(), "GET");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    listener.onFailed(localPath, e);
+                    return;
+                }
+                if (!Uri.parse(localPath).getPath().endsWith(".wvm")) {
+                    listener.onRegistered(localPath);
+                    return;
+                }
                 Uri licenseUri;
                 try {
                     licenseUri = prepareLicenseUri(entry, flavor, drmScheme);
