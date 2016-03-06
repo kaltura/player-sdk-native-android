@@ -48,13 +48,15 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private KPlayerExoDrmCallback mDrmCallback;
     private VideoSurfaceView mSurfaceView;
     private boolean mSeeking;
+    private boolean mBuffering = false;
 
     public static Set<MediaFormat> supportedFormats(Context context) {
         Set<MediaFormat> set = new HashSet<>();
         // Clear dash and mp4 are always supported by this player.
         set.add(MediaFormat.dash_clear);
         set.add(MediaFormat.mp4_clear);
-        
+        set.add(MediaFormat.hls_clear);
+
         // Encrypted dash is only supported in Android v4.3 and up -- needs MediaDrm class.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // Make sure Widevine is supported.
@@ -64,7 +66,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         }
         return set;
     }
-    
+
     public KExoPlayer(Context context) {
         super(context);
     }
@@ -76,13 +78,13 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             public void contentCompleted(KPlayer currentPlayer) {}
         };
     }
-    
+
     private KPlayerCallback noopEventListener() {
         return new KPlayerCallback() {
             public void playerStateChanged(int state) {}
         };
     }
-    
+
     // KPlayer implementation
     @Override
     public void setPlayerListener(@NonNull KPlayerListener listener) {
@@ -98,23 +100,23 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void setPlayerSource(String playerSource) {
 
         mSourceURL = playerSource;
-        
+
         prepare();
     }
-    
+
     private Video.VideoType getVideoType() {
         String videoFileName = Uri.parse(mSourceURL).getLastPathSegment();
         switch (videoFileName.substring(videoFileName.lastIndexOf('.')).toLowerCase()) {
-            case ".mpd": 
-                return Video.VideoType.DASH; 
-            case ".mp4": 
-                return Video.VideoType.MP4; 
-            case ".m3u8": 
+            case ".mpd":
+                return Video.VideoType.DASH;
+            case ".mp4":
+                return Video.VideoType.MP4;
+            case ".m3u8":
                 return Video.VideoType.HLS;
-            default: 
+            default:
                 return Video.VideoType.OTHER;
         }
-        
+
     }
 
     private boolean isPlaying() {
@@ -126,12 +128,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
 
     private void prepare() {
-        
+
         if (mReadiness != Readiness.Idle) {
             Log.d(TAG, "Already preparing");
             return;
         }
-        
+
         mReadiness = Readiness.Preparing;
 
         mDrmCallback = new KPlayerExoDrmCallback();
@@ -145,18 +147,22 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                mExoPlayer = new ExoplayerWrapper(rendererBuilder);
-                Surface surface = holder.getSurface();
-                if (surface != null && surface.isValid()) {
-                    mExoPlayer.setSurface(surface);
+                if (mExoPlayer == null) {
+                    mExoPlayer = new ExoplayerWrapper(rendererBuilder);
+                    Surface surface = holder.getSurface();
+                    if (surface != null && surface.isValid()) {
+                        mExoPlayer.setSurface(surface);
+                    } else {
+                        Log.e(TAG, "Surface not ready yet");
+                        return;
+                    }
+                    mExoPlayer.addListener(KExoPlayer.this);
+
+                    mExoPlayer.prepare();
+
                 } else {
-                    Log.e(TAG, "Surface not ready yet");
-                    return;
+                    mExoPlayer.setSurface(holder.getSurface());
                 }
-                mExoPlayer.addListener(KExoPlayer.this);
-
-                mExoPlayer.prepare();
-
             }
 
             @Override
@@ -167,40 +173,36 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
                 Log.d(TAG, "surfaceDestroyed");
+                if (mExoPlayer != null) {
+                    mExoPlayer.blockingClearSurface();
+                }
             }
         });
         this.addView(mSurfaceView, layoutParams);
     }
 
-    private float kplayerTime(long exoPlayerTime) {
-        return exoPlayerTime / 1000f;
-    }
-    
-    private long exoPlayerTime(float kplayerTime) {
-        return (long) (kplayerTime * 1000);
-    }
-    
     @Override
-    public void setCurrentPlaybackTime(float time) {
+    public void setCurrentPlaybackTime(long time) {
+        Log.d(TAG, "setCurrentPlaybackTime: " + time / 1000f + "/" + getDuration() / 1000f);
         mSeeking = true;
         stopPlaybackTimeReporter();
         if (mExoPlayer != null) {
-            mExoPlayer.seekTo(exoPlayerTime(time));
+            mExoPlayer.seekTo(time);
         }
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
+    public long getCurrentPlaybackTime() {
         if (mExoPlayer != null) {
-            return kplayerTime(mExoPlayer.getCurrentPosition());
+            return mExoPlayer.getCurrentPosition();
         }
         return 0;
     }
 
     @Override
-    public float getDuration() {
+    public long getDuration() {
         if (mExoPlayer != null) {
-            return kplayerTime(mExoPlayer.getDuration());
+            return mExoPlayer.getDuration();
         }
         return 0;
     }
@@ -211,40 +213,35 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (isPlaying()) {
             return;
         }
-        
+
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
             return;
         }
-        
+
         if (mReadiness == Readiness.Idle) {
             prepare();
             return;
         }
-        
+
         setPlayWhenReady(true);
-        
+
         if (mSavedState.position != 0) {
             setCurrentPlaybackTime(mSavedState.position);
             mSavedState.position = 0;
         }
 
-        if (isPlaying()) {
-            mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
-        }
-
         startPlaybackTimeReporter();
     }
-    
+
     @Override
     public void pause() {
         stopPlaybackTimeReporter();
         if (this.isPlaying() && mExoPlayer != null) {
             setPlayWhenReady(false);
-            mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
         }
     }
-    
+
     private void startPlaybackTimeReporter() {
         mPlaybackTimeReporter.removeMessages(0); // Stop reporter if already running
         mPlaybackTimeReporter.post(new Runnable() {
@@ -264,10 +261,17 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
     private void maybeReportPlaybackTime() {
-        float position = getCurrentPlaybackTime();
-        if (position != 0 && position < getDuration() && isPlaying()) {
-            mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(position));
+        long position = getCurrentPlaybackTime();
+        Log.d(TAG, "maybeReportPlaybackTime: " + position / 1000f + "/" + getDuration() / 1000f);
+        if (position - 300 <= 0){
+            position = 10;
+        } else if (position + 300 >= getDuration()){
+            position = getDuration();
         }
+        if (position > 0 && position < getDuration() && isPlaying()) {
+            mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(position / 1000f));
+        }
+
     }
 
     @Override
@@ -283,7 +287,15 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         }
     }
 
-
+    @Override
+    public void freezePlayer() {
+        pause();
+        saveState();
+        stopPlaybackTimeReporter();
+        if (mExoPlayer != null) {
+            mExoPlayer.blockingClearSurface();
+        }
+    }
 
     @Override
     public void removePlayer() {
@@ -296,10 +308,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         }
         mReadiness = Readiness.Idle;
     }
-    
+
     @Override
     public void recoverPlayer() {
-        // TODO
+        prepare();
+        setCurrentPlaybackTime(mSavedState.position);
+        play();
     }
 
     @Override
@@ -317,7 +331,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     // PlaybackListener
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
-        Log.d(TAG, "PlayerStateChanged: " + playbackState);
+        Log.d(TAG, "onStateChanged: " + playbackState + " " + getCurrentPlaybackTime() / 1000f + "/" + getDuration() / 1000f);
         switch ( playbackState ) {
             case ExoPlayer.STATE_IDLE:
                 if ( mSeeking ) {
@@ -327,13 +341,36 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             case ExoPlayer.STATE_PREPARING:
                 break;
             case ExoPlayer.STATE_BUFFERING:
+                mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "true");
+                mBuffering = true;
                 break;
             case ExoPlayer.STATE_READY:
+                Log.d(TAG, "mseeking: " + mSeeking + " buffering: " + mBuffering + ", " + " mReadiness : " + mReadiness.name() + " playWhenReady: " + playWhenReady);
+                if ((mSeeking == true && getCurrentPlaybackTime() == 0 )|| mSeeking == false && mBuffering == false &&  getCurrentPlaybackTime() == 0){
+                    mSeeking = false;
+                    mBuffering = false;
+                    mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                    mExoPlayer.setPlayWhenReady(true);
+                    startPlaybackTimeReporter();
+                    if (playWhenReady) {
+                        mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+                     }
+                    break;
+                }
+                if (mBuffering) {
+                    mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
+                    mBuffering = false;
+                }
+                if (mReadiness == Readiness.Ready && !playWhenReady) {
+                    Log.d(TAG, "We have to pause player");
+                    mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
+                }
                 // ExoPlayer is ready.
                 if (mReadiness != Readiness.Ready) {
                     mReadiness = Readiness.Ready;
+
                     // TODO what about mShouldResumePlayback?
-                    mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration()));
+                    mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
                     mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
                     mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
                     mPlayerCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
@@ -344,27 +381,25 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     mSeeking = false;
                     startPlaybackTimeReporter();
                 }
+
+                if (playWhenReady) {
+                    mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+                }
                 break;
 
             case ExoPlayer.STATE_ENDED:
                 Log.d(TAG, "state ended");
                 if (mExoPlayer != null) {
-                    Log.d(TAG, "state ended: set play when ready false");
-                    setPlayWhenReady(false);
+                    mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
                 }
-                if (mExoPlayer != null) {
-                    Log.d(TAG, "state ended: seek to 0");
-                    setCurrentPlaybackTime(0);
-                }
-                if (playWhenReady) {
-                    mPlayerListener.contentCompleted(this);
-                    mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
-                } 
+
+                mPlayerListener.contentCompleted(this);
+                setPlayWhenReady(false);
                 stopPlaybackTimeReporter();
                 break;
         }
     }
-    
+
 
     private void setPlayWhenReady(boolean shouldPlay) {
         if (mExoPlayer != null) {
@@ -383,7 +418,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         mSurfaceView.setVideoWidthHeightRatio((float)width / height);
     }
-    
+
     // Utility classes
     private enum Readiness {
         Idle,
@@ -393,9 +428,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     private class PlayerState {
         boolean playing;
-        float position;
+        long position;
 
-        void set(boolean playing, float position) {
+        void set(boolean playing, long position) {
             this.playing = playing;
             this.position = position;
         }

@@ -87,18 +87,18 @@ public class KHLSPlayer extends FrameLayout implements
     }
 
     @Override
-    public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        mPlayer.seek((int)(currentPlaybackTime * 1000) + mPlayer.getPlaybackWindowStartTime());
+    public void setCurrentPlaybackTime(long currentPlaybackTime) {
+        mPlayer.seek((int)(currentPlaybackTime) + mPlayer.getPlaybackWindowStartTime());
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
-        return (float)mPlayer.getCurrentPosition() / 1000;
+    public long getCurrentPlaybackTime() {
+        return mPlayer.getCurrentPosition();
     }
 
     @Override
-    public float getDuration() {
-        return (float)mPlayer.getDuration() / 1000;
+    public long getDuration() {
+        return mPlayer.getDuration();
     }
 
     @Override
@@ -117,6 +117,11 @@ public class KHLSPlayer extends FrameLayout implements
 
     @Override
     public void changeSubtitleLanguage(String languageCode) {
+
+    }
+
+    @Override
+    public void freezePlayer() {
 
     }
 

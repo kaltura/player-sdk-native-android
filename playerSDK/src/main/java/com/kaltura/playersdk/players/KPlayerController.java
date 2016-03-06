@@ -77,7 +77,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         formats.addAll(KExoPlayer.supportedFormats(context));
         formats.addAll(KWVCPlayer.supportedFormats(context));
         formats.addAll(KHLSPlayer.supportedFormats(context));
-        
+
         return formats;
     }
 
@@ -165,7 +165,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public float getDuration() {
         if (player != null) {
-            return player.getDuration();
+            return player.getDuration() / 1000f;
         }
         return 0;
     }
@@ -176,13 +176,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void removePlayer() {
         if (player != null) {
-            player.removePlayer();
+            player.freezePlayer();
+        }
+        if (isIMAActive && imaManager != null) {
+            imaManager.pause();
         }
     }
 
     public void recoverPlayer() {
         if (player != null) {
             player.recoverPlayer();
+        }
+        if (isIMAActive && imaManager != null) {
+            imaManager.resume();
         }
     }
 
@@ -224,7 +230,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             shouldReplacePlayer = true;
         }
 
-        // maybe change player
+        // Select player
         String path = Uri.parse(src).getPath();
         if (path.endsWith(".m3u8")) {
             // HLS
@@ -269,7 +275,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         lp = new ViewGroup.LayoutParams(lp.width, lp.height);
         parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1, lp);
 
-        // Add IMA UI controls view
+        // Add IMA UI KMediaControl view
         RelativeLayout adUiControls = new RelativeLayout(parentViewController.getContext());
         ViewGroup.LayoutParams curLP = parentViewController.getLayoutParams();
         ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);
@@ -287,14 +293,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public float getCurrentPlaybackTime() {
-        return this.player.getCurrentPlaybackTime();
+        return (this.player != null) ? this.player.getCurrentPlaybackTime() / 1000f : 0;
+
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if (!isCasting) {
-            this.player.setCurrentPlaybackTime(currentPlaybackTime);
+            this.player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
         } else {
-            castPlayer.setCurrentPlaybackTime(currentPlaybackTime);
+            castPlayer.setCurrentPlaybackTime((long)currentPlaybackTime * 1000);
         }
     }
 
@@ -318,10 +325,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     // [START ContentProgressProvider region]
     @Override
     public VideoProgressUpdate getContentProgress() {
-        if (player.getDuration() <= 0) {
+        if (player == null || player.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
-        return new VideoProgressUpdate((long)player.getCurrentPlaybackTime() * 1000, (long)player.getDuration() * 1000);
+        return new VideoProgressUpdate(player.getCurrentPlaybackTime(), player.getDuration());
     }
     // [END ContentProgressProvider region]
 

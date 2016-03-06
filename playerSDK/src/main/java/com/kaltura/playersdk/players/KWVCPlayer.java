@@ -123,20 +123,37 @@ public class KWVCPlayer
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
-        return mPlayer != null ? mPlayer.getCurrentPosition() / 1000f : 0;
+    public long getCurrentPlaybackTime() {
+        return (mPlayer != null) ? mPlayer.getCurrentPosition() : 0;
     }
     
     @Override
-    public void setCurrentPlaybackTime(float currentPlaybackTime) {
+    public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
-            mPlayer.seekTo((int) (currentPlaybackTime * 1000));
+            Log.d(TAG, "setCurrentPlaybackTime: " + currentPlaybackTime + "/" + getDuration());
+            if (currentPlaybackTime >= getDuration()){
+                currentPlaybackTime = getDuration();
+            }
+            mPlayer.seekTo((int) (currentPlaybackTime));
+            if (currentPlaybackTime  ==  getDuration()) {
+                mListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                mListener.eventWithValue(this, "playbackComplete", null);
+                mListener.eventWithValue(this, "onEndedDone", null);
+                mListener.contentCompleted(KWVCPlayer.this);
+            }
+            else if (currentPlaybackTime  ==  0 &&  getDuration() < 0) {
+                mListener.eventWithValue(this, KPlayerListener.PauseKey, null);
+            }
+            else{
+                mPlayer.seekTo((int) (currentPlaybackTime));
+            }
+            mPlayer.seekTo((int) (currentPlaybackTime));
         }
     }
 
     @Override
-    public float getDuration() {
-        return mPlayer != null ? mPlayer.getDuration() / 1000f : 0;
+    public long getDuration() {
+        return (mPlayer != null) ? mPlayer.getDuration() : 0;
     }
 
     @Override
@@ -167,10 +184,8 @@ public class KWVCPlayer
             mPlayheadTracker = new PlayheadTracker();
         }
         mPlayheadTracker.start();
-
-        if ((mPlayer.getCurrentPosition()/1000f < mPlayer.getDuration()/1000f)) {// && ((mPlayer.getCurrentPosition() + 20) < mPlayer.getDuration())) {
-            mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
-        }
+        
+        mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
     }
 
     @Override
@@ -187,6 +202,18 @@ public class KWVCPlayer
     @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
+    }
+
+    @Override
+    public void freezePlayer() {
+        saveState();
+        if (mPlayer != null) {
+            mPlayer.suspend();
+        }
+        if (mPlayheadTracker != null) {
+            mPlayheadTracker.stop();
+            mPlayheadTracker = null;
+        }
     }
 
     private void saveState() {
@@ -214,7 +241,10 @@ public class KWVCPlayer
 
     @Override
     public void recoverPlayer() {
-        
+        if (mPlayer != null) {
+            mPlayer.resume();
+            play();
+        }
     }
 
     @Override
@@ -245,8 +275,10 @@ public class KWVCPlayer
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
+                Log.d(TAG, "onCompletion");
+                mListener.eventWithValue(KWVCPlayer.this, "playbackComplete", null);
+                mListener.eventWithValue(KWVCPlayer.this, "onEndedDone", null);
                 mListener.contentCompleted(KWVCPlayer.this);
-                mCallback.playerStateChanged(KPlayerCallback.ENDED);
             }
         });
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
@@ -278,17 +310,24 @@ public class KWVCPlayer
                 mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mp) {
+                        Log.d(TAG, mp.getCurrentPosition() + "/" + getDuration());
                         saveState();
-                        mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
-
-                        if ((mPlayer.getCurrentPosition()/1000f == mPlayer.getDuration()/1000f) || ((mPlayer.getCurrentPosition()/1000f + 20) >= mPlayer.getDuration()/1000f)) {
-                            mPlayer.stopPlayback();
-                            mListener.contentCompleted(KWVCPlayer.this);
-                            mSavedState.playing = false;
-                            mShouldCancelPlay = true;
-                            //mPlayer.stopPlayback();
-                            saveState();
+                        if ((mp.getCurrentPosition() == 0 ) && getDuration() > 0){
+                            mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
                         }
+                        else if (mp.getCurrentPosition()  !=  getDuration()) {
+                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                        } else {
+                            mListener.eventWithValue(kplayer, KPlayerListener.EndedKey, null);
+                        }
+
+                    }
+                });
+
+                mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                    @Override
+                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
                     }
                 });
 
@@ -297,7 +336,7 @@ public class KWVCPlayer
                     mPlayer.seekTo(mSavedState.position);
                     play();
                 } else {
-                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration()));
+                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
                     mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
                     mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
                     mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
