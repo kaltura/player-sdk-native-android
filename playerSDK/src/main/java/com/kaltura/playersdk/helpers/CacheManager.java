@@ -148,7 +148,7 @@ public class CacheManager {
         InputStream inputStream = null;
         String fileName = KStringUtilities.md5(requestUrl.toString());
         String localContentId = KStringUtilities.extractLocalContentId(requestUrl.toString());
-        if (localContentId.equals(KStringUtilities.LocalContentId)) {
+        if (localContentId != null && localContentId.equals(KStringUtilities.LocalContentId)) {
             fileName = localContentId;
         }
         String filePath = getCachePath() + fileName;
