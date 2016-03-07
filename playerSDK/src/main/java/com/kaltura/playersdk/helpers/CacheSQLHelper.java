@@ -73,7 +73,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             size = cursor.getInt(0);
         }
-        cursor.close();
+//        cursor.close();
         return size;
     }
 
@@ -104,7 +104,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(query, null);
         if (cursor.moveToFirst()) {
             int size = cursor.getInt(0);
-            cursor.close();
+//            cursor.close();
             return size;
         }
         return 0;
@@ -129,7 +129,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
             db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
             listener.fileDeleted(fileId);
         }
-        cursor.close();
+//        cursor.close();
     }
 
     public HashMap<String, Object> fetchParamsForFile(String fileName) {
@@ -142,7 +142,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
             params.put(Encoding, cursor.getString(1));
             params.put(MimeType, cursor.getString(2));
         }
-        cursor.close();
+//        cursor.close();
         return params;
     }
 }
