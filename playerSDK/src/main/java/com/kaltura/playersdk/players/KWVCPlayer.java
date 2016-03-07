@@ -243,7 +243,10 @@ public class KWVCPlayer
     public void recoverPlayer() {
         if (mPlayer != null) {
             mPlayer.resume();
-            play();
+            mPlayer.seekTo(mSavedState.position);
+            if (mSavedState.playing) {
+                play();
+            }
         }
     }
 
