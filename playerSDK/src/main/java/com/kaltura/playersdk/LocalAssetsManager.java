@@ -80,6 +80,7 @@ public class LocalAssetsManager {
         new Thread() {
             @Override
             public void run() {
+                CacheManager.getInstance().setContext(context);
                 CacheManager.getInstance().setHost(entry.getServerURL());
                 CacheManager.getInstance().setCacheSize(entry.getCacheSize());
                 try {
