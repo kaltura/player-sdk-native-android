@@ -191,16 +191,14 @@ public class KStringUtilities {
         }
     }
 
-    static public String extractLocalContentId(String url) {
-        String[] components = url.split("#");
-        if (components != null && components.length == 2) {
-            String[] hashTagComponents = components[1].split("&");
-            if (hashTagComponents != null) {
-                for (int i = 0; i < hashTagComponents.length; i++) {
-                    String[] param = hashTagComponents[i].split("=");
-                    if (param != null && param.length == 2 && param[0].equals(LocalContentId)) {
-                        return param[1];
-                    }
+    static public String extractLocalContentId(String url)  {
+        String splitter = "&";
+        String[] hashTagComponents = url.split(splitter);
+        if (hashTagComponents != null) {
+            for (int i = 0; i < hashTagComponents.length; i++) {
+                String[] param = hashTagComponents[i].split("=");
+                if (param != null && param.length == 2 && param[0].equals(LocalContentId)) {
+                    return param[1];
                 }
             }
         }
