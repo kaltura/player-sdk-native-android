@@ -226,6 +226,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         boolean shouldReplacePlayer = false;
         if (this.player != null) {
             if (imaManager != null) {
+                mActivity = null;
                 removeAdPlayer();
             }
             parentViewController.removeView((View) this.player);
@@ -290,11 +291,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     private void removeAdPlayer() {
         if (parentViewController != null) {
+            imaManager.destroy();
             parentViewController.removeView(adPlayerContainer);
             adPlayerContainer = null;
             parentViewController.removeView(mAdControls);
             mAdControls = null;
-            imaManager.destroy();
         }
     }
 
