@@ -38,6 +38,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean isPlayerCanPlay = false;
     private boolean isCasting = false;
     private boolean switchingBackFromCasting = false;
+    private FrameLayout adPlayerContainer;
+    private RelativeLayout mAdControls;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -197,7 +199,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
         playerListener = null;
         if (imaManager != null) {
-            imaManager.destroy();
+            removeAdPlayer();
         }
     }
 
@@ -223,7 +225,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         Context context = parentViewController.getContext();
         boolean shouldReplacePlayer = false;
         if (this.player != null) {
-            parentViewController.removeView((View)this.player);
+            if (imaManager != null) {
+                removeAdPlayer();
+            }
+            parentViewController.removeView((View) this.player);
             this.player.removePlayer();
             shouldReplacePlayer = true;
         }
@@ -265,26 +270,32 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private void addAdPlayer() {
 
         // Add adPlayer view
-        FrameLayout adPlayerContainer = new FrameLayout(mActivity.get());
+        adPlayerContainer = new FrameLayout(mActivity.get());
         ViewGroup.LayoutParams lp = parentViewController.getLayoutParams();
         lp = new ViewGroup.LayoutParams(lp.width, lp.height);
         parentViewController.addView(adPlayerContainer, parentViewController.getChildCount() - 1, lp);
 
         // Add IMA UI KMediaControl view
-        RelativeLayout adUiControls = new RelativeLayout(parentViewController.getContext());
+        mAdControls = new RelativeLayout(parentViewController.getContext());
         ViewGroup.LayoutParams curLP = parentViewController.getLayoutParams();
         ViewGroup.LayoutParams controlsLP = new ViewGroup.LayoutParams(curLP.width, curLP.height);
-        parentViewController.addView(adUiControls, controlsLP);
+        parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, adUiControls, adTagURL);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL);
         imaManager.setPlayerListener(this);
         imaManager.setPlayerCallback(this);
         imaManager.requestAds(this);
     }
 
     private void removeAdPlayer() {
-        imaManager = null;
+        if (parentViewController != null) {
+            parentViewController.removeView(adPlayerContainer);
+            adPlayerContainer = null;
+            parentViewController.removeView(mAdControls);
+            mAdControls = null;
+            imaManager.destroy();
+        }
     }
 
     public float getCurrentPlaybackTime() {
