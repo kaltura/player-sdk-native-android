@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.webkit.WebResourceResponse;
 
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
@@ -16,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 
 
@@ -123,41 +125,43 @@ public class LocalAssetsManager {
         
         final DRMScheme drmScheme = DRMScheme.WidevineClassic;
 
-        new Thread() {
+        doInBackground(new Runnable() {
             @Override
             public void run() {
-                CacheManager.getInstance().setContext(context);
-                CacheManager.getInstance().setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));                
-                CacheManager.getInstance().setCacheSize(entry.getCacheSize());
+                CacheManager cacheManager = CacheManager.getInstance();
+                cacheManager.setContext(context);
+                cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
+                cacheManager.setCacheSize(entry.getCacheSize());
                 try {
-                    CacheManager.getInstance().getResponse(Uri.parse(entry.getVideoURL()), Collections.<String, String>emptyMap(), "GET");
+                    WebResourceResponse resp = cacheManager.getResponse(Uri.parse(entry.getVideoURL()), Collections.<String, String>emptyMap(), "GET");
+                    // TODO: avoid this redundant object creation.
+                    InputStream inputStream = resp.getData();
+                    Utilities.fullyReadInputStream(inputStream, 10*1024*1024);
+                    inputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    listener.onFailed(localPath, e);
-                    return;
-                }
-                if (!Uri.parse(localPath).getPath().endsWith(".wvm")) {
-                    listener.onRegistered(localPath);
-                    return;
-                }
-                Uri licenseUri;
-                try {
-                    licenseUri = prepareLicenseUri(entry, flavor, drmScheme);
-                    registerWidevineClassicAsset(context, localPath, licenseUri, listener);
-                } catch (JSONException e) {
-                    Log.e(TAG, "JSON error", e);
                     if (listener != null) {
                         listener.onFailed(localPath, e);
                     }
-                } catch (IOException e) {
-                    Log.e(TAG, "IO error", e);
+                    return;
+                }
+                if (!Uri.parse(localPath).getPath().endsWith(".wvm")) {
+                    if (listener != null) {
+                        listener.onRegistered(localPath);
+                    }
+                    return;
+                }
+                
+                try {
+                    Uri licenseUri = prepareLicenseUri(entry, flavor, drmScheme);
+                    registerWidevineClassicAsset(context, localPath, licenseUri, listener);
+                } catch (JSONException | IOException e) {
+                    Log.e(TAG, "Error", e);
                     if (listener != null) {
                         listener.onFailed(localPath, e);
                     }
                 }
             }
-        }.start();
-        
+        });
 
         return true;
     }
