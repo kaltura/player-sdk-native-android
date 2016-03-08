@@ -27,50 +27,98 @@ public class LocalAssetsManager {
     private static final String TAG = "LocalAssetsManager";
     private static final int JSON_BYTE_LIMIT = 1024 * 1024;
     
-    public interface AssetEventListener {
+    public interface AssetRegistrationListener {
         void onRegistered(String assetPath);
         void onFailed(String assetPath, Exception error);
-        void onStatus(String assetPath, Object status);
     }
     
-    private static void checkArg(boolean invalid, String message) {
-        if (invalid) {
-            throw new IllegalArgumentException(message);
-        }
+    public interface AssetStatusListener {
+        void onStatus(String assetPath, int expiryTimeSeconds, int availableTimeSeconds);
     }
     
-    private static Object checkNotNull(Object obj, String name) {
-        checkArg(obj == null, name + " must not be null");
-
-        return obj;
+    public interface AssetRemovalListener {
+        void onRemoved(String assetPath);
     }
-
-    private static String checkNotNullOrEmpty(String obj, String name) {
-        checkNotNull(obj, name);
-        checkNotEmpty(obj, name);
+    
+    private static void doInBackground(Runnable runnable) {
+        new Thread(runnable).start();
+    }
+    
+    public static boolean refreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
+                                        @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
         
-        return obj;
+        // TODO: Refresh
+        
+        // for now, just re-register.
+        return registerAsset(context, entry, flavor, localPath, listener);
+    }
+    
+    public static boolean unregisterAsset(@NonNull final Context context, @NonNull final String localPath, final AssetRemovalListener listener) {
+
+        doInBackground(new Runnable() {
+            @Override
+            public void run() {
+                // Remove cache
+                // TODO
+
+                // Remove license
+                WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
+                widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
+                    @Override
+                    public void onError(DrmErrorEvent event) {
+                        Log.d(TAG, event.toString());
+                    }
+
+                    @Override
+                    public void onEvent(DrmEvent event) {
+                        Log.d(TAG, event.toString());
+                        switch (event.getType()) {
+                            case DrmInfoEvent.TYPE_RIGHTS_REMOVED:
+                                if (listener != null) {
+                                    listener.onRemoved(localPath);
+                                }
+                                break;
+                        }
+                    }
+                });
+                widevineDrmClient.removeRights(localPath);
+                widevineDrmClient.release();
+            }
+        });
+        return true;
     }
 
-    private static String checkNotEmpty(String obj, String name) {
-        checkArg(obj != null && obj.length() == 0, name + " must not be null");
+    public static boolean checkAssetStatus(@NonNull final Context context, @NonNull final String localPath, 
+                                           @Nullable final AssetStatusListener listener) {
 
-        return obj;
+        doInBackground(new Runnable() {
+            @Override
+            public void run() {
+                WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
+                WidevineDrmClient.RightsInfo info = widevineDrmClient.getRightsInfo(localPath);
+                if (listener != null) {
+                    listener.onStatus(localPath, info.expiryTime, info.availableTime);
+                }
+                widevineDrmClient.release();
+            }
+        });
+        
+        return true;
     }
 
-    public static boolean registerAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @Nullable final String flavor,
-                                        @NonNull final String localPath, @Nullable final AssetEventListener listener) {
+
+    public static boolean registerAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
+                                        @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
 
         // NOTE: this method currently only supports (and assumes) Widevine Classic.
 
         // Preflight: check that all parameters are valid.
-        checkNotNullOrEmpty(entry.getServerURL(), "entry.domain");
-        checkNotNullOrEmpty(entry.getUiConfId(), "entry.uiConfId");
-        checkNotNullOrEmpty(entry.getEntryId(), "entry.entryId");
-        checkNotNullOrEmpty(flavor, "flavor");
-        checkNotNullOrEmpty(localPath, "localPath");
-        checkNotNull(entry.getPartnerId(), "partnerId");    // can be an empty string
-        checkNotNull(context, "context");
+        checkNotNull(entry.getPartnerId(), "entry.partnerId");    // can be an empty string (but not null)
+        checkNotEmpty(entry.getServerURL(), "entry.domain");
+        checkNotEmpty(entry.getUiConfId(), "entry.uiConfId");
+        checkNotEmpty(entry.getEntryId(), "entry.entryId");
+        checkNotEmpty(flavor, "flavor");
+        checkNotEmpty(localPath, "localPath");
         
         
         final DRMScheme drmScheme = DRMScheme.WidevineClassic;
@@ -114,7 +162,8 @@ public class LocalAssetsManager {
         return true;
     }
     
-    private static void registerWidevineClassicAsset(@NonNull Context context, @NonNull final String localPath, Uri licenseUri, @Nullable final AssetEventListener listener) {
+    private static void registerWidevineClassicAsset(@NonNull Context context, @NonNull final String localPath, Uri licenseUri, @Nullable final AssetRegistrationListener listener) {
+
         WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
         widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
             @Override
@@ -138,13 +187,8 @@ public class LocalAssetsManager {
                 }
             }
         });
-        widevineDrmClient.checkRightsStatus(localPath);
         widevineDrmClient.acquireLocalAssetRights(localPath, licenseUri.toString());
-        widevineDrmClient.checkRightsStatus(localPath);
-    }
-
-    public static boolean checkAssetRights(@NonNull Context context, @NonNull String localPath) {
-        return false; // TODO
+        widevineDrmClient.release();
     }
 
     private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DRMScheme drmScheme) throws IOException, JSONException {
@@ -236,6 +280,21 @@ public class LocalAssetsManager {
         
         return Utilities.loadStringFromURL(uriBuilder.build(), JSON_BYTE_LIMIT);
     }
+
+    private static void checkArg(boolean invalid, String message) {
+        if (invalid) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    private static void checkNotNull(Object obj, String name) {
+        checkArg(obj == null, name + " must not be null");
+    }
+
+    private static void checkNotEmpty(String obj, String name) {
+        checkArg(obj == null || obj.length() == 0, name + " must not be empty");
+    }
+
 
     enum DRMScheme {
         WidevineClassic, WidevineCENC
