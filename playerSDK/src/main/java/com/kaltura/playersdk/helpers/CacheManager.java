@@ -33,7 +33,7 @@ public class CacheManager {
     private JSONObject mCacheConditions;
     private Context mContext;
     private CacheSQLHelper mSQLHelper;
-    private String mHost;
+    private String mBaseURL;
     private float mCacheSize = 0;
     private String mCachePath;
 
@@ -51,8 +51,8 @@ public class CacheManager {
         }
     }
 
-    public void setHost(String host) {
-        mHost = host;
+    public void setBaseURL(String baseURL) {
+        mBaseURL = baseURL;
     }
 
     public void setCacheSize(float cacheSize) {
@@ -90,7 +90,7 @@ public class CacheManager {
         String uriString = uri.toString();
         JSONObject conditions = getCacheConditions();
 
-        String key = mHost.equals(uri.getHost()) ? "withDomain" : "substring";
+        String key = uriString.startsWith(mBaseURL) ? "withDomain" : "substring";
 
         try {
             JSONObject object = conditions.getJSONObject(key);

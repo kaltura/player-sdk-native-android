@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -67,10 +68,17 @@ public class Utilities {
         return bos;
     }
 
-    public static Uri stripLastPathSegment(Uri uri) {
+    public static Uri stripLastUriPathSegment(Uri uri) {
         String path = uri.getPath();
+        if (TextUtils.isEmpty(path)) {
+            return uri;
+        }
         path = stripLastPathSegment(path);
         return uri.buildUpon().path(path).clearQuery().fragment(null).build();
+    }
+
+    public static String stripLastUriPathSegment(String uri) {
+        return stripLastUriPathSegment(Uri.parse(uri)).toString();
     }
 
     @NonNull

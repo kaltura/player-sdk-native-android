@@ -468,7 +468,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
             if (mConfig.getCacheSize() > 0) {
-                CacheManager.getInstance().setHost(uri.getHost());
+                CacheManager.getInstance().setBaseURL(Utilities.stripLastUriPathSegment(mConfig.getServerURL()));
                 CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
                 mWebView.setCacheManager(CacheManager.getInstance());
             }

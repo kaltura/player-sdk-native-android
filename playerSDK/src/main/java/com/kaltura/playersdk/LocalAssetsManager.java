@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.webkit.WebResourceResponse;
 
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
@@ -17,7 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 
 
@@ -81,7 +79,7 @@ public class LocalAssetsManager {
             @Override
             public void run() {
                 CacheManager.getInstance().setContext(context);
-                CacheManager.getInstance().setHost(entry.getServerURL());
+                CacheManager.getInstance().setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));                
                 CacheManager.getInstance().setCacheSize(entry.getCacheSize());
                 try {
                     CacheManager.getInstance().getResponse(Uri.parse(entry.getVideoURL()), Collections.<String, String>emptyMap(), "GET");
@@ -171,7 +169,7 @@ public class LocalAssetsManager {
         Uri serviceURL = Uri.parse(config.getServerURL());
         // URL may either point to the root of the server or to mwEmbedFrame.php. Resolve this.
         if (serviceURL.getPath().endsWith("/mwEmbedFrame.php")) {
-            serviceURL = Utilities.stripLastPathSegment(serviceURL);
+            serviceURL = Utilities.stripLastUriPathSegment(serviceURL);
         } else {
             serviceURL = resolvePlayerRootURL(serviceURL, config.getPartnerId(), config.getUiConfId(), config.getKS());
         }
@@ -219,7 +217,7 @@ public class LocalAssetsManager {
             serviceUri = Uri.parse(embedLoaderUrl);
         }
 
-        return Utilities.stripLastPathSegment(serviceUri);
+        return Utilities.stripLastUriPathSegment(serviceUri);
     }
 
     private static String loadUIConf(Uri serverURL, String partnerId, String uiConfId, String ks) throws IOException {
