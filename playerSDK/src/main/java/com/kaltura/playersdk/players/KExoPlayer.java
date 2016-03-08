@@ -372,14 +372,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     Log.d(TAG, "state ended: set play when ready false");
                     setPlayWhenReady(false);
                 }
-                if (mExoPlayer != null) {
-                    Log.d(TAG, "state ended: seek to 0");
-                    setCurrentPlaybackTime(0);
-                }
-                if (playWhenReady) {
-                    mPlayerListener.contentCompleted(this);
-                    mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
-                } 
+                mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                mSeeking = false;
+                mPlayerListener.contentCompleted(this);
                 stopPlaybackTimeReporter();
                 break;
         }

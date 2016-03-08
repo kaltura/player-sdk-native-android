@@ -189,7 +189,14 @@ public class KWVCPlayer
 
     @Override
     public void freezePlayer() {
-
+        saveState();
+        if (mPlayer != null) {
+            mPlayer.suspend();
+        }
+        if (mPlayheadTracker != null) {
+            mPlayheadTracker.stop();
+            mPlayheadTracker = null;
+        }
     }
 
     private void saveState() {
@@ -215,9 +222,14 @@ public class KWVCPlayer
         mPrepareState = PrepareState.NotPrepared;
     }
 
-    @Override
     public void recoverPlayer() {
-        
+        if (mPlayer != null) {
+            mPlayer.resume();
+            mPlayer.seekTo(mSavedState.position);
+            if (mSavedState.playing) {
+                play();
+            }
+        }
     }
 
     @Override
@@ -283,6 +295,10 @@ public class KWVCPlayer
                     public void onSeekComplete(MediaPlayer mp) {
                         saveState();
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                        if (mp.getCurrentPosition() == mp.getDuration()) {
+                            mListener.contentCompleted(KWVCPlayer.this);
+                            mShouldPlayWhenReady = false;
+                        }
                     }
                 });
 
