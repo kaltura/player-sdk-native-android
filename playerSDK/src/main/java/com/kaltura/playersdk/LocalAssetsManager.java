@@ -38,35 +38,58 @@ public class LocalAssetsManager {
         void onRemoved(String assetPath);
     }
     
+    private static void doInBackground(Runnable runnable) {
+        new Thread(runnable).start();
+    }
+    
     public static boolean refreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
         
+        // TODO: Refresh
         
-        // Refresh cache.
-        // TODO
-        
-        // Renew license
-        
-        
-        return false;
+        // for now, just re-register.
+        return registerAsset(context, entry, flavor, localPath, listener);
     }
     
-    public static boolean unregisterAsset(@NonNull final Context context, @NonNull final String localPath) {
-        
-        // Remove cache
-        
-        // Remove license
-        WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
-        widevineDrmClient.removeRights(localPath);
-        widevineDrmClient.release();
-        
+    public static boolean unregisterAsset(@NonNull final Context context, @NonNull final String localPath, final AssetRemovalListener listener) {
+
+        doInBackground(new Runnable() {
+            @Override
+            public void run() {
+                // Remove cache
+                // TODO
+
+                // Remove license
+                WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
+                widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
+                    @Override
+                    public void onError(DrmErrorEvent event) {
+                        Log.d(TAG, event.toString());
+                    }
+
+                    @Override
+                    public void onEvent(DrmEvent event) {
+                        Log.d(TAG, event.toString());
+                        switch (event.getType()) {
+                            case DrmInfoEvent.TYPE_RIGHTS_REMOVED:
+                                if (listener != null) {
+                                    listener.onRemoved(localPath);
+                                }
+                                break;
+                        }
+                    }
+                });
+                widevineDrmClient.removeRights(localPath);
+                widevineDrmClient.release();
+            }
+        });
         return true;
     }
 
-    public static void checkAssetStatus(@NonNull final Context context, @NonNull final String localPath, 
+    public static boolean checkAssetStatus(@NonNull final Context context, @NonNull final String localPath, 
                                            @Nullable final AssetStatusListener listener) {
 
-        new Thread() {
+        doInBackground(new Runnable() {
             @Override
             public void run() {
                 WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
@@ -76,7 +99,9 @@ public class LocalAssetsManager {
                 }
                 widevineDrmClient.release();
             }
-        }.start();
+        });
+        
+        return true;
     }
 
 
