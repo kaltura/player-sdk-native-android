@@ -737,10 +737,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void sendNotification(String notificationName,@Nullable String params) {
-        if (notificationName == null) {
-            notificationName = "null";
+        if (mWebView != null) {
+            if (notificationName == null) {
+                notificationName = "null";
+            }
+            mWebView.sendNotification(notificationName, params);
         }
-        mWebView.sendNotification(notificationName, params);
     }
 
     public void setKDPAttribute(String pluginName, String propertyName, String value) {
