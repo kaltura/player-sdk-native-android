@@ -3,10 +3,9 @@ package kaltura.com.kalturademos;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -100,8 +99,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(new Runnable() {
                     public void run() {
                         LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) getPlayerContainer().getLayoutParams();
-                        lp.weight = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ? 3 : 8;
-                        lp.height = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ? 0 : ViewGroup.LayoutParams.MATCH_PARENT;
+                        lp.weight = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ? 2 : 8;
+                        lp.height = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ? 7 : 3;;
                         getPlayerContainer().setLayoutParams(lp);
                     }
                 });

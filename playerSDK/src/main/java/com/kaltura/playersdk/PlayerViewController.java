@@ -243,6 +243,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
             mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
+            mIsJsCallReadyRegistration = false;
+            registerReadyEvent(new ReadyEventListener() {
+                @Override
+                public void handler() {
+                    for (String event: mPlayerEventsHash.keySet()) {
+                        mWebView.addEventListener(event);
+                    }
+                }
+            });
         }
     }
 
@@ -727,10 +736,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void sendNotification(String notificationName,@Nullable String params) {
-        if (notificationName == null) {
-            notificationName = "null";
+        if (mWebView != null) {
+            if (notificationName == null) {
+                notificationName = "null";
+            }
+            mWebView.sendNotification(notificationName, params);
         }
-        mWebView.sendNotification(notificationName, params);
     }
 
     public void setKDPAttribute(String pluginName, String propertyName, String value) {
