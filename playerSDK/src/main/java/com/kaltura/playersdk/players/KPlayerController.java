@@ -181,19 +181,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void removePlayer() {
+        isBackgrounded = true;
         if (player != null) {
             player.freezePlayer();
         }
         if (isIMAActive && imaManager != null) {
-            isBackgrounded = true;
             imaManager.pause();
         }
     }
 
     public void recoverPlayer() {
+        isBackgrounded = false;
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
-            isBackgrounded = false;
         }
         if (player != null) {
             player.recoverPlayer();
@@ -201,8 +201,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void reset() {
+        isBackgrounded = false;
         if (imaManager != null) {
-            isBackgrounded = false;
             removeAdPlayer();
         }
         if (player != null) {
@@ -211,8 +211,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void destroy() {
+        isBackgrounded = false;
         if (imaManager != null) {
-            isBackgrounded = false;
             removeAdPlayer();
         }
         if (player != null) {
