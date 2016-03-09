@@ -189,11 +189,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void recoverPlayer() {
-        if (player != null) {
-            player.recoverPlayer();
-        }
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
+        }
+        if (player != null) {
+            player.recoverPlayer();
         }
     }
 
@@ -305,7 +305,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     private void removeAdPlayer() {
         if (parentViewController != null) {
+            mActivity = null;
             imaManager.destroy();
+            imaManager = null;
+            isIMAActive = false;
             parentViewController.removeView(adPlayerContainer);
             adPlayerContainer = null;
             parentViewController.removeView(mAdControls);
