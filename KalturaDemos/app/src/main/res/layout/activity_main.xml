@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:text="Replay"
             android:id="@+id/replay"
-            android:visibility="visible"
+            android:visibility="invisible"
             android:onClick="onClick"
             android:layout_centerVertical="true"
             android:layout_centerHorizontal="true" />
