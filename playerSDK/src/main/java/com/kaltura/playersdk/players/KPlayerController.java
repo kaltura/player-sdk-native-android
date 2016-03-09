@@ -40,6 +40,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean switchingBackFromCasting = false;
     private FrameLayout adPlayerContainer;
     private RelativeLayout mAdControls;
+    private boolean isBackgrounded = false;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -107,7 +108,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (isIMAActive) {
+        if (isBackgrounded && isIMAActive) {
             imaManager.resume();
             return;
         }
@@ -120,7 +121,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void pause() {
         if (!isCasting) {
-            if (isIMAActive) {
+            if (isBackgrounded && isIMAActive) {
                 imaManager.pause();
             } else {
                 player.pause();
@@ -184,6 +185,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             player.freezePlayer();
         }
         if (isIMAActive && imaManager != null) {
+            isBackgrounded = true;
             imaManager.pause();
         }
     }
@@ -191,6 +193,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void recoverPlayer() {
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
+            isBackgrounded = false;
         }
         if (player != null) {
             player.recoverPlayer();
@@ -199,6 +202,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void reset() {
         if (imaManager != null) {
+            isBackgrounded = false;
             removeAdPlayer();
         }
         if (player != null) {
@@ -208,6 +212,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void destroy() {
         if (imaManager != null) {
+            isBackgrounded = false;
             removeAdPlayer();
         }
         if (player != null) {
