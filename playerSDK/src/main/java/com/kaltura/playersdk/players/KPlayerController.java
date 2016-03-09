@@ -198,14 +198,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void destroy() {
+        if (imaManager != null) {
+            removeAdPlayer();
+        }
         if (player != null) {
             player.removePlayer();
             player = null;
         }
         playerListener = null;
-        if (imaManager != null) {
-            removeAdPlayer();
-        }
     }
 
 
