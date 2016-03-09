@@ -310,7 +310,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void resetPlayer() {
-        playerController.destroy();
+        playerController.reset();
     }
 
     public void setActivity( Activity activity ) {

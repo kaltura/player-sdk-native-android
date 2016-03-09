@@ -197,6 +197,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    public void reset() {
+        if (imaManager != null) {
+            removeAdPlayer();
+        }
+        if (player != null) {
+            player.freezePlayer();
+        }
+    }
+
     public void destroy() {
         if (imaManager != null) {
             removeAdPlayer();
