@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.webkit.WebResourceResponse;
 
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
@@ -17,8 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
 
 
 /**
@@ -133,11 +130,7 @@ public class LocalAssetsManager {
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
                 cacheManager.setCacheSize(entry.getCacheSize());
                 try {
-                    WebResourceResponse resp = cacheManager.getResponse(Uri.parse(entry.getVideoURL()), Collections.<String, String>emptyMap(), "GET");
-                    // TODO: avoid this redundant object creation.
-                    InputStream inputStream = resp.getData();
-                    Utilities.fullyReadInputStream(inputStream, 10*1024*1024);
-                    inputStream.close();
+                    cacheManager.cacheResponse(Uri.parse(entry.getVideoURL()));
                 } catch (IOException e) {
                     if (listener != null) {
                         listener.onFailed(localPath, e);

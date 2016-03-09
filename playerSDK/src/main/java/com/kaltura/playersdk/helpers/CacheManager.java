@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -139,6 +140,18 @@ public class CacheManager {
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
+    }
+    
+    public void cacheResponse(Uri requestUrl) throws IOException {
+        WebResourceResponse resp = getResponse(requestUrl, Collections.<String, String>emptyMap(), "GET");
+        InputStream inputStream = resp.getData();
+
+
+        // Must fully read the input stream so that it gets cached. But we don't need the data now.
+        //noinspection StatementWithEmptyBody
+        while (inputStream.read() >= 0);    // inputStream is buffered
+        
+        inputStream.close();
     }
     
     public WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) throws IOException {
