@@ -112,6 +112,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             imaManager.resume();
             return;
         }
+        if (isIMAActive) {
+            return;
+        }
         if (!isCasting) {
             player.play();
         } else {
