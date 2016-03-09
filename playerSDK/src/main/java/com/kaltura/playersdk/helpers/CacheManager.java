@@ -167,12 +167,14 @@ public class CacheManager {
         WebResourceResponse resp = getResponse(requestUrl, Collections.<String, String>emptyMap(), "GET");
         InputStream inputStream = resp.getData();
 
-
         // Must fully read the input stream so that it gets cached. But we don't need the data now.
-        //noinspection StatementWithEmptyBody
-        while (inputStream.read() >= 0);    // inputStream is buffered
-        
-        inputStream.close();
+        byte[] buffer = new byte[1024];
+        try {
+            //noinspection StatementWithEmptyBody
+            while (inputStream.read(buffer, 0, buffer.length) >= 0);
+        } finally {
+            inputStream.close();
+        }
     }
     
     public WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) throws IOException {
