@@ -1,11 +1,12 @@
 package com.kaltura.playersdk.helpers;
 
+import android.net.Uri;
+
 import org.json.JSONArray;
 
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 
 /**
  * Created by nissopa on 6/7/15.
@@ -191,26 +192,15 @@ public class KStringUtilities {
         }
     }
 
-    static public String extractLocalContentId(String url)  {
-        String splitter = "&";
-        String[] hashTagComponents = url.split(splitter);
-        if (hashTagComponents != null) {
-            for (int i = 0; i < hashTagComponents.length; i++) {
-                String[] param = hashTagComponents[i].split("=");
-                if (param != null && param.length == 2 && param[0].equals(LocalContentId)) {
-                    return param[1];
-                }
-            }
-        }
-        return null;
+    public static String extractFragmentParam(Uri url, String name) {
+        return new Uri.Builder().encodedQuery(url.getEncodedFragment()).build().getQueryParameter(name);
     }
 
-    static public final String md5(String string) {
-        final String MD5 = "MD5";
+    static public String md5(String string) {
         try {
             // Create MD5 Hash
             java.security.MessageDigest digest = java.security.MessageDigest
-                    .getInstance(MD5);
+                    .getInstance("MD5");
             digest.update(string.getBytes());
             byte messageDigest[] = digest.digest();
 

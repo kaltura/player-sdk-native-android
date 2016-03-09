@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,8 +67,18 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void removeFile(String fileId) {
-
+    public boolean removeFile(String fileId) {
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
+            return true;
+        } catch (SQLiteException e) {
+            return false;
+        } finally {
+            if (db.isOpen()) {
+                db.close();
+            }
+        }
     }
 
     public long cacheSize() {

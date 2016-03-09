@@ -2,6 +2,7 @@ package com.kaltura.playersdk.helpers;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
@@ -23,6 +24,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
+
 
 /**
  * Created by nissimpardo on 25/10/15.
@@ -142,6 +146,23 @@ public class CacheManager {
         }
     }
     
+    public boolean removeCachedResponse(Uri requestUrl) {
+        String fileId = getCacheFileId(requestUrl);
+
+        if (!mSQLHelper.removeFile(fileId)) {
+            Log.e(TAG, "Failed to remove cache entry for request: " + requestUrl);
+            return false;
+        } else {
+            File file = new File(getCachePath() + fileId);
+
+            if (!file.delete()) {
+                Log.e(TAG, "Failed to delete file for request: " + requestUrl);
+                return false;
+            }
+        }
+        return true;
+    }
+    
     public void cacheResponse(Uri requestUrl) throws IOException {
         WebResourceResponse resp = getResponse(requestUrl, Collections.<String, String>emptyMap(), "GET");
         InputStream inputStream = resp.getData();
@@ -159,13 +180,7 @@ public class CacheManager {
             return null;
         }
         InputStream inputStream = null;
-        String fileName = KStringUtilities.md5(requestUrl.toString());
-        if (requestUrl.getFragment() != null) {
-            String localContentId = KStringUtilities.extractLocalContentId(requestUrl.getFragment());
-            if (localContentId != null) {
-                fileName = localContentId;
-            }
-        }
+        String fileName = getCacheFileId(requestUrl);
         String filePath = getCachePath() + fileName;
         String contentType = null;
         String encoding = null;
@@ -205,7 +220,18 @@ public class CacheManager {
 
 
         }
-        Log.d("Stored Responses", contentType + " " + encoding + " " + requestUrl.toString());
+//        Log.d(TAG, "Stored: " + contentType + " " + encoding + " " + requestUrl.toString());
         return new WebResourceResponse(contentType, encoding, inputStream);
+    }
+
+    @NonNull
+    private String getCacheFileId(Uri requestUrl) {
+        if (requestUrl.getFragment() != null) {
+            String localContentId = KStringUtilities.extractFragmentParam(requestUrl, "localContentId");
+            if (!TextUtils.isEmpty(localContentId)) {
+                return md5("contentId:" + localContentId);
+            }
+        }
+        return md5(requestUrl.toString());
     }
 }
