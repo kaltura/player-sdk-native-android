@@ -48,6 +48,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
+            /*
+                Example for constructor parameters:
+                        config =  new KPPlayerConfig("serverURL", "uiConfId", "partnerId").setEntryId("entryId");
+            */
+
+
             KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
             config.addConfig("controlBarContainer.plugin", "false");
             config.addConfig("topBarContainer.plugin", "false");
