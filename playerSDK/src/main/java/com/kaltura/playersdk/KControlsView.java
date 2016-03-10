@@ -4,13 +4,16 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Looper;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
@@ -21,6 +24,7 @@ import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayerListener;
+import com.kaltura.playersdk.types.KPError;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -96,6 +100,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     public interface KControlsViewClient {
         void handleHtml5LibCall(String functionName, int callbackId, String args);
         void openURL(String url);
+        void handleKControlsError(KPError error);
     }
 
     public interface ControlsBarHeightFetcher {
@@ -253,7 +258,22 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             }
             return false;
         }
-        
+
+        @Override
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            super.onReceivedError(view, request, error);
+        }
+
+        @Override
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            super.onReceivedHttpError(view, request, errorResponse);
+        }
+
+        @Override
+        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+            super.onReceivedSslError(view, handler, error);
+        }
+
         private WebResourceResponse textResponse(String text) {
             return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream(text.getBytes()));
         }
