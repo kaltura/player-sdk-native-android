@@ -295,11 +295,7 @@ public class KWVCPlayer
                     public void onSeekComplete(MediaPlayer mp) {
                         saveState();
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
-                        if (mp.getCurrentPosition() == mp.getDuration()) {
-                            mListener.contentCompleted(KWVCPlayer.this);
-                            mShouldPlayWhenReady = false;
-                        }
-                    }
+                     }
                 });
 
                 mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
@@ -356,6 +352,12 @@ public class KWVCPlayer
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
+                        if (mPlayer.getCurrentPosition() == getDuration()) {
+                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.EndedKey, null);
+                            mSavedState.set(false, 0);
+                            mShouldPlayWhenReady = false;
+                            mShouldCancelPlay = true;
+                        }
                     }
 
                 } catch (IllegalStateException e) {
