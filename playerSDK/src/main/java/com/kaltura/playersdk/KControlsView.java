@@ -24,6 +24,7 @@ import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayerListener;
+import com.kaltura.playersdk.types.KPError;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -99,6 +100,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     public interface KControlsViewClient {
         void handleHtml5LibCall(String functionName, int callbackId, String args);
         void openURL(String url);
+        void handleKControlsError(KPError error);
     }
 
     public interface ControlsBarHeightFetcher {
