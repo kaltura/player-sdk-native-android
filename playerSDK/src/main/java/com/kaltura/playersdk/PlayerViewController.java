@@ -34,6 +34,7 @@ import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
+import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -242,12 +243,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
+            mWebView.setVisibility(INVISIBLE);
             mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
             mIsJsCallReadyRegistration = false;
             registerReadyEvent(new ReadyEventListener() {
                 @Override
                 public void handler() {
-                    for (String event: mPlayerEventsHash.keySet()) {
+                    mWebView.setVisibility(VISIBLE);
+                    for (String event : mPlayerEventsHash.keySet()) {
                         mWebView.addEventListener(event);
                     }
                 }
@@ -282,6 +285,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void releaseAndSavePosition() {
         if (playerController != null)
          playerController.removePlayer();
+    }
+
+    public void resetPlayer() {
+        playerController.reset();
     }
 
     /**
@@ -631,6 +638,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void openURL(String url) {
+
+    }
+
+    @Override
+    public void handleKControlsError(KPError error) {
 
     }
 
