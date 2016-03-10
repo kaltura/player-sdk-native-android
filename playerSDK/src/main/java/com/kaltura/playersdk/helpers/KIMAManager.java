@@ -82,6 +82,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String ThirdQuartileKey = "thirdQuartile";
     private String AdClickedKey = "adClicked";
     private String AdsLoadErrorKey = "adsLoadError";
+    private String AdSkippeddKey = "adSkipped";
 
 
     public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL) {
@@ -230,6 +231,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 }
                 break;
             case SKIPPED:
+                jsonValue.put(IsLinearKey, ad.isLinear());
+                fireIMAEvent(AdSkippeddKey);
                 mIMAPlayer.removeAd();
                 break;
             default:
