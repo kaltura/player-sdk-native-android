@@ -43,6 +43,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
+        if (eventName.equals(BufferingChangeKey) && isIMAActive) {
+            return;
+        }
         playerListener.eventWithValue(player, eventName, eventValue);
     }
 
