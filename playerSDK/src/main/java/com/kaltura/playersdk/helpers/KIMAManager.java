@@ -82,6 +82,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String ThirdQuartileKey = "thirdQuartile";
     private String AdClickedKey = "adClicked";
     private String AdsLoadErrorKey = "adsLoadError";
+    private String AdSkippeddKey = "adSkipped";
 
 
     public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL) {
@@ -223,13 +224,17 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 if (mAdsManager != null) {
                     mAdsManager.destroy();
                     mAdsManager = null;
-                    mIMAPlayer.release();
-                    mIMAPlayer = null;
+                    if (mIMAPlayer != null) {
+                        mIMAPlayer.release();
+                        mIMAPlayer = null;
+                    }
                     mPlayerListener = null;
                     mPLayerCallback = null;
                 }
                 break;
             case SKIPPED:
+                jsonValue.put(IsLinearKey, ad.isLinear());
+                fireIMAEvent(AdSkippeddKey);
                 mIMAPlayer.removeAd();
                 break;
             default:
@@ -282,12 +287,14 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     public void destroy() {
         if (mIMAPlayer != null) {
-            pause();
-            mAdsLoader.removeAdErrorListener(this);
-            mAdsLoader.removeAdsLoadedListener(this);
             mIMAPlayer.release();
-            mPlayerListener = null;
+            mIMAPlayer = null;
+//            pause();
+            mAdsManager.removeAdEventListener(this);
             mAdsManager.destroy();
+//            mAdsLoader.removeAdErrorListener(this);
+//            mAdsLoader.removeAdsLoadedListener(this);
+            mPlayerListener = null;
             mPLayerCallback = null;
         }
     }

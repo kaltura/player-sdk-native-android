@@ -309,6 +309,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    public void resetPlayer() {
+        playerController.reset();
+    }
+
     public void setActivity( Activity activity ) {
         mActivity = activity;
     }
