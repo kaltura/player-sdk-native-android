@@ -74,7 +74,7 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
 
 
     private void getLicensce(final DownloadCell view) {
-        LocalAssetsManager.registerAsset(this, getConfig(), getValues().get("FlavourId"), getValues().get("OfflineURL"), new LocalAssetsManager.AssetEventListener() {
+        LocalAssetsManager.registerAsset(this, getConfig(), getValues().get("FlavourId"), getValues().get("OfflineURL"), new LocalAssetsManager.AssetRegistrationListener() {
             @Override
             public void onRegistered(String assetPath) {
                 view.post(new Runnable() {
@@ -89,11 +89,6 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
                     @Override
                     public void run() {view.getTextView().setText("Licensce Error");}
                 });
-            }
-
-            @Override
-            public void onStatus(String assetPath, Object status) {
-
             }
         });
     }

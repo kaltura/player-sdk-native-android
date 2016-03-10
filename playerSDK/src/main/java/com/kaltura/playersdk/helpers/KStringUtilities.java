@@ -1,5 +1,7 @@
 package com.kaltura.playersdk.helpers;
 
+import android.net.Uri;
+
 import org.json.JSONArray;
 
 import java.lang.reflect.Method;
@@ -17,6 +19,7 @@ public class KStringUtilities {
     private static String SetKDPAttribute = "setKDPAttribute";
     private static String TriggerEvent = "trigger";
     private static String SendNotification = "sendNotification";
+    public static String LocalContentId = "localContentId";
 
     private String string;
     private String argsString;
@@ -189,12 +192,15 @@ public class KStringUtilities {
         }
     }
 
-    static public final String md5(String string) {
-        final String MD5 = "MD5";
+    public static String extractFragmentParam(Uri url, String name) {
+        return new Uri.Builder().encodedQuery(url.getEncodedFragment()).build().getQueryParameter(name);
+    }
+
+    static public String md5(String string) {
         try {
             // Create MD5 Hash
             java.security.MessageDigest digest = java.security.MessageDigest
-                    .getInstance(MD5);
+                    .getInstance("MD5");
             digest.update(string.getBytes());
             byte messageDigest[] = digest.digest();
 

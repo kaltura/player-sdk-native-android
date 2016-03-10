@@ -34,7 +34,6 @@ import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
-import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -243,19 +242,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
-            mWebView.setVisibility(INVISIBLE);
-            mWebView.loadUrl(config.getVideoURL() + "#" + buildSupportedMediaFormats());
+            mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
             mIsJsCallReadyRegistration = false;
             registerReadyEvent(new ReadyEventListener() {
                 @Override
                 public void handler() {
-                    mWebView.setVisibility(VISIBLE);
                     for (String event: mPlayerEventsHash.keySet()) {
                         mWebView.addEventListener(event);
                     }
                 }
             });
-
         }
     }
 
@@ -310,10 +306,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (routerManager != null) {
             routerManager.release();
         }
-    }
-
-    public void resetPlayer() {
-        playerController.reset();
     }
 
     public void setActivity( Activity activity ) {
@@ -479,13 +471,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             
         }
 
-        iframeUrl += "#" + buildSupportedMediaFormats();
+        iframeUrl += buildSupportedMediaFormats();
 
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) ) {
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
             if (mConfig.getCacheSize() > 0) {
-                CacheManager.getInstance().setHost(uri.getHost());
+                CacheManager.getInstance().setBaseURL(Utilities.stripLastUriPathSegment(mConfig.getServerURL()));
                 CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
                 mWebView.setCacheManager(CacheManager.getInstance());
             }
@@ -642,16 +634,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     }
 
-    @Override
-    public void handleKControlsError(KPError error) {
-        if (eventListeners != null) {
-            for (KPEventListener listener : eventListeners) {
-                listener.onKPlayerError(this, error);
-            }
-        }
-    }
-
-    //ch
+    //
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
         Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
