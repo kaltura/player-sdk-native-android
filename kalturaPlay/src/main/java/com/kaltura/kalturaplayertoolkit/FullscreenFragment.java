@@ -24,6 +24,7 @@ import com.kaltura.playersdk.casting.KCastRouterManagerListener;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.types.KPError;
 
 import java.lang.reflect.Method;
 import java.util.Timer;
@@ -152,6 +153,11 @@ public class FullscreenFragment extends Fragment{
             @Override
             public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
                 setFullScreen();
+            }
+
+            @Override
+            public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
             }
         });
 
