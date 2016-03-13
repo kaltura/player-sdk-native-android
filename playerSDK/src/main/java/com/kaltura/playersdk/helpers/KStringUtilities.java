@@ -45,6 +45,7 @@ public class KStringUtilities {
         return this.string.equals("seeked");
     }
     public boolean isTimeUpdate() {return this.string.equals("timeupdate");}
+    public boolean isEnded() {return this.string.equals("ended");}
 
     public boolean isContentPauseRequested() {
         return string.equals(KIMAManager.ContentPauseRequestedKey);

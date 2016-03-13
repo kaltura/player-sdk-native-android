@@ -377,7 +377,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     setCurrentPlaybackTime(0);
                 }
                 if (playWhenReady) {
-                    mPlayerListener.contentCompleted(this);
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
                 } 
                 stopPlaybackTimeReporter();

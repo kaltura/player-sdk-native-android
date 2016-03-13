@@ -53,7 +53,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             isIMAActive = false;
             mActivity.clear();
             mActivity = null;
-            removeAdPlayer();
         }
         playerListener.eventWithJSON(player, eventName, jsonValue);
     }
@@ -64,11 +63,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             player.setCurrentPlaybackTime(0);
             playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         } else if (currentPlayer == null) {
+            removeAdPlayer();
             isIMAActive = false;
             player.setShouldCancelPlay(true);
             playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         }
-        playerListener.contentCompleted(currentPlayer);
     }
 
     public static Set<MediaFormat> supportedFormats(Context context) {

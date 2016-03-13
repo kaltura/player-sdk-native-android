@@ -248,7 +248,6 @@ public class KWVCPlayer
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                mListener.contentCompleted(KWVCPlayer.this);
                 mCallback.playerStateChanged(KPlayerCallback.ENDED);
             }
         });
