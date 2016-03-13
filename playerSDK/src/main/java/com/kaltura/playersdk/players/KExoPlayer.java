@@ -100,7 +100,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void setPlayerSource(String playerSource) {
 
         mSourceURL = playerSource;
-        
         prepare();
     }
     
@@ -157,7 +156,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         return;
                     }
                     mExoPlayer.addListener(KExoPlayer.this);
-                    
                     mExoPlayer.prepare();
                     
                 } else {
@@ -349,7 +347,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     mReadiness = Readiness.Ready;
 
                     // TODO what about mShouldResumePlayback?
-                    mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
+                    if (getCurrentPlaybackTime() < 0) {
+                        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, "0");
+                    }else {
+                        mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
+                    }
                     mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
                     mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
                     mPlayerCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
@@ -367,19 +369,22 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 break;
 
             case ExoPlayer.STATE_ENDED:
-                Log.d(TAG, "state ended");
+                Log.d(TAG, "state ended playWhenReady = " + playWhenReady);
                 if (mExoPlayer != null) {
                     Log.d(TAG, "state ended: set play when ready false");
                     setPlayWhenReady(false);
                 }
-                if (mExoPlayer != null) {
-                    Log.d(TAG, "state ended: seek to 0");
-                    setCurrentPlaybackTime(0);
+                if (getCurrentPlaybackTime() < 0){
+                    mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, "0");
+                }else{
+                    mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(getCurrentPlaybackTime()/1000));
                 }
-                if (playWhenReady) {
-                    mPlayerListener.contentCompleted(this);
-                    mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
-                } 
+
+                mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.EndedKey, null);
+                mPlayerListener.contentCompleted(this);
+                mSeeking = false;
+                mSavedState.set(false,0);
+                setShouldCancelPlay(true);
                 stopPlaybackTimeReporter();
                 break;
         }

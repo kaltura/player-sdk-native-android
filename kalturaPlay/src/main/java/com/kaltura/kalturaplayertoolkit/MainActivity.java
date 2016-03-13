@@ -69,6 +69,11 @@ public class MainActivity extends Activity implements LoginFragment.OnFragmentIn
             extras = new Bundle();
         }
 
+         /*
+                Example for constructor parameters:
+                        config =  new KPPlayerConfig("serverURL", "uiConfId", "partnerId").setEntryId("entryId");
+         */
+
         KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");        
         extras.putSerializable("config", config); 
 

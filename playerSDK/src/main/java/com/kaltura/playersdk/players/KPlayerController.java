@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -64,12 +65,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void contentCompleted(KPlayer currentPlayer) {
         if (!isIMAActive) {
             player.setCurrentPlaybackTime(0);
-            playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         } else if (currentPlayer == null) {
             isIMAActive = false;
             player.setShouldCancelPlay(true);
-            playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         }
+        playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         playerListener.contentCompleted(currentPlayer);
     }
 
@@ -360,6 +360,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void playerStateChanged(int state) {
+        Log.d(TAG, "PlayerStateChanged: " + state);
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
                 isPlayerCanPlay = true;
