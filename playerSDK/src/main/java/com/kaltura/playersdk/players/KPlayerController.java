@@ -40,12 +40,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean switchingBackFromCasting = false;
     private FrameLayout adPlayerContainer;
     private RelativeLayout mAdControls;
+    private boolean isBackgrounded = false;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
-        if (eventName.equals(BufferingChangeKey) && isIMAActive) {
-            return;
-        }
         playerListener.eventWithValue(player, eventName, eventValue);
     }
 
@@ -110,6 +108,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
+        if (isBackgrounded && isIMAActive) {
+            imaManager.resume();
+            return;
+        }
+        if (isIMAActive) {
+            return;
+        }
         if (!isCasting) {
             player.play();
         } else {
@@ -119,7 +124,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void pause() {
         if (!isCasting) {
-            player.pause();
+            if (isBackgrounded && isIMAActive) {
+                imaManager.pause();
+            } else {
+                player.pause();
+            }
         } else {
             castPlayer.pause();
         }
@@ -175,6 +184,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void removePlayer() {
+        isBackgrounded = true;
         if (player != null) {
             player.freezePlayer();
         }
@@ -184,6 +194,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void recoverPlayer() {
+        isBackgrounded = false;
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
         }
@@ -193,6 +204,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void reset() {
+        isBackgrounded = false;
         if (imaManager != null) {
             removeAdPlayer();
         }
@@ -202,6 +214,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void destroy() {
+        isBackgrounded = false;
         if (imaManager != null) {
             removeAdPlayer();
         }
