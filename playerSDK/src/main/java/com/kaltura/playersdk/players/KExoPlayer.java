@@ -15,6 +15,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 
+import com.example.kplayersdk.R;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
@@ -153,7 +154,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     if (surface != null && surface.isValid()) {
                         mExoPlayer.setSurface(surface);
                     } else {
-                        Log.e(TAG, "Surface not ready yet");
+                        Log.e(TAG, getResources().getString(R.string.surface_not_ready_yet));
+                        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, getResources().getString(R.string.surface_not_ready_yet));
                         return;
                     }
                     mExoPlayer.addListener(KExoPlayer.this);
@@ -394,8 +396,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void onError(Exception e) {
-        Log.e(TAG, "player error", e);
-        // TODO: anything?
+        Log.e(TAG, getResources().getString(R.string.player_error), e);
+        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, getResources().getString(R.string.player_error));
     }
 
     @Override
@@ -435,7 +437,7 @@ class KPlayerExoDrmCallback implements MediaDrmCallback {
 
     @Override
     public byte[] executeProvisionRequest(UUID uuid, MediaDrm.ProvisionRequest request) {
-        throw new UnsupportedOperationException("We don't have a provisioning service");
+               throw new UnsupportedOperationException("We don't have a provisioning service");
     }
 
     @Override
