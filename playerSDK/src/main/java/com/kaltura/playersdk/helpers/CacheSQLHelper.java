@@ -47,7 +47,6 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     }
 
 
-
     public void addFile(String fileName, String mimeType, String encoding) {
         ContentValues values = new ContentValues();
         values.put(id, fileName);
@@ -57,14 +56,24 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         values.put(Size, 0);
         SQLiteDatabase db = getWritableDatabase();
         try {
-            db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-        } catch (SQLiteException e){
+            if (isExist(fileName)) {
+                db.update(TABLE_NAME, values, this.id + "=?", new String[]{fileName});
+            } else {
+                db.insert(TABLE_NAME, null, values);
+            }
+        } catch (SQLiteException e) {
             e.printStackTrace();
         } finally {
-            if(db.isOpen()){
+            if (db.isOpen()) {
                 db.close();
             }
         }
+    }
+
+    private boolean isExist(String id) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.query(TABLE_NAME, null, this.id + "=?", new String[]{id}, null, null, null);
+        return c.getCount() > 0;
     }
 
     public boolean removeFile(String fileId) {
@@ -90,7 +99,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 size = cursor.getInt(0);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (!cursor.isClosed()) {
@@ -106,10 +115,10 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         try {
             db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-        } catch (SQLiteException e){
+        } catch (SQLiteException e) {
             e.printStackTrace();
         } finally {
-            if(db.isOpen()){
+            if (db.isOpen()) {
                 db.close();
             }
         }
@@ -122,10 +131,10 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         try {
             db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-        } catch (SQLiteException e){
+        } catch (SQLiteException e) {
             e.printStackTrace();
         } finally {
-            if(db.isOpen()){
+            if (db.isOpen()) {
                 db.close();
             }
         }
@@ -146,7 +155,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                     cursor.close();
                 }
             }
-            return (long)size;
+            return (long) size;
         }
         return 0;
     }
@@ -166,7 +175,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 deletedIds.add(fileId);
             }
         }
-        for (String fileId: deletedIds) {
+        for (String fileId : deletedIds) {
             try {
                 db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
                 listener.fileDeleted(fileId);
@@ -186,9 +195,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     public HashMap<String, Object> fetchParamsForFile(String fileName) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, new String[]{id, Encoding,MimeType}, id + "=?", new String[]{fileName}, null, null, null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{id, Encoding, MimeType}, id + "=?", new String[]{fileName}, null, null, null);
 
-        HashMap<String , Object> params = null;
+        HashMap<String, Object> params = null;
         try {
             if (cursor.moveToFirst()) {
                 params = new HashMap<>();
