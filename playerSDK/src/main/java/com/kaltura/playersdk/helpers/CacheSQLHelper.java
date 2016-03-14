@@ -73,7 +73,11 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     private boolean isExist(String id) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor c = db.query(TABLE_NAME, null, this.id + "=?", new String[]{id}, null, null, null);
-        return c.getCount() > 0;
+        boolean exist = c.getCount() > 0;
+        if (db.isOpen()) {
+            db.close();
+        }
+        return exist;
     }
 
     public boolean removeFile(String fileId) {
