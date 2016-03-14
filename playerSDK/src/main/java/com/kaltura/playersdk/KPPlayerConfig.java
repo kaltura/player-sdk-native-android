@@ -23,6 +23,7 @@ public class KPPlayerConfig implements Serializable{
 	private String mEntryId;
 	private String mUiConfId;
 	private String mPartnerId;
+    private String mLocalContentId = "";
 	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
@@ -151,6 +152,10 @@ public class KPPlayerConfig implements Serializable{
 		addConfig("controlBarContainer.hover", Boolean.toString(hide));
 	}
 
+	public void setLocalContentId(String localContentId) {
+        mLocalContentId = localContentId;
+    }
+
 	public void setCacheSize (float cacheSize) {
 		mCacheSize = cacheSize;
 	}
@@ -170,7 +175,7 @@ public class KPPlayerConfig implements Serializable{
 		
 		builder.appendQueryParameter("iframeembed", "true");
 
-		return builder.build().toString() + "&" + getQueryString(); 
+		return builder.build().toString() + "&" + getQueryString() + "#localContentId=" + mLocalContentId + "&";
 	}
 
 	public String getEntryId() {

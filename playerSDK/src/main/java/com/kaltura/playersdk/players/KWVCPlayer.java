@@ -13,6 +13,7 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
+import com.example.kplayersdk.R;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import java.util.Collections;
@@ -123,20 +124,20 @@ public class KWVCPlayer
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
-        return mPlayer != null ? mPlayer.getCurrentPosition() / 1000f : 0;
+    public long getCurrentPlaybackTime() {
+        return mPlayer != null ? mPlayer.getCurrentPosition() : 0;
     }
     
     @Override
-    public void setCurrentPlaybackTime(float currentPlaybackTime) {
+    public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
-            mPlayer.seekTo((int) (currentPlaybackTime * 1000));
+            mPlayer.seekTo((int) (currentPlaybackTime));
         }
     }
 
     @Override
-    public float getDuration() {
-        return mPlayer != null ? mPlayer.getDuration() / 1000f : 0;
+    public long getDuration() {
+        return mPlayer != null ? mPlayer.getDuration() : 0;
     }
 
     @Override
@@ -187,6 +188,11 @@ public class KWVCPlayer
         // TODO: forward to player
     }
 
+    @Override
+    public void freezePlayer() {
+
+    }
+
     private void saveState() {
         if (mPlayer != null) {
             mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
@@ -223,7 +229,8 @@ public class KWVCPlayer
     private void preparePlayer() {
 
         if (mAssetUri==null || mLicenseUri==null) {
-            Log.e(TAG, "Prepare error: both assetUri and licenseUri must be set");
+            Log.e(TAG, getResources().getString(R.string.kwvc_prepare_error));
+            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, getResources().getString(R.string.kwvc_prepare_error));
             return;
         }
 
@@ -243,14 +250,16 @@ public class KWVCPlayer
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                mListener.contentCompleted(KWVCPlayer.this);
                 mCallback.playerStateChanged(KPlayerCallback.ENDED);
             }
         });
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.e(TAG, "VideoView:onError(" + what + "," + extra + ")");
+                Log.e(TAG, getResources().getString(R.string.video_view_on_error) + "(" + what + "," + extra + ")");
+                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey,
+                        getResources().getString(R.string.video_view_on_error) + "(" + what + "," + extra + ")");
+
                 // TODO
                 return false;
             }
@@ -281,12 +290,19 @@ public class KWVCPlayer
                     }
                 });
 
+                mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                    @Override
+                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
+                    }
+                });
+
                 if (mSavedState.playing) {
                     // we were already playing, so just resume playback from the saved position
                     mPlayer.seekTo(mSavedState.position);
                     play();
                 } else {
-                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration()));
+                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
                     mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
                     mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
                     mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
@@ -331,7 +347,10 @@ public class KWVCPlayer
                     }
 
                 } catch (IllegalStateException e) {
-                    Log.e(TAG, "Error", e);
+                    Log.e(TAG, getResources().getString(R.string.player_error) + " " + e.getMessage());
+                    mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey,
+                            getResources().getString(R.string.player_error) + " " + e.getMessage());
+
                 }
                 if (mHandler != null) {
                     mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);

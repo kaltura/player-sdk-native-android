@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
@@ -55,14 +56,29 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         values.put(LastUsed, 0);
         values.put(Size, 0);
         SQLiteDatabase db = getWritableDatabase();
-        db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        try {
+            db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        } catch (SQLiteException e){
+            e.printStackTrace();
+        } finally {
+            if(db.isOpen()){
+                db.close();
+            }
+        }
     }
 
-    public void removeFile(String fileId) {
-
+    public boolean removeFile(String fileId) {
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
+            return true;
+        } catch (SQLiteException e) {
+            return false;
+        } finally {
+            if (db.isOpen()) {
+                db.close();
+            }
+        }
     }
 
     public long cacheSize() {
@@ -70,10 +86,17 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         long size = 0;
-        if (cursor.moveToFirst()) {
-            size = cursor.getInt(0);
+        try {
+            if (cursor.moveToFirst()) {
+                size = cursor.getInt(0);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
         }
-        cursor.close();
         return size;
     }
 
@@ -81,10 +104,15 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         ContentValues data = new ContentValues();
         data.put(LastUsed, System.currentTimeMillis());
         SQLiteDatabase db = getWritableDatabase();
-        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        try {
+            db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+        } catch (SQLiteException e){
+            e.printStackTrace();
+        } finally {
+            if(db.isOpen()){
+                db.close();
+            }
+        }
     }
 
     public void updateFileSize(String fileId, long fileSize) {
@@ -92,10 +120,15 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         data.put(Size, fileSize);
         data.put(LastUsed, System.currentTimeMillis());
         SQLiteDatabase db = getWritableDatabase();
-        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        try {
+            db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+        } catch (SQLiteException e){
+            e.printStackTrace();
+        } finally {
+            if(db.isOpen()){
+                db.close();
+            }
+        }
     }
 
     public long sizeForId(String fileId) {
@@ -103,9 +136,17 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         if (cursor.moveToFirst()) {
-            int size = cursor.getInt(0);
-            cursor.close();
-            return size;
+            int size = 0;
+            try {
+                size = cursor.getInt(0);
+            } catch (SQLiteException e) {
+                e.printStackTrace();
+            } finally {
+                if (!cursor.isClosed()) {
+                    cursor.close();
+                }
+            }
+            return (long)size;
         }
         return 0;
     }
@@ -126,10 +167,21 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
             }
         }
         for (String fileId: deletedIds) {
-            db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
-            listener.fileDeleted(fileId);
+            try {
+                db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
+                listener.fileDeleted(fileId);
+            } catch (SQLiteException e) {
+                e.printStackTrace();
+            } finally {
+                if (db.isOpen()) {
+                    db.close();
+                }
+            }
+
         }
-        cursor.close();
+        if (!cursor.isClosed()) {
+            cursor.close();
+        }
     }
 
     public HashMap<String, Object> fetchParamsForFile(String fileName) {
@@ -137,12 +189,19 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(TABLE_NAME, new String[]{id, Encoding,MimeType}, id + "=?", new String[]{fileName}, null, null, null);
 
         HashMap<String , Object> params = null;
-        if (cursor.moveToFirst()) {
-            params = new HashMap<>();
-            params.put(Encoding, cursor.getString(1));
-            params.put(MimeType, cursor.getString(2));
+        try {
+            if (cursor.moveToFirst()) {
+                params = new HashMap<>();
+                params.put(Encoding, cursor.getString(1));
+                params.put(MimeType, cursor.getString(2));
+            }
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        } finally {
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
         }
-        cursor.close();
         return params;
     }
 }

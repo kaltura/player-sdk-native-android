@@ -6,5 +6,13 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_kinternal_browser">Share</string>
+    <string name="surface_not_ready_yet">Surface not ready yet</string>
+    <string name="player_error">Player Error</string>
+    <string name="kwvc_prepare_error">Prepare error: both assetUri and licenseUri must be set</string>
+    <string name="video_view_on_error">VideoView:onError</string>
+    <string name="failed_to_request_status">Failed to request status</string>
+    <string name="looper_exception">Looper Exception</string>
+    <string name="media_loading_error">Problem occurred with media during loading</string>
+    <string name="media_loading_opening_error">Problem opening media during loading</string>
 
 </resources>
