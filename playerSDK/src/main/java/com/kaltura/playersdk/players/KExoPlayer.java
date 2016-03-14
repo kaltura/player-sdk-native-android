@@ -49,6 +49,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private VideoSurfaceView mSurfaceView;
     private boolean mSeeking;
     private boolean mBuffering = false;
+    private boolean mPassedPlay = false;
 
     public static Set<MediaFormat> supportedFormats(Context context) {
         Set<MediaFormat> set = new HashSet<>();
@@ -222,7 +223,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             prepare();
             return;
         }
-        
+        mPassedPlay = true;
         setPlayWhenReady(true);
         
         if (mSavedState.position != 0) {
@@ -361,7 +362,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     startPlaybackTimeReporter();
                 }
 
-                if (playWhenReady) {
+                if (mPassedPlay && playWhenReady) {
+                    mPassedPlay = false;
                     mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
                 }
                 break;
