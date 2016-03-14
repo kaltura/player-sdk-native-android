@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -75,7 +74,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
         }
         if (mListener != null) {
-            Log.e("GILAD", mAdPlayer.getCurrentPosition() + "/" + mAdPlayer.getDuration());
             mListener.adDidProgress((float)mAdPlayer.getCurrentPosition() / 1000, (float)mAdPlayer.getDuration() / 1000);
         }
         return new VideoProgressUpdate(mAdPlayer.getCurrentPosition(), mAdPlayer.getDuration());
