@@ -23,6 +23,7 @@ import android.widget.RelativeLayout;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.types.KPError;
 
 import java.lang.reflect.Method;
 import java.util.Timer;
@@ -138,6 +139,11 @@ public class PlayerFragment extends Fragment {
                         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                         break;
                 }
+            }
+
+            @Override
+            public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
             }
 
             @Override

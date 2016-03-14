@@ -658,6 +658,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
+                } else if (event.isEnded()) {
+                    contentCompleted(player);
                 }
             }
         }
