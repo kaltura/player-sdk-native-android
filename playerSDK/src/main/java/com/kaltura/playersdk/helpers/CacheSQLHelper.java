@@ -49,7 +49,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     }
 
     private SQLiteDatabase getWritableDB() {
-        if (mWritableDB == null) {
+        if (mWritableDB == null && !mWritableDB.isOpen()) {
             mWritableDB = getWritableDatabase();
         }
         return mWritableDB;
@@ -166,6 +166,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 }
             }
             return (long) size;
+        }
+        if (!cursor.isClosed()) {
+            cursor.close();
         }
         return 0;
     }
