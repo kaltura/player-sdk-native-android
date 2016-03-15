@@ -830,6 +830,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private void sendOnKPlayerError(String attributeValue) {
         for (KPEventListener listener: eventListeners) {
             Log.d(TAG, "Error Msg Arrived:" + attributeValue);
+            if (attributeValue.contains("@@@")){
+                String attributeValueArray [] = attributeValue.split("@@@");
+                if (attributeValueArray.length == 3) {
+                    listener.onKPlayerError(this, new KPError(attributeValueArray[0],Integer.valueOf(attributeValueArray[2]),null));
+                    return;
+                }
+            }
             listener.onKPlayerError(this, new KPError(attributeValue));
         }
     }

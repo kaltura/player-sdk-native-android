@@ -397,7 +397,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void onError(Exception e) {
         Log.e(TAG, getResources().getString(R.string.player_error), e);
-        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, getResources().getString(R.string.player_error));
+        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, getResources().getString(R.string.player_error) + "-" + e.getMessage());
     }
 
     @Override

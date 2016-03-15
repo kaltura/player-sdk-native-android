@@ -80,7 +80,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                     }
                 } catch (IllegalStateException e) {
                     Log.e(TAG, Resources.getSystem().getString(R.string.looper_exception));
-                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, Resources.getSystem().getString(R.string.looper_exception));
+                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, Resources.getSystem().getString(R.string.looper_exception) + "-" + e.getMessage());
                 }
                 mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
             }
@@ -161,8 +161,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         }
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.SeekedKey, null);
                     } else {
-                        Log.w(TAG, "Unable to toggle seek: "
-                                + status.getStatusCode());
+                        Log.w(TAG, "Unable to toggle seek: " + status.getStatusCode());
                     }
                 }
             });
@@ -192,8 +191,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PlayKey, null);
                     } else {
                         isPlaying = false;
-                        Log.w(TAG, "Unable to toggle play: "
-                                + status.getStatusCode());
+                        Log.w(TAG, "Unable to toggle play: " + status.getStatusCode());
                     }
                 }
             });
@@ -214,8 +212,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PauseKey, null);
                     } else {
                         isPlaying = true;
-                        Log.w(TAG, "Unable to toggle pause: "
-                                + status.getStatusCode());
+                        Log.w(TAG, "Unable to toggle pause: " + status.getStatusCode());
                     }
                 }
             });
