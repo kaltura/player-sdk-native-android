@@ -49,7 +49,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     }
 
     private SQLiteDatabase getWritableDB() {
-        if (mWritableDB == null && !mWritableDB.isOpen()) {
+        if (mWritableDB == null || !mWritableDB.isOpen()) {
             mWritableDB = getWritableDatabase();
         }
         return mWritableDB;
