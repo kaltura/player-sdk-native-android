@@ -6,7 +6,7 @@ package com.kaltura.playersdk.events;
 
 public enum KPlayerState {
     UNKNOWN("unknown"),
-    LOADED("loaded"),
+    LOADED("loadedmetadata"),
     READY("canplay"),
     PLAYING("play"),
     PAUSED("pause"),
@@ -22,7 +22,7 @@ public enum KPlayerState {
 
     public static KPlayerState getStateForEventName(String eventName) {
         switch (eventName) {
-            case "loaded":
+            case "loadedmetadata":
                 return LOADED;
             case "canplay":
                 return READY;
