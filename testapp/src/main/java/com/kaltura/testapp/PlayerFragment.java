@@ -13,6 +13,7 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.types.KPError;
 
 
 /**
@@ -132,6 +133,11 @@ public class PlayerFragment extends Fragment {
                 @Override
                 public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
                     Log.d("KPlayer State Changed", state.toString());
+                }
+
+                @Override
+                public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
                 }
 
                 @Override
