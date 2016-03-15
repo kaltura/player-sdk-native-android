@@ -74,9 +74,10 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor c = db.query(TABLE_NAME, null, this.id + "=?", new String[]{id}, null, null, null);
         boolean exist = c.getCount() > 0;
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        c.close();
+        if (db.isOpen()) {
+            db.close();
+        }
         return exist;
     }
 
@@ -88,9 +89,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         } catch (SQLiteException e) {
             return false;
         } finally {
-//            if (db.isOpen()) {
-//                db.close();
-//            }
+            if (db.isOpen()) {
+                db.close();
+            }
         }
     }
 
