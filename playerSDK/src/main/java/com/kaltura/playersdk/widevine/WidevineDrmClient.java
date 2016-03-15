@@ -75,9 +75,11 @@ public class WidevineDrmClient {
                 case DrmStore.RightsStatus.RIGHTS_NOT_ACQUIRED: this.status = Status.NOT_ACQUIRED; break;
             }
             
-            this.startTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_START_TIME);
-            this.expiryTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_EXPIRY_TIME);
-            this.availableTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_AVAILABLE_TIME);
+            if (values != null) {
+                this.startTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_START_TIME);
+                this.expiryTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_EXPIRY_TIME);
+                this.availableTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_AVAILABLE_TIME);
+            }
         }
     }
 
