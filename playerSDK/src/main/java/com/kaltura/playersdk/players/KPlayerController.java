@@ -184,7 +184,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void removePlayer() {
         isBackgrounded = true;
-        if (isIMAActive && imaManager != null) {
+        if (imaManager != null && isIMAActive) {
             imaManager.pause();
         }
         if (player != null) {
