@@ -218,7 +218,7 @@ public class CacheManager {
             return null;
         }
 
-        InputStream inputStream;
+        final InputStream inputStream;
         String fileName = getCacheFileId(requestUrl);
         File targetFile = new File(getCachePath(), fileName);
         String contentType;
@@ -235,7 +235,7 @@ public class CacheManager {
         } else {
             cacheMiss(requestUrl, fileName);
             URL url = new URL(requestUrl.toString());
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             
             setRequestParams(connection, headers, method);
             connection.connect();
@@ -257,6 +257,7 @@ public class CacheManager {
                     mSQLHelper.updateFileSize(fileId, fileSize);
                     cacheSaved(requestUrl, fileId);
                     deleteLessUsedFiles(fileSize);
+                    connection.disconnect();
                 }
             });
 
