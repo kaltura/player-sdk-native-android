@@ -23,6 +23,8 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     public static final String LastUsed = "LastUsed";
     public static final String Size = "Size";
 
+    private SQLiteDatabase mWritableDB;
+
     public interface KSQLHelperDeleteListener {
         void fileDeleted(String fileId);
     }
@@ -46,6 +48,13 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    private SQLiteDatabase getWritableDB() {
+        if (mWritableDB == null) {
+            mWritableDB = getWritableDatabase();
+        }
+        return mWritableDB;
+    }
+
 
     public void addFile(String fileName, String mimeType, String encoding) {
         ContentValues values = new ContentValues();
@@ -54,12 +63,11 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         values.put(Encoding, encoding);
         values.put(LastUsed, 0);
         values.put(Size, 0);
-        SQLiteDatabase db = getWritableDatabase();
         try {
             if (isExist(fileName)) {
-                db.update(TABLE_NAME, values, this.id + "=?", new String[]{fileName});
+                getWritableDB().update(TABLE_NAME, values, this.id + "=?", new String[]{fileName});
             } else {
-                db.insert(TABLE_NAME, null, values);
+                getWritableDB().insert(TABLE_NAME, null, values);
             }
         } catch (SQLiteException e) {
             e.printStackTrace();
@@ -82,16 +90,15 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     }
 
     public boolean removeFile(String fileId) {
-        SQLiteDatabase db = getWritableDatabase();
         try {
-            db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
+            getWritableDB().delete(TABLE_NAME, id + "=?", new String[]{fileId});
             return true;
         } catch (SQLiteException e) {
             return false;
         } finally {
-            if (db.isOpen()) {
-                db.close();
-            }
+//            if (db.isOpen()) {
+//                db.close();
+//            }
         }
     }
 
@@ -117,9 +124,8 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     public void updateDate(String fileId) {
         ContentValues data = new ContentValues();
         data.put(LastUsed, System.currentTimeMillis());
-        SQLiteDatabase db = getWritableDatabase();
         try {
-            db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+            getWritableDB().update(TABLE_NAME, data, id + "=?", new String[]{fileId});
         } catch (SQLiteException e) {
             e.printStackTrace();
         } finally {
@@ -133,9 +139,8 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         ContentValues data = new ContentValues();
         data.put(Size, fileSize);
         data.put(LastUsed, System.currentTimeMillis());
-        SQLiteDatabase db = getWritableDatabase();
         try {
-            db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+            getWritableDB().update(TABLE_NAME, data, id + "=?", new String[]{fileId});
         } catch (SQLiteException e) {
             e.printStackTrace();
         } finally {
@@ -167,8 +172,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     public void deleteLessUsedFiles(long sizeToDelete, KSQLHelperDeleteListener listener) {
         String query = "SELECT * FROM KCacheTable ORDER BY LastUsed Desc";
-        SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
+        Cursor cursor = getWritableDB().rawQuery(query, null);
         boolean stop = false;
         ArrayList<String> deletedIds = new ArrayList<>();
         while (!stop) {
@@ -182,7 +186,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         }
         for (String fileId : deletedIds) {
             try {
-                db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
+                getWritableDB().delete(TABLE_NAME, id + "=?", new String[]{fileId});
                 listener.fileDeleted(fileId);
             } catch (SQLiteException e) {
                 e.printStackTrace();
