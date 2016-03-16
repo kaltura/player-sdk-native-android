@@ -168,11 +168,7 @@ public class KWVCPlayer
             mPlayheadTracker = new PlayheadTracker();
         }
         mPlayheadTracker.start();
-        while (true) {
-            changePlayPauseState("play");
-            if (mPlayer.isPlaying())
-                return;
-        }
+        changePlayPauseState("play");
     }
 
     @Override
@@ -180,11 +176,7 @@ public class KWVCPlayer
         if (mPlayer != null) {
             if (mPlayer.isPlaying()) {
                 mPlayer.pause();
-                while (true) {
-                    changePlayPauseState("pause");
-                    if (!mPlayer.isPlaying())
-                        return;
-                }
+                changePlayPauseState("pause");
             }
         }
         saveState();
@@ -201,13 +193,16 @@ public class KWVCPlayer
                 if ("pause".equals(state)) {
                     if (!mPlayer.isPlaying()) {
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                        return;
                     }
                 }
                 if ("play".equals(state)) {
                     if (mPlayer.isPlaying()) {
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+                        return;
                     }
                 }
+                changePlayPauseState(state);
             }
         }, 100);
     }
