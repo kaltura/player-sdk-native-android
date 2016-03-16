@@ -644,7 +644,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void handleKControlsError(KPError error) {
-
+        sendOnKPlayerError(error.getErrorMsg());
     }
 
     //
@@ -817,13 +817,24 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
-                    Log.d("chromecast.initialize", attributeValue);
+                    Log.d(TAG, "chromecast.initialize:" +  attributeValue);
+                    break;
+                case playerError:
+                    if (eventListeners != null) {
+                        sendOnKPlayerError(attributeValue);
+                    }
                     break;
             }
         }
     }
 
-    
+    private void sendOnKPlayerError(String attributeValue) {
+        for (KPEventListener listener: eventListeners) {
+            Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
+            listener.onKPlayerError(this, new KPError(attributeValue));
+        }
+    }
+
     private void switchFlavor(String index) {
         int flavorIndex = -1;
         try {

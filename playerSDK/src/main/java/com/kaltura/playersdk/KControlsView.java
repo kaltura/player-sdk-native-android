@@ -261,17 +261,18 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-            super.onReceivedError(view, request, error);
+            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-            super.onReceivedHttpError(view, request, errorResponse);
+            controlsViewClient.handleKControlsError(new KPError(errorResponse.toString()));
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            super.onReceivedSslError(view, handler, error);
+            controlsViewClient.handleKControlsError(new KPError(error.toString()));
         }
 
         private WebResourceResponse textResponse(String text) {

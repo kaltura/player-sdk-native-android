@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -22,6 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
+    private static final String TAG = "KalturaDemos";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
@@ -169,6 +171,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-
+        Log.e(TAG, "Error Received:" + error.getErrorMsg());
     }
 }

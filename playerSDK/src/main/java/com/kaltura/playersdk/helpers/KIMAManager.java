@@ -56,7 +56,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private KPlayerCallback mPLayerCallback;
 
     private boolean mContentCompleted;
-    
+
 
     private JSONObject jsonValue = new JSONObject();
 
@@ -116,11 +116,15 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     }
 
     public void pause() {
-        mAdsManager.pause();
+        if (mAdsManager != null) {
+            mAdsManager.pause();
+        }
     }
 
     public void resume() {
-        mAdsManager.resume();
+        if (mAdsManager != null) {
+            mAdsManager.resume();
+        }
     }
 
     /**

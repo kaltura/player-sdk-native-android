@@ -44,9 +44,15 @@ public class KStringUtilities {
     public boolean isSeeked() {
         return this.string.equals("seeked");
     }
-    public boolean isTimeUpdate() {return this.string.equals("timeupdate");}
-    public boolean isEnded() {return this.string.equals("ended");}
-
+    public boolean isTimeUpdate() {
+        return this.string.equals("timeupdate");
+    }
+    public boolean isEnded() {
+        return this.string.equals("ended");
+    }
+    public boolean isError() {
+        return this.string.equals("error");
+    }
     public boolean isContentPauseRequested() {
         return string.equals(KIMAManager.ContentPauseRequestedKey);
     }
@@ -108,7 +114,7 @@ public class KStringUtilities {
     }
 
     public enum Attribute {
-        src, currentTime, visible, licenseUri, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive, chromecastAppId;
+        src, currentTime, visible, licenseUri, nativeAction, doubleClickRequestAds, language, textTrackSelected, goLive, chromecastAppId, playerError;
     }
 
     static public String addEventListener(String event) {
