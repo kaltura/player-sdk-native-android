@@ -257,8 +257,8 @@ public class KWVCPlayer
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 Log.e(TAG, getResources().getString(R.string.video_view_on_error) + "(" + what + "," + extra + ")");
-                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey,
-                        getResources().getString(R.string.video_view_on_error) + "@@@" + what + "@@@" + extra);
+                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" +
+                        getResources().getString(R.string.video_view_on_error) + "(" + what + "," + extra + ")");
 
                 // TODO
                 return false;
