@@ -106,6 +106,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.parentViewController.addView((View)this.player, 1, lp);
     }
 
+    public void setVisibility(boolean isVisible) {
+        ((View)player).setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+    }
+
+
     public void play() {
         if (isBackgrounded && isIMAActive) {
             imaManager.resume();

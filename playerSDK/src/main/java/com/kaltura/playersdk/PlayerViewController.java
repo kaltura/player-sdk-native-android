@@ -244,13 +244,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
             mWebView.setVisibility(INVISIBLE);
-            mWebView.clearCache(true);
+            playerController.setVisibility(false);
+            pause();
             mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
             mIsJsCallReadyRegistration = false;
             registerReadyEvent(new ReadyEventListener() {
                 @Override
                 public void handler() {
                     mWebView.setVisibility(VISIBLE);
+                    playerController.setVisibility(true);
                     for (String event : mPlayerEventsHash.keySet()) {
                         mWebView.addEventListener(event);
                     }
@@ -689,7 +691,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private void pause() {
         playerController.pause();
     }
-    
+
+
     public void registerReadyEvent(ReadyEventListener listener) {
         if (mIsJsCallReadyRegistration) {
             listener.handler();
