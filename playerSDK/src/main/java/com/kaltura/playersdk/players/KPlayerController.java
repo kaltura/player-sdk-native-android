@@ -107,7 +107,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setVisibility(boolean isVisible) {
-        ((View)player).setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+        if (player != null) {
+            ((View) player).setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+        }
     }
 
 
