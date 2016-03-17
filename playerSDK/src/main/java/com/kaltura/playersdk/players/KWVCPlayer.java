@@ -193,12 +193,12 @@ public class KWVCPlayer
              @Override
              public void run() {
                  if (KPlayerListener.PauseKey.equals(state)) {
-                     if (!mPlayer.isPlaying()) {
+                     if (mPlayer != null && !mPlayer.isPlaying()) {
                          mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
                          return;
                      }
                  } else if (KPlayerListener.PlayKey.equals(state)) {
-                     if (mPlayer.isPlaying()) {
+                     if (mPlayer != null && mPlayer.isPlaying()) {
                          mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
                          return;
                      }
@@ -219,7 +219,14 @@ public class KWVCPlayer
 
     @Override
     public void freezePlayer() {
-
+        saveState();
+        if (mPlayer != null) {
+            mPlayer.suspend();
+        }
+        if (mPlayheadTracker != null) {
+            mPlayheadTracker.stop();
+            mPlayheadTracker = null;
+        }
     }
 
     private void saveState() {
@@ -247,7 +254,13 @@ public class KWVCPlayer
 
     @Override
     public void recoverPlayer() {
-        
+        if (mPlayer != null) {
+            mPlayer.resume();
+            mPlayer.seekTo(mSavedState.position);
+            if (mSavedState.playing) {
+                play();
+            }
+        }
     }
 
     @Override
