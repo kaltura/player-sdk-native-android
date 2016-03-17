@@ -685,11 +685,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void play() {
-        playerController.play();
+        if (playerController != null) {
+            playerController.play();
+        }
     }
 
     private void pause() {
-        playerController.pause();
+        if (playerController != null) {
+            playerController.pause();
+        }
     }
 
 
