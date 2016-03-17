@@ -193,12 +193,12 @@ public class KWVCPlayer
              @Override
              public void run() {
                  if (KPlayerListener.PauseKey.equals(state)) {
-                     if (!mPlayer.isPlaying()) {
+                     if (mPlayer != null && !mPlayer.isPlaying()) {
                          mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
                          return;
                      }
                  } else if (KPlayerListener.PlayKey.equals(state)) {
-                     if (mPlayer.isPlaying()) {
+                     if (mPlayer != null && mPlayer.isPlaying()) {
                          mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
                          return;
                      }
