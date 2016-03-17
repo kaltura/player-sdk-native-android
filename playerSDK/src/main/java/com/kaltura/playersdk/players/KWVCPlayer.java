@@ -186,25 +186,30 @@ public class KWVCPlayer
     }
 
     private void changePlayPauseState(final String state) {
-        mPlayer.postDelayed(new Runnable() {
+        if (mPlayer == null || state == null) {
+            return;
+        }
+         mPlayer.postDelayed(new Runnable() {
+             @Override
+             public void run() {
+                 if (KPlayerListener.PauseKey.equals(state)) {
+                     if (!mPlayer.isPlaying()) {
+                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                         return;
+                     }
+                 } else if (KPlayerListener.PlayKey.equals(state)) {
+                     if (mPlayer.isPlaying()) {
+                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+                         return;
+                     }
+                 } else {
+                     Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
+                     return;
 
-            @Override
-            public void run() {
-                if ("pause".equals(state)) {
-                    if (!mPlayer.isPlaying()) {
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
-                        return;
-                    }
-                }
-                if ("play".equals(state)) {
-                    if (mPlayer.isPlaying()) {
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
-                        return;
-                    }
-                }
-                changePlayPauseState(state);
-            }
-        }, 100);
+                 }
+                 changePlayPauseState(state);
+             }
+         }, 100);
     }
 
     @Override
