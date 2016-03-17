@@ -219,7 +219,14 @@ public class KWVCPlayer
 
     @Override
     public void freezePlayer() {
-
+        saveState();
+        if (mPlayer != null) {
+            mPlayer.suspend();
+        }
+        if (mPlayheadTracker != null) {
+            mPlayheadTracker.stop();
+            mPlayheadTracker = null;
+        }
     }
 
     private void saveState() {
@@ -247,7 +254,13 @@ public class KWVCPlayer
 
     @Override
     public void recoverPlayer() {
-        
+        if (mPlayer != null) {
+            mPlayer.resume();
+            mPlayer.seekTo(mSavedState.position);
+            if (mSavedState.playing) {
+                play();
+            }
+        }
     }
 
     @Override
