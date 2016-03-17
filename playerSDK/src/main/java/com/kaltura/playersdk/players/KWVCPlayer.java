@@ -142,47 +142,76 @@ public class KWVCPlayer
 
     @Override
     public void play() {
-        
+
         // If already playing, don't do anything.
         if (mPlayer != null && mPlayer.isPlaying()) {
             return;
         }
-        
+
         // If play should be canceled, don't even start.
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
             return;
         }
-        
+
         // If not prepared, ask player to start when prepared.
         if (mPrepareState != PrepareState.Prepared) {
             mShouldPlayWhenReady = true;
             preparePlayer();
             return;
         }
-        
+
         assert mPlayer != null;
         mPlayer.start();
-        
+
         if (mPlayheadTracker == null) {
             mPlayheadTracker = new PlayheadTracker();
         }
         mPlayheadTracker.start();
-        
-        mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+        changePlayPauseState("play");
     }
 
     @Override
     public void pause() {
         if (mPlayer != null) {
-            mPlayer.pause();
+            if (mPlayer.isPlaying()) {
+                mPlayer.pause();
+                changePlayPauseState("pause");
+            }
         }
         saveState();
         if (mPlayheadTracker != null) {
             mPlayheadTracker.stop();
         }
     }
-    
+
+    private void changePlayPauseState(final String state) {
+        if (mPlayer == null || state == null) {
+            return;
+        }
+         mPlayer.postDelayed(new Runnable() {
+             @Override
+             public void run() {
+                 if (KPlayerListener.PauseKey.equals(state)) {
+                     if (!mPlayer.isPlaying()) {
+                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                         return;
+                     }
+                 } else if (KPlayerListener.PlayKey.equals(state)) {
+                     if (mPlayer.isPlaying()) {
+                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+                         return;
+                     }
+                 } else {
+                     Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
+                     return;
+
+                 }
+                 changePlayPauseState(state);
+             }
+         }, 100);
+    }
+
     @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
