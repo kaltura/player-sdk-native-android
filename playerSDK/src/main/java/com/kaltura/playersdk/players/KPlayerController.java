@@ -121,7 +121,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (isIMAActive) {
             return;
         }
-        if (!isCasting) {
+        if (!isCasting && player != null) {
             player.play();
         } else {
             castPlayer.play();
@@ -132,7 +132,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (!isCasting) {
             if (isBackgrounded && isIMAActive) {
                 imaManager.pause();
-            } else {
+            } else if (player != null){
                 player.pause();
             }
         } else {
