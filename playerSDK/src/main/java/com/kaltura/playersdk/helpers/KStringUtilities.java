@@ -108,11 +108,11 @@ public class KStringUtilities {
     }
 
     static public String addEventListener(String event) {
-        return JSMethod(AddJSListener, event);
+        return JSMethod(AddJSListener, "'" + event + "'");
     }
 
     static public String removeEventListener(String event) {
-        return JSMethod(RemoveJSListener, event);
+        return JSMethod(RemoveJSListener, "'" + event + "'");
     }
 
     static public String asyncEvaluate(String expression, String evaluateID) {
