@@ -308,7 +308,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void recoverPlayer() {
         prepare();
         setCurrentPlaybackTime(mSavedState.position);
-        play();
+        if (mSavedState.playing) {
+            play();
+        }
     }
 
     @Override
