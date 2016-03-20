@@ -72,8 +72,8 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
              }
         } catch (JSONException e) {
              mCastAppID = castAppIdsInJSON;
-             Log.d(TAG, "mCastAppID = " + mCastAppID);
         }
+        Log.d(TAG, "mCastAppID = " + mCastAppID);
         if (nameSpace != null && nameSpace.length() > 0) {
             mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
 
