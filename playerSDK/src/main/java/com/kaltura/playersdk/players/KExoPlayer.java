@@ -284,8 +284,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void freezePlayer() {
-        pause();
         saveState();
+        pause();
         stopPlaybackTimeReporter();
         if (mExoPlayer != null) {
             mExoPlayer.blockingClearSurface();
