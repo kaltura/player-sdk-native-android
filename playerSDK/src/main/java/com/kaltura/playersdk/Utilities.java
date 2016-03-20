@@ -8,6 +8,10 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,7 +87,7 @@ public class Utilities {
 
     @NonNull
     public static String stripLastPathSegment(String path) {
-        path = path.substring(0, path.lastIndexOf('/', path.length()-2));
+        path = path.substring(0, path.lastIndexOf('/', path.length() - 2));
         return path;
     }
 
