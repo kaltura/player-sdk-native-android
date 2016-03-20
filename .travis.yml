@@ -8,14 +8,14 @@ android:
   - android-23
   - extra-android-m2repository
   - extra-google-m2repository
+before_install:
+  - ./travis-verify-version-tag.sh
 cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
-before_script:
-  - ./travis-verify-version-tag.sh
 script:
 - ./gradlew :kalturaPlay:assembleRelease
 - ./gradlew :testapp:assembleRelease
@@ -43,4 +43,3 @@ notifications:
       - gilad.nadav@kaltura.com
     on_success: change
     on_failure: always
-    
