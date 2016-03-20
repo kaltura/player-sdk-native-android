@@ -14,7 +14,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.kaltura.playersdk.Utilities;
 import com.kaltura.playersdk.casting.KCastKalturaChannel;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
@@ -64,20 +63,17 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
         JSONArray ids = null;
         String nameSpace = null;
 
-            try {
-                ids = new JSONArray(castAppIdsInJSON);
-                if (ids.length() == 2) {
-                    mCastAppID = (String) ids.get(0);
-                    nameSpace = (String) ids.get(1);
-                    mListener.onConnecting();
-                }
-            } catch (JSONException e) {
-                mCastAppID = castAppIdsInJSON;
-            }
-
-
-
-
+        try {
+             ids = new JSONArray(castAppIdsInJSON);
+             if (ids.length() == 2) {
+                 mCastAppID = (String) ids.get(0);
+                 nameSpace = (String) ids.get(1);
+                 mListener.onConnecting();
+             }
+        } catch (JSONException e) {
+             mCastAppID = castAppIdsInJSON;
+             Log.d(TAG, "mCastAppID = " + mCastAppID);
+        }
         if (nameSpace != null && nameSpace.length() > 0) {
             mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
 
@@ -130,7 +126,9 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
 
     public void release() {
         teardown();
-        mRouter.removeCallback(mCallback);
+        if (mRouter != null) {
+            mRouter.removeCallback(mCallback);
+        }
     }
 
 
