@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 
+apply from: "../version.gradle"
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
@@ -9,7 +11,6 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 6
-        versionName "2.4.0.rc1"
     }
     buildTypes {
         release {
