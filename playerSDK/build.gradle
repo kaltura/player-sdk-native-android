@@ -1,17 +1,16 @@
-
 apply plugin: 'com.android.library'
 
-apply from: "../version.gradle"
+apply from: "../kalturaCommon.gradle"
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion kaltura.compileSdkVersion
+    buildToolsVersion kaltura.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 23
+        minSdkVersion kaltura.minSdkVersion
+        targetSdkVersion kaltura.targetSdkVersion
+        versionName kaltura.version
     }
-
     buildTypes {
         release {
             minifyEnabled false
