@@ -109,12 +109,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     @Override
     public void onFoundDevices(final boolean didFound) {
         if (getRouterManager().shouldEnableKalturaCastButton()) {
-            registerReadyEvent(new ReadyEventListener() {
-                @Override
-                public void handler() {
-                    mWebView.setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
-                }
-            });
+            setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
         }
         if (getRouterManager().getAppListener() != null) {
             getRouterManager().getAppListener().didDetectCastDevices(didFound);
@@ -570,11 +565,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
 
 
-    public void setKDPAttribute(String hostName, String propName, Object value) {
-        notifyKPlayer("setKDPAttribute", new Object[]{hostName, propName, value});
-    }
-
-
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /**
@@ -759,8 +749,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    public void setKDPAttribute(String pluginName, String propertyName, String value) {
-        mWebView.setKDPAttribute(pluginName, propertyName, value);
+    public void setKDPAttribute(final String pluginName, final String propertyName, final String value) {
+        registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                mWebView.setKDPAttribute(pluginName, propertyName, value);
+            }
+        });
     }
 
     public void triggerEvent(String event, String value) {
