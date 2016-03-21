@@ -546,13 +546,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //    }
 
 
-
-    public void setKDPAttribute(String hostName, String propName, Object value) {
-        notifyKPlayer("setKDPAttribute", new Object[]{hostName, propName, value});
-    }
-
-
-
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * call js function on NativeBridge.videoPlayer
@@ -726,8 +719,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         mWebView.sendNotification(notificationName, params);
     }
 
-    public void setKDPAttribute(String pluginName, String propertyName, String value) {
-        mWebView.setKDPAttribute(pluginName, propertyName, value);
+    public void setKDPAttribute(final String pluginName, final String propertyName, final String value) {
+        registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                mWebView.setKDPAttribute(pluginName, propertyName, value);
+            }
+        });
+
     }
 
     public void triggerEvent(String event, String value) {
