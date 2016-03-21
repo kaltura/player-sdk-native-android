@@ -463,7 +463,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * @param playbackListener
    */
   public void addListener(PlaybackListener playbackListener) {
-    playbackListeners.add(playbackListener);
+    if (!playbackListeners.contains(playbackListener)) {
+        playbackListeners.add(playbackListener);
+    }
   }
 
   /**

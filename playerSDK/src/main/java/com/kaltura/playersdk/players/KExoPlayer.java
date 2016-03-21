@@ -178,6 +178,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 Log.d(TAG, "surfaceDestroyed");
                 if (mExoPlayer != null) {
                     mExoPlayer.blockingClearSurface();
+                    mExoPlayer.removeListener(KExoPlayer.this);
                 }
             }
         });
@@ -239,7 +240,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void pause() {
         stopPlaybackTimeReporter();
-        if (this.isPlaying() && mExoPlayer != null) {
+        if (mExoPlayer != null && mExoPlayer.getPlayWhenReady()) {
             setPlayWhenReady(false);
         }
     }
@@ -288,7 +289,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         pause();
         stopPlaybackTimeReporter();
         if (mExoPlayer != null) {
-            mExoPlayer.blockingClearSurface();
+            mExoPlayer.setBackgrounded(true);
         }
     }
 
@@ -306,7 +307,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     
     @Override
     public void recoverPlayer() {
-        prepare();
+        mExoPlayer.setBackgrounded(false);
         setCurrentPlaybackTime(mSavedState.position);
         if (mSavedState.playing) {
             play();

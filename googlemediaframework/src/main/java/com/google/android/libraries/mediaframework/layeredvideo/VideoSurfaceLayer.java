@@ -71,11 +71,11 @@ public class VideoSurfaceLayer implements Layer {
       ExoplayerWrapper wrapper = layerManager.getExoplayerWrapper();
       if (wrapper != null) {
         wrapper.setSurface(surfaceHolder.getSurface());
-        if (wrapper.getSurface().isValid() ||
-            wrapper.getStateForTrackType(ExoplayerWrapper.TYPE_VIDEO)
-                == ExoplayerWrapper.DISABLED_TRACK) {
-          wrapper.setPlayWhenReady(autoplay);
-        }
+//        if (wrapper.getSurface().isValid() ||
+//            wrapper.getStateForTrackType(ExoplayerWrapper.TYPE_VIDEO)
+//                == ExoplayerWrapper.DISABLED_TRACK) {
+//          wrapper.setPlayWhenReady(autoplay);
+//        }
       }
     }
 

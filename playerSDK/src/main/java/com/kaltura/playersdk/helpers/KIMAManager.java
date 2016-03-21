@@ -294,8 +294,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
             mIMAPlayer.release();
             mIMAPlayer = null;
 //            pause();
-            mAdsManager.removeAdEventListener(this);
-            mAdsManager.destroy();
+            if (mAdsManager != null) {
+                mAdsManager.removeAdEventListener(this);
+                mAdsManager.destroy();
+            }
 //            mAdsLoader.removeAdErrorListener(this);
 //            mAdsLoader.removeAdsLoadedListener(this);
             mPlayerListener = null;
