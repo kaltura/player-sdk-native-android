@@ -184,21 +184,54 @@ public class KWVCPlayer
             mPlayheadTracker = new PlayheadTracker();
         }
         mPlayheadTracker.start();
-        
-        mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+
+        changePlayPauseState("play");
+
     }
 
     @Override
     public void pause() {
         if (mPlayer != null) {
-            mPlayer.pause();
+            if (mPlayer.isPlaying()) {
+                mPlayer.pause();
+                changePlayPauseState("pause");
+            }
         }
         saveState();
         if (mPlayheadTracker != null) {
             mPlayheadTracker.stop();
         }
     }
-    
+
+
+    private void changePlayPauseState(final String state) {
+        if (mPlayer == null || state == null) {
+            return;
+        }
+        mPlayer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (KPlayerListener.PauseKey.equals(state)) {
+                    if (mPlayer != null && !mPlayer.isPlaying()) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                        return;
+                    }
+                } else if (KPlayerListener.PlayKey.equals(state)) {
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+                        return;
+                    }
+                } else {
+                    Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
+                    return;
+
+                }
+                changePlayPauseState(state);
+            }
+        }, 100);
+    }
+
+
     @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
@@ -323,7 +356,6 @@ public class KWVCPlayer
                         } else {
                             mListener.eventWithValue(kplayer, KPlayerListener.EndedKey, null);
                         }
-
                     }
                 });
 
@@ -380,7 +412,12 @@ public class KWVCPlayer
                     float playbackTime;
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
+                        if (mPlayer.getCurrentPosition() < getDuration()) {
+                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
+                        }else{
+                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.EndedKey, null);
+                        }
+
                     }
 
                 } catch (IllegalStateException e) {
