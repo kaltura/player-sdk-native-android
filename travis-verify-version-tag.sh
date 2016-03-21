@@ -12,4 +12,4 @@ if [ -z "$TRAVIS_TAG" ]; then exit; fi
 TAG_VERSION_NAME=${TRAVIS_TAG:1}
 
 # Check that global version matches the tag.
-grep "android.defaultConfig.versionName '$TAG_VERSION_NAME'" version.gradle || die
+grep -q "version: '$TAG_VERSION_NAME'" kalturaCommon.gradle || die
