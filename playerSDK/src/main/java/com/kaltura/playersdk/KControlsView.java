@@ -198,6 +198,11 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             case PAUSED:
                 mCanPause = false;
                 break;
+            case SEEKED:
+                if (mSeekCallback != null) {
+                    mSeekCallback.seeked(Double.parseDouble(value));
+                }
+                break;
             case UNKNOWN:
                 //Log.w("TAG", ", unsupported event name : " + event);
                 break;
@@ -253,10 +258,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
-                        if (urlUtil.getAction().equals("seeked")) {
-                            mSeekCallback.seeked(Double.parseDouble(urlUtil.getArgsString()));
-                            mSeekCallback = null;
-                        }
                         KControlsView.this.controlsViewClient.handleHtml5LibCall(action, 1, urlUtil.getArgsString());
                     }
                 };
