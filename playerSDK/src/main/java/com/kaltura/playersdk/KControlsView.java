@@ -99,9 +99,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     }
 
     @Override
-    public void seek(double seconds, SeekCallback callback) {
+    public void seek(long seconds, SeekCallback callback) {
         mSeekCallback = callback;
-        seek(seconds);
+        seek((double)seconds / 1000f);
     }
 
     public interface KControlsViewClient {
@@ -200,7 +200,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                 break;
             case SEEKED:
                 if (mSeekCallback != null) {
-                    mSeekCallback.seeked(Double.parseDouble(value));
+                    mSeekCallback.seeked(mCurrentPosition);
                 }
                 break;
             case UNKNOWN:
