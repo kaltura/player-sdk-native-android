@@ -253,7 +253,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
-                        if (urlUtil.isSeeked()) {
+                        if (urlUtil.getAction().equals("seeked")) {
                             mSeekCallback.seeked(Double.parseDouble(urlUtil.getArgsString()));
                             mSeekCallback = null;
                         }
