@@ -225,16 +225,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 if (mContentCompleted) {
                     mPlayerListener.contentCompleted(null);
                 }
-                if (mAdsManager != null) {
-                    mAdsManager.destroy();
-                    mAdsManager = null;
-                    if (mIMAPlayer != null) {
-                        mIMAPlayer.release();
-                        mIMAPlayer = null;
-                    }
-                    mPlayerListener = null;
-                    mPLayerCallback = null;
-                }
                 break;
             case SKIPPED:
                 jsonValue.put(IsLinearKey, ad.isLinear());
@@ -293,13 +283,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         if (mIMAPlayer != null) {
             mIMAPlayer.release();
             mIMAPlayer = null;
-//            pause();
             if (mAdsManager != null) {
                 mAdsManager.removeAdEventListener(this);
                 mAdsManager.destroy();
             }
-//            mAdsLoader.removeAdErrorListener(this);
-//            mAdsLoader.removeAdsLoadedListener(this);
             mPlayerListener = null;
             mPLayerCallback = null;
         }
