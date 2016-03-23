@@ -238,8 +238,9 @@ public class CacheManager {
             final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             
             setRequestParams(connection, headers, method);
-            connection.connect();
             contentType = connection.getContentType();
+            connection.connect();
+
             if (contentType == null) {
                 contentType = "";
             }
