@@ -6,7 +6,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.example.kplayersdk.R;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
@@ -56,8 +55,9 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
-                    Log.e(TAG, Resources.getSystem().getString(R.string.failed_to_request_status));
-                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, Resources.getSystem().getString(R.string.failed_to_request_status));
+                    String errMsg = "Failed to request status";
+                    Log.e(TAG, errMsg);
+                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
                 } else {
                     mListener.remoteMediaPlayerReady();
                 }
@@ -79,8 +79,9 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
 //                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.ProgressKey, Float.toString(percent));
                     }
                 } catch (IllegalStateException e) {
-                    Log.e(TAG, Resources.getSystem().getString(R.string.looper_exception));
-                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, Resources.getSystem().getString(R.string.looper_exception) + "-" + e.getMessage());
+                    String errMsg = "Failed to request status";
+                    Log.e(TAG, errMsg);
+                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg + "-" + e.getMessage());
                 }
                 mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
             }
@@ -137,12 +138,14 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         }
                     });
         } catch (IllegalStateException e){
-            Log.e(TAG, Resources.getSystem().getString(R.string.media_loading_error));
-            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, Resources.getSystem().getString(R.string.media_loading_error));
+            String errMsg = "Error occurred with media during loading";
+            Log.e(TAG, errMsg, e);
+            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
 
         } catch (Exception e) {
-            Log.e(TAG, Resources.getSystem().getString(R.string.media_loading_opening_error));
-            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, Resources.getSystem().getString(R.string.media_loading_opening_error));
+            String errMsg = "Error in opening media during loading";
+            Log.e(TAG, errMsg, e);
+            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
         }
     }
 
