@@ -13,7 +13,6 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
-import com.example.kplayersdk.R;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import java.util.Collections;
@@ -271,8 +270,9 @@ public class KWVCPlayer
     private void preparePlayer() {
 
         if (mAssetUri==null || mLicenseUri==null) {
-            Log.e(TAG, getResources().getString(R.string.kwvc_prepare_error));
-            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, getResources().getString(R.string.kwvc_prepare_error));
+            String errMsg  = "Prepare error: both assetUri and licenseUri must be set";
+            Log.e(TAG, errMsg);
+            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, errMsg);
             return;
         }
 
@@ -298,9 +298,9 @@ public class KWVCPlayer
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.e(TAG, getResources().getString(R.string.video_view_on_error) + "(" + what + "," + extra + ")");
-                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" +
-                        getResources().getString(R.string.video_view_on_error) + "(" + what + "," + extra + ")");
+                String errMsg = "VideoView:onError";
+                Log.e(TAG, errMsg);
+                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
 
                 // TODO
                 return false;
@@ -389,9 +389,9 @@ public class KWVCPlayer
                     }
 
                 } catch (IllegalStateException e) {
-                    Log.e(TAG, getResources().getString(R.string.player_error) + " " + e.getMessage());
-                    mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey,
-                            getResources().getString(R.string.player_error) + " " + e.getMessage());
+                    String errMsg = "Player Error ";
+                    Log.e(TAG, errMsg + e.getMessage());
+                    mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, errMsg + e.getMessage());
 
                 }
                 if (mHandler != null) {
