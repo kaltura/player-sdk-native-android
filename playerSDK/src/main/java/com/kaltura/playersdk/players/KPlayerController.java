@@ -239,6 +239,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
+        isPlayerCanPlay = false;
         if (switchingBackFromCasting) {
             switchingBackFromCasting = false;
             return;

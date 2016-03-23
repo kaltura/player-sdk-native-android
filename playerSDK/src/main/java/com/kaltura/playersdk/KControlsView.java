@@ -201,6 +201,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             case SEEKED:
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(mCurrentPosition);
+                    mSeekCallback = null;
                 }
                 break;
             case UNKNOWN:
