@@ -122,7 +122,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     private boolean isPlaying() {
         return mExoPlayer != null
-                && mExoPlayer.getPlaybackState() == ExoPlayer.STATE_READY
                 && mExoPlayer.getPlayWhenReady();
     }
 
@@ -240,7 +239,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void pause() {
         stopPlaybackTimeReporter();
-        if (mExoPlayer != null && mExoPlayer.getPlayWhenReady()) {
+        if (isPlaying()) {
             setPlayWhenReady(false);
         }
     }

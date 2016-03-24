@@ -18,6 +18,7 @@ public class KPPlayerConfig implements Serializable{
 	private static final String sWidKey = "wid";
 	private static final String sUiConfIdKey = "uiconf_id";
 	private static final String sEntryIdKey = "entry_id";
+	private double mMediaPlayFrom = 0;
 
 	private String mServerURL;
 	private String mEntryId;
@@ -112,7 +113,10 @@ public class KPPlayerConfig implements Serializable{
 
 	public KPPlayerConfig addConfig(String key, String value) {
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
-			
+			if (key.equals("mediaProxy.mediaPlayFrom")) {
+				mMediaPlayFrom = Double.parseDouble(value);
+				return this;
+			}
 			mExtraConfig.put(key, value);
 		}
 		return this;
@@ -198,5 +202,9 @@ public class KPPlayerConfig implements Serializable{
 
 	public String getKS() {
 		return mKS;
+	}
+
+	public double getMediaPlayFrom() {
+		return mMediaPlayFrom;
 	}
 }

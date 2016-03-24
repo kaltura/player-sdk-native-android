@@ -41,6 +41,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private FrameLayout adPlayerContainer;
     private RelativeLayout mAdControls;
     private boolean isBackgrounded = false;
+    private float mCurrentPlaybackTime = 0;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -238,6 +239,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
+        isPlayerCanPlay = false;
         if (switchingBackFromCasting) {
             switchingBackFromCasting = false;
             return;
@@ -329,7 +331,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if (!isCasting) {
-            this.player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
+            if (isPlayerCanPlay) {
+                this.player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
+            } else {
+                mCurrentPlaybackTime = currentPlaybackTime;
+            }
         } else {
             castPlayer.setCurrentPlaybackTime((long)currentPlaybackTime * 1000);
         }
@@ -369,6 +375,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 isPlayerCanPlay = true;
                 if (mActivity != null) {
                     addAdPlayer();
+                }
+                if (mCurrentPlaybackTime > 0) {
+                    player.setCurrentPlaybackTime((long) (mCurrentPlaybackTime * 1000));
+                    mCurrentPlaybackTime = 0;
                 }
                 break;
             case KPlayerCallback.SHOULD_PLAY:

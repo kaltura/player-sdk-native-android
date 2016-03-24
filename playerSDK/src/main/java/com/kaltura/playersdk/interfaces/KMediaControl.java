@@ -14,4 +14,8 @@ public interface KMediaControl {
     boolean isPlaying();
     boolean canSeekBackward();
     boolean canSeekForward();
+    void seek(long milliSeconds, SeekCallback callback);
+    interface SeekCallback {
+        void seeked(long milliSeconds);
+    }
 }

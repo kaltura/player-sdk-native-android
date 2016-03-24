@@ -41,6 +41,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     private boolean mCanPause = false;
     private int mCurrentPosition = 0;
     private int mDuration = 0;
+    private SeekCallback mSeekCallback;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -95,6 +96,12 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     @Override
     public boolean canSeekForward() {
         return mCurrentPosition < mDuration;
+    }
+
+    @Override
+    public void seek(long seconds, SeekCallback callback) {
+        mSeekCallback = callback;
+        seek((double)seconds / 1000f);
     }
 
     public interface KControlsViewClient {
@@ -190,6 +197,12 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                 break;
             case PAUSED:
                 mCanPause = false;
+                break;
+            case SEEKED:
+                if (mSeekCallback != null) {
+                    mSeekCallback.seeked(mCurrentPosition);
+                    mSeekCallback = null;
+                }
                 break;
             case UNKNOWN:
                 //Log.w("TAG", ", unsupported event name : " + event);

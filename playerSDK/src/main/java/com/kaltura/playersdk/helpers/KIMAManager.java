@@ -168,7 +168,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
      */
     @Override
     public void onAdEvent(AdEvent adEvent) {
-        Log.i("ImaExample", "Event: " + adEvent.getType());
+        Log.i("IMA onAdEvent", "Event: " + adEvent.getType());
 
         // These are the suggested event types to handle. For full list of all ad event types,
         // see the documentation for AdEvent.AdEventType.
@@ -225,16 +225,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 if (mContentCompleted) {
                     mPlayerListener.contentCompleted(null);
                 }
-                if (mAdsManager != null) {
-                    mAdsManager.destroy();
-                    mAdsManager = null;
-                    if (mIMAPlayer != null) {
-                        mIMAPlayer.release();
-                        mIMAPlayer = null;
-                    }
-                    mPlayerListener = null;
-                    mPLayerCallback = null;
-                }
                 break;
             case SKIPPED:
                 jsonValue.put(IsLinearKey, ad.isLinear());
@@ -254,8 +244,11 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
      */
     @Override
     public void onAdError(AdErrorEvent adErrorEvent) {
-        Log.e("ImaExample", "Ad Error: " + adErrorEvent.getError().getMessage());
-//        imaAdapter.resumeContentAfterAdPlayback();
+        String errMsg = "Ad Error: " + adErrorEvent.getError().getMessage();
+        Log.e("IMA onAdError", errMsg);
+        mPlayerListener.eventWithValue(null, KPlayerListener.ErrorKey, errMsg);
+        //imaAdapter.resumeContentAfterAdPlayback();
+        //mPlayerListener.contentCompleted(null);
     }
 
     /**
@@ -293,13 +286,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         if (mIMAPlayer != null) {
             mIMAPlayer.release();
             mIMAPlayer = null;
-//            pause();
             if (mAdsManager != null) {
                 mAdsManager.removeAdEventListener(this);
                 mAdsManager.destroy();
             }
-//            mAdsLoader.removeAdErrorListener(this);
-//            mAdsLoader.removeAdsLoadedListener(this);
             mPlayerListener = null;
             mPLayerCallback = null;
         }
