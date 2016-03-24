@@ -43,6 +43,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     private int mDuration = 0;
     private SeekCallback mSeekCallback;
     private KPlayerState mState = KPlayerState.UNKNOWN;
+    private long mSeekedToValue = 0;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -101,6 +102,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
     @Override
     public void seek(long seconds, SeekCallback callback) {
+        mSeekedToValue = seconds;
         mSeekCallback = callback;
         seek((double)seconds / 1000f);
     }
@@ -206,12 +208,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                 break;
             case SEEKED:
                 if (mSeekCallback != null) {
-                    mSeekCallback.seeked(mCurrentPosition);
+                    mSeekCallback.seeked(mSeekedToValue);
                     mSeekCallback = null;
                 }
-                break;
-            case ENDED:
-                mCurrentPosition = 0;
                 break;
             case UNKNOWN:
                 //Log.w("TAG", ", unsupported event name : " + event);

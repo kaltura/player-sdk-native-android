@@ -32,4 +32,8 @@ public interface KPlayer {
     void setShouldCancelPlay(boolean shouldCancelPlay);
 
     void setLicenseUri(String licenseUri);
+
+    void savePlayerState();
+
+    void recoverPlayerState();
 }
