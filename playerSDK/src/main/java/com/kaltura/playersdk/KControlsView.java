@@ -210,6 +210,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
                     mSeekCallback = null;
                 }
                 break;
+            case ENDED:
+                mCurrentPosition = 0;
+                break;
             case UNKNOWN:
                 //Log.w("TAG", ", unsupported event name : " + event);
                 break;
