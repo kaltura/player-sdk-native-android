@@ -103,6 +103,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     @Override
     public void seek(long seconds, SeekCallback callback) {
         mSeekedToValue = seconds;
+        if (seconds == 0) {
+            seconds = 100;
+        }
         mSeekCallback = callback;
         seek((double)seconds / 1000f);
     }
