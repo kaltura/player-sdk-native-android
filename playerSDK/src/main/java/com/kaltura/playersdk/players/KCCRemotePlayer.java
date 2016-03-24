@@ -253,6 +253,16 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
+    public void savePlayerState() {
+        
+    }
+
+    @Override
+    public void recoverPlayerState() {
+
+    }
+
+    @Override
     public void onStatusUpdated() {
         MediaStatus mediaStatus = mRemoteMediaPlayer.getMediaStatus();
         if (mediaStatus != null) {
