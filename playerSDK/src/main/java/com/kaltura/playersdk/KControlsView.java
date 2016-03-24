@@ -42,6 +42,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     private int mCurrentPosition = 0;
     private int mDuration = 0;
     private SeekCallback mSeekCallback;
+    private KPlayerState mState = KPlayerState.UNKNOWN;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -102,6 +103,11 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     public void seek(long seconds, SeekCallback callback) {
         mSeekCallback = callback;
         seek((double)seconds / 1000f);
+    }
+
+    @Override
+    public KPlayerState state() {
+        return mState;
     }
 
     public interface KControlsViewClient {
@@ -190,8 +196,8 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     }
 
     public void triggerEvent(final String event, final String value) {
-        KPlayerState kState = KPlayerState.getStateForEventName(event);
-        switch (kState) {
+        mState = KPlayerState.getStateForEventName(event);
+        switch (mState) {
             case PLAYING:
                 mCanPause = true;
                 break;

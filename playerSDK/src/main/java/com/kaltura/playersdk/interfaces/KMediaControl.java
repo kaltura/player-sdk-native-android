@@ -1,5 +1,7 @@
 package com.kaltura.playersdk.interfaces;
 
+import com.kaltura.playersdk.events.KPlayerState;
+
 /**
  * Created by nissimpardo on 23/02/16.
  */
@@ -18,4 +20,5 @@ public interface KMediaControl {
     interface SeekCallback {
         void seeked(long milliSeconds);
     }
+    KPlayerState state();
 }
