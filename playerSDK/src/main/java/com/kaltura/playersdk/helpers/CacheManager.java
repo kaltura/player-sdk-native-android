@@ -147,13 +147,12 @@ public class CacheManager {
 
     private void deleteLessUsedFiles(long newCacheSize) {
         long freeBytesInternal = new File(mContext.getFilesDir().getAbsoluteFile().toString()).getFreeSpace();
-//        long freeBytesExternal = new File(getExternalFilesDir(null).toString()).getFreeSpace();
         long cahceSize = (long)(mCacheSize * 1024 * 1024);
         long actualCacheSize = Math.min(cahceSize, freeBytesInternal);
-        Log.d("KalturaCacheSize", String.valueOf(mSQLHelper.cacheSize()));
-        boolean shouldDeleteLessUsedFiles = mSQLHelper.cacheSize() + newCacheSize > actualCacheSize;
+        long currentCacheSize = mSQLHelper.cacheSize();
+        boolean shouldDeleteLessUsedFiles = currentCacheSize + newCacheSize > actualCacheSize;
         if (shouldDeleteLessUsedFiles) {
-            mSQLHelper.deleteLessUsedFiles(mSQLHelper.cacheSize() + newCacheSize - actualCacheSize, new CacheSQLHelper.KSQLHelperDeleteListener() {
+            mSQLHelper.deleteLessUsedFiles(currentCacheSize + newCacheSize - actualCacheSize, new CacheSQLHelper.KSQLHelperDeleteListener() {
                 @Override
                 public void fileDeleted(String fileId) {
                     File deletedFile = new File(getCachePath(), fileId);
