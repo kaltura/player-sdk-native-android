@@ -226,24 +226,38 @@ public class CacheManager {
         
         if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
             cacheHit(requestUrl, fileName);
+            
             FileInputStream fileInputStream = new FileInputStream(targetFile);
             inputStream = new BufferedInputStream(fileInputStream);
             contentType = (String)fileParams.get(CacheSQLHelper.MimeType);
             encoding = (String)fileParams.get(CacheSQLHelper.Encoding);
             mSQLHelper.updateDate(fileName);
+            return new WebResourceResponse(contentType, encoding, inputStream);
+
         } else {
             cacheMiss(requestUrl, fileName);
-            URL url = new URL(requestUrl.toString());
-            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             
+            return getResponseFromNetwork(requestUrl, headers, method, fileName, targetFile);
+        }
+    }
+
+    @NonNull
+    private WebResourceResponse getResponseFromNetwork(final Uri requestUrl, Map<String, String> headers, String method, String fileName, File targetFile) throws IOException {
+        String contentType;
+        InputStream inputStream = null;
+        URL url = new URL(requestUrl.toString());
+        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        
+        try {
             setRequestParams(connection, headers, method);
-            contentType = connection.getContentType();
             connection.connect();
+            contentType = connection.getContentType();
 
             if (contentType == null) {
                 contentType = "";
             }
             String[] contentTypeParts = TextUtils.split(contentType, ";");
+            String encoding = null;
             if (contentTypeParts.length >= 2) {
                 contentType = contentTypeParts[0].trim();
                 encoding = contentTypeParts[1].trim();
@@ -260,11 +274,14 @@ public class CacheManager {
                     connection.disconnect();
                 }
             });
-
-
+            return new WebResourceResponse(contentType, encoding, inputStream);
+        } finally {
+            // if inputStream wasn't created, streamClosed() will not get called and the connection may leak. 
+            if (inputStream == null) {
+                connection.disconnect();
+            }
         }
-//        Log.d(TAG, "Stored: " + contentType + " " + encoding + " " + requestUrl.toString());
-        return new WebResourceResponse(contentType, encoding, inputStream);
+
     }
 
     @NonNull
