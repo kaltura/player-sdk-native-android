@@ -166,7 +166,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         Cursor cursor = null;
         long size = 0;
         try {
-            cursor = db().query(TABLE_NAME, new String[]{Size}, "id=?", new String[]{id}, null, null, null);
+            cursor = db().query(TABLE_NAME, new String[]{Size}, id + "=?", new String[]{id}, null, null, null);
             if (cursor.moveToFirst()) {
                 size = cursor.getInt(0);
             }
