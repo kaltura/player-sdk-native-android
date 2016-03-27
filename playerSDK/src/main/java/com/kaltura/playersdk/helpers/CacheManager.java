@@ -229,8 +229,8 @@ public class CacheManager {
             
             FileInputStream fileInputStream = new FileInputStream(targetFile);
             inputStream = new BufferedInputStream(fileInputStream);
-            contentType = (String)fileParams.get(CacheSQLHelper.MimeType);
-            encoding = (String)fileParams.get(CacheSQLHelper.Encoding);
+            contentType = (String)fileParams.get(CacheSQLHelper.COL_MIMETYPE);
+            encoding = (String)fileParams.get(CacheSQLHelper.COL_ENCODING);
             mSQLHelper.updateDate(fileName);
             return new WebResourceResponse(contentType, encoding, inputStream);
 

@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,11 +20,11 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "KCache.db";
     private static final String TAG = "CacheSQLHelper";
     private final String TABLE_NAME = "KCacheTable";
-    private final String id = "_id";
-    public static final String Encoding = "Encoding";
-    public static final String MimeType = "MimeType";
-    public static final String LastUsed = "LastUsed";
-    public static final String Size = "Size";
+    private final String COL_FILEID = "_id";
+    public static final String COL_ENCODING = "Encoding";
+    public static final String COL_MIMETYPE = "MimeType";
+    public static final String COL_LASTUSED = "LastUsed";
+    public static final String COL_SIZE = "Size";
 
     private SQLiteDatabase mDatabase;
 
@@ -39,8 +40,8 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_PRODUCTS_TABLE = "Create table IF NOT EXISTS " +
                 TABLE_NAME + "("
-                + id + " TEXT," + Encoding
-                + " TEXT," + MimeType + " TEXT," + LastUsed + " INTEGER," + Size + " INTEGER)";
+                + COL_FILEID + " TEXT," + COL_ENCODING
+                + " TEXT," + COL_MIMETYPE + " TEXT," + COL_LASTUSED + " INTEGER," + COL_SIZE + " INTEGER)";
         db.execSQL(CREATE_PRODUCTS_TABLE);
     }
 
@@ -76,28 +77,28 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void addFile(String fileName, String mimeType, String encoding) {
+    public void addFile(String fileId, String mimeType, String encoding) {
         ContentValues values = new ContentValues();
-        values.put(id, fileName);
-        values.put(MimeType, mimeType);
-        values.put(Encoding, encoding);
-        values.put(LastUsed, 0);
-        values.put(Size, 0);
+        values.put(COL_FILEID, fileId);
+        values.put(COL_MIMETYPE, mimeType);
+        values.put(COL_ENCODING, encoding);
+        values.put(COL_LASTUSED, 0);
+        values.put(COL_SIZE, 0);
         try {
-            if (entryExists(fileName)) {
-                db().update(TABLE_NAME, values, this.id + "=?", new String[]{fileName});
+            if (entryExists(fileId)) {
+                db().update(TABLE_NAME, values, this.COL_FILEID + "=?", new String[]{fileId});
             } else {
                 db().insert(TABLE_NAME, null, values);
             }
         } catch (SQLiteException e) {
-            Log.e(TAG, "Error adding file, fileName=" + fileName);
+            Log.e(TAG, "Error adding file, fileId=" + fileId);
         }
     }
 
-    private boolean entryExists(String id) {
+    private boolean entryExists(String fileId) {
         Cursor c = null;
         try {
-            c = db().query(TABLE_NAME, null, this.id + "=?", new String[]{id}, null, null, null);
+            c = db().query(TABLE_NAME, null, this.COL_FILEID + "=?", new String[]{fileId}, null, null, null);
             return c.getCount() > 0;
         } finally {
             quietClose(c);
@@ -106,7 +107,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     public boolean removeFile(String fileId) {
         try {
-            db().delete(TABLE_NAME, id + "=?", new String[]{fileId});
+            db().delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
             return true;
         } catch (SQLiteException e) {
             return false;
@@ -133,9 +134,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     public void updateDate(String fileId) {
         ContentValues data = new ContentValues();
-        data.put(LastUsed, System.currentTimeMillis());
+        data.put(COL_LASTUSED, System.currentTimeMillis());
         try {
-            db().update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+            db().update(TABLE_NAME, data, COL_FILEID + "=?", new String[]{fileId});
         } catch (SQLiteException e) {
             Log.e(TAG, "Error updating entry date", e);
         }
@@ -143,10 +144,10 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     public void updateFileSize(String fileId, long fileSize) {
         ContentValues data = new ContentValues();
-        data.put(Size, fileSize);
-        data.put(LastUsed, System.currentTimeMillis());
+        data.put(COL_SIZE, fileSize);
+        data.put(COL_LASTUSED, System.currentTimeMillis());
         try {
-            db().update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+            db().update(TABLE_NAME, data, COL_FILEID + "=?", new String[]{fileId});
         } catch (SQLiteException e) {
             Log.e(TAG, "Error updating entry size", e);
         }
@@ -166,7 +167,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         Cursor cursor = null;
         long size = 0;
         try {
-            cursor = db().query(TABLE_NAME, new String[]{Size}, id + "=?", new String[]{id}, null, null, null);
+            cursor = db().query(TABLE_NAME, new String[]{COL_SIZE}, COL_FILEID + "=?", new String[]{fileId}, null, null, null);
             if (cursor.moveToFirst()) {
                 size = cursor.getInt(0);
             }
@@ -183,7 +184,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         ArrayList<String> deletedIds = new ArrayList<>();
         Cursor cursor = null;
         try {
-            cursor = db.query(TABLE_NAME, new String[]{id, Size}, null, null, null, null, LastUsed + " DESC");
+            cursor = db.query(TABLE_NAME, new String[]{COL_FILEID, COL_SIZE}, null, null, null, null, COL_LASTUSED + " DESC");
             while (cursor.moveToNext()) {
                 String fileId = cursor.getString(0);
                 int size = cursor.getInt(1);
@@ -202,7 +203,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         
         for (String fileId : deletedIds) {
             try {
-                db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
+                db.delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
                 listener.fileDeleted(fileId);
             } catch (SQLiteException e) {
                 Log.e(TAG, "Error deleting entry (lessUsed) " + fileId);
@@ -210,20 +211,20 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         }
     }
 
-    public HashMap<String, Object> fetchParamsForFile(String fileName) {
+    public HashMap<String, Object> fetchParamsForFile(String fileId) {
         SQLiteDatabase db = db();
         Cursor cursor = null;
 
         HashMap<String, Object> params = null;
         try {
-            cursor = db.query(TABLE_NAME, new String[]{id, Encoding, MimeType}, id + "=?", new String[]{fileName}, null, null, null);
+            cursor = db.query(TABLE_NAME, new String[]{COL_FILEID, COL_ENCODING, COL_MIMETYPE}, COL_FILEID + "=?", new String[]{fileId}, null, null, null);
             if (cursor.moveToFirst()) {
                 params = new HashMap<>();
-                params.put(Encoding, cursor.getString(1));
-                params.put(MimeType, cursor.getString(2));
+                params.put(COL_ENCODING, cursor.getString(1));
+                params.put(COL_MIMETYPE, cursor.getString(2));
             }
         } catch (SQLiteException e) {
-            Log.e(TAG, "Error fetching params for " + fileName);
+            Log.e(TAG, "Error fetching params for " + fileId);
         } finally {
             quietClose(cursor);
         }
