@@ -3,6 +3,8 @@ package com.kaltura.playersdk;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
@@ -97,5 +99,11 @@ public class Utilities {
         conn.connect();
         InputStream is = conn.getInputStream();
         return fullyReadInputStream(is, byteLimit).toString();
+    }
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager conMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = conMgr.getActiveNetworkInfo();
+        return !(netInfo == null || !netInfo.isConnected() || !netInfo.isAvailable());
     }
 }

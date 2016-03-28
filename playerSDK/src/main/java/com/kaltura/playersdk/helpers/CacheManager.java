@@ -224,7 +224,9 @@ public class CacheManager {
         String contentType;
         String encoding = null;
         HashMap<String, Object> fileParams = mSQLHelper.fetchParamsForFile(fileName);
-        
+        if (!Utilities.isOnline(mContext) && requestUrl.toString().contains("playManifest")) {
+            return new WebResourceResponse("", "", new FileInputStream(""));
+        }
         if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
             cacheHit(requestUrl, fileName);
             FileInputStream fileInputStream = new FileInputStream(targetFile);
