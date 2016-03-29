@@ -11,6 +11,7 @@ import android.drm.DrmInfoRequest;
 import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
 import android.drm.DrmStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.FileDescriptor;
@@ -203,22 +204,28 @@ public class WidevineDrmClient {
         }
 
         DrmInfo drmInfo = (DrmInfo) event.getAttribute(DrmEvent.DRM_INFO_OBJECT);
-        if (drmInfo != null) {
-            logString.append(" info={");
-            for (Iterator<String> it = drmInfo.keyIterator(); it.hasNext();) {
-                String key = it.next();
-                Object value = drmInfo.get(key);
-                logString.append("{").append(key).append("=").append(value).append("}");
-                if (it.hasNext()) {
-                    logString.append(" ");
-                }
-            }
-            logString.append("}");
-        }
+        logString.append("info=").append(extractDrmInfo(drmInfo));
 
         Log.d(TAG, logString.toString());
     }
-    
+
+    private String extractDrmInfo(DrmInfo drmInfo) {
+        StringBuilder sb = new StringBuilder();
+        if (drmInfo != null) {
+            sb.append("{");
+            for (Iterator<String> it = drmInfo.keyIterator(); it.hasNext();) {
+                String key = it.next();
+                Object value = drmInfo.get(key);
+                sb.append("{").append(key).append("=").append(value).append("}");
+                if (it.hasNext()) {
+                    sb.append(" ");
+                }
+            }
+            sb.append("}");
+        }
+        return sb.toString();
+    }
+
     private DrmInfoRequest createDrmInfoRequest(String assetUri, String licenseServerUri) {
         DrmInfoRequest rightsAcquisitionInfo;
         rightsAcquisitionInfo = new DrmInfoRequest(DrmInfoRequest.TYPE_RIGHTS_ACQUISITION_INFO,
@@ -252,12 +259,12 @@ public class WidevineDrmClient {
         request.put(WV_PORTAL_KEY, portal);
         DrmInfo response = mDrmManager.acquireDrmInfo(request);
 
+        Log.i(TAG, "Widevine Plugin Info: " + extractDrmInfo(response));
+
         String drmInfoRequestStatusKey = (String)response.get(WV_DRM_INFO_REQUEST_STATUS_KEY);
-        if (null != drmInfoRequestStatusKey && !drmInfoRequestStatusKey.equals("")) {
+        if (!TextUtils.isEmpty(drmInfoRequestStatusKey)) {
             mWVDrmInfoRequestStatusKey = Long.parseLong(drmInfoRequestStatusKey);
         }
-
-        String pluginVersion = (String) response.get(WV_DRM_INFO_REQUEST_VERSION_KEY);
     }
 
     public int acquireRights(String assetUri, String licenseServerUri) {
