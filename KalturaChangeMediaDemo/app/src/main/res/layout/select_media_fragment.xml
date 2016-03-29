@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/select_media_fragment_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hello_fragment"
+        android:textSize="30dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/media_id_spinner"
+        android:layout_marginTop="55dp"
+        android:entries="@array/mediaIds"
+        android:layout_below="@+id/select_media_fragment_textview"
+        android:layout_toRightOf="@+id/select_media_button"
+        android:layout_toEndOf="@+id/select_media_button"
+        android:layout_marginLeft="64dp"
+        android:layout_marginStart="64dp">
+    </Spinner>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/select_media_button"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/select_media"
+        android:layout_marginBottom="151dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignLeft="@+id/select_media_fragment_textview"
+        android:layout_alignStart="@+id/select_media_fragment_textview" />
+
+</RelativeLayout>
