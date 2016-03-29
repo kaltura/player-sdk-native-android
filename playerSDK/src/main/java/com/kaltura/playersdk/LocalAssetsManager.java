@@ -58,8 +58,7 @@ public class LocalAssetsManager {
         doInBackground(new Runnable() {
             @Override
             public void run() {
-                CacheManager cacheManager = CacheManager.getInstance();
-                cacheManager.setContext(context);
+                CacheManager cacheManager = new CacheManager(context.getApplicationContext());
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
                 cacheManager.setCacheSize(entry.getCacheSize());
                 try {
@@ -98,8 +97,7 @@ public class LocalAssetsManager {
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
         
         // Remove cache
-        CacheManager cacheManager = CacheManager.getInstance();
-        cacheManager.setContext(context);
+        CacheManager cacheManager = new CacheManager(context.getApplicationContext());
         cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
         cacheManager.setCacheSize(entry.getCacheSize());
         cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
@@ -115,7 +113,11 @@ public class LocalAssetsManager {
             @Override
             public void run() {
                 // Remove cache
-                CacheManager.getInstance().removeCachedResponse(Uri.parse(entry.getVideoURL()));
+                CacheManager cacheManager = new CacheManager(context.getApplicationContext());
+                cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
+                cacheManager.setCacheSize(entry.getCacheSize());
+                cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
+                cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
 
                 if (!isWidevineClassic(localPath)) {
                     // end here.

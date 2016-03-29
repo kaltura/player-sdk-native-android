@@ -237,7 +237,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             Log.d(TAG, "Will not handle " + requestUrl);
             return null;
         }
-        mCacheManager.setContext(mContext);
         try {
             return mCacheManager.getResponse(requestUrl, headers, method);
         } catch (IOException e) {
