@@ -98,7 +98,11 @@ public class LocalAssetsManager {
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
         
         // Remove cache
-        CacheManager.getInstance().removeCachedResponse(Uri.parse(entry.getVideoURL()));
+        CacheManager cacheManager = CacheManager.getInstance();
+        cacheManager.setContext(context);
+        cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
+        cacheManager.setCacheSize(entry.getCacheSize());
+        cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
         
         // for now, just re-register.
         return registerAsset(context, entry, flavor, localPath, listener);
