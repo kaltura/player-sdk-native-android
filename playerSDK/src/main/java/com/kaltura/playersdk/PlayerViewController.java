@@ -275,6 +275,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         return currentURL;
     }
 
+    public void saveState() {
+        playerController.savePlayerState();
+    }
+
+    public void resumeState() {
+        playerController.recoverPlayerState();
+    }
+
     /**
      * Release player's instance and save its last position for resuming later on.
      * This method should be called when the main activity is paused.

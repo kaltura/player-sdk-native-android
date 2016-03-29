@@ -284,9 +284,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void freezePlayer() {
-        saveState();
-        pause();
-        stopPlaybackTimeReporter();
+        savePlayerState();
         if (mExoPlayer != null) {
             mExoPlayer.setBackgrounded(true);
         }
@@ -307,10 +305,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void recoverPlayer() {
         mExoPlayer.setBackgrounded(false);
-        setCurrentPlaybackTime(mSavedState.position);
-        if (mSavedState.playing) {
-            play();
-        }
+        recoverPlayerState();
     }
 
     @Override
@@ -322,6 +317,21 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void setLicenseUri(final String licenseUri) {
         mDrmCallback.setLicenseUri(licenseUri);
+    }
+
+    @Override
+    public void savePlayerState() {
+        saveState();
+        pause();
+        stopPlaybackTimeReporter();
+    }
+
+    @Override
+    public void recoverPlayerState() {
+        setCurrentPlaybackTime(mSavedState.position);
+        if (mSavedState.playing) {
+            play();
+        }
     }
 
 
