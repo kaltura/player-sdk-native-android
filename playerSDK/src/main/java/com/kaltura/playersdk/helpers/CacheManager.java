@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class CacheManager {
     private float mCacheSize = 0;
     private String mCachePath;
     private File mFilesDir;
+    private Context mAppContext;
 
     
     private void logCacheHit(Uri url, String fileId) {
@@ -63,15 +65,15 @@ public class CacheManager {
     }
 
     public CacheManager(Context context) {
-        Context appContext = context.getApplicationContext();
-        mFilesDir = appContext.getFilesDir();
+        mAppContext = context.getApplicationContext();
+        mFilesDir = mAppContext.getFilesDir();
         mCachePath = mFilesDir + "/kaltura/";
         File cacheDir = new File(mCachePath);
         if (!cacheDir.exists()) {
             cacheDir.mkdirs();
         }
         mSQLHelper = new CacheSQLHelper(context);
-        String string = Utilities.readAssetToString(appContext, CACHED_STRINGS_JSON);
+        String string = Utilities.readAssetToString(mAppContext, CACHED_STRINGS_JSON);
         if (string != null) {
             try {
                 mCacheConditions = new JSONObject(string);
@@ -191,14 +193,16 @@ public class CacheManager {
             logCacheIgnored(requestUrl);
             return null;
         }
-
+        if (!Utilities.isOnline(mAppContext) && requestUrl.toString().contains("playManifest")) {
+            return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
+        }
         final InputStream inputStream;
         String fileName = getCacheFileId(requestUrl);
         File targetFile = new File(mCachePath, fileName);
         String contentType;
         String encoding = null;
         HashMap<String, Object> fileParams = mSQLHelper.fetchParamsForFile(fileName);
-        
+
         if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
             logCacheHit(requestUrl, fileName);
             
