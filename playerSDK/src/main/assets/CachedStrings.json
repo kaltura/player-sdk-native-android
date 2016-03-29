@@ -1,14 +1,15 @@
 {
 	"substring":{
 		"data:image": "14",
-	  "playManifest": "15"
+	  "playManifest": "15",
+      "load.php": 14,
+      "mwEmbedFrame.php": 1,
+      "mwEmbedLoader.php": 7,
+      "embedIframeJs": 8
 	},
 	"withDomain":{
 		"thumbnail": 0,
-		"skins": 0,
-		"load.php": 14,
-		"mwEmbedFrame.php": 1,
-		"mwEmbedLoader.php": 7,
-	    "embedIframeJs": 8
+		"skins": 0
+
 	}
 }
