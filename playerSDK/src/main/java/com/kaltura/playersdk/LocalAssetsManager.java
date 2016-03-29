@@ -41,6 +41,12 @@ public class LocalAssetsManager {
 
     public static boolean registerAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
+        
+        return registerOrRefreshAsset(context, entry, flavor, localPath, false, listener);
+    }
+    
+    private static boolean registerOrRefreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
+                                        @NonNull final String localPath, final boolean refresh, @Nullable final AssetRegistrationListener listener) {
 
         // NOTE: this method currently only supports (and assumes) Widevine Classic.
 
@@ -53,7 +59,6 @@ public class LocalAssetsManager {
         checkNotEmpty(localPath, "localPath");
 
 
-        final DRMScheme drmScheme = DRMScheme.WidevineClassic;
 
         doInBackground(new Runnable() {
             @Override
@@ -63,7 +68,13 @@ public class LocalAssetsManager {
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
                 cacheManager.setCacheSize(entry.getCacheSize());
                 try {
-                    cacheManager.cacheResponse(Uri.parse(entry.getVideoURL()));
+                    Uri uri = Uri.parse(entry.getVideoURL());
+                    if (!refresh) {
+                        cacheManager.cacheResponse(uri);
+                    } else {
+                        cacheManager.removeCachedResponse(uri);
+                        cacheManager.cacheResponse(uri);
+                    }
                 } catch (IOException e) {
                     if (listener != null) {
                         listener.onFailed(localPath, e);
@@ -71,21 +82,22 @@ public class LocalAssetsManager {
                     return;
                 }
 
-                if (isWidevineClassic(localPath)) {
-
-                    try {
-                        Uri licenseUri = prepareLicenseUri(entry, flavor, drmScheme);
-                        registerWidevineClassicAsset(context, localPath, licenseUri, listener);
-                    } catch (JSONException | IOException e) {
-                        Log.e(TAG, "Error", e);
-                        if (listener != null) {
-                            listener.onFailed(localPath, e);
-                        }
-                    }
-                } else {
-                    // end here.
+                // If not widevine, stop here.
+                if (!isWidevineClassic(localPath)) {
                     if (listener != null) {
                         listener.onRegistered(localPath);
+                    }
+                    return;
+                } 
+                
+
+                try {
+                    Uri licenseUri = prepareLicenseUri(entry, flavor, DRMScheme.WidevineClassic);
+                    registerWidevineClassicAsset(context, localPath, licenseUri, listener);
+                } catch (JSONException | IOException e) {
+                    Log.e(TAG, "Error", e);
+                    if (listener != null) {
+                        listener.onFailed(localPath, e);
                     }
                 }
             }
@@ -96,16 +108,8 @@ public class LocalAssetsManager {
 
     public static boolean refreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
-        
-        // Remove cache
-        CacheManager cacheManager = CacheManager.getInstance();
-        cacheManager.setContext(context);
-        cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
-        cacheManager.setCacheSize(entry.getCacheSize());
-        cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
-        
-        // for now, just re-register.
-        return registerAsset(context, entry, flavor, localPath, listener);
+
+        return registerOrRefreshAsset(context, entry, flavor, localPath, true, listener);
     }
     
     public static boolean unregisterAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, 
