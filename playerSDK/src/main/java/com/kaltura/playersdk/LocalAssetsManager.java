@@ -145,11 +145,7 @@ public class LocalAssetsManager {
                         }
                     }
                 });
-                try {
-                    widevineDrmClient.removeRights(localPath);
-                } finally {
-                    widevineDrmClient.release();
-                }
+                widevineDrmClient.removeRights(localPath);
             }
         });
         return true;
@@ -170,13 +166,9 @@ public class LocalAssetsManager {
             @Override
             public void run() {
                 WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
-                try {
-                    WidevineDrmClient.RightsInfo info = widevineDrmClient.getRightsInfo(localPath);
-                    if (listener != null) {
-                        listener.onStatus(localPath, info.expiryTime, info.availableTime);
-                    }
-                } finally {
-                    widevineDrmClient.release();
+                WidevineDrmClient.RightsInfo info = widevineDrmClient.getRightsInfo(localPath);
+                if (listener != null) {
+                    listener.onStatus(localPath, info.expiryTime, info.availableTime);
                 }
             }
         });
@@ -210,11 +202,7 @@ public class LocalAssetsManager {
                 }
             }
         });
-        try {
-            widevineDrmClient.acquireLocalAssetRights(localPath, licenseUri.toString());
-        } finally {
-            widevineDrmClient.release();
-        }
+        widevineDrmClient.acquireLocalAssetRights(localPath, licenseUri.toString());
     }
 
     private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DRMScheme drmScheme) throws IOException, JSONException {

@@ -140,11 +140,19 @@ public class WidevineDrmClient {
         registerPortal();
     }
     
-    public void release() {
-        mDrmManager.release();
-        mDrmManager = null;
+    @Override
+    protected void finalize() throws Throwable {
+        // Prevent Android's CloseGuard from shouting at us.
+        // We need the drmManagerClient to be released AT SOME POINT, doesn't matter when.
+        try {
+            Log.d(TAG, "finalize - release");
+            mDrmManager.release();
+            mDrmManager = null;
+        } finally {
+            super.finalize();
+        }
     }
-    
+
     private void logEvent(DrmEvent event) {
 //		if (! BuildConfig.DEBUG) {
 //			// Basic log
