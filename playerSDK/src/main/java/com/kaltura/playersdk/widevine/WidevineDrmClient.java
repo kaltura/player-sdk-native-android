@@ -70,17 +70,32 @@ public class WidevineDrmClient {
             this.rawConstraints = values;
 
             switch (status) {
-                case DrmStore.RightsStatus.RIGHTS_VALID: this.status = Status.VALID; break;
-                case DrmStore.RightsStatus.RIGHTS_INVALID: this.status = Status.INVALID; break;
-                case DrmStore.RightsStatus.RIGHTS_EXPIRED: this.status = Status.EXPIRED; break;
-                case DrmStore.RightsStatus.RIGHTS_NOT_ACQUIRED: this.status = Status.NOT_ACQUIRED; break;
+                case DrmStore.RightsStatus.RIGHTS_VALID:
+                    this.status = Status.VALID;
+                    if (values != null) {
+                        try {
+                            this.startTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_START_TIME);
+                            this.expiryTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_EXPIRY_TIME);
+                            this.availableTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_AVAILABLE_TIME);
+                        } catch (NullPointerException e) {
+                            Log.e(TAG, "Invalid constraints: " + values);
+                        }
+                    }
+                    break;
+
+                case DrmStore.RightsStatus.RIGHTS_INVALID:
+                    this.status = Status.INVALID;
+                    break;
+
+                case DrmStore.RightsStatus.RIGHTS_EXPIRED:
+                    this.status = Status.EXPIRED;
+                    break;
+
+                case DrmStore.RightsStatus.RIGHTS_NOT_ACQUIRED:
+                    this.status = Status.NOT_ACQUIRED;
+                    break;
             }
             
-            if (values != null) {
-                this.startTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_START_TIME);
-                this.expiryTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_EXPIRY_TIME);
-                this.availableTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_AVAILABLE_TIME);
-            }
         }
     }
 
