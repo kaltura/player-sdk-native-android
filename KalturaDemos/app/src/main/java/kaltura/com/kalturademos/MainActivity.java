@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         if (mPlayer != null) {
-            mPlayer.releaseAndSavePosition();
+            mPlayer.releaseAndSavePosition(true);
         }
         super.onPause();
     }

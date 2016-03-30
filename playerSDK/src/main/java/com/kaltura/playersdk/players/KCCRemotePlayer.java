@@ -228,7 +228,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public void freezePlayer() {
+    public void freezePlayer(boolean shouldResign) {
 
     }
 

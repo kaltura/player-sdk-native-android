@@ -234,7 +234,7 @@ public class KWVCPlayer
     }
 
     @Override
-    public void freezePlayer() {
+    public void freezePlayer(boolean shouldResign) {
         savePlayerState();
         if (mPlayer != null) {
             mPlayer.suspend();

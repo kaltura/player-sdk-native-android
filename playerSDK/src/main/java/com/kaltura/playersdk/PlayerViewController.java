@@ -298,9 +298,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    public void resetPlayer() {
-        playerController.reset();
-    }
+//    public void resetPlayer() {
+//        playerController.reset();
+//    }
 
     /**
      * Recover from "releaseAndSavePosition", reload the player from previous position.
