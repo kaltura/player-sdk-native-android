@@ -201,11 +201,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             imaManager.pause();
         }
         if (player != null) {
-            if (shouldResign) {
-
-            } else {
-                player.freezePlayer();
-            }
+            player.freezePlayer(shouldResign);
         }
     }
 
@@ -219,15 +215,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void reset() {
-        isBackgrounded = false;
-        if (imaManager != null) {
-            removeAdPlayer();
-        }
-        if (player != null) {
-            player.freezePlayer();
-        }
-    }
+//    public void reset() {
+//        isBackgrounded = false;
+//        if (imaManager != null) {
+//            removeAdPlayer();
+//        }
+//        if (player != null) {
+//            player.freezePlayer();
+//        }
+//    }
 
     public void destroy() {
         isBackgrounded = false;

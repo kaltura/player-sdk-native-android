@@ -292,9 +292,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
          playerController.removePlayer(false);
     }
 
-    public void resignAndSavePosition() {
+    public void releaseAndSavePosition(boolean releasePlayer) {
         if (playerController != null) {
-            playerController.removePlayer(true);
+            playerController.removePlayer(releasePlayer);
         }
     }
 
