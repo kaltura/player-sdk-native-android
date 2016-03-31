@@ -44,6 +44,8 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     private SeekCallback mSeekCallback;
     private KPlayerState mState = KPlayerState.UNKNOWN;
     private long mSeekedToValue = 0;
+    private int mPlayCount = 0;
+    private int mPauseCount = 0;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -266,6 +268,24 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             final KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
                 final String action = urlUtil.getAction();
+                if (action.equals("play") ||  action.equals("pause")){
+                    if(action.equals("play")){
+                        mPlayCount++;
+                    }
+                    if(action.equals("pause")){
+                        mPauseCount++;
+                    }
+                    if (mPlayCount == 1 && mPauseCount == 1) {
+                        mPlayCount = 0;
+                        mPauseCount = 0;
+                        return false;
+                    }
+                    if(mPlayCount % 2 == 0)
+                        mPlayCount = 0;
+                    if(mPauseCount % 2 == 0)
+                        mPauseCount = 0;
+
+                }
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
