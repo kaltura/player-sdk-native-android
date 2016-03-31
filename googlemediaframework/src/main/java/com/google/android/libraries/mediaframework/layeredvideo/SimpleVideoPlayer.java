@@ -112,6 +112,7 @@ public class SimpleVideoPlayer {
     layerManager = new LayerManager(activity,
         container,
         video,
+        true,
         layers);
 
     layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);

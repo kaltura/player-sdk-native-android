@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -158,10 +157,10 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     public void release() {
         if (mAdPlayer != null) {
-            mAdPlayer.release();
+            mAdPlayer.pause();
             mAdPlayer.moveSurfaceToBackground();
         }
-        mAdUIContainer = null;
-        mPlayerContainer = null;
+//        mAdUIContainer = null;
+//        mPlayerContainer = null;
     }
 }

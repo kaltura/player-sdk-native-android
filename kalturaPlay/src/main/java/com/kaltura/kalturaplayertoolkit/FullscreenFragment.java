@@ -24,6 +24,7 @@ import com.kaltura.playersdk.casting.KCastRouterManagerListener;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.types.KPError;
 
 import java.lang.reflect.Method;
 import java.util.Timer;
@@ -153,6 +154,11 @@ public class FullscreenFragment extends Fragment{
             public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
                 setFullScreen();
             }
+
+            @Override
+            public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
+            }
         });
 
         showPlayerView();
@@ -160,6 +166,10 @@ public class FullscreenFragment extends Fragment{
         KPPlayerConfig config = null;
         if (bundle != null && (config = (KPPlayerConfig)bundle.getSerializable("config")) != null){
             mPlayerView.initWithConfiguration(config);
+        }
+        else{
+            Log.e("ConfigNotLoaded", "Couldn't read config data check if it was initialized.");
+            return null;
         }
 
         return mFragmentView;
@@ -224,10 +234,9 @@ public class FullscreenFragment extends Fragment{
 
     private void setFullScreen (){
         View decorView = getActivity().getWindow().getDecorView(); //navigation view
-        int uiOptions = FULL_SCREEN_FLAG;
-        decorView.setSystemUiVisibility(uiOptions);
-//        Point size = getRealScreenSize();
-//        mPlayerView.setPlayerViewDimensions(size.x, size.y);
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        //    Point size = getRealScreenSize();
+        //    mPlayerView.setPlayerViewDimensions(size.x, size.y);
     }
 
     private Point getScreenWithoutNavigationSize() {

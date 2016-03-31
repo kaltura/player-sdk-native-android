@@ -1,6 +1,7 @@
 
 package com.kaltura.playersdk.widevine;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.drm.DrmErrorEvent;
 import android.drm.DrmEvent;
@@ -9,6 +10,7 @@ import android.drm.DrmInfoEvent;
 import android.drm.DrmInfoRequest;
 import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
+import android.drm.DrmStore;
 import android.util.Log;
 
 import java.io.FileDescriptor;
@@ -45,6 +47,41 @@ public class WidevineDrmClient {
     }
 
     private EventListener mEventListener;
+    
+    public static class RightsInfo {
+        
+        public enum Status {
+            VALID,
+            INVALID,
+            EXPIRED,
+            NOT_ACQUIRED,
+        }
+        
+        public Status status;
+        
+        public int startTime;
+        public int expiryTime;
+        public int availableTime;
+        
+        public ContentValues rawConstraints;
+        
+        private RightsInfo(int status, ContentValues values) {
+            this.rawConstraints = values;
+
+            switch (status) {
+                case DrmStore.RightsStatus.RIGHTS_VALID: this.status = Status.VALID; break;
+                case DrmStore.RightsStatus.RIGHTS_INVALID: this.status = Status.INVALID; break;
+                case DrmStore.RightsStatus.RIGHTS_EXPIRED: this.status = Status.EXPIRED; break;
+                case DrmStore.RightsStatus.RIGHTS_NOT_ACQUIRED: this.status = Status.NOT_ACQUIRED; break;
+            }
+            
+            if (values != null) {
+                this.startTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_START_TIME);
+                this.expiryTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_EXPIRY_TIME);
+                this.availableTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_AVAILABLE_TIME);
+            }
+        }
+    }
 
     public interface EventListener {
         void onError(DrmErrorEvent event);
@@ -101,6 +138,11 @@ public class WidevineDrmClient {
         });
         
         registerPortal();
+    }
+    
+    public void release() {
+        mDrmManager.release();
+        mDrmManager = null;
     }
     
     private void logEvent(DrmEvent event) {
@@ -269,14 +311,16 @@ public class WidevineDrmClient {
         }
     }
 
-    public int checkRightsStatus(String assetUri) {
+    public RightsInfo getRightsInfo(String assetUri) {
 
         // Need to use acquireDrmInfo prior to calling checkRightsStatus
         mDrmManager.acquireDrmInfo(createDrmInfoRequest(assetUri));
         int status = mDrmManager.checkRightsStatus(assetUri);
-        logMessage("checkRightsStatus  = " + status + "\n");
-
-        return status;
+        logMessage("getRightsInfo  = " + status + "\n");
+        
+        ContentValues values = mDrmManager.getConstraints(assetUri, DrmStore.Action.PLAY);
+        
+        return new RightsInfo(status, values);
     }
     
     public int removeRights(String assetUri) {

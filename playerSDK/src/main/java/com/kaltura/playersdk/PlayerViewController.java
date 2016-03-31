@@ -29,10 +29,12 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
+import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -107,12 +109,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     @Override
     public void onFoundDevices(final boolean didFound) {
         if (getRouterManager().shouldEnableKalturaCastButton()) {
-            registerReadyEvent(new ReadyEventListener() {
-                @Override
-                public void handler() {
-                    mWebView.setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
-                }
-            });
+            setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
         }
         if (getRouterManager().getAppListener() != null) {
             getRouterManager().getAppListener().didDetectCastDevices(didFound);
@@ -188,6 +185,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         super(context, attrs, defStyle);
     }
 
+    public KMediaControl getMediaControl() {
+        return mWebView;
+    }
+
     public void initWithConfiguration(KPPlayerConfig configuration) {
         mConfig = configuration;
 
@@ -237,7 +238,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
-            mWebView.loadUrl(config.getVideoURL() + "#" + buildSupportedMediaFormats());
+            mConfig = config;
+            mWebView.setVisibility(INVISIBLE);
+            mWebView.clearCache(true);
+            mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
+            mIsJsCallReadyRegistration = false;
+            registerReadyEvent(new ReadyEventListener() {
+                @Override
+                public void handler() {
+                    mWebView.setVisibility(VISIBLE);
+                    for (String event : mPlayerEventsHash.keySet()) {
+                        mWebView.addEventListener(event);
+                    }
+                }
+            });
         }
     }
 
@@ -266,7 +280,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * This method should be called when the main activity is paused.
      */
     public void releaseAndSavePosition() {
-        playerController.removePlayer();
+        if (playerController != null)
+         playerController.removePlayer();
+    }
+
+    public void resetPlayer() {
+        playerController.reset();
     }
 
     /**
@@ -456,13 +475,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             
         }
 
-        iframeUrl += "#" + buildSupportedMediaFormats();
+        iframeUrl += buildSupportedMediaFormats();
 
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) ) {
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
             if (mConfig.getCacheSize() > 0) {
-                CacheManager.getInstance().setHost(uri.getHost());
+                CacheManager.getInstance().setBaseURL(Utilities.stripLastUriPathSegment(mConfig.getServerURL()));
                 CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
                 mWebView.setCacheManager(CacheManager.getInstance());
             }
@@ -482,7 +501,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
 
         if ( this.getChildCount() > 1 ) {
-            //last child is the controls webview
+            //last child is the KMediaControl webview
             this.addView( newChild , this.getChildCount() -1, oldChild.getLayoutParams() );
         }
     }
@@ -545,11 +564,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //        notifyKPlayer("sendNotification", new String[]{noteName, noteBody.toString()});
 //    }
 
-
-
-    public void setKDPAttribute(String hostName, String propName, Object value) {
-        notifyKPlayer("setKDPAttribute", new Object[]{hostName, propName, value});
-    }
 
 
 
@@ -619,6 +633,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     }
 
+    @Override
+    public void handleKControlsError(KPError error) {
+        sendOnKPlayerError(error.getErrorMsg());
+    }
+
     //
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -626,10 +645,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
             for (KPEventListener listener : eventListeners) {
-                if (KPlayerState.getStateForEventName(eventName) != null) {
-                    listener.onKPlayerStateChanged(this, KPlayerState.getStateForEventName(eventName));
+                KPlayerState kState = KPlayerState.getStateForEventName(eventName);
+                if (!KPlayerState.UNKNOWN.equals(kState)) {
+                    listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
+                } else if (event.isEnded()) {
+                    contentCompleted(player);
                 }
             }
         }
@@ -720,14 +742,21 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void sendNotification(String notificationName,@Nullable String params) {
-        if (notificationName == null) {
-            notificationName = "null";
+        if (mWebView != null) {
+            if (notificationName == null) {
+                notificationName = "null";
+            }
+            mWebView.sendNotification(notificationName, params);
         }
-        mWebView.sendNotification(notificationName, params);
     }
 
-    public void setKDPAttribute(String pluginName, String propertyName, String value) {
-        mWebView.setKDPAttribute(pluginName, propertyName, value);
+    public void setKDPAttribute(final String pluginName, final String propertyName, final String value) {
+        registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                mWebView.setKDPAttribute(pluginName, propertyName, value);
+            }
+        });
     }
 
     public void triggerEvent(String event, String value) {
@@ -750,6 +779,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     // attributeValue is the selected source -- allow override.
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
                     this.playerController.setSrc(attributeValue);
+                    if (mConfig.getMediaPlayFrom() > 0) {
+                        playerController.setCurrentPlaybackTime((float)mConfig.getMediaPlayFrom());
+                    }
                     break;
                 case currentTime:
                     if (eventListeners != null) {
@@ -784,13 +816,24 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
-                    Log.d("chromecast.initialize", attributeValue);
+                    Log.d(TAG, "chromecast.initialize:" +  attributeValue);
+                    break;
+                case playerError:
+                    if (eventListeners != null) {
+                        sendOnKPlayerError(attributeValue);
+                    }
                     break;
             }
         }
     }
 
-    
+    private void sendOnKPlayerError(String attributeValue) {
+        for (KPEventListener listener: eventListeners) {
+            Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
+            listener.onKPlayerError(this, new KPError(attributeValue));
+        }
+    }
+
     private void switchFlavor(String index) {
         int flavorIndex = -1;
         try {

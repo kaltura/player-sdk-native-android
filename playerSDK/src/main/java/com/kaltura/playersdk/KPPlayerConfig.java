@@ -18,11 +18,13 @@ public class KPPlayerConfig implements Serializable{
 	private static final String sWidKey = "wid";
 	private static final String sUiConfIdKey = "uiconf_id";
 	private static final String sEntryIdKey = "entry_id";
+	private double mMediaPlayFrom = 0;
 
 	private String mServerURL;
 	private String mEntryId;
 	private String mUiConfId;
 	private String mPartnerId;
+    private String mLocalContentId = "";
 	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
@@ -111,7 +113,10 @@ public class KPPlayerConfig implements Serializable{
 
 	public KPPlayerConfig addConfig(String key, String value) {
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
-			
+			if (key.equals("mediaProxy.mediaPlayFrom")) {
+				mMediaPlayFrom = Double.parseDouble(value);
+				return this;
+			}
 			mExtraConfig.put(key, value);
 		}
 		return this;
@@ -151,6 +156,10 @@ public class KPPlayerConfig implements Serializable{
 		addConfig("controlBarContainer.hover", Boolean.toString(hide));
 	}
 
+	public void setLocalContentId(String localContentId) {
+        mLocalContentId = localContentId;
+    }
+
 	public void setCacheSize (float cacheSize) {
 		mCacheSize = cacheSize;
 	}
@@ -170,7 +179,7 @@ public class KPPlayerConfig implements Serializable{
 		
 		builder.appendQueryParameter("iframeembed", "true");
 
-		return builder.build().toString() + "&" + getQueryString(); 
+		return builder.build().toString() + "&" + getQueryString() + "#localContentId=" + mLocalContentId + "&";
 	}
 
 	public String getEntryId() {
@@ -193,5 +202,9 @@ public class KPPlayerConfig implements Serializable{
 
 	public String getKS() {
 		return mKS;
+	}
+
+	public double getMediaPlayFrom() {
+		return mMediaPlayFrom;
 	}
 }

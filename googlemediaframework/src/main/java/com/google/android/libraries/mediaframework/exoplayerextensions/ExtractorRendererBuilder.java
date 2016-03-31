@@ -16,7 +16,15 @@
 
 package com.google.android.libraries.mediaframework.exoplayerextensions;
 
+import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaCodec;
+import android.net.Uri;
+
+import com.google.android.exoplayer.DecoderInfo;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
+import com.google.android.exoplayer.MediaCodecSelector;
+import com.google.android.exoplayer.MediaCodecUtil;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
@@ -28,12 +36,7 @@ import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
-
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
-
-import android.content.Context;
-import android.media.MediaCodec;
-import android.net.Uri;
 
 /**
  * A {@link RendererBuilder} for streams that can be read using an {@link Extractor}.
@@ -45,16 +48,40 @@ public class ExtractorRendererBuilder implements RendererBuilder {
     private final Context context;
     private final String userAgent;
     private final Uri uri;
+    private final boolean preferSoftwareDecoder;
 
-    public ExtractorRendererBuilder(Context context, String userAgent, Uri uri) {
+    public ExtractorRendererBuilder(Context context, String userAgent, Uri uri, boolean preferSoftwareDecoder) {
         this.context = context;
         this.userAgent = userAgent;
         this.uri = uri;
+        this.preferSoftwareDecoder = preferSoftwareDecoder;
     }
+
+    private MediaCodecSelector preferSoftwareMediaCodecSelector = new MediaCodecSelector() {
+        @Override
+        public DecoderInfo getDecoderInfo(String mimeType, boolean requiresSecureDecoder) throws MediaCodecUtil.DecoderQueryException {
+
+           if (!requiresSecureDecoder) {
+               if ("video/avc".equals(mimeType)) {
+                   return new DecoderInfo("OMX.google.h264.decoder", false);
+               } else if (mimeType.startsWith("audio/mp4a")) {
+                   return new DecoderInfo("OMX.google.aac.decoder", false);
+               }
+           }
+           return MediaCodecSelector.DEFAULT.getDecoderInfo(mimeType,requiresSecureDecoder);
+        }
+
+        @Override
+        public String getPassthroughDecoderName() throws MediaCodecUtil.DecoderQueryException {
+            return MediaCodecSelector.DEFAULT.getPassthroughDecoderName();
+        }
+    };
 
     @Override
     public void buildRenderers(ExoplayerWrapper player) {
         Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
+
+        MediaCodecSelector mediaCodecSelector = preferSoftwareDecoder ? preferSoftwareMediaCodecSelector : MediaCodecSelector.DEFAULT;
 
         // Build the video and audio renderers.
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(),
@@ -63,10 +90,12 @@ public class ExtractorRendererBuilder implements RendererBuilder {
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(uri, dataSource, allocator,
                 BUFFER_SEGMENT_COUNT * BUFFER_SEGMENT_SIZE);
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context,
-                sampleSource, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, player.getMainHandler(),
+                sampleSource, mediaCodecSelector, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, player.getMainHandler(),
                 player, 50);
         MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource,
-                null, true, player.getMainHandler(), player, AudioCapabilities.getCapabilities(context));
+                mediaCodecSelector, null, true, player.getMainHandler(), player,
+                AudioCapabilities.getCapabilities(context), AudioManager.STREAM_MUSIC);
+
         TrackRenderer textRenderer = new TextTrackRenderer(sampleSource, player,
                 player.getMainHandler().getLooper());
 

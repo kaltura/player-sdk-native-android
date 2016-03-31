@@ -1,15 +1,16 @@
 apply plugin: 'com.android.library'
 
+apply from: "../kalturaCommon.gradle"
+
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion kaltura.compileSdkVersion
+    buildToolsVersion kaltura.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 23
-        versionName "2.4.0.rc1"
+        minSdkVersion kaltura.minSdkVersion
+        targetSdkVersion kaltura.targetSdkVersion
+        versionName kaltura.version
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -21,10 +22,8 @@ android {
 
 dependencies {
     compile project(':googlemediaframework')
-    compile 'com.google.android.exoplayer:exoplayer:r1.5.2'
     compile 'com.google.android.gms:play-services-cast:8.4.0'
     compile 'com.android.support:mediarouter-v7:23.1.1'
     compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.kaltura.hlsplayersdk:hlsplayer:0.29.3'
     compile fileTree(dir: 'libs', include: ['ima-sdk-*.jar'])
 }

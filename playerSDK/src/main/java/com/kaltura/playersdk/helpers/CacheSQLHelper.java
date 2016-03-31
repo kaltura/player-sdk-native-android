@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     public static final String MimeType = "MimeType";
     public static final String LastUsed = "LastUsed";
     public static final String Size = "Size";
+
+    private SQLiteDatabase mWritableDB;
 
     public interface KSQLHelperDeleteListener {
         void fileDeleted(String fileId);
@@ -45,6 +48,12 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    private SQLiteDatabase getWritableDB() {
+        if (mWritableDB == null || !mWritableDB.isOpen()) {
+            mWritableDB = getWritableDatabase();
+        }
+        return mWritableDB;
+    }
 
 
     public void addFile(String fileName, String mimeType, String encoding) {
@@ -54,15 +63,43 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         values.put(Encoding, encoding);
         values.put(LastUsed, 0);
         values.put(Size, 0);
-        SQLiteDatabase db = getWritableDatabase();
-        db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        try {
+            if (isExist(fileName)) {
+                getWritableDB().update(TABLE_NAME, values, this.id + "=?", new String[]{fileName});
+            } else {
+                getWritableDB().insert(TABLE_NAME, null, values);
+            }
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        } finally {
+//            if (db.isOpen()) {
+//                db.close();
+//            }
+        }
     }
 
-    public void removeFile(String fileId) {
+    private boolean isExist(String id) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.query(TABLE_NAME, null, this.id + "=?", new String[]{id}, null, null, null);
+        boolean exist = c.getCount() > 0;
+        c.close();
+        if (db.isOpen()) {
+            db.close();
+        }
+        return exist;
+    }
 
+    public boolean removeFile(String fileId) {
+        try {
+            getWritableDB().delete(TABLE_NAME, id + "=?", new String[]{fileId});
+            return true;
+        } catch (SQLiteException e) {
+            return false;
+        } finally {
+//            if (db.isOpen()) {
+//                db.close();
+//            }
+        }
     }
 
     public long cacheSize() {
@@ -70,32 +107,47 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         long size = 0;
-        if (cursor.moveToFirst()) {
-            size = cursor.getInt(0);
+        try {
+            if (cursor.moveToFirst()) {
+                size = cursor.getInt(0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
         }
-        cursor.close();
         return size;
     }
 
     public void updateDate(String fileId) {
         ContentValues data = new ContentValues();
         data.put(LastUsed, System.currentTimeMillis());
-        SQLiteDatabase db = getWritableDatabase();
-        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        try {
+            getWritableDB().update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        } finally {
+//            if (db.isOpen()) {
+//                db.close();
+//            }
+        }
     }
 
     public void updateFileSize(String fileId, long fileSize) {
         ContentValues data = new ContentValues();
         data.put(Size, fileSize);
         data.put(LastUsed, System.currentTimeMillis());
-        SQLiteDatabase db = getWritableDatabase();
-        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        try {
+            getWritableDB().update(TABLE_NAME, data, id + "=?", new String[]{fileId});
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        } finally {
+//            if (db.isOpen()) {
+//                db.close();
+//            }
+        }
     }
 
     public long sizeForId(String fileId) {
@@ -103,17 +155,27 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         if (cursor.moveToFirst()) {
-            int size = cursor.getInt(0);
+            int size = 0;
+            try {
+                size = cursor.getInt(0);
+            } catch (SQLiteException e) {
+                e.printStackTrace();
+            } finally {
+                if (!cursor.isClosed()) {
+                    cursor.close();
+                }
+            }
+            return (long) size;
+        }
+        if (!cursor.isClosed()) {
             cursor.close();
-            return size;
         }
         return 0;
     }
 
     public void deleteLessUsedFiles(long sizeToDelete, KSQLHelperDeleteListener listener) {
         String query = "SELECT * FROM KCacheTable ORDER BY LastUsed Desc";
-        SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
+        Cursor cursor = getWritableDB().rawQuery(query, null);
         boolean stop = false;
         ArrayList<String> deletedIds = new ArrayList<>();
         while (!stop) {
@@ -125,24 +187,42 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 deletedIds.add(fileId);
             }
         }
-        for (String fileId: deletedIds) {
-            db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
-            listener.fileDeleted(fileId);
+        for (String fileId : deletedIds) {
+            try {
+                getWritableDB().delete(TABLE_NAME, id + "=?", new String[]{fileId});
+                listener.fileDeleted(fileId);
+            } catch (SQLiteException e) {
+                e.printStackTrace();
+            } finally {
+//                if (db.isOpen()) {
+//                    db.close();
+//                }
+            }
+
         }
-        cursor.close();
+        if (!cursor.isClosed()) {
+            cursor.close();
+        }
     }
 
     public HashMap<String, Object> fetchParamsForFile(String fileName) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, new String[]{id, Encoding,MimeType}, id + "=?", new String[]{fileName}, null, null, null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{id, Encoding, MimeType}, id + "=?", new String[]{fileName}, null, null, null);
 
-        HashMap<String , Object> params = null;
-        if (cursor.moveToFirst()) {
-            params = new HashMap<>();
-            params.put(Encoding, cursor.getString(1));
-            params.put(MimeType, cursor.getString(2));
+        HashMap<String, Object> params = null;
+        try {
+            if (cursor.moveToFirst()) {
+                params = new HashMap<>();
+                params.put(Encoding, cursor.getString(1));
+                params.put(MimeType, cursor.getString(2));
+            }
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        } finally {
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
         }
-        cursor.close();
         return params;
     }
 }

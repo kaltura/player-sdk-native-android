@@ -33,7 +33,9 @@ public class RendererBuilderFactory {
    */
   public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
                                                                        Video video,
-                                                                       MediaDrmCallback mediaDrmCallback) {
+                                                                       MediaDrmCallback mediaDrmCallback,
+                                                                       boolean preferSoftwareDecoder)
+  {
     switch (video.getVideoType()) {
       case HLS:
         return new HlsRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx),
@@ -43,17 +45,18 @@ public class RendererBuilderFactory {
                                        video.getUrl(),
                                        mediaDrmCallback);
       case MP4:
-        return new ExtractorRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx), Uri.parse(video.getUrl()));
+        return new ExtractorRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx), Uri.parse(video.getUrl()), preferSoftwareDecoder);
       case OTHER:
-        return new ExtractorRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx), Uri.parse(video.getUrl()));
+        return new ExtractorRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx), Uri.parse(video.getUrl()), preferSoftwareDecoder);
       default:
         return null;
     }
   }
   
   public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
-                                                                       Video video) {
+                                                                       Video video,
+                                                                       boolean preferSoftwareDecoder) {
     
-    return createRendererBuilder(ctx, video, null);
+    return createRendererBuilder(ctx, video, null, preferSoftwareDecoder);
   }
 }

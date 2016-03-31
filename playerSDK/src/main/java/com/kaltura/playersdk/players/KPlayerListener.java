@@ -16,6 +16,8 @@ public interface KPlayerListener {
     String FlavorsListChangedKey = "flavorsListChanged";
     String SourceSwitchingStartedKey = "sourceSwitchingStarted";
     String SourceSwitchingEndKey = "sourceSwitchingEnd";
+    String BufferingChangeKey = "bufferchange";
+    String ErrorKey = "error";
 
     void eventWithValue(KPlayer player, String eventName, String eventValue);
     void eventWithJSON(KPlayer player, String eventName, String jsonValue);
