@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -34,48 +35,51 @@ import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
 public class CacheManager {
     private static final String TAG = "CacheManager";
     public static final String CACHED_STRINGS_JSON = "CachedStrings.json";
-    private static CacheManager ourInstance = new CacheManager();
     private JSONObject mCacheConditions;
-    private Context mContext;
     private CacheSQLHelper mSQLHelper;
     private String mBaseURL;
     private float mCacheSize = 0;
     private String mCachePath;
+    private File mFilesDir;
+    private Context mAppContext;
 
     
-    private void cacheHit(Uri url, String fileId) {
+    private void logCacheHit(Uri url, String fileId) {
         Log.d(TAG, "CACHE HIT: " + fileId + " : " + url);
     }
 
-    private void cacheMiss(Uri url, String fileId) {
-        Log.d(TAG, "CACHE MIS: " + fileId + " : " + url);
+    private void logCacheMiss(Uri url, String fileId) {
+        Log.d(TAG, "CACHE MISS: " + fileId + " : " + url);
     }
     
-    private void cacheIgnored(Uri url) {
-        Log.d(TAG, "CACHE IGN: " + url);
+    private void logCacheIgnored(Uri url) {
+        Log.d(TAG, "CACHE IGNORE: " + url);
     }
 
-    private void cacheSaved(Uri url, String fileId) {
-        Log.d(TAG, "CACHE SAV: " + fileId + " : " + url);
+    private void logCacheSaved(Uri url, String fileId) {
+        Log.d(TAG, "CACHE SAVED: " + fileId + " : " + url);
     }
 
-    private void cacheDeleted(String fileId) {
-        Log.d(TAG, "CACHE DEL: " + fileId);
+    private void logCacheDeleted(String fileId) {
+        Log.d(TAG, "CACHE DELETE: " + fileId);
     }
 
-
-
-    public static CacheManager getInstance() {
-        return ourInstance;
-    }
-
-    private CacheManager() {
-    }
-
-    public void setContext(Context context) {
-        mContext = context;
-        if (mSQLHelper == null) {
-            mSQLHelper = new CacheSQLHelper(context);
+    public CacheManager(Context context) {
+        mAppContext = context.getApplicationContext();
+        mFilesDir = mAppContext.getFilesDir();
+        mCachePath = mFilesDir + "/kaltura/";
+        File cacheDir = new File(mCachePath);
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs();
+        }
+        mSQLHelper = new CacheSQLHelper(context);
+        String string = Utilities.readAssetToString(mAppContext, CACHED_STRINGS_JSON);
+        if (string != null) {
+            try {
+                mCacheConditions = new JSONObject(string);
+            } catch (JSONException e) {
+                Log.e(TAG, "Invalid json", e);
+            }
         }
     }
 
@@ -85,33 +89,6 @@ public class CacheManager {
 
     public void setCacheSize(float cacheSize) {
         mCacheSize = cacheSize;
-    }
-
-    private String getCachePath() {
-        if (mCachePath == null) {
-            mCachePath = mContext.getFilesDir() + "/kaltura/";
-            File cacheDir = new File(mCachePath);
-            if (!cacheDir.exists()) {
-                cacheDir.mkdirs();
-            }
-        }
-        return mCachePath;
-    }
-    
-    private JSONObject getCacheConditions() {
-        
-        if (mCacheConditions == null) {
-            String string = Utilities.readAssetToString(mContext, CACHED_STRINGS_JSON);
-            if (string != null) {
-                try {
-                    mCacheConditions = new JSONObject(string);
-                } catch (JSONException e) {
-                    Log.e(TAG, "Invalid json", e);
-                }
-            }
-        }
-
-        return mCacheConditions;
     }
 
     private boolean shouldStore(Uri uri, Map<String, String> headers, String method) {
@@ -125,12 +102,12 @@ public class CacheManager {
         }
         
         String uriString = uri.toString();
-        JSONObject conditions = getCacheConditions();
+//        JSONObject conditions = getCacheConditions();
 
         String key = uriString.startsWith(mBaseURL) ? "withDomain" : "substring";
 
         try {
-            JSONObject object = conditions.getJSONObject(key);
+            JSONObject object = mCacheConditions.getJSONObject(key);
             for (Iterator<String> it = object.keys(); it.hasNext(); ) {
                 String str = it.next();
                 if (uriString.contains(str)) {
@@ -146,20 +123,19 @@ public class CacheManager {
     }
 
     private void deleteLessUsedFiles(long newCacheSize) {
-        long freeBytesInternal = new File(mContext.getFilesDir().getAbsoluteFile().toString()).getFreeSpace();
-//        long freeBytesExternal = new File(getExternalFilesDir(null).toString()).getFreeSpace();
+        long freeBytesInternal = new File(mFilesDir.getAbsoluteFile().toString()).getFreeSpace();
         long cahceSize = (long)(mCacheSize * 1024 * 1024);
         long actualCacheSize = Math.min(cahceSize, freeBytesInternal);
-        Log.d("KalturaCacheSize", String.valueOf(mSQLHelper.cacheSize()));
-        boolean shouldDeleteLessUsedFiles = mSQLHelper.cacheSize() + newCacheSize > actualCacheSize;
+        long currentCacheSize = mSQLHelper.cacheSize();
+        boolean shouldDeleteLessUsedFiles = currentCacheSize + newCacheSize > actualCacheSize;
         if (shouldDeleteLessUsedFiles) {
-            mSQLHelper.deleteLessUsedFiles(mSQLHelper.cacheSize() + newCacheSize - actualCacheSize, new CacheSQLHelper.KSQLHelperDeleteListener() {
+            mSQLHelper.deleteLessUsedFiles(currentCacheSize + newCacheSize - actualCacheSize, new CacheSQLHelper.KSQLHelperDeleteListener() {
                 @Override
                 public void fileDeleted(String fileId) {
-                    File deletedFile = new File(getCachePath(), fileId);
+                    File deletedFile = new File(mCachePath, fileId);
                     if (deletedFile.exists()) {
                         deletedFile.delete();
-                        cacheDeleted(fileId);
+                        logCacheDeleted(fileId);
                     }
                 }
             });
@@ -186,14 +162,14 @@ public class CacheManager {
             Log.e(TAG, "Failed to remove cache entry for request: " + requestUrl);
             return false;
         } else {
-            File file = new File(getCachePath(), fileId);
+            File file = new File(mCachePath, fileId);
 
             if (!file.delete()) {
                 Log.e(TAG, "Failed to delete file for request: " + requestUrl);
                 return false;
             }
         }
-        cacheDeleted(fileId);
+        logCacheDeleted(fileId);
 
         return true;
     }
@@ -214,37 +190,53 @@ public class CacheManager {
     
     public WebResourceResponse getResponse(final Uri requestUrl, Map<String, String> headers, String method) throws IOException {
         if (!shouldStore(requestUrl, headers, method)) {
-            cacheIgnored(requestUrl);
+            logCacheIgnored(requestUrl);
             return null;
         }
-
+        if (!Utilities.isOnline(mAppContext) && requestUrl.toString().contains("playManifest")) {
+            return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
+        }
         final InputStream inputStream;
         String fileName = getCacheFileId(requestUrl);
-        File targetFile = new File(getCachePath(), fileName);
+        File targetFile = new File(mCachePath, fileName);
         String contentType;
         String encoding = null;
         HashMap<String, Object> fileParams = mSQLHelper.fetchParamsForFile(fileName);
-        
+
         if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
-            cacheHit(requestUrl, fileName);
+            logCacheHit(requestUrl, fileName);
+            
             FileInputStream fileInputStream = new FileInputStream(targetFile);
             inputStream = new BufferedInputStream(fileInputStream);
-            contentType = (String)fileParams.get(CacheSQLHelper.MimeType);
-            encoding = (String)fileParams.get(CacheSQLHelper.Encoding);
+            contentType = (String)fileParams.get(CacheSQLHelper.COL_MIMETYPE);
+            encoding = (String)fileParams.get(CacheSQLHelper.COL_ENCODING);
             mSQLHelper.updateDate(fileName);
+            return new WebResourceResponse(contentType, encoding, inputStream);
+
         } else {
-            cacheMiss(requestUrl, fileName);
-            URL url = new URL(requestUrl.toString());
-            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            logCacheMiss(requestUrl, fileName);
             
+            return getResponseFromNetwork(requestUrl, headers, method, fileName, targetFile);
+        }
+    }
+
+    @NonNull
+    private WebResourceResponse getResponseFromNetwork(final Uri requestUrl, Map<String, String> headers, String method, String fileName, File targetFile) throws IOException {
+        String contentType;
+        InputStream inputStream = null;
+        URL url = new URL(requestUrl.toString());
+        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        
+        try {
             setRequestParams(connection, headers, method);
-            contentType = connection.getContentType();
             connection.connect();
+            contentType = connection.getContentType();
 
             if (contentType == null) {
                 contentType = "";
             }
             String[] contentTypeParts = TextUtils.split(contentType, ";");
+            String encoding = null;
             if (contentTypeParts.length >= 2) {
                 contentType = contentTypeParts[0].trim();
                 encoding = contentTypeParts[1].trim();
@@ -253,19 +245,22 @@ public class CacheManager {
             inputStream = new CachingInputStream(targetFile.getAbsolutePath(), url.openStream(), new CachingInputStream.KInputStreamListener() {
                 @Override
                 public void streamClosed(long fileSize, String filePath) {
-                    int trimLength = getCachePath().length();
+                    int trimLength = mCachePath.length();
                     String fileId = filePath.substring(trimLength);
                     mSQLHelper.updateFileSize(fileId, fileSize);
-                    cacheSaved(requestUrl, fileId);
+                    logCacheSaved(requestUrl, fileId);
                     deleteLessUsedFiles(fileSize);
                     connection.disconnect();
                 }
             });
-
-
+            return new WebResourceResponse(contentType, encoding, inputStream);
+        } finally {
+            // if inputStream wasn't created, streamClosed() will not get called and the connection may leak. 
+            if (inputStream == null) {
+                connection.disconnect();
+            }
         }
-//        Log.d(TAG, "Stored: " + contentType + " " + encoding + " " + requestUrl.toString());
-        return new WebResourceResponse(contentType, encoding, inputStream);
+
     }
 
     @NonNull
