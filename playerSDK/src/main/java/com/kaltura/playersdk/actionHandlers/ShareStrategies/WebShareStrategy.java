@@ -3,7 +3,7 @@ package com.kaltura.playersdk.actionHandlers.ShareStrategies;
 import android.app.Activity;
 import android.content.Intent;
 
-import com.example.kplayersdk.R;
+import com.kaltura.playersdk.R;
 import com.kaltura.playersdk.BrowserActivity;
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 
