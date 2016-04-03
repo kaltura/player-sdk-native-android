@@ -29,6 +29,15 @@ public class KPPlayerConfig implements Serializable{
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
 
+	static {
+		// Use System.out to print even when Log.X() are disabled.
+		System.out.println("Kaltura Player Android SDK, version " + BuildConfig.VERSION_NAME);
+	}
+	
+	public static String getPlayerSdkVersion() {
+		return BuildConfig.VERSION_NAME;
+	}
+	
 	public String getPartnerId() {
 		return mPartnerId;
 	}
