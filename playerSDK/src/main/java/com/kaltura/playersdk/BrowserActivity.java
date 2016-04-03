@@ -10,7 +10,7 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.example.kplayersdk.R;
+import com.kaltura.playersdk.R;
 
 public class BrowserActivity extends Activity {
 
