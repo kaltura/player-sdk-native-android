@@ -1,4 +1,4 @@
-include ':app'
+include ':BasicPlayDemo'
 
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir=new File('../googlemediaframework')
