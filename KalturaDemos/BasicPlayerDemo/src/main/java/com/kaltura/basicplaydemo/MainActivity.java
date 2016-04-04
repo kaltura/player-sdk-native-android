@@ -23,7 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
-    private static final String TAG = "BasicPlayDemo";
+    private static final String TAG = "BasicPlayerDemo";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
