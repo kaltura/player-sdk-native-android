@@ -1,5 +1,5 @@
-include ':BasicPlayerDemo'
 include ':MultiPlayerDemo'
+
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir=new File('../googlemediaframework')
 
