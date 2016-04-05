@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kaltura Change Media</string>
+    <string name="app_name">KChange Media Demo</string>
     <string name="hello_fragment">Select Media ID for Playing</string>
     <string name="select_media">Select</string>
     <string name="pick_media">Pick Media</string>
