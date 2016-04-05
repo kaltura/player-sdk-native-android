@@ -240,7 +240,10 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             return null;
         }
         try {
-            return mCacheManager.getResponse(requestUrl, headers, method);
+            if (mCacheManager != null) {
+                return mCacheManager.getResponse(requestUrl, headers, method);
+            }
+            return null;
         } catch (IOException e) {
             return null;
         }

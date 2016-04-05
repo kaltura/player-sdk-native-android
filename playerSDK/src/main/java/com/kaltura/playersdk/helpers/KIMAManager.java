@@ -211,18 +211,20 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 fireIMAEvent(AdClickedKey);
                 break;
             case CONTENT_PAUSE_REQUESTED:
-                mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
+                if (mPLayerCallback != null) {
+                    mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
+                }
                 break;
             case CONTENT_RESUME_REQUESTED:
                 fireIMAEvent(ContentResumeRequestedKey);
-                if (!mContentCompleted) {
+                if (!mContentCompleted && mPLayerCallback != null) {
                     mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
 //                mIMAPlayer.removeAd();
                 break;
             case ALL_ADS_COMPLETED:
                 fireIMAEvent(AllAdsCompletedKey);
-                if (mContentCompleted) {
+                if (mContentCompleted && mPlayerListener != null) {
                     mPlayerListener.contentCompleted(null);
                 }
                 break;
