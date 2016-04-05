@@ -70,13 +70,14 @@ public class LayerManager {
   public LayerManager(Activity activity,
                       FrameLayout container,
                       Video video,
+                      boolean preferSoftwareDecoder,
                       List<Layer> layers) {
     this.activity = activity;
     this.container = container;
     container.setBackgroundColor(Color.BLACK);
 
     ExoplayerWrapper.RendererBuilder rendererBuilder =
-        RendererBuilderFactory.createRendererBuilder(activity, video);
+        RendererBuilderFactory.createRendererBuilder(activity, video, preferSoftwareDecoder);
 
     exoplayerWrapper = new ExoplayerWrapper(rendererBuilder);
     exoplayerWrapper.prepare();

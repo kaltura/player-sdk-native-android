@@ -18,6 +18,7 @@ package com.google.android.libraries.mediaframework.layeredvideo;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -109,9 +110,11 @@ public class SimpleVideoPlayer {
     layers.add(playbackControlLayer);
     layers.add(subtitleLayer);
 
+    boolean preferedSoftwareDecoder = checkIfSoftwareDecoderPrefered();
     layerManager = new LayerManager(activity,
         container,
         video,
+        preferedSoftwareDecoder,
         layers);
 
     layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
@@ -119,6 +122,15 @@ public class SimpleVideoPlayer {
     if (startPostitionMs > 0) {
       layerManager.getExoplayerWrapper().seekTo(startPostitionMs);
     }
+  }
+
+  private boolean checkIfSoftwareDecoderPrefered() {
+
+    boolean isSoftwareDecoderPrefered = false;
+    if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+      isSoftwareDecoderPrefered = true;
+    }
+    return isSoftwareDecoderPrefered;
   }
 
   /**
