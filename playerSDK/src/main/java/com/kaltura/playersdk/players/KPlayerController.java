@@ -42,6 +42,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private RelativeLayout mAdControls;
     private boolean isBackgrounded = false;
     private float mCurrentPlaybackTime = 0;
+    private boolean isPlaying = false;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -187,13 +188,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void savePlayerState() {
         if (player != null) {
-            player.savePlayerState();
+            isPlaying = player.isPlaying();
+            pause();
+        } else {
+            isPlaying = false;
         }
     }
 
     public void recoverPlayerState() {
         if (player != null) {
-            player.recoverPlayerState();
+            if (isPlaying) {
+                play();
+            } 
         }
     }
 
@@ -223,7 +229,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             removeAdPlayer();
         }
         if (player != null) {
-            player.freezePlayer();
+            player.removePlayer();
         }
     }
 

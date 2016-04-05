@@ -2,6 +2,8 @@ package com.kaltura.playersdk;
 
 import android.net.Uri;
 
+
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,7 +27,7 @@ public class KPPlayerConfig implements Serializable{
 	private String mUiConfId;
 	private String mPartnerId;
     private String mLocalContentId = "";
-	private float mCacheSize = 100f;	// 100mb is a sane default.
+	private float mCacheSize = 800f;	// 100mb is a same default.
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
 
