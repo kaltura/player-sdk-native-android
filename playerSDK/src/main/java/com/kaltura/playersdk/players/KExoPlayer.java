@@ -139,7 +139,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         mDrmCallback = new KPlayerExoDrmCallback();
         Video video = new Video(mSourceURL, getVideoType());
         final ExoplayerWrapper.RendererBuilder rendererBuilder = RendererBuilderFactory
-                .createRendererBuilder(getContext(), video, mDrmCallback, false);
+                .createRendererBuilder(getContext(), video, mDrmCallback);
 
         mSurfaceView = new VideoSurfaceView( getContext() );
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);

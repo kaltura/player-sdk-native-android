@@ -30,12 +30,13 @@ public class RendererBuilderFactory {
    * Create a renderer builder which can build the given video.
    * @param ctx The context (ex {@link android.app.Activity} in whicb the video has been created.
    * @param video The video which will be played.
+   * @param mediaDrmCallback DRM Callback.
+   * @param preferSoftwareDecoder true if softwareDecoder is requred.
    */
   public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
                                                                        Video video,
                                                                        MediaDrmCallback mediaDrmCallback,
-                                                                       boolean preferSoftwareDecoder)
-  {
+                                                                       boolean preferSoftwareDecoder) {
     switch (video.getVideoType()) {
       case HLS:
         return new HlsRendererBuilder(ctx, ExoplayerUtil.getUserAgent(ctx),
@@ -52,11 +53,29 @@ public class RendererBuilderFactory {
         return null;
     }
   }
-  
+
+
+    /**
+     * Create a renderer builder which can build the given video.
+     * @param ctx The context (ex {@link android.app.Activity} in whicb the video has been created.
+     * @param video The video which will be played.
+     */
+    public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
+                                                                         Video video,
+                                                                         MediaDrmCallback mediaDrmCallback) {
+        return createRendererBuilder(ctx, video, mediaDrmCallback, false);
+    }
+
   public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
                                                                        Video video,
                                                                        boolean preferSoftwareDecoder) {
     
     return createRendererBuilder(ctx, video, null, preferSoftwareDecoder);
   }
+
+    public static ExoplayerWrapper.RendererBuilder createRendererBuilder(Context ctx,
+                                                                         Video video) {
+
+        return createRendererBuilder(ctx, video, null, false);
+    }
 }
