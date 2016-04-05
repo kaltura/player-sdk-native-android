@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">KChange Media Demo</string>
+    <string name="hello_fragment">Select Media ID for Playing</string>
+    <string name="select_media">Select</string>
+    <string name="pick_media">Pick Media</string>
+
+
+    <string-array name="mediaIds">
+        <item>0_vppx5ghh</item>
+        <item>1_g6wjqafr</item>
+        <item>0_gtf5kktz</item>
+        <item>1_jnlsx5nv</item>
+        <item>1_02mpqtjn</item>
+    </string-array>
+</resources>

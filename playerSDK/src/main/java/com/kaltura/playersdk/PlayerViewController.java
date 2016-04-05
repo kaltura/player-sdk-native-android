@@ -191,10 +191,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
         mConfig = configuration;
-
-        setComponents(mConfig.getVideoURL());
-        
-//        setComponents("http://player-stg-eu.ott.kaltura.com/viacomIN/v2.37.2/mwEmbed/mwEmbedFrame.php/uiconf_id/8413353?wid=_&entry_id=295868&flashvars[proxyData]={%22initObj%22:{%22Locale%22:{%22LocaleLanguage%22:%22%22,%22LocaleCountry%22:%22%22,%22LocaleDevice%22:%22%22,%22LocaleUserState%22:%22Unknown%22},%22Platform%22:%22Cellular%22,%22SiteGuid%22:%22613999%22,%22DomainID%22:%22282563%22,%22UDID%22:%22123456%22,%22ApiUser%22:%22tvpapi_225%22,%22ApiPass%22:%2211111%22},%22MediaID%22:%22295868%22,%22iMediaID%22:%22295868%22,%22picSize%22:%22640x360%22,%22mediaType%22:%220%22,%22withDynamic%22:%22false%22}&flashvars[tvpapiGetLicensedLinks.plugin]=true&flashvars[TVPAPIBaseUrl]=http://stg.eu.tvinci.com/tvpapi_v3_3/gateways/jsonpostgw.aspx?m=&flashvars[liveCore.disableLiveCheck]=true&iframeembed=true&flashvars[chromecast.plugin]=true");
+        if (mConfig != null) {
+            setComponents(mConfig.getVideoURL());
+        }
     }
 
     public void loadPlayerIntoActivity(Activity activity) {

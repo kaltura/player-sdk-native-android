@@ -266,7 +266,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             final KStringUtilities urlUtil = new KStringUtilities(url);
             if (urlUtil.isJSFrame()) {
                 final String action = urlUtil.getAction();
-
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
