@@ -203,12 +203,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void removePlayer() {
+    public void removePlayer(boolean shouldSaveState) {
         isBackgrounded = true;
         if (imaManager != null && isIMAActive) {
             imaManager.pause();
         }
         if (player != null) {
+            if (shouldSaveState) {
+                savePlayerState();
+            }
+            pause();
             player.freezePlayer();
         }
     }
@@ -220,6 +224,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
         if (player != null) {
             player.recoverPlayer();
+            recoverPlayerState();
         }
     }
 

@@ -244,7 +244,6 @@ public class KWVCPlayer
 
     @Override
     public void freezePlayer() {
-        savePlayerState();
         if (mPlayer != null) {
             mPlayer.suspend();
         }
@@ -260,7 +259,6 @@ public class KWVCPlayer
 
     @Override
     public void removePlayer() {
-        saveState();
         if (mPlayer != null) {
             mPlayer.stopPlayback();
             removeView(mPlayer);
@@ -277,7 +275,6 @@ public class KWVCPlayer
     public void recoverPlayer() {
         if (mPlayer != null) {
             mPlayer.resume();
-            recoverPlayerState();
         }
     }
 

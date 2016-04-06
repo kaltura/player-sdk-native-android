@@ -288,7 +288,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void freezePlayer() {
-        savePlayerState();
         if (mExoPlayer != null) {
             mExoPlayer.setBackgrounded(true);
         }
@@ -313,7 +312,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void recoverPlayer() {
         if (mExoPlayer != null) {
             mExoPlayer.setBackgrounded(false);
-            recoverPlayerState();
         }
     }
 

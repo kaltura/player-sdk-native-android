@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
+    private boolean shouldResume = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +71,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         if (mPlayer != null) {
-            mPlayer.releaseAndSavePosition();
+            PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+            if (powerManager.isScreenOn()) {
+                mPlayer.releaseAndSavePosition(false);
+                shouldResume = true;
+            }
         }
         super.onPause();
     }
@@ -79,9 +84,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStop() {
         PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
         if (!powerManager.isScreenOn()) {
-            mPlayer.resetPlayer();
-        } else {
-            mPlayer.releaseAndSavePosition();
+            mPlayer.getMediaControl().pause();
+            shouldResume = false;
         }
         super.onStop();
     }
@@ -90,8 +94,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         if (onCreate) {
             onCreate = false;
-        } else {
+        } else if (shouldResume) {
             mPlayer.resumePlayer();
+            shouldResume = false;
         }
         super.onResume();
     }
