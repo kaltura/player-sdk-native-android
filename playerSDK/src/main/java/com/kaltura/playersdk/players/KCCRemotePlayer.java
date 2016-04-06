@@ -253,14 +253,10 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public void savePlayerState() {
-        
+    public boolean isPlaying() {
+        return false;
     }
 
-    @Override
-    public void recoverPlayerState() {
-
-    }
 
     @Override
     public void onStatusUpdated() {
