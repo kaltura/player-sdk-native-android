@@ -238,7 +238,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         adPlayerIsPlaying = false;
                         adIsDone = true;
                         removeAdPlayer();
-                        mPlayer.getMediaControl().start();
+                        mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
+                            @Override
+                            public void handler() {
+                                mPlayer.getMediaControl().start();
+                            }
+                        });
                         break;
                 }
             }
