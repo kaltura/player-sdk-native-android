@@ -196,18 +196,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void recoverPlayerState() {
-        if (player != null) {
-            if (isPlaying) {
+        if (isPlaying) {
+            if (isIMAActive && imaManager != null) {
+                imaManager.resume();
+            } else if (player != null) {
                 play();
-            } 
+            }
         }
     }
 
     public void removePlayer(boolean shouldSaveState) {
         isBackgrounded = true;
-        if (imaManager != null && isIMAActive) {
-            imaManager.pause();
-        }
         if (player != null) {
             if (shouldSaveState) {
                 savePlayerState();
