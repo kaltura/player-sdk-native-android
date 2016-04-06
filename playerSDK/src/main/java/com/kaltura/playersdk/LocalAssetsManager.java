@@ -68,12 +68,10 @@ public class LocalAssetsManager {
                 cacheManager.setCacheSize(entry.getCacheSize());
                 try {
                     Uri uri = Uri.parse(entry.getVideoURL());
-                    if (!refresh) {
-                        cacheManager.cacheResponse(uri);
-                    } else {
+                    if (refresh) {
                         cacheManager.removeCachedResponse(uri);
-                        cacheManager.cacheResponse(uri);
                     }
+                    cacheManager.cacheResponse(uri);
                 } catch (IOException e) {
                     if (listener != null) {
                         listener.onFailed(localPath, e);
@@ -108,12 +106,6 @@ public class LocalAssetsManager {
     public static boolean refreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
 
-        
-        // Remove cache
-        CacheManager cacheManager = new CacheManager(context.getApplicationContext());
-        cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
-        cacheManager.setCacheSize(entry.getCacheSize());
-        cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
 
         return registerOrRefreshAsset(context, entry, flavor, localPath, true, listener);
 
@@ -129,7 +121,6 @@ public class LocalAssetsManager {
                 CacheManager cacheManager = new CacheManager(context.getApplicationContext());
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
                 cacheManager.setCacheSize(entry.getCacheSize());
-                cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
                 cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
 
                 if (!isWidevineClassic(localPath)) {
