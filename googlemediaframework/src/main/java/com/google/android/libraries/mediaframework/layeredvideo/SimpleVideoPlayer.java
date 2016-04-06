@@ -18,7 +18,6 @@ package com.google.android.libraries.mediaframework.layeredvideo;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -125,12 +124,11 @@ public class SimpleVideoPlayer {
   }
 
   private boolean checkIfSoftwareDecoderPrefered() {
-
-    boolean isSoftwareDecoderPrefered = false;
-    if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-      isSoftwareDecoderPrefered = true;
-    }
-    return isSoftwareDecoderPrefered;
+    //boolean isSoftwareDecoderPrefered = false;
+    //if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) { // For Galaxy S4 Lolipop so it is hardware problem ...
+    //  isSoftwareDecoderPrefered = true;
+    //}
+    return true;
   }
 
   /**
