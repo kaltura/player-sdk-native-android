@@ -52,8 +52,8 @@ public class CacheManager {
         Log.d(TAG, "CACHE MISS: " + fileId + " : " + url);
     }
     
-    private void logCacheIgnored(Uri url) {
-        Log.d(TAG, "CACHE IGNORE: " + url);
+    private void logCacheIgnored(Uri url, String method) {
+        Log.d(TAG, "CACHE IGNORE: " + method + " " + url);
     }
 
     private void logCacheSaved(Uri url, String fileId) {
@@ -179,8 +179,8 @@ public class CacheManager {
         InputStream inputStream = resp.getData();
 
         // Must fully read the input stream so that it gets cached. But we don't need the data now.
-        byte[] buffer = new byte[1024];
         try {
+            byte[] buffer = new byte[1024];
             //noinspection StatementWithEmptyBody
             while (inputStream.read(buffer, 0, buffer.length) >= 0);
         } finally {
@@ -190,17 +190,18 @@ public class CacheManager {
     
     public WebResourceResponse getResponse(final Uri requestUrl, Map<String, String> headers, String method) throws IOException {
         if (!shouldStore(requestUrl, headers, method)) {
-            logCacheIgnored(requestUrl);
+            logCacheIgnored(requestUrl, method);
             return null;
         }
-        if (!Utilities.isOnline(mAppContext) && requestUrl.toString().contains("playManifest")) {
+        boolean online = Utilities.isOnline(mAppContext);
+        if (!online && requestUrl.toString().contains("playManifest")) {
             return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
         }
-        final InputStream inputStream;
+        InputStream inputStream;
         String fileName = getCacheFileId(requestUrl);
         File targetFile = new File(mCachePath, fileName);
         String contentType;
-        String encoding = null;
+        String encoding;
         HashMap<String, Object> fileParams = mSQLHelper.fetchParamsForFile(fileName);
 
         if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
@@ -215,6 +216,10 @@ public class CacheManager {
 
         } else {
             logCacheMiss(requestUrl, fileName);
+            
+            if (!online) {
+                Log.e(TAG, "Error: device is offline and response is not cached.");
+            }
             
             return getResponseFromNetwork(requestUrl, headers, method, fileName, targetFile);
         }

@@ -160,7 +160,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         this.getSettings().setUserAgentString(this.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer");
         this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         this.setBackgroundColor(0);
-        setWebContentsDebuggingEnabled(true);
     }
     
 
@@ -243,15 +242,15 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             Log.d(TAG, "Will not handle " + requestUrl);
             return null;
         }
-        try {
-            if (mCacheManager != null) {
-                return mCacheManager.getResponse(requestUrl, headers, method);
+        WebResourceResponse response = null;
+        if (mCacheManager != null) {
+            try {
+                response = mCacheManager.getResponse(requestUrl, headers, method);
+            } catch (IOException e) {
+                Log.e(TAG, "getResponse From CacheManager error::", e);
             }
-            return null;
-        } catch (IOException e) {
-            Log.e(TAG, "getResponse From CacheManager error::", e);
-            return null;
         }
+        return response;
     }
 
     @JavascriptInterface
@@ -263,6 +262,11 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         }
     }
 
+    @Override
+    public void destroy() {
+        Log.d(TAG, "destroy()");
+        super.destroy();
+    }
 
     private class CustomWebViewClient extends WebViewClient {
 
@@ -293,20 +297,17 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
 //            controlsViewClient.handleKControlsError(new KPError(error.toString()));
-            Log.e("WebViewError", request.getUrl().toString());
 
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
 //            controlsViewClient.handleKControlsError(new KPError(errorResponse.toString()));
-            Log.e("WebViewError", request.getUrl().toString());
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
 //            controlsViewClient.handleKControlsError(new KPError(error.toString()));
-            Log.e("WebViewError", error.getUrl().toString());
         }
 
         private WebResourceResponse textResponse(String text) {
@@ -331,7 +332,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            return handleWebRequest(view, request.getUrl().toString(), request.getRequestHeaders(), request.getMethod());
+            Map<String, String> headers = request.getRequestHeaders();
+            String method = request.getMethod();
+            return handleWebRequest(view, request.getUrl().toString(), headers, method);
         }
     }
 }
