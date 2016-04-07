@@ -235,6 +235,12 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     public void triggerEventWithJSON(String event, String jsonString) {
         this.loadUrl(KStringUtilities.triggerEventWithJSON(event, jsonString));
     }
+    
+    private WebResourceResponse getWhiteFaviconResponse() {
+        // 16x16 white favicon
+        byte[] data = Base64.decode("AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 0);
+        return new WebResourceResponse("image/x-icon", null, new ByteArrayInputStream(data));
+    }
 
     private WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) {
         // Only handle http(s)
@@ -247,7 +253,11 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             try {
                 response = mCacheManager.getResponse(requestUrl, headers, method);
             } catch (IOException e) {
-                Log.e(TAG, "getResponse From CacheManager error::", e);
+                if (requestUrl.getPath().endsWith("favicon.ico")) {
+                    response = getWhiteFaviconResponse();
+                } else {
+                    Log.e(TAG, "getResponse From CacheManager error::", e);
+                }
             }
         }
         return response;
