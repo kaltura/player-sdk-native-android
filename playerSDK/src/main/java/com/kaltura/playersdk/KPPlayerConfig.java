@@ -24,8 +24,8 @@ public class KPPlayerConfig implements Serializable{
 	private String mEntryId;
 	private String mUiConfId;
 	private String mPartnerId;
-    private String mLocalContentId = "";
-	private float mCacheSize = 100f;	// 100mb is a same default.
+	private String mLocalContentId = "";
+	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
 
