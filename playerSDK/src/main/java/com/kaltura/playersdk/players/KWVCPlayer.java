@@ -15,8 +15,11 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
+import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Set;
+
+import javax.crypto.interfaces.PBEKey;
 
 
 /**
@@ -212,12 +215,19 @@ public class KWVCPlayer
     }
 
     @Override
+    public boolean isPlaying() {
+        if (mPlayer != null) {
+            return mPlayer.isPlaying();
+        }
+        return false;
+    }
+
+    @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
     }
 
-    @Override
-    public void savePlayerState() {
+    private void savePlayerState() {
         saveState();
         if (mPlayheadTracker != null) {
             mPlayheadTracker.stop();
@@ -225,8 +235,7 @@ public class KWVCPlayer
         }
     }
 
-    @Override
-    public void recoverPlayerState() {
+    private void recoverPlayerState() {
         mPlayer.seekTo(mSavedState.position);
         if (mSavedState.playing) {
             play();
@@ -235,7 +244,6 @@ public class KWVCPlayer
 
     @Override
     public void freezePlayer() {
-        savePlayerState();
         if (mPlayer != null) {
             mPlayer.suspend();
         }
@@ -251,7 +259,6 @@ public class KWVCPlayer
 
     @Override
     public void removePlayer() {
-        saveState();
         if (mPlayer != null) {
             mPlayer.stopPlayback();
             removeView(mPlayer);
@@ -268,7 +275,6 @@ public class KWVCPlayer
     public void recoverPlayer() {
         if (mPlayer != null) {
             mPlayer.resume();
-            recoverPlayerState();
         }
     }
 
