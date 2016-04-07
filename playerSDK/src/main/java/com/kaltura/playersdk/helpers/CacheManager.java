@@ -242,7 +242,7 @@ public class CacheManager {
                 encoding = contentTypeParts[1].trim();
             }
             mSQLHelper.addFile(fileName, contentType, encoding);
-            inputStream = new CachingInputStream(targetFile.getAbsolutePath(), url.openStream(), new CachingInputStream.KInputStreamListener() {
+            inputStream = new CachingInputStream(targetFile.getAbsolutePath(), connection.getInputStream(), new CachingInputStream.KInputStreamListener() {
                 @Override
                 public void streamClosed(long fileSize, String filePath) {
                     int trimLength = mCachePath.length();
@@ -272,5 +272,12 @@ public class CacheManager {
             }
         }
         return md5(requestUrl.toString());
+    }
+
+    public void release() {
+        if (mSQLHelper != null) {
+            mSQLHelper.close();
+            mSQLHelper = null;
+        }
     }
 }

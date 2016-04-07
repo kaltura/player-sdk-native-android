@@ -67,36 +67,41 @@ public class LocalAssetsManager {
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
                 cacheManager.setCacheSize(entry.getCacheSize());
                 try {
-                    Uri uri = Uri.parse(entry.getVideoURL());
-                    if (refresh) {
-                        cacheManager.removeCachedResponse(uri);
+                    try {
+                        Uri uri = Uri.parse(entry.getVideoURL());
+                        if (refresh) {
+                            cacheManager.removeCachedResponse(uri);
+                        }
+                        cacheManager.cacheResponse(uri);
+                    } catch (IOException e) {
+                        if (listener != null) {
+                            listener.onFailed(localPath, e);
+                        }
+                        return;
                     }
-                    cacheManager.cacheResponse(uri);
-                } catch (IOException e) {
-                    if (listener != null) {
-                        listener.onFailed(localPath, e);
+
+                    // If not widevine, stop here.
+                    if (!isWidevineClassic(localPath)) {
+                        if (listener != null) {
+                            listener.onRegistered(localPath);
+                        }
+                        return;
                     }
-                    return;
+
+
+                    try {
+                        Uri licenseUri = prepareLicenseUri(entry, flavor, DRMScheme.WidevineClassic);
+                        registerWidevineClassicAsset(context, localPath, licenseUri, listener);
+                    } catch (JSONException | IOException e) {
+                        Log.e(TAG, "Error", e);
+                        if (listener != null) {
+                            listener.onFailed(localPath, e);
+                        }
+                    }
+                } finally {
+                    cacheManager.release();
                 }
 
-                // If not widevine, stop here.
-                if (!isWidevineClassic(localPath)) {
-                    if (listener != null) {
-                        listener.onRegistered(localPath);
-                    }
-                    return;
-                } 
-                
-
-                try {
-                    Uri licenseUri = prepareLicenseUri(entry, flavor, DRMScheme.WidevineClassic);
-                    registerWidevineClassicAsset(context, localPath, licenseUri, listener);
-                } catch (JSONException | IOException e) {
-                    Log.e(TAG, "Error", e);
-                    if (listener != null) {
-                        listener.onFailed(localPath, e);
-                    }
-                }
             }
         });
 
