@@ -59,6 +59,10 @@ public class LocalAssetsManager {
         checkNotEmpty(localPath, "localPath");
 
 
+        if (! Utilities.isOnline(context)) {
+            Log.i(TAG, "Can't register/refresh when offline");
+            return false;
+        }
 
         doInBackground(new Runnable() {
             @Override
