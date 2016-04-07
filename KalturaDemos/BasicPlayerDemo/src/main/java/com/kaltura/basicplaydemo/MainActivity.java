@@ -1,9 +1,11 @@
 package com.kaltura.basicplaydemo;
 
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
+    private boolean shouldResume = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,17 +71,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         if (mPlayer != null) {
-            mPlayer.releaseAndSavePosition();
+            PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+            if (powerManager.isScreenOn()) {
+                mPlayer.releaseAndSavePosition(false);
+                shouldResume = true;
+            }
         }
         super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
+        if (!powerManager.isScreenOn()) {
+            mPlayer.getMediaControl().pause();
+            shouldResume = false;
+        }
+        super.onStop();
     }
 
     @Override
     protected void onResume() {
         if (onCreate) {
             onCreate = false;
-        } else {
+        } else if (shouldResume) {
             mPlayer.resumePlayer();
+            shouldResume = false;
         }
         super.onResume();
     }
@@ -153,15 +171,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
-            findViewById(R.id.replay).setVisibility(View.VISIBLE);
+//            findViewById(R.id.replay).setVisibility(View.VISIBLE);
         } else if (state == KPlayerState.PLAYING) {
-            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
+//            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
         }
     }
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-        mSeekBar.setProgress((int)(currentTime / playerViewController.getDurationSec() * 100));
+        mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
     }
 
     @Override

@@ -16,6 +16,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -151,12 +152,15 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         getSettings().setAllowUniversalAccessFromFileURLs(true);
         getSettings().setAllowFileAccess(true);
         getSettings().setDomStorageEnabled(true);
+        getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        getSettings().setAppCacheEnabled(false);
         this.addJavascriptInterface(this, "android");
         this.setWebViewClient(new CustomWebViewClient());
         this.setWebChromeClient(new WebChromeClient());
         this.getSettings().setUserAgentString(this.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer");
         this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         this.setBackgroundColor(0);
+        setWebContentsDebuggingEnabled(true);
     }
     
 
@@ -245,6 +249,7 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             }
             return null;
         } catch (IOException e) {
+            Log.e(TAG, "getResponse From CacheManager error::", e);
             return null;
         }
     }
@@ -287,18 +292,21 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+//            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+            Log.e("WebViewError", request.getUrl().toString());
 
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-            controlsViewClient.handleKControlsError(new KPError(errorResponse.toString()));
+//            controlsViewClient.handleKControlsError(new KPError(errorResponse.toString()));
+            Log.e("WebViewError", request.getUrl().toString());
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+//            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+            Log.e("WebViewError", error.getUrl().toString());
         }
 
         private WebResourceResponse textResponse(String text) {
