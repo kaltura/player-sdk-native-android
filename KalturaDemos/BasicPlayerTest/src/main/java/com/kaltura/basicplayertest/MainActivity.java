@@ -1,8 +1,10 @@
-package com.kaltura.basicplaydemo;
+package com.kaltura.basicplayertest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -14,6 +16,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
@@ -21,43 +25,79 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
-    private static final String TAG = "BasicPlayerDemo";
+    private static final String TAG = "BasicPlayerTest";
     private Button mPlayPauseButton;
-    private SeekBar mSeekBar;
+    //private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
     private boolean shouldResume = false;
+
+    Map <String,String> paramsMap;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         setContentView(R.layout.activity_main);
+        TextView durationTV = (TextView) findViewById(R.id.durationText);
+        durationTV.setVisibility(View.INVISIBLE);
+
+        TextView durationTV1 = (TextView) findViewById(R.id.durationText1);
+        durationTV1.setVisibility(View.INVISIBLE);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
+
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+
+        if (Intent.ACTION_VIEW.equals( intent.getAction())) {
+            paramsMap = new HashMap<>();
+            Uri uri = intent.getData();
+            Log.e(TAG,uri.toString());
+            String [] input = (uri.toString()).replace("view://", "").split("/"); //view://testId=1/entryId=1_gpzg0ebw/partnerId=1788671/uiConfId=33291342/mwEmbed=v2.41.rc9
+            for(String param : input){
+                String [] paramKeyValue = param.split("=");
+                paramsMap.put(paramKeyValue[0],paramKeyValue[1]);
+                Log.e(TAG,param);
+            }
+        }
+
         mPlayPauseButton = (Button)findViewById(R.id.button);
         mPlayPauseButton.setOnClickListener(this);
-        mSeekBar = (SeekBar)findViewById(R.id.seekBar);
-        mSeekBar.setOnSeekBarChangeListener(this);
+        //mSeekBar = (SeekBar)findViewById(R.id.seekBar);
+       // mSeekBar.setOnSeekBarChangeListener(this);
         onCreate = true;
-        getPlayer();
+        if (paramsMap != null) {
+            getPlayer();
+        }else{
+            Toast.makeText(this, "Error, intent input params are missing", Toast.LENGTH_LONG).show();
+            Log.e(TAG,"Error, intent input params are missing");
+            mPlayPauseButton.setClickable(false);
+        }
     }
 
     private PlayerViewController getPlayer() {
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-            config.addConfig("controlBarContainer.plugin", "false");
-            config.addConfig("topBarContainer.plugin", "false");
-            config.addConfig("largePlayBtn.plugin", "false");
+            //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.41.rc9/mwEmbedFrame.php", "26698911", "1831271").setEntryId("1_o426d3i4");
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/" + paramsMap.get("mwEmbed") + "/mwEmbedFrame.php", paramsMap.get("uiConfId"), paramsMap.get("partnerId")).setEntryId(paramsMap.get("entryId"));
+
+            config.addConfig("controlBarContainer.plugin", "true");
+            config.addConfig("topBarContainer.plugin", "true");
+            config.addConfig("largePlayBtn.plugin", "true");
+            config.addConfig("autoPlay", "true");
+            config.addConfig("chromecast.plugin", Boolean.TRUE.toString());
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
         }
@@ -170,16 +210,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
-//            findViewById(R.id.replay).setVisibility(View.VISIBLE);
-        } else if (state == KPlayerState.PLAYING) {
-//            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
+        Log.e("GILAD", "state " + state.name());
+        if (state == KPlayerState.PLAYING) {
+            TextView durationTV = (TextView) findViewById(R.id.durationText);
+
+            mPlayer.sendNotification("doSeek", String.valueOf(Math.round(getPlayer().getDurationSec()) - 20));
+            mPlayer.sendNotification("doPlay", null);
+
+
+            durationTV.setText("STARTED");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            durationTV.setVisibility(View.VISIBLE);
         }
+        if (state == KPlayerState.ENDED) {
+                TextView durationTV1 = (TextView) findViewById(R.id.durationText1);
+                durationTV1.setText("ENDED");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                durationTV1.setVisibility(View.VISIBLE);
+        }
+
     }
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-        mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
+       // mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
     }
 
     @Override
