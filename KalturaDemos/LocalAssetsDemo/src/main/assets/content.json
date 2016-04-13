@@ -1,0 +1,19 @@
+{
+  "baseConfig": {
+    "base": {
+      "server": "http://kgit.html5video.org/tags/v2.42/mwEmbedFrame.php",
+      "partnerId": "1851571",
+      "uiConfId": "31578861"
+    }
+  },
+  "items": [
+    {
+      "name": "kaltura", "entryId": "1_cvd1usav", "flavorId": "1_wabcvjtu", "localPath": null, 
+      "remoteUrl": "http://cfvod.kaltura.com/pd/p/1851571/sp/185157100/serveFlavor/entryId/1_cvd1usav/v/11/flavorId/1_wabcvjtu/name/a.mp4"
+    },
+    {
+      "name": "cat", "entryId": "1_aegxx56o", "flavorId": "1_6dadj61z", "localPath": "/sdcard/Download/cat.mp4",
+      "remoteUrl": "http://cfvod.kaltura.com/pd/p/1851571/sp/185157100/serveFlavor/entryId/1_aegxx56o/v/11/flavorId/1_6dadj61z/name/a.mp4"
+    }
+  ]
+}
