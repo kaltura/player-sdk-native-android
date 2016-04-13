@@ -3,6 +3,7 @@ package com.kaltura.playersdk;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
@@ -280,6 +281,18 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     }
 
     private class CustomWebViewClient extends WebViewClient {
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            Log.d(TAG, "onPageStarted:" + url);
+            super.onPageStarted(view, url, favicon);
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            Log.d(TAG, "onPageFinished:" + url);
+            super.onPageFinished(view, url);
+        }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Log.d(TAG, "shouldOverrideUrlLoading: " + url);
