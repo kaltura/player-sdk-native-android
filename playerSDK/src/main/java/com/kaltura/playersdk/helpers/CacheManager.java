@@ -93,33 +93,20 @@ public class CacheManager {
 
     private boolean shouldStore(Uri uri, Map<String, String> headers, String method) {
         
-        if (!method.equalsIgnoreCase("GET")) {
+        if (! method.equalsIgnoreCase("GET")) {
             return false;   // only cache GETs
         }
         
-        if (!(uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
+        if (! (uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
             return false;   // only cache http(s)
         }
         
-        String uriString = uri.toString();
-//        JSONObject conditions = getCacheConditions();
-
-        String key = uriString.startsWith(mBaseURL) ? "withDomain" : "substring";
-
-        try {
-            JSONObject object = mCacheConditions.getJSONObject(key);
-            for (Iterator<String> it = object.keys(); it.hasNext(); ) {
-                String str = it.next();
-                if (uriString.contains(str)) {
-                    return true;
-                }
-            }
-
-        } catch (JSONException e) {
-            Log.w(TAG, "Can't find required configuration data in " + CACHED_STRINGS_JSON, e);
+        // #HACK# until we implement do-not-cache patterns.
+        if (uri.getHost().equals("stats.kaltura.com")) {
+            return false;
         }
-
-        return false;
+        
+        return true;
     }
 
     private void deleteLessUsedFiles(long newCacheSize) {
@@ -212,7 +199,8 @@ public class CacheManager {
             contentType = (String)fileParams.get(CacheSQLHelper.COL_MIMETYPE);
             encoding = (String)fileParams.get(CacheSQLHelper.COL_ENCODING);
             mSQLHelper.updateDate(fileName);
-            return new WebResourceResponse(contentType, encoding, inputStream);
+            WebResourceResponse response = new WebResourceResponse(contentType, encoding, inputStream);
+            return response;
 
         } else {
             logCacheMiss(requestUrl, fileName);
