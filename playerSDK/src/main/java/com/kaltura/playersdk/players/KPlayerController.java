@@ -55,6 +55,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             isIMAActive = false;
             mActivity.clear();
             mActivity = null;
+            removeAdPlayer();
         }
         playerListener.eventWithJSON(player, eventName, jsonValue);
     }

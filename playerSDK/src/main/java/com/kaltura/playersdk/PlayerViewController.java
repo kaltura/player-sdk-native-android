@@ -40,6 +40,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -89,8 +90,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mWebView.triggerEvent("chromecastDeviceDisConnected", null);
             playerController.removeCastPlayer();
         } else {
-//            playerController.startCasting(mActivity);
-            mWebView.triggerEvent("onNativeRequestSessionSuccess", null);
+            mWebView.triggerEvent("chromecastDeviceConnected", null);
         }
 
     }
@@ -127,7 +127,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void onConnecting() {
-        mWebView.triggerEvent("showConnectingMessage", null);
+        mWebView.triggerEvent("chromecastShowConnectingMsg", null);
     }
     
     @Override
@@ -138,9 +138,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         playerController.startCasting(apiClient);
     }
 
+    private KRouterManager getRouterManager() {
+        return (KRouterManager)getKCastRouterManager();
+    }
+
     @Override
     public void setOnTouchListener(OnTouchListener l) {
         mWebView.setOnTouchListener(l);
+    }
+
+    public KCastRouterManager getKCastRouterManager() {
+        if (routerManager == null) {
+            routerManager = new KRouterManager(mActivity, this);
+        }
+        return routerManager;
     }
 
     // trigger timeupdate events
@@ -165,16 +176,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         super(context);
     }
 
-    public KCastRouterManager getKCastRouterManager() {
-        if (routerManager == null) {
-            routerManager = new KRouterManager(mActivity, this);
-        }
-        return routerManager;
-    }
 
-    private KRouterManager getRouterManager() {
-        return (KRouterManager)getKCastRouterManager();
-    }
+
+
 
     public PlayerViewController(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -922,15 +926,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private void sendCCRecieverMessage(String args) {
         String decodeArgs = null;
-        JSONArray jsonArgs = null;
+
         try {
             decodeArgs = URLDecoder.decode(args, "UTF-8");
-            Log.d(getClass().getSimpleName(), "sendCCRecieverMessage : " + decodeArgs);
-            jsonArgs = new JSONArray(decodeArgs);
-            getRouterManager().sendMessage(jsonArgs.getString(0), jsonArgs.getString(1));
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        getRouterManager().sendMessage(decodeArgs);
+        Log.d(getClass().getSimpleName(), "sendCCRecieverMessage : " + decodeArgs);
+        getRouterManager().sendMessage(decodeArgs);
+
     }
 
     private void loadCCMedia() {

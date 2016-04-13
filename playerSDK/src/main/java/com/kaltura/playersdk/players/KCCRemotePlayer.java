@@ -127,7 +127,6 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                                 if (isConnecting) {
                                     isConnecting = false;
                                     mPlayerListener.eventWithValue(KCCRemotePlayer.this, "hideConnectingMessage", null);
-                                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, "chromecastDeviceConnected", null);
                                 }
 
                                 mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));

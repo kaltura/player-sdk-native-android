@@ -1,11 +1,13 @@
 package com.kaltura.basicplayerdemo;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -17,10 +19,13 @@ import android.widget.SeekBar;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.casting.KCastRouterManagerListener;
+import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -31,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
     private boolean shouldResume = false;
+    private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
+    private boolean isCCActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,15 +61,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-            config.addConfig("controlBarContainer.plugin", "false");
-            config.addConfig("topBarContainer.plugin", "false");
-            config.addConfig("largePlayBtn.plugin", "false");
+            KPPlayerConfig config = new KPPlayerConfig("http://192.168.161.180/html5.kaltura/mwEmbed/mwEmbedFrame.php", "21099702", "243342").setEntryId("0_l1v5vzh3");
+            config.addConfig("chromecast.plugin", "true");
+            config.addConfig("chromecast.applicationID", "5247861F");
+            config.addConfig("chromecast.useKalturaPlayer", "true");
+            config.addConfig("debugKalturaPlayer", "true");
+            config.addConfig("debugReceiver", "true");
+            mPlayer.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
+                @Override
+                public void castButtonClicked() {
+                    if (!isCCActive) {
+                        presentCCDevices();
+                    } else {
+                        mPlayer.getKCastRouterManager().disconnect();
+                    }
+                }
+
+                @Override
+                public void castDeviceConnectionState(boolean isConnected) {
+                    isCCActive = isConnected;
+                }
+
+                @Override
+                public void didDetectCastDevices(boolean didDetect) {
+
+                }
+
+                @Override
+                public void addedCastDevice(KRouterInfo info) {
+                    mRouterInfos.add(info);
+                }
+
+                @Override
+                public void removedCastDevice(KRouterInfo info) {
+                    mRouterInfos.remove(info);
+                }
+            });
+//            config.addConfig("controlBarContainer.plugin", "false");
+//            config.addConfig("topBarContainer.plugin", "false");
+//            config.addConfig("largePlayBtn.plugin", "false");
+//            KPPlayerConfig config = new KPPlayerConfig()
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
         }
         return mPlayer;
     }
+
+    private void presentCCDevices() {
+        final String[] items = new String[mRouterInfos.size()];
+        for (int i = 0; i < items.length; i++   ) {
+            items[i] = mRouterInfos.get(i).getRouterName();
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Make your selection");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                // Do something with the selection
+//                mDoneButton.setText(items[item]);
+                mPlayer.getKCastRouterManager().connectDevice(mRouterInfos.get(item).getRouterId());
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+    }
+
 
     private RelativeLayout getPlayerContainer() {
         return (RelativeLayout)findViewById(R.id.playerContainer);
