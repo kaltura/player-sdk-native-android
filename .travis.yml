@@ -23,7 +23,8 @@ script:
 - ./gradlew :testapp:assembleDebug
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
-- ./pull-artifacts-upload.sh
+- ./travis-pull-artifacts-upload.sh
+- ./travis-verify-no-hacks.sh
 deploy:
   provider: releases
   draft: true
