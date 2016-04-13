@@ -23,6 +23,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
             Item item = mContentItems.get(mContentMap.get(entryId));
 
             if (item != null) {
-                if (item.localPath != null) {
+                if (item.isDownloaded()) {
                     return item.localPath;
                 } else {
                     return item.contentUrl;
@@ -193,8 +194,12 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
 
         @Override
         public String toString() {
-            String status = localPath == null ? "(online)" : "(offline)";
-            return name + " " + status; 
+            String status = isDownloaded() ? "downloaded" : "online";
+            return name + " - " + status; 
+        }
+        
+        public boolean isDownloaded() {
+            return localPath != null && new File(localPath).canRead();
         }
     }
     
