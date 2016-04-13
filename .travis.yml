@@ -21,10 +21,10 @@ script:
 - ./gradlew :testapp:assembleRelease
 - ./gradlew :kalturaPlay:assembleDebug
 - ./gradlew :testapp:assembleDebug
+- ./travis-verify-no-hacks.sh
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
 - ./travis-pull-artifacts-upload.sh
-- ./travis-verify-no-hacks.sh
 deploy:
   provider: releases
   draft: true
