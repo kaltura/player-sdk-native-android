@@ -3,7 +3,7 @@
     "base": {
       "server": "http://kgit.html5video.org/tags/v2.42/mwEmbedFrame.php",
       "partnerId": "1851571",
-      "uiConfId": "31578861"
+      "uiConfId": "31956421"
     }
   },
   "items": [
@@ -14,6 +14,10 @@
     {
       "name": "cat", "entryId": "1_aegxx56o", "flavorId": "1_6dadj61z", "localPath": "/sdcard/Download/cat.mp4",
       "remoteUrl": "http://cfvod.kaltura.com/pd/p/1851571/sp/185157100/serveFlavor/entryId/1_aegxx56o/v/11/flavorId/1_6dadj61z/name/a.mp4"
+    },
+    {
+      "name": "sintel - drm", "entryId": "0_pl5lbfo0", "flavorId": "1_e0qtaj1j", "localPath": "/sdcard/Download/sintel.wvm",
+      "downloadUrl": "http://cdnapi.kaltura.com/p/1851571/sp/185157100/playManifest/entryId/0_pl5lbfo0/flavorId/1_e0qtaj1j/format/url/protocol/http/uiConfId/31578861/a.wvm"
     }
   ]
 }
