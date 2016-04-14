@@ -186,9 +186,23 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     }
 
-    public void savePlayerState() {
+    public void lightFreeze(boolean saveState){
+        if(player == null){
+            return;
+        }
+
+        isBackgrounded = true;
+        if(saveState){
+            savePlayerState(false);
+        } else {
+            pause();
+        }
+    }
+
+    public void savePlayerState(boolean isOnBackground) {
+        isBackgrounded = isOnBackground;
         if (player != null) {
-            isPlaying = player.isPlaying();
+            isPlaying = player.isPlaying() || isIMAActive;
             pause();
         } else {
             isPlaying = false;
@@ -209,9 +223,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         isBackgrounded = true;
         if (player != null) {
             if (shouldSaveState) {
-                savePlayerState();
+                savePlayerState(false);
+            } else {
+                isPlaying = false;
+                pause();
             }
-            pause();
             player.freezePlayer();
         }
     }
@@ -397,7 +413,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
                 isPlayerCanPlay = true;
-                if (mActivity != null) {
+                if (mActivity != null && !isIMAActive) {
                     addAdPlayer();
                 }
                 if (mCurrentPlaybackTime > 0) {

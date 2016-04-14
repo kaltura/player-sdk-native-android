@@ -181,10 +181,11 @@ public class KWVCPlayer
                 changePlayPauseState("pause");
             }
         }
-        saveState();
-        if (mPlayheadTracker != null) {
+        //saveState();
+        /*if (mPlayheadTracker != null) {
             mPlayheadTracker.stop();
-        }
+        }*/
+        stopPlayheadTracker();
     }
 
     private void changePlayPauseState(final String state) {
@@ -229,10 +230,11 @@ public class KWVCPlayer
 
     private void savePlayerState() {
         saveState();
-        if (mPlayheadTracker != null) {
+        pause();
+        /*if (mPlayheadTracker != null) {
             mPlayheadTracker.stop();
             mPlayheadTracker = null;
-        }
+        }*/
     }
 
     private void recoverPlayerState() {
@@ -259,16 +261,22 @@ public class KWVCPlayer
 
     @Override
     public void removePlayer() {
+        saveState();
+        pause();
         if (mPlayer != null) {
             mPlayer.stopPlayback();
             removeView(mPlayer);
             mPlayer = null;
         }
+        stopPlayheadTracker();
+        mPrepareState = PrepareState.NotPrepared;
+    }
+
+    private void stopPlayheadTracker() {
         if (mPlayheadTracker != null) {
             mPlayheadTracker.stop();
             mPlayheadTracker = null;
         }
-        mPrepareState = PrepareState.NotPrepared;
     }
 
     @Override

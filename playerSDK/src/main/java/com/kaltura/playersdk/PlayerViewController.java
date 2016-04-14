@@ -274,8 +274,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         return currentURL;
     }
 
+    public void freeze(){
+        if(playerController != null) {
+            mWebView.freeze();
+            playerController.pause();
+        }
+    }
+
     public void saveState() {
-        playerController.savePlayerState();
+        saveState(false);
+    }
+
+    public void saveState(boolean isOnBackground) {
+        mWebView.freeze();
+        playerController.savePlayerState(isOnBackground);
     }
 
     public void resumeState() {
@@ -287,16 +299,21 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * This method should be called when the main activity is paused.
      */
     public void releaseAndSavePosition() {
-        if (playerController != null)
-         playerController.removePlayer(false);
+        releaseAndSavePosition(false);
     }
 
     public void releaseAndSavePosition(boolean shouldResumeState) {
-        playerController.removePlayer(shouldResumeState);
+        if (playerController != null) {
+            mWebView.freeze();
+            playerController.removePlayer(shouldResumeState);
+        }
     }
 
     public void resetPlayer() {
-        playerController.reset();
+        if (playerController != null) {
+            mWebView.freeze();
+            playerController.reset();
+        }
     }
 
     /**
@@ -656,8 +673,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
+            KPlayerState kState = KPlayerState.getStateForEventName(eventName);
             for (KPEventListener listener : eventListeners) {
-                KPlayerState kState = KPlayerState.getStateForEventName(eventName);
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
@@ -690,6 +707,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void pause() {
+        mWebView.freeze();
         playerController.pause();
     }
     
