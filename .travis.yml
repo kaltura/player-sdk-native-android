@@ -5,11 +5,12 @@ android:
   - tools
   - platform-tools
   - build-tools-23.0.2
+  - build-tools-23.0.3
   - android-23
   - extra-android-m2repository
   - extra-google-m2repository
 env:
-  - BUILD_DEMOS: true
+  - BUILD_DEMOS: false
 before_install:
   - ./travis-verify-version-tag.sh
 cache:
