@@ -2,11 +2,30 @@
 
 abstract class AbstractList
 abstract AbstractCollection
-interface List
-interface Collection
+interface KCastRouterManagerListener {
+    castButtonClicked
+    castDeviceConnectionState: boolean isConnected
+    didDetectCastDevices:boolean didDetect
+    addedCastDevice:KRouterInfo info
+    removedCastDevice:KRouterInfo info
+}
 
-List <|-- AbstractList
-Collection <|-- AbstractCollection
+interface KCastRouterManager {
+    disconnect
+    connectDevice: String deviceId
+    setCastRouterManagerListener: KCastRouterManagerListener listener
+    enableKalturaCastButton: boolean enabled
+}
+
+interface KRouterManagerListener {
+}
+
+class KRouterManager {
+
+}
+
+KCastRouterManager -* KCastRouterManagerListener
+KRouterManager -* KRouterManagerListener
 
 Collection <|- List
 AbstractCollection <|- AbstractList
