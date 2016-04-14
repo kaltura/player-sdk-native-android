@@ -438,6 +438,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     contentCompleted(null);
                 }
                 break;
+            case KPlayerCallback.REMOVE_ADS:
+                removeAdPlayer();
+                break;
         }
     }
 

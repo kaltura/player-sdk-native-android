@@ -54,10 +54,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-            config.addConfig("controlBarContainer.plugin", "false");
-            config.addConfig("topBarContainer.plugin", "false");
-            config.addConfig("largePlayBtn.plugin", "false");
+            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "30535492", "591531").setEntryId("0_jhe9x4qi");
+//            config.addConfig("controlBarContainer.plugin", "false");
+//            config.addConfig("topBarContainer.plugin", "false");
+//            config.addConfig("largePlayBtn.plugin", "false");
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
         }
