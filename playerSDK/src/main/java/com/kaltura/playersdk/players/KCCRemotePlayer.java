@@ -153,7 +153,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
         if (currentPlaybackTime > 0) {
             mCurrentPlaybackTime = currentPlaybackTime;
             stopTimer();
-            mRemoteMediaPlayer.seek(mApiClient, (long) (currentPlaybackTime)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            mRemoteMediaPlayer.seek(mApiClient, (currentPlaybackTime)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                 @Override
                 public void onResult(@NonNull RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                     Status status = mediaChannelResult.getStatus();
@@ -233,7 +233,12 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
 
     @Override
     public void removePlayer() {
-
+        mRemoteMediaPlayer.stop(mApiClient);
+        mRemoteMediaPlayer.setOnStatusUpdatedListener(null);
+        mRemoteMediaPlayer.setOnMetadataUpdatedListener(null);
+        mRemoteMediaPlayer.setOnPreloadStatusUpdatedListener(null);
+        mRemoteMediaPlayer = null;
+        stopTimer();
     }
 
     @Override

@@ -163,14 +163,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         isCasting = false;
         switchingBackFromCasting = true;
         ((View) player).setVisibility(View.VISIBLE);
-        castPlayer.removePlayer();
         player.setPlayerCallback(this);
         player.setPlayerListener(playerListener);
         player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
         player.play();
+        removeCastPlayer();
     }
 
     public void removeCastPlayer() {
+        castPlayer.removePlayer();
         castPlayer.setPlayerCallback(null);
         castPlayer.setPlayerListener(null);
         castPlayer = null;

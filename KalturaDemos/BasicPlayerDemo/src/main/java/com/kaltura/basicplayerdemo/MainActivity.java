@@ -65,8 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.addConfig("chromecast.plugin", "true");
             config.addConfig("chromecast.applicationID", "5247861F");
             config.addConfig("chromecast.useKalturaPlayer", "true");
-            config.addConfig("debugKalturaPlayer", "true");
-            config.addConfig("debugReceiver", "true");
+            config.addConfig("chromecast.receiverLogo", "true");
             mPlayer.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
                 @Override
                 public void castButtonClicked() {

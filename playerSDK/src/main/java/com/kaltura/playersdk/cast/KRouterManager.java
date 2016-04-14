@@ -10,6 +10,7 @@ import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
+import com.google.android.gms.cast.LaunchOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -21,6 +22,7 @@ import com.kaltura.playersdk.casting.KRouterInfo;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -67,6 +69,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
 
                 @Override
                 public void readyForMedia() {
+                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
                     mListener.onStartCasting(mApiClient, mSelectedDevice);
                 }
             });
@@ -258,7 +261,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                 // In case of kaltura receiver is loaded, open channel for sneding messages
             } else if (mChannel != null){
                 try {
-                    Cast.CastApi.launchApplication(mApiClient, mCastAppID, false)
+                    Cast.CastApi.launchApplication(mApiClient, mCastAppID, new LaunchOptions())
                             .setResultCallback(
                                     new ResultCallback<Cast.ApplicationConnectionResult>() {
                                         @Override
