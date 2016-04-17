@@ -25,12 +25,15 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
 
-    private final String adUrl = "http://html5demos.com/assets/dizzy.mp4";
+    private final String adUrl = "http://dpndczlul8yjf.cloudfront.net/creatives/assets/9d266094-8d1e-49e3-b13c-249515529bfc/c01b6747-0a3b-4480-9286-811d469b977d.mp4";
     private static final String TAG = "KalturaMultiPlayer";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -42,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     boolean adPlayerIsPlaying;
     boolean adIsDone;
     boolean kPlayerReady;
+    private int lastGroupIndex = 0;
 
 
     @Override
@@ -69,14 +73,95 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private PlayerViewController getPlayer() {
         if (mPlayer == null) {
-            mPlayer = (PlayerViewController)findViewById(com.kaltura.multiplayerdemo.R.id.player);
+            mPlayer = (PlayerViewController) findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
-            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-            config.addConfig("topBarContainer.hover", "true");
-            config.addConfig("controlBarContainer.plugin", "true");
-            config.addConfig("durationLabel.prefix", " ");
-            config.addConfig("largePlayBtn.plugin", "true");
+            String json = "{\n" +
+                    "  \"base\": {\n" +
+                    "    \"server\": \"http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php\",\n" +
+//
+                    "    \"partnerId\": \"\",\n" +
+                    "    \"uiConfId\": \"32626752\",\n" +
+                    //"    \"entryId\": \"374130\"\n" +
+                    "    \"entryId\": \"384080\"\n" +
+
+
+
+                    "  },\n" +
+                    "  \"extra\": {\n" +
+                    "    \"watermark.plugin\": \"true\",\n" +
+                    "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
+                    "    \"watermark.title\": \"Viacom18\",\n" +
+                    "    \"watermark.cssClass\": \"topRight\",\n" +
+                    "    \n" +
+                    "    \"controlBarContainer.hover\": true,\n" +
+                    "    \"controlBarContainer.plugin\": true,\n" +
+//                    "    \"adultPlayer.plugin\": false,\n" +
+                    "    \"kidsPlayer.plugin\": true,\n" +
+                    "    \"nextBtnComponent.plugin\": true,\n" +
+                    "    \"prevBtnComponent.plugin\": true,\n" +
+                    "    \n" +
+                    "    \"liveCore.disableLiveCheck\": true,\n" +
+                    "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
+                    "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
+                    "    \"proxyData\": {\n";
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2 /*4.3*/) {
+                json = json + "\"config\": {\n" +
+                        "                                    \"flavorassets\": {\n" +
+                        "                                        \"filters\": {\n" +
+                        "                                            \"include\": {\n" +
+                        "                                                \"Format\": [\n" +
+                        "                                                    \"dash Main\"\n" +
+                        "                                                ]\n" +
+                        "                                            }\n" +
+                        "                                        }\n" +
+                        "                                    }\n" +
+                        "                                },";
+            }
+            json = json + "      \"MediaID\": \"384080\",\n" +
+                    "      \"iMediaID\": \"384080\",\n" +
+                    "      \"mediaType\": \"0\",\n" +
+                    "      \"picSize\": \"640x360\",\n" +
+                    "      \"withDynamic\": \"false\",\n" +
+                    "      \"initObj\": {\n" +
+                    "        \"ApiPass\": \"11111\",\n" +
+                    "        \"ApiUser\": \"tvpapi_225\",\n" +
+                    "        \"DomainID\": 0,\n" +
+                    "        \"Locale\": {\n" +
+                    "            \"LocaleCountry\": \"null\",\n" +
+                    "            \"LocaleDevice\": \"null\",\n" +
+                    "            \"LocaleLanguage\": \"null\",\n" +
+                    "            \"LocaleUserState\": \"Unknown\"\n" +
+                    "        },\n" +
+                    "        \"Platform\": \"Cellular\",\n" +
+                    "        \"SiteGuid\": \"\",\n" +
+                    "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}\n";
+
+
+            KPPlayerConfig config = null;
+            try {
+                config = KPPlayerConfig.fromJSONObject(new JSONObject(json));
+
+                config.addConfig("topBarContainer.hover", "true");
+                config.addConfig("controlBarContainer.plugin", "true");
+                config.addConfig("durationLabel.prefix", " ");
+                config.addConfig("largePlayBtn.plugin", "true");
+
+                config.addConfig("scrubber.sliderPreview", "false");
+                //config.addConfig("largePlayBtn","false");
+                //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
+                config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
+                mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
+                mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
 
@@ -242,6 +327,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         adPlayerIsPlaying = false;
                         adIsDone = true;
                         removeAdPlayer();
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                            mPlayer.test();
+                        }
                         if (kPlayerReady){
                             Log.e(TAG, "KPLAY FROM NORMAL PATH");
                             mPlayer.getMediaControl().start();
@@ -273,14 +361,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void removeAdPlayer() {
-        if (mPlayer != null) {
-            mPlayer.removeView(adPlayerContainer);
-        }
-        if (adPlayerContainer != null) {
-            adPlayerContainer.setVisibility(View.GONE);
-            adPlayerContainer = null;
-        }
-        mAdPlayer = null;
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            Log.e("GILAD", "removeAdPlayer");
+            if (adPlayerContainer != null) {
 
+                adPlayerContainer.setVisibility(View.GONE);
+                mPlayer.setVisibility(View.VISIBLE);
+                ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
+                int index = myViewGroup.indexOfChild(adPlayerContainer);
+                Log.d("GILAD", "myViewGroup index =" + index);
+                for(int i = lastGroupIndex; i<index; i++)
+                {
+                    Log.d("GILAD", "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
+                    myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
+
+                }
+                myViewGroup.removeView(adPlayerContainer);
+                lastGroupIndex++;
+                //adPlayerContainer = null;
+            }
+            mAdPlayer = null;
+
+        } else {
+            mAdPlayer.release();
+            mAdPlayer.moveSurfaceToBackground();
+            mPlayer.removeView(adPlayerContainer);
+            mAdPlayer = null;
+        }
     }
 }

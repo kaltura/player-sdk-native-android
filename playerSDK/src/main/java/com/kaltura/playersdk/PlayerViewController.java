@@ -447,7 +447,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         invalidate();
     }
 
-
+    public void test() {
+        playerController.test();
+    }
     /**
      * Sets the player's dimensions. Should be called for any player redraw
      * (for example, in screen rotation, if supported by the main activity)

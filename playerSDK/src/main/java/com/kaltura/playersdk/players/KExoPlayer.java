@@ -185,8 +185,14 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             }
         };
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
+//        this.addView(mSurfaceView, layoutParams);
+    }
+
+    public void addSurface() {
+        LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mSurfaceView, layoutParams);
     }
+
     
     @Override
     public void setCurrentPlaybackTime(long time) {

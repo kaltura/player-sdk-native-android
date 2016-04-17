@@ -302,8 +302,9 @@ public class KWVCPlayer
         // Start preparing.
         mPrepareState = PrepareState.Preparing;
         mPlayer = new VideoView(getContext());
-        LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
-        this.addView(mPlayer, lp);
+//        LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
+//        this.addView(mPlayer, lp);
+
 
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override

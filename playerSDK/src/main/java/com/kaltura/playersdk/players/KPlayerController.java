@@ -349,6 +349,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    public void test() {
+        ((KExoPlayer)player).addSurface();
+    }
+
     public float getCurrentPlaybackTime() {
         return this.player.getCurrentPlaybackTime() / 1000f;
     }
