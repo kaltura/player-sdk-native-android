@@ -52,8 +52,8 @@ public class CacheManager {
         Log.d(TAG, "CACHE MISS: " + fileId + " : " + url);
     }
     
-    private void logCacheIgnored(Uri url) {
-        Log.d(TAG, "CACHE IGNORE: " + url);
+    private void logCacheIgnored(Uri url, String method) {
+        Log.d(TAG, "CACHE IGNORE: " + method + " " + url);
     }
 
     private void logCacheSaved(Uri url, String fileId) {
@@ -93,33 +93,20 @@ public class CacheManager {
 
     private boolean shouldStore(Uri uri, Map<String, String> headers, String method) {
         
-        if (!method.equalsIgnoreCase("GET")) {
+        if (! method.equalsIgnoreCase("GET")) {
             return false;   // only cache GETs
         }
         
-        if (!(uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
+        if (! (uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
             return false;   // only cache http(s)
         }
         
-        String uriString = uri.toString();
-//        JSONObject conditions = getCacheConditions();
-
-        String key = uriString.startsWith(mBaseURL) ? "withDomain" : "substring";
-
-        try {
-            JSONObject object = mCacheConditions.getJSONObject(key);
-            for (Iterator<String> it = object.keys(); it.hasNext(); ) {
-                String str = it.next();
-                if (uriString.contains(str)) {
-                    return true;
-                }
-            }
-
-        } catch (JSONException e) {
-            Log.w(TAG, "Can't find required configuration data in " + CACHED_STRINGS_JSON, e);
+        // #HACK# until we implement do-not-cache patterns.
+        if (uri.getHost().equals("stats.kaltura.com")) {
+            return false;
         }
-
-        return false;
+        
+        return true;
     }
 
     private void deleteLessUsedFiles(long newCacheSize) {
@@ -179,8 +166,8 @@ public class CacheManager {
         InputStream inputStream = resp.getData();
 
         // Must fully read the input stream so that it gets cached. But we don't need the data now.
-        byte[] buffer = new byte[1024];
         try {
+            byte[] buffer = new byte[1024];
             //noinspection StatementWithEmptyBody
             while (inputStream.read(buffer, 0, buffer.length) >= 0);
         } finally {
@@ -190,17 +177,18 @@ public class CacheManager {
     
     public WebResourceResponse getResponse(final Uri requestUrl, Map<String, String> headers, String method) throws IOException {
         if (!shouldStore(requestUrl, headers, method)) {
-            logCacheIgnored(requestUrl);
+            logCacheIgnored(requestUrl, method);
             return null;
         }
-        if (!Utilities.isOnline(mAppContext) && requestUrl.toString().contains("playManifest")) {
+        boolean online = Utilities.isOnline(mAppContext);
+        if (!online && requestUrl.toString().contains("playManifest")) {
             return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
         }
-        final InputStream inputStream;
+        InputStream inputStream;
         String fileName = getCacheFileId(requestUrl);
         File targetFile = new File(mCachePath, fileName);
         String contentType;
-        String encoding = null;
+        String encoding;
         HashMap<String, Object> fileParams = mSQLHelper.fetchParamsForFile(fileName);
 
         if (mSQLHelper.sizeForId(fileName) > 0 && fileParams != null) {
@@ -211,10 +199,15 @@ public class CacheManager {
             contentType = (String)fileParams.get(CacheSQLHelper.COL_MIMETYPE);
             encoding = (String)fileParams.get(CacheSQLHelper.COL_ENCODING);
             mSQLHelper.updateDate(fileName);
-            return new WebResourceResponse(contentType, encoding, inputStream);
+            WebResourceResponse response = new WebResourceResponse(contentType, encoding, inputStream);
+            return response;
 
         } else {
             logCacheMiss(requestUrl, fileName);
+            
+            if (!online) {
+                Log.e(TAG, "Error: device is offline and response is not cached.");
+            }
             
             return getResponseFromNetwork(requestUrl, headers, method, fileName, targetFile);
         }
@@ -242,7 +235,7 @@ public class CacheManager {
                 encoding = contentTypeParts[1].trim();
             }
             mSQLHelper.addFile(fileName, contentType, encoding);
-            inputStream = new CachingInputStream(targetFile.getAbsolutePath(), url.openStream(), new CachingInputStream.KInputStreamListener() {
+            inputStream = new CachingInputStream(targetFile.getAbsolutePath(), connection.getInputStream(), new CachingInputStream.KInputStreamListener() {
                 @Override
                 public void streamClosed(long fileSize, String filePath) {
                     int trimLength = mCachePath.length();
@@ -272,5 +265,12 @@ public class CacheManager {
             }
         }
         return md5(requestUrl.toString());
+    }
+
+    public void release() {
+        if (mSQLHelper != null) {
+            mSQLHelper.close();
+            mSQLHelper = null;
+        }
     }
 }

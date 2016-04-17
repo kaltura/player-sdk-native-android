@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -75,6 +74,15 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         } finally {
             super.finalize();
         }
+    }
+
+    @Override
+    public synchronized void close() {
+        if (mDatabase != null) {
+            mDatabase.close();
+            mDatabase = null;
+        }
+        super.close();
     }
 
     public void addFile(String fileId, String mimeType, String encoding) {

@@ -114,7 +114,17 @@ public class WidevineDrmClient {
     
     public WidevineDrmClient(Context context) {
 
-        mDrmManager = new DrmManagerClient(context);
+        mDrmManager = new DrmManagerClient(context) {
+            @Override
+            protected void finalize() throws Throwable {
+                // Release on finalize. Doesn't matter when, just prevent Android's CloseGuard errors.
+                try {
+                    release();
+                } finally {
+                    super.finalize();
+                }
+            }
+        };
 
         // Detect if this device can play widevine classic
         if (! mDrmManager.canHandle("", WIDEVINE_MIME_TYPE)) {
@@ -156,18 +166,6 @@ public class WidevineDrmClient {
         registerPortal();
     }
     
-    @Override
-    protected void finalize() throws Throwable {
-        // Prevent Android's CloseGuard from shouting at us.
-        // We need the drmManagerClient to be released AT SOME POINT, doesn't matter when.
-        try {
-            Log.d(TAG, "finalize - release");
-            mDrmManager.release();
-            mDrmManager = null;
-        } finally {
-            super.finalize();
-        }
-    }
 
     private void logEvent(DrmEvent event) {
 //		if (! BuildConfig.DEBUG) {
@@ -330,7 +328,7 @@ public class WidevineDrmClient {
         
         return rights;
     }
-
+    
     private static void safeClose(FileInputStream fis) {
         if (fis != null) {
             try {
