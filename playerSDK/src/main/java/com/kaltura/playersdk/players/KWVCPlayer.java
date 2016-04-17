@@ -220,6 +220,17 @@ public class KWVCPlayer
     }
 
     @Override
+    public void attachSurfaceViewToPlayer() {
+        // not required in case of multiplayer and WV classic
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+
+    }
+
+
+    @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
     }
@@ -273,6 +284,11 @@ public class KWVCPlayer
         if (mPlayer != null) {
             mPlayer.resume();
         }
+    }
+
+    @Override
+    public boolean isDRMSrc() {
+        return true;
     }
 
     @Override
@@ -397,6 +413,11 @@ public class KWVCPlayer
             public void run() {
                 try {
                     float playbackTime;
+                    if (mPlayer.getCurrentPosition() == mPlayer.getDuration()){
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.ENDED);
+
+                    }
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));

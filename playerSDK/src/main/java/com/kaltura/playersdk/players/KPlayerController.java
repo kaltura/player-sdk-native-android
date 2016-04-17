@@ -349,10 +349,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void test() {
-        ((KExoPlayer)player).addSurface();
+    public void attachView() {
+        player.attachSurfaceViewToPlayer();
     }
 
+    public void detachView() {
+        player.detachSurfaceViewFromPlayer();
+    }
+
+    public boolean isDRMSrc() {
+        return player.isDRMSrc();
+    }
     public float getCurrentPlaybackTime() {
         return this.player.getCurrentPlaybackTime() / 1000f;
     }
