@@ -41,10 +41,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean onCreate = false;
 
     private FrameLayout adPlayerContainer;
-    SimpleVideoPlayer mAdPlayer;
-    boolean adPlayerIsPlaying;
-    boolean adIsDone;
-    boolean kPlayerReady;
+    private SimpleVideoPlayer mAdPlayer;
+    private boolean adPlayerIsPlaying;
+    private boolean adIsDone;
+    private boolean kPlayerReady;
     private int lastGroupIndex = 0;
 
 
