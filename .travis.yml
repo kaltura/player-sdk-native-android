@@ -5,9 +5,12 @@ android:
   - tools
   - platform-tools
   - build-tools-23.0.2
+  - build-tools-23.0.3
   - android-23
   - extra-android-m2repository
   - extra-google-m2repository
+env:
+  - BUILD_DEMOS: false
 before_install:
   - ./travis-verify-version-tag.sh
 cache:
@@ -17,14 +20,11 @@ cache:
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 script:
-- ./gradlew :kalturaPlay:assembleRelease
-- ./gradlew :testapp:assembleRelease
-- ./gradlew :kalturaPlay:assembleDebug
-- ./gradlew :testapp:assembleDebug
-- ./travis-verify-no-hacks.sh
+  - ./travis-build.sh
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
 - ./travis-pull-artifacts-upload.sh
+- ./travis-verify-no-hacks.sh
 deploy:
   provider: releases
   draft: true
