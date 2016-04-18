@@ -39,4 +39,5 @@ public interface KPlayer {
 
     void detachSurfaceViewFromPlayer();
 
+    void setPrepareWithConfigurationMode();
 }

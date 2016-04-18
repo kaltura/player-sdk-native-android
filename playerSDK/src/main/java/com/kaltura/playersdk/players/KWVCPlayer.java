@@ -229,6 +229,10 @@ public class KWVCPlayer
 
     }
 
+    @Override
+    public void setPrepareWithConfigurationMode() {
+
+    }
 
     @Override
     public void changeSubtitleLanguage(String languageCode) {

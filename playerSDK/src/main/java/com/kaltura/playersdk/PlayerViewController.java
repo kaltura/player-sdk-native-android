@@ -77,7 +77,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private Set<KPEventListener> eventListeners;
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
-
+    private boolean prepareWithConfigurationMode = false;
     private KRouterManager routerManager;
 
 
@@ -191,6 +191,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
         mConfig = configuration;
+        if (mConfig != null) {
+            setComponents(mConfig.getVideoURL());
+        }
+    }
+
+    public void initWithConfiguration(KPPlayerConfig configuration, boolean prepareWithConfigurationMode) {
+        mConfig = configuration;
+        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
         if (mConfig != null) {
             setComponents(mConfig.getVideoURL());
         }
@@ -455,6 +463,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         playerController.detachView();
     }
 
+    public void setPrepareWithConfigurationMode() {
+        prepareWithConfigurationMode = true;
+    }
+
     /**
      * Sets the player's dimensions. Should be called for any player redraw
      * (for example, in screen rotation, if supported by the main activity)
@@ -489,6 +501,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
 
             this.playerController = new KPlayerController(this);
+            if (prepareWithConfigurationMode){
+                Log.e("GILAD ","setComponents prepareWithConfigurationMode");
+                this.playerController.setPrepareWithConfigurationMode();
+            }
             this.addView(mWebView, wvLp);
             
         }
