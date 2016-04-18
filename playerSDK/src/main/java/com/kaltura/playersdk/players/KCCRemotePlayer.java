@@ -1,6 +1,5 @@
 package com.kaltura.playersdk.players;
 
-import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -257,6 +256,20 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
         return false;
     }
 
+    @Override
+    public void attachSurfaceViewToPlayer() {
+
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+
+    }
+
+    @Override
+    public void setPrepareWithConfigurationMode() {
+
+    }
 
     @Override
     public void onStatusUpdated() {

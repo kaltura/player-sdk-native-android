@@ -31,6 +31,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
 
     private final String adUrl = "http://html5demos.com/assets/dizzy.mp4";
+
     private static final String TAG = "KalturaMultiPlayer";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -38,24 +39,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean onCreate = false;
 
     private FrameLayout adPlayerContainer;
-    SimpleVideoPlayer mAdPlayer;
-    boolean adPlayerIsPlaying;
-    boolean adIsDone;
-    boolean kPlayerReady;
+    private SimpleVideoPlayer mAdPlayer;
+    private boolean adPlayerIsPlaying;
+    private boolean adIsDone;
+    private boolean kPlayerReady;
+    private int lastGroupIndex = 0;
+    private boolean isDRMContent = true;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(com.kaltura.multiplayerdemo.R.layout.activity_main);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-
-
-
 
         mPlayPauseButton = (Button)findViewById(com.kaltura.multiplayerdemo.R.id.button);
         mPlayPauseButton.setOnClickListener(this);
@@ -69,15 +69,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private PlayerViewController getPlayer() {
         if (mPlayer == null) {
-            mPlayer = (PlayerViewController)findViewById(com.kaltura.multiplayerdemo.R.id.player);
+            mPlayer = (PlayerViewController) findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
             KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-            config.addConfig("topBarContainer.hover", "true");
+            //config.addConfig("autoPlay", "true");
+            //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
+//            config.addConfig("topBarContainer.hover", "true");
+//            config.addConfig("controlBarContainer.hover", "true");
             config.addConfig("controlBarContainer.plugin", "true");
-            config.addConfig("durationLabel.prefix", " ");
+//            config.addConfig("topBarContainer.plugin", "true");
             config.addConfig("largePlayBtn.plugin", "true");
-            mPlayer.initWithConfiguration(config);
+//            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+
+//            config.addConfig("doubleClick.adTagUrl",adTagUrl);
+//            config.addConfig("doubleClick.plugin","true");
+
+
+
+            boolean setPrepareWithConfigurationMode = false;
+            mPlayer.initWithConfiguration(config,setPrepareWithConfigurationMode);
             mPlayer.addEventListener(this);
 
         }
@@ -186,17 +197,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    @Override
-    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        if (state == KPlayerState.READY){
-            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
-            kPlayerReady = true;
-        }
-        if (state == KPlayerState.ENDED && adIsDone){
-            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
-            addAdPlayer();
-        }
-    }
+
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
@@ -213,6 +214,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.e(TAG, "Error Received:" + error.getErrorMsg());
     }
 
+    @Override
+    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        if (state == KPlayerState.READY){
+            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
+            kPlayerReady = true;
+        }
+        if (state == KPlayerState.ENDED && adIsDone){
+            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
+            if (!wvClassicRequired(isDRMContent)) {
+                mPlayer.detachView();
+            }
+            addAdPlayer();
+        }
+    }
+
     ///AD PLAYER METHODS
     private void addAdPlayer() {
 
@@ -224,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Video source = new Video(adUrl, Video.VideoType.MP4);
         mAdPlayer = new SimpleVideoPlayer(this, adPlayerContainer, source, "", true);
+        mAdPlayer.disableSeeking();
         mAdPlayer.addPlaybackListener(new ExoplayerWrapper.PlaybackListener() {
             @Override
             public void onStateChanged(boolean playWhenReady, int playbackState) {
@@ -242,14 +259,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         adPlayerIsPlaying = false;
                         adIsDone = true;
                         removeAdPlayer();
+
                         if (kPlayerReady){
                             Log.e(TAG, "KPLAY FROM NORMAL PATH");
+                            if (!wvClassicRequired(isDRMContent)) {
+                                mPlayer.attachView();
+                            }
                             mPlayer.getMediaControl().start();
                         }else {
                             mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
                                 @Override
                                 public void handler() {
                                     Log.e(TAG, "KPLAY FROM HANDLER");
+                                    if (!wvClassicRequired(isDRMContent)) {
+                                        mPlayer.attachView();
+                                    }
                                     mPlayer.getMediaControl().start();
                                 }
                             });
@@ -272,15 +296,89 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAdPlayer.moveSurfaceToForeground();
     }
 
+//    private void removeAdPlayerOrig() {
+//        Log.e(TAG, "removeAdPlayer");
+//        if (wvClassicRequired(isDRMContent)) {
+//            Log.e(TAG, "WV Classic mode");
+//            if (adPlayerContainer != null) {
+//
+//                adPlayerContainer.setVisibility(View.GONE);
+//                mPlayer.setVisibility(View.VISIBLE);
+//                ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
+//                int index = myViewGroup.indexOfChild(adPlayerContainer);
+//                Log.d(TAG, "myViewGroup index =" + index);
+//                for(int i = lastGroupIndex; i<index; i++)
+//                {
+//                    Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
+//                    myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
+//
+//                }
+//                myViewGroup.removeView(adPlayerContainer);
+//                lastGroupIndex += 2;
+//                //adPlayerContainer = null;
+//            }
+//            mAdPlayer = null;
+//
+//        } else {
+//            Log.e(TAG, "WV Modular mode/ ExoPlayer");
+//            mAdPlayer.release();
+//            mAdPlayer.moveSurfaceToBackground();
+//           // mPlayer.removeView(adPlayerContainer);
+//            adPlayerContainer.setVisibility(View.GONE);
+//            mPlayer.setVisibility(View.VISIBLE);
+//            ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
+//            int index = myViewGroup.indexOfChild(adPlayerContainer);
+//            Log.d(TAG, "myViewGroup index =" + index);
+//            for(int i = lastGroupIndex; i<index; i++)
+//            {
+//                Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
+//                myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
+//            }
+//            //myViewGroup.removeView(adPlayerContainer);
+//            lastGroupIndex++;
+//            mAdPlayer = null;
+//        }
+//    }
+
     private void removeAdPlayer() {
-        if (mPlayer != null) {
-            mPlayer.removeView(adPlayerContainer);
-        }
-        if (adPlayerContainer != null) {
-            adPlayerContainer.setVisibility(View.GONE);
-            adPlayerContainer = null;
+        Log.e(TAG, "removeAdPlayer");
+        if (wvClassicRequired(isDRMContent)) {
+            Log.e(TAG, "WV Classic mode");
+            if (adPlayerContainer != null) {
+                adPlayerContainer.setVisibility(View.GONE);
+                mPlayer.setVisibility(View.VISIBLE);
+                switchLayers(2, true);
+            }
+        } else {
+            Log.e(TAG, "WV Modular mode/ ExoPlayer");
+            mAdPlayer.release();
+            mAdPlayer.moveSurfaceToBackground();
+            switchLayers(1, false);
         }
         mAdPlayer = null;
+    }
 
+    public void switchLayers(int groupIndexIncrementBy, boolean removeContainer){
+        adPlayerContainer.setVisibility(View.GONE);
+        mPlayer.setVisibility(View.VISIBLE);
+        ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
+        int index = myViewGroup.indexOfChild(adPlayerContainer);
+        Log.d(TAG, "myViewGroup index =" + index);
+        for(int i = lastGroupIndex; i<index; i++)
+        {
+            Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
+            myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
+
+        }
+        lastGroupIndex += groupIndexIncrementBy;
+        if (removeContainer){
+            myViewGroup.removeView(adPlayerContainer);
+        }
+    }
+    public boolean wvClassicRequired(boolean isDRMContent){
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2 && isDRMContent){
+            return true;
+        }
+        return false;
     }
 }

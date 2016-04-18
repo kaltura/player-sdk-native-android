@@ -15,11 +15,8 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
-import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Set;
-
-import javax.crypto.interfaces.PBEKey;
 
 
 /**
@@ -223,6 +220,21 @@ public class KWVCPlayer
     }
 
     @Override
+    public void attachSurfaceViewToPlayer() {
+        // not required in case of multiplayer and WV classic
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+
+    }
+
+    @Override
+    public void setPrepareWithConfigurationMode() {
+
+    }
+
+    @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
     }
@@ -304,6 +316,7 @@ public class KWVCPlayer
         mPlayer = new VideoView(getContext());
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
+
 
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -399,6 +412,11 @@ public class KWVCPlayer
             public void run() {
                 try {
                     float playbackTime;
+                    if (mPlayer.getCurrentPosition() == mPlayer.getDuration()){
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.ENDED);
+
+                    }
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));

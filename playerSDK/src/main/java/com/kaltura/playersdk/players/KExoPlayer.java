@@ -50,6 +50,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private boolean mSeeking;
     private boolean mBuffering = false;
     private boolean mPassedPlay = false;
+    private boolean prepareWithConfigurationMode = false;
 
     private SurfaceHolder.Callback mSurfaceCallback;
 
@@ -110,8 +111,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private Video.VideoType getVideoType() {
         String videoFileName = Uri.parse(mSourceURL).getLastPathSegment();
         switch (videoFileName.substring(videoFileName.lastIndexOf('.')).toLowerCase()) {
-            case ".mpd": 
-                return Video.VideoType.DASH; 
+            case ".mpd": {
+                return Video.VideoType.DASH;
+            }
             case ".mp4": 
                 return Video.VideoType.MP4; 
             case ".m3u8": 
@@ -185,9 +187,33 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             }
         };
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
-        this.addView(mSurfaceView, layoutParams);
+        Log.e(TAG, "Exo prepareWithConfigurationMode " + prepareWithConfigurationMode);
+        if(!prepareWithConfigurationMode) {
+           this.addView(mSurfaceView, layoutParams);
+        }
     }
-    
+
+    @Override
+    public void attachSurfaceViewToPlayer() {
+        if (prepareWithConfigurationMode) {
+            Log.e(TAG, "Exo attachSurfaceViewToPlayer " + prepareWithConfigurationMode);
+            LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
+            this.addView(mSurfaceView, layoutParams);
+        }
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+        if (prepareWithConfigurationMode) {
+            this.removeView(mSurfaceView);
+        }
+    }
+
+    @Override
+    public void setPrepareWithConfigurationMode() {
+        prepareWithConfigurationMode = true;
+    }
+
     @Override
     public void setCurrentPlaybackTime(long time) {
         mSeeking = true;

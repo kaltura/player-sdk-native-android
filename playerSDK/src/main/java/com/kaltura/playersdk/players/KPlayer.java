@@ -34,4 +34,10 @@ public interface KPlayer {
     void setLicenseUri(String licenseUri);
 
     boolean isPlaying();
+
+    void attachSurfaceViewToPlayer();
+
+    void detachSurfaceViewFromPlayer();
+
+    void setPrepareWithConfigurationMode();
 }

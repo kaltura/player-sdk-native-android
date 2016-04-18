@@ -43,6 +43,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean isBackgrounded = false;
     private float mCurrentPlaybackTime = 0;
     private boolean isPlaying = false;
+    private boolean prepareWithConfigurationMode = false;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -288,6 +289,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             this.player = new KWVCPlayer(context);
         } else {
             this.player = new com.kaltura.playersdk.players.KExoPlayer(context);
+            if(prepareWithConfigurationMode) {
+                this.player.setPrepareWithConfigurationMode();
+            }
         }
         if (shouldReplacePlayer) {
             replacePlayer();
@@ -347,6 +351,22 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             parentViewController.removeView(mAdControls);
             mAdControls = null;
         }
+    }
+
+    public void attachView() {
+        if (player != null) {
+            player.attachSurfaceViewToPlayer();
+        }
+    }
+
+    public void detachView() {
+        if (player != null) {
+            player.detachSurfaceViewFromPlayer();
+        }
+    }
+
+    public void setPrepareWithConfigurationMode() {
+        prepareWithConfigurationMode = true;
     }
 
     public float getCurrentPlaybackTime() {
