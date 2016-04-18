@@ -498,7 +498,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
             this.playerController = new KPlayerController(this);
             if (prepareWithConfigurationMode){
-                Log.e("GILAD ","setComponents prepareWithConfigurationMode");
+                Log.d(TAG,"setComponents prepareWithConfigurationMode = " + prepareWithConfigurationMode);
                 this.playerController.setPrepareWithConfigurationMode();
             }
             this.addView(mWebView, wvLp);

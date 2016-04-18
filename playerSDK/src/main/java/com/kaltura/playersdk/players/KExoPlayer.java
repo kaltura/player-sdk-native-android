@@ -187,7 +187,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             }
         };
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
-        Log.e(TAG, "Exo prepareWithConfigurationMode " + prepareWithConfigurationMode);
+        Log.d(TAG, "Exo prepareWithConfigurationMode " + prepareWithConfigurationMode);
         if(!prepareWithConfigurationMode) {
            this.addView(mSurfaceView, layoutParams);
         }
@@ -196,7 +196,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void attachSurfaceViewToPlayer() {
         if (prepareWithConfigurationMode) {
-            Log.e(TAG, "Exo attachSurfaceViewToPlayer " + prepareWithConfigurationMode);
+            Log.d(TAG, "Exo attachSurfaceViewToPlayer " + prepareWithConfigurationMode);
             LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
             this.addView(mSurfaceView, layoutParams);
         }
