@@ -87,8 +87,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-            boolean setPrepareWithConfigurationMode = false;
-            mPlayer.initWithConfiguration(config,setPrepareWithConfigurationMode);
+            boolean prepareWithConfigurationMode = false;
+            mPlayer.setPrepareWithConfigurationMode(prepareWithConfigurationMode);
+            mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
 
         }

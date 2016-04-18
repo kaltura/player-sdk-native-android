@@ -196,12 +196,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    public void initWithConfiguration(KPPlayerConfig configuration, boolean prepareWithConfigurationMode) {
-        mConfig = configuration;
+    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
         this.prepareWithConfigurationMode = prepareWithConfigurationMode;
-        if (mConfig != null) {
-            setComponents(mConfig.getVideoURL());
-        }
     }
 
     public void loadPlayerIntoActivity(Activity activity) {
