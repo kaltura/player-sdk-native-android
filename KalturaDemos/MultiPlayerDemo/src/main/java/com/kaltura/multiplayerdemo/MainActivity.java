@@ -25,15 +25,13 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
 
-    private final String adUrl = "http://dpndczlul8yjf.cloudfront.net/creatives/assets/9d266094-8d1e-49e3-b13c-249515529bfc/c01b6747-0a3b-4480-9286-811d469b977d.mp4";
+    private final String adUrl = "http://html5demos.com/assets/dizzy.mp4";
+
     private static final String TAG = "KalturaMultiPlayer";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -46,12 +44,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean adIsDone;
     private boolean kPlayerReady;
     private int lastGroupIndex = 0;
+    private boolean isDRMContent = true;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(com.kaltura.multiplayerdemo.R.layout.activity_main);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -73,93 +72,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController) findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
-            String json = "{\n" +
-                    "  \"base\": {\n" +
-                    "    \"server\": \"http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php\",\n" +
-//
-                    "    \"partnerId\": \"\",\n" +
-                    "    \"uiConfId\": \"32626752\",\n" +
-                    //"    \"entryId\": \"374130\"\n" +
-                    "    \"entryId\": \"384080\"\n" +
+            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
+            //config.addConfig("autoPlay", "true");
+            //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
+//            config.addConfig("topBarContainer.hover", "true");
+//            config.addConfig("controlBarContainer.hover", "true");
+            config.addConfig("controlBarContainer.plugin", "true");
+//            config.addConfig("topBarContainer.plugin", "true");
+            config.addConfig("largePlayBtn.plugin", "true");
+//            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+
+//            config.addConfig("doubleClick.adTagUrl",adTagUrl);
+//            config.addConfig("doubleClick.plugin","true");
 
 
 
-                    "  },\n" +
-                    "  \"extra\": {\n" +
-                    "    \"watermark.plugin\": \"true\",\n" +
-                    "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
-                    "    \"watermark.title\": \"Viacom18\",\n" +
-                    "    \"watermark.cssClass\": \"topRight\",\n" +
-                    "    \n" +
-                    "    \"controlBarContainer.hover\": true,\n" +
-                    "    \"controlBarContainer.plugin\": true,\n" +
-//                    "    \"adultPlayer.plugin\": false,\n" +
-                    "    \"kidsPlayer.plugin\": true,\n" +
-                    "    \"nextBtnComponent.plugin\": true,\n" +
-                    "    \"prevBtnComponent.plugin\": true,\n" +
-                    "    \n" +
-                    "    \"liveCore.disableLiveCheck\": true,\n" +
-                    "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
-                    "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
-                    "    \"proxyData\": {\n";
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2 /*4.3*/) {
-                json = json + "\"config\": {\n" +
-                        "                                    \"flavorassets\": {\n" +
-                        "                                        \"filters\": {\n" +
-                        "                                            \"include\": {\n" +
-                        "                                                \"Format\": [\n" +
-                        "                                                    \"dash Main\"\n" +
-                        "                                                ]\n" +
-                        "                                            }\n" +
-                        "                                        }\n" +
-                        "                                    }\n" +
-                        "                                },";
-            }
-            json = json + "      \"MediaID\": \"384080\",\n" +
-                    "      \"iMediaID\": \"384080\",\n" +
-                    "      \"mediaType\": \"0\",\n" +
-                    "      \"picSize\": \"640x360\",\n" +
-                    "      \"withDynamic\": \"false\",\n" +
-                    "      \"initObj\": {\n" +
-                    "        \"ApiPass\": \"11111\",\n" +
-                    "        \"ApiUser\": \"tvpapi_225\",\n" +
-                    "        \"DomainID\": 0,\n" +
-                    "        \"Locale\": {\n" +
-                    "            \"LocaleCountry\": \"null\",\n" +
-                    "            \"LocaleDevice\": \"null\",\n" +
-                    "            \"LocaleLanguage\": \"null\",\n" +
-                    "            \"LocaleUserState\": \"Unknown\"\n" +
-                    "        },\n" +
-                    "        \"Platform\": \"Cellular\",\n" +
-                    "        \"SiteGuid\": \"\",\n" +
-                    "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
-                    "      }\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "}\n";
-
-
-            KPPlayerConfig config = null;
-            try {
-                config = KPPlayerConfig.fromJSONObject(new JSONObject(json));
-
-                config.addConfig("topBarContainer.hover", "true");
-                config.addConfig("controlBarContainer.plugin", "true");
-                config.addConfig("durationLabel.prefix", " ");
-                config.addConfig("largePlayBtn.plugin", "true");
-
-                config.addConfig("scrubber.sliderPreview", "false");
-                //config.addConfig("largePlayBtn","false");
-                //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
-                config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
-                mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
-                mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            mPlayer.initWithConfiguration(config);
+            boolean setPrepareWithConfigurationMode = false;
+            mPlayer.initWithConfiguration(config,setPrepareWithConfigurationMode);
             mPlayer.addEventListener(this);
 
         }
@@ -293,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (state == KPlayerState.ENDED && adIsDone){
             Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            if (!wvClassicRequired(isDRMContent)) {
                 mPlayer.detachView();
             }
             addAdPlayer();
@@ -330,17 +259,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         adPlayerIsPlaying = false;
                         adIsDone = true;
                         removeAdPlayer();
-                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                            mPlayer.attachView();
-                        }
+
                         if (kPlayerReady){
                             Log.e(TAG, "KPLAY FROM NORMAL PATH");
+                            if (!wvClassicRequired(isDRMContent)) {
+                                mPlayer.attachView();
+                            }
                             mPlayer.getMediaControl().start();
                         }else {
                             mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
                                 @Override
                                 public void handler() {
                                     Log.e(TAG, "KPLAY FROM HANDLER");
+                                    if (!wvClassicRequired(isDRMContent)) {
+                                        mPlayer.attachView();
+                                    }
                                     mPlayer.getMediaControl().start();
                                 }
                             });
@@ -363,47 +296,89 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAdPlayer.moveSurfaceToForeground();
     }
 
+//    private void removeAdPlayerOrig() {
+//        Log.e(TAG, "removeAdPlayer");
+//        if (wvClassicRequired(isDRMContent)) {
+//            Log.e(TAG, "WV Classic mode");
+//            if (adPlayerContainer != null) {
+//
+//                adPlayerContainer.setVisibility(View.GONE);
+//                mPlayer.setVisibility(View.VISIBLE);
+//                ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
+//                int index = myViewGroup.indexOfChild(adPlayerContainer);
+//                Log.d(TAG, "myViewGroup index =" + index);
+//                for(int i = lastGroupIndex; i<index; i++)
+//                {
+//                    Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
+//                    myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
+//
+//                }
+//                myViewGroup.removeView(adPlayerContainer);
+//                lastGroupIndex += 2;
+//                //adPlayerContainer = null;
+//            }
+//            mAdPlayer = null;
+//
+//        } else {
+//            Log.e(TAG, "WV Modular mode/ ExoPlayer");
+//            mAdPlayer.release();
+//            mAdPlayer.moveSurfaceToBackground();
+//           // mPlayer.removeView(adPlayerContainer);
+//            adPlayerContainer.setVisibility(View.GONE);
+//            mPlayer.setVisibility(View.VISIBLE);
+//            ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
+//            int index = myViewGroup.indexOfChild(adPlayerContainer);
+//            Log.d(TAG, "myViewGroup index =" + index);
+//            for(int i = lastGroupIndex; i<index; i++)
+//            {
+//                Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
+//                myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
+//            }
+//            //myViewGroup.removeView(adPlayerContainer);
+//            lastGroupIndex++;
+//            mAdPlayer = null;
+//        }
+//    }
+
     private void removeAdPlayer() {
         Log.e(TAG, "removeAdPlayer");
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2 && mPlayer.isDRMSrc()) {
+        if (wvClassicRequired(isDRMContent)) {
             Log.e(TAG, "WV Classic mode");
             if (adPlayerContainer != null) {
-
                 adPlayerContainer.setVisibility(View.GONE);
                 mPlayer.setVisibility(View.VISIBLE);
-                ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
-                int index = myViewGroup.indexOfChild(adPlayerContainer);
-                Log.d(TAG, "myViewGroup index =" + index);
-                for(int i = lastGroupIndex; i<index; i++)
-                {
-                    Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
-                    myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
-
-                }
-                myViewGroup.removeView(adPlayerContainer);
-                lastGroupIndex += 2;
-                //adPlayerContainer = null;
+                switchLayers(2, true);
             }
-            mAdPlayer = null;
-
         } else {
             Log.e(TAG, "WV Modular mode/ ExoPlayer");
             mAdPlayer.release();
             mAdPlayer.moveSurfaceToBackground();
-           // mPlayer.removeView(adPlayerContainer);
-            adPlayerContainer.setVisibility(View.GONE);
-            mPlayer.setVisibility(View.VISIBLE);
-            ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
-            int index = myViewGroup.indexOfChild(adPlayerContainer);
-            Log.d(TAG, "myViewGroup index =" + index);
-            for(int i = lastGroupIndex; i<index; i++)
-            {
-                Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
-                myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
-            }
-            //myViewGroup.removeView(adPlayerContainer);
-            lastGroupIndex++;
-            mAdPlayer = null;
+            switchLayers(1, false);
         }
+        mAdPlayer = null;
+    }
+
+    public void switchLayers(int groupIndexIncrementBy, boolean removeContainer){
+        adPlayerContainer.setVisibility(View.GONE);
+        mPlayer.setVisibility(View.VISIBLE);
+        ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
+        int index = myViewGroup.indexOfChild(adPlayerContainer);
+        Log.d(TAG, "myViewGroup index =" + index);
+        for(int i = lastGroupIndex; i<index; i++)
+        {
+            Log.d(TAG, "myViewGroup i = "  + i + " / lastGroupIndex" + lastGroupIndex);
+            myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
+
+        }
+        lastGroupIndex += groupIndexIncrementBy;
+        if (removeContainer){
+            myViewGroup.removeView(adPlayerContainer);
+        }
+    }
+    public boolean wvClassicRequired(boolean isDRMContent){
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2 && isDRMContent){
+            return true;
+        }
+        return false;
     }
 }
