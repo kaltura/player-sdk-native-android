@@ -287,11 +287,6 @@ public class KWVCPlayer
     }
 
     @Override
-    public boolean isDRMSrc() {
-        return true;
-    }
-
-    @Override
     public void setShouldCancelPlay(boolean shouldCancelPlay) {
         mShouldCancelPlay = shouldCancelPlay;
     }

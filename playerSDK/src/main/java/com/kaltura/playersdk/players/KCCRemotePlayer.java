@@ -267,12 +267,6 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public boolean isDRMSrc() {
-        return false;
-    }
-
-
-    @Override
     public void onStatusUpdated() {
         MediaStatus mediaStatus = mRemoteMediaPlayer.getMediaStatus();
         if (mediaStatus != null) {

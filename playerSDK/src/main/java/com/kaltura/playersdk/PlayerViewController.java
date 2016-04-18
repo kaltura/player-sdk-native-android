@@ -455,10 +455,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         playerController.detachView();
     }
 
-    public boolean isDRMSrc() {
-        return playerController.isDRMSrc();
-    }
-
     /**
      * Sets the player's dimensions. Should be called for any player redraw
      * (for example, in screen rotation, if supported by the main activity)

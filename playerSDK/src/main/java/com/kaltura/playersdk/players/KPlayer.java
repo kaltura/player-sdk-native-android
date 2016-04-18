@@ -39,5 +39,4 @@ public interface KPlayer {
 
     void detachSurfaceViewFromPlayer();
 
-    boolean isDRMSrc();
 }

@@ -50,7 +50,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private boolean mSeeking;
     private boolean mBuffering = false;
     private boolean mPassedPlay = false;
-    private boolean isDRMSrc;
 
     private SurfaceHolder.Callback mSurfaceCallback;
 
@@ -112,7 +111,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         String videoFileName = Uri.parse(mSourceURL).getLastPathSegment();
         switch (videoFileName.substring(videoFileName.lastIndexOf('.')).toLowerCase()) {
             case ".mpd": {
-                isDRMSrc = true;
                 return Video.VideoType.DASH;
             }
             case ".mp4": 
@@ -200,11 +198,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void detachSurfaceViewFromPlayer() {
         this.removeView(mSurfaceView);
-    }
-
-    @Override
-    public boolean isDRMSrc() {
-        return isDRMSrc;
     }
 
     @Override
