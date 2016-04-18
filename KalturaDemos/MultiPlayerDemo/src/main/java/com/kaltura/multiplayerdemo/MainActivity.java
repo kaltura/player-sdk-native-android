@@ -31,7 +31,6 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
 
     private final String adUrl = "http://html5demos.com/assets/dizzy.mp4";
-
     private static final String TAG = "KalturaMultiPlayer";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController) findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-
+            
             KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
             //config.addConfig("autoPlay", "true");
             //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
@@ -87,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-            boolean prepareWithConfigurationMode = false;
+            boolean prepareWithConfigurationMode = true; // false to load surface automatically
             mPlayer.setPrepareWithConfigurationMode(prepareWithConfigurationMode);
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
@@ -346,20 +345,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (wvClassicRequired(isDRMContent)) {
             Log.e(TAG, "WV Classic mode");
             if (adPlayerContainer != null) {
-                adPlayerContainer.setVisibility(View.GONE);
-                mPlayer.setVisibility(View.VISIBLE);
                 switchLayers(2, true);
             }
         } else {
             Log.e(TAG, "WV Modular mode/ ExoPlayer");
-            mAdPlayer.release();
-            mAdPlayer.moveSurfaceToBackground();
             switchLayers(1, false);
         }
         mAdPlayer = null;
     }
 
     public void switchLayers(int groupIndexIncrementBy, boolean removeContainer){
+        if (!removeContainer){
+            mAdPlayer.release();
+            mAdPlayer.moveSurfaceToBackground();
+        }
         adPlayerContainer.setVisibility(View.GONE);
         mPlayer.setVisibility(View.VISIBLE);
         ViewGroup myViewGroup = ((ViewGroup) adPlayerContainer.getParent());
