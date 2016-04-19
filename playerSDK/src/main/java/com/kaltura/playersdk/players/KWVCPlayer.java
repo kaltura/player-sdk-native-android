@@ -123,68 +123,122 @@ public class KWVCPlayer
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
-        return mPlayer != null ? mPlayer.getCurrentPosition() / 1000f : 0;
+    public long getCurrentPlaybackTime() {
+        return mPlayer != null ? mPlayer.getCurrentPosition() : 0;
     }
     
     @Override
-    public void setCurrentPlaybackTime(float currentPlaybackTime) {
+    public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
-            mPlayer.seekTo((int) (currentPlaybackTime * 1000));
+            mPlayer.seekTo((int) (currentPlaybackTime));
         }
     }
 
     @Override
-    public float getDuration() {
-        return mPlayer != null ? mPlayer.getDuration() / 1000f : 0;
+    public long getDuration() {
+        return mPlayer != null ? mPlayer.getDuration() : 0;
     }
 
     @Override
     public void play() {
-        
+
         // If already playing, don't do anything.
         if (mPlayer != null && mPlayer.isPlaying()) {
             return;
         }
-        
+
         // If play should be canceled, don't even start.
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
             return;
         }
-        
+
         // If not prepared, ask player to start when prepared.
         if (mPrepareState != PrepareState.Prepared) {
             mShouldPlayWhenReady = true;
             preparePlayer();
             return;
         }
-        
+
         assert mPlayer != null;
         mPlayer.start();
-        
+
         if (mPlayheadTracker == null) {
             mPlayheadTracker = new PlayheadTracker();
         }
         mPlayheadTracker.start();
-        
-        mListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+        changePlayPauseState("play");
     }
 
     @Override
     public void pause() {
         if (mPlayer != null) {
-            mPlayer.pause();
+            if (mPlayer.isPlaying()) {
+                mPlayer.pause();
+                changePlayPauseState("pause");
+            }
         }
         saveState();
         if (mPlayheadTracker != null) {
             mPlayheadTracker.stop();
         }
     }
-    
+
+    private void changePlayPauseState(final String state) {
+        if (mPlayer == null || state == null) {
+            return;
+        }
+         mPlayer.postDelayed(new Runnable() {
+             @Override
+             public void run() {
+                 if (KPlayerListener.PauseKey.equals(state)) {
+                     if (mPlayer != null && !mPlayer.isPlaying()) {
+                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                         return;
+                     }
+                 } else if (KPlayerListener.PlayKey.equals(state)) {
+                     if (mPlayer != null && mPlayer.isPlaying()) {
+                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+                         return;
+                     }
+                 } else {
+                     Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
+                     return;
+
+                 }
+                 changePlayPauseState(state);
+             }
+         }, 100);
+    }
+
     @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
+    }
+
+    @Override
+    public void savePlayerState() {
+        saveState();
+        if (mPlayheadTracker != null) {
+            mPlayheadTracker.stop();
+            mPlayheadTracker = null;
+        }
+    }
+
+    @Override
+    public void recoverPlayerState() {
+        mPlayer.seekTo(mSavedState.position);
+        if (mSavedState.playing) {
+            play();
+        }
+    }
+
+    @Override
+    public void freezePlayer() {
+        savePlayerState();
+        if (mPlayer != null) {
+            mPlayer.suspend();
+        }
     }
 
     private void saveState() {
@@ -212,7 +266,10 @@ public class KWVCPlayer
 
     @Override
     public void recoverPlayer() {
-        
+        if (mPlayer != null) {
+            mPlayer.resume();
+            recoverPlayerState();
+        }
     }
 
     @Override
@@ -223,7 +280,9 @@ public class KWVCPlayer
     private void preparePlayer() {
 
         if (mAssetUri==null || mLicenseUri==null) {
-            Log.e(TAG, "Prepare error: both assetUri and licenseUri must be set");
+            String errMsg  = "Prepare error: both assetUri and licenseUri must be set";
+            Log.e(TAG, errMsg);
+            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, errMsg);
             return;
         }
 
@@ -243,14 +302,16 @@ public class KWVCPlayer
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                mListener.contentCompleted(KWVCPlayer.this);
                 mCallback.playerStateChanged(KPlayerCallback.ENDED);
             }
         });
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.e(TAG, "VideoView:onError(" + what + "," + extra + ")");
+                String errMsg = "VideoView:onError";
+                Log.e(TAG, errMsg);
+                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
+
                 // TODO
                 return false;
             }
@@ -281,12 +342,19 @@ public class KWVCPlayer
                     }
                 });
 
+                mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                    @Override
+                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
+                    }
+                });
+
                 if (mSavedState.playing) {
                     // we were already playing, so just resume playback from the saved position
                     mPlayer.seekTo(mSavedState.position);
                     play();
                 } else {
-                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration()));
+                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
                     mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
                     mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
                     mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
@@ -331,7 +399,10 @@ public class KWVCPlayer
                     }
 
                 } catch (IllegalStateException e) {
-                    Log.e(TAG, "Error", e);
+                    String errMsg = "Player Error ";
+                    Log.e(TAG, errMsg + e.getMessage());
+                    mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, errMsg + e.getMessage());
+
                 }
                 if (mHandler != null) {
                     mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);

@@ -2,19 +2,27 @@ sudo: false
 language: android
 android:
   components:
-  - platform-tools
   - tools
+  - platform-tools
   - build-tools-23.0.2
   - android-23
-  - android-22
   - extra-android-m2repository
   - extra-google-m2repository
+before_install:
+  - ./travis-verify-version-tag.sh
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+before_cache:
+  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 script:
-- ./gradlew :kalturaPlay:assembleDebug
 - ./gradlew :kalturaPlay:assembleRelease
-- ./gradlew :testapp:assembleDebug || true
+- ./gradlew :testapp:assembleRelease
+- ./gradlew :kalturaPlay:assembleDebug
+- ./gradlew :testapp:assembleDebug
 after_success:
-- ls -lh kalturaPlay/build/outputs/apk
+- ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
 - ./pull-artifacts-upload.sh
 deploy:
   provider: releases
@@ -22,7 +30,7 @@ deploy:
   skip_cleanup: true
   file:
     - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
-    - kalturaPlay/build/outputs/apk/kalturaPlay-release-unsigned.apk
+    - testapp/build/outputs/apk/testapp-debug.apk
   on:
     tags: true
   api-key: $GH_TOKEN
@@ -32,6 +40,6 @@ notifications:
       - noam.tamim@kaltura.com
       - itay.kinnrot@kaltura.com
       - nissim.pardo@kaltura.com
+      - gilad.nadav@kaltura.com
     on_success: change
     on_failure: always
-    

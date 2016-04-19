@@ -1,6 +1,5 @@
 package com.kaltura.testapp;
 
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -16,6 +15,7 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.types.KPError;
 
 public class MainActivity extends AppCompatActivity implements PlayerFragment.OnFragmentInteractionListener, View.OnClickListener {
     private PlayerFragment mPlayerFragment;
@@ -138,6 +138,11 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                             if (state == KPlayerState.READY) {
                                 mPreloadButton.setText("Ready To Play");
                             }
+                        }
+
+                        @Override
+                        public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
                         }
 
                         @Override

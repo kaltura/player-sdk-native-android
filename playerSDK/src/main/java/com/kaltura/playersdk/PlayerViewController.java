@@ -29,10 +29,12 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
+import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -107,12 +109,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     @Override
     public void onFoundDevices(final boolean didFound) {
         if (getRouterManager().shouldEnableKalturaCastButton()) {
-            registerReadyEvent(new ReadyEventListener() {
-                @Override
-                public void handler() {
-                    mWebView.setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
-                }
-            });
+            setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
         }
         if (getRouterManager().getAppListener() != null) {
             getRouterManager().getAppListener().didDetectCastDevices(didFound);
@@ -188,12 +185,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         super(context, attrs, defStyle);
     }
 
+    public KMediaControl getMediaControl() {
+        return mWebView;
+    }
+
     public void initWithConfiguration(KPPlayerConfig configuration) {
         mConfig = configuration;
-
-        setComponents(mConfig.getVideoURL());
-        
-//        setComponents("http://player-stg-eu.ott.kaltura.com/viacomIN/v2.37.2/mwEmbed/mwEmbedFrame.php/uiconf_id/8413353?wid=_&entry_id=295868&flashvars[proxyData]={%22initObj%22:{%22Locale%22:{%22LocaleLanguage%22:%22%22,%22LocaleCountry%22:%22%22,%22LocaleDevice%22:%22%22,%22LocaleUserState%22:%22Unknown%22},%22Platform%22:%22Cellular%22,%22SiteGuid%22:%22613999%22,%22DomainID%22:%22282563%22,%22UDID%22:%22123456%22,%22ApiUser%22:%22tvpapi_225%22,%22ApiPass%22:%2211111%22},%22MediaID%22:%22295868%22,%22iMediaID%22:%22295868%22,%22picSize%22:%22640x360%22,%22mediaType%22:%220%22,%22withDynamic%22:%22false%22}&flashvars[tvpapiGetLicensedLinks.plugin]=true&flashvars[TVPAPIBaseUrl]=http://stg.eu.tvinci.com/tvpapi_v3_3/gateways/jsonpostgw.aspx?m=&flashvars[liveCore.disableLiveCheck]=true&iframeembed=true&flashvars[chromecast.plugin]=true");
+        if (mConfig != null) {
+            setComponents(mConfig.getVideoURL());
+        }
     }
 
     public void loadPlayerIntoActivity(Activity activity) {
@@ -237,7 +237,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
-            mWebView.loadUrl(config.getVideoURL() + "#" + buildSupportedMediaFormats());
+            mConfig = config;
+            mWebView.setVisibility(INVISIBLE);
+            mWebView.clearCache(true);
+            mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
+            mIsJsCallReadyRegistration = false;
+            registerReadyEvent(new ReadyEventListener() {
+                @Override
+                public void handler() {
+                    mWebView.setVisibility(VISIBLE);
+                    for (String event : mPlayerEventsHash.keySet()) {
+                        mWebView.addEventListener(event);
+                    }
+                }
+            });
         }
     }
 
@@ -261,12 +274,25 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         return currentURL;
     }
 
+    public void saveState() {
+        playerController.savePlayerState();
+    }
+
+    public void resumeState() {
+        playerController.recoverPlayerState();
+    }
+
     /**
      * Release player's instance and save its last position for resuming later on.
      * This method should be called when the main activity is paused.
      */
     public void releaseAndSavePosition() {
-        playerController.removePlayer();
+        if (playerController != null)
+         playerController.removePlayer();
+    }
+
+    public void resetPlayer() {
+        playerController.reset();
     }
 
     /**
@@ -456,15 +482,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             
         }
 
-        iframeUrl += "#" + buildSupportedMediaFormats();
+        iframeUrl += buildSupportedMediaFormats();
 
         if( mIframeUrl == null || !mIframeUrl.equals(iframeUrl) ) {
             mIframeUrl = iframeUrl;
             Uri uri = Uri.parse(iframeUrl);
             if (mConfig.getCacheSize() > 0) {
-                CacheManager.getInstance().setHost(uri.getHost());
-                CacheManager.getInstance().setCacheSize(mConfig.getCacheSize());
-                mWebView.setCacheManager(CacheManager.getInstance());
+                CacheManager cacheManager = new CacheManager(mActivity.getApplicationContext());
+                cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(mConfig.getServerURL()));
+                cacheManager.setCacheSize(mConfig.getCacheSize());
+                mWebView.setCacheManager(cacheManager);
             }
 
             mWebView.loadUrl(iframeUrl);
@@ -482,7 +509,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
 
         if ( this.getChildCount() > 1 ) {
-            //last child is the controls webview
+            //last child is the KMediaControl webview
             this.addView( newChild , this.getChildCount() -1, oldChild.getLayoutParams() );
         }
     }
@@ -545,11 +572,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //        notifyKPlayer("sendNotification", new String[]{noteName, noteBody.toString()});
 //    }
 
-
-
-    public void setKDPAttribute(String hostName, String propName, Object value) {
-        notifyKPlayer("setKDPAttribute", new Object[]{hostName, propName, value});
-    }
 
 
 
@@ -619,6 +641,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     }
 
+    @Override
+    public void handleKControlsError(KPError error) {
+        sendOnKPlayerError(error.getErrorMsg());
+    }
+
     //
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -626,10 +653,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
             for (KPEventListener listener : eventListeners) {
-                if (KPlayerState.getStateForEventName(eventName) != null) {
-                    listener.onKPlayerStateChanged(this, KPlayerState.getStateForEventName(eventName));
+                KPlayerState kState = KPlayerState.getStateForEventName(eventName);
+                if (!KPlayerState.UNKNOWN.equals(kState)) {
+                    listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
+                } else if (event.isEnded()) {
+                    contentCompleted(player);
                 }
             }
         }
@@ -720,14 +750,21 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void sendNotification(String notificationName,@Nullable String params) {
-        if (notificationName == null) {
-            notificationName = "null";
+        if (mWebView != null) {
+            if (notificationName == null) {
+                notificationName = "null";
+            }
+            mWebView.sendNotification(notificationName, params);
         }
-        mWebView.sendNotification(notificationName, params);
     }
 
-    public void setKDPAttribute(String pluginName, String propertyName, String value) {
-        mWebView.setKDPAttribute(pluginName, propertyName, value);
+    public void setKDPAttribute(final String pluginName, final String propertyName, final String value) {
+        registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                mWebView.setKDPAttribute(pluginName, propertyName, value);
+            }
+        });
     }
 
     public void triggerEvent(String event, String value) {
@@ -750,6 +787,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     // attributeValue is the selected source -- allow override.
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
                     this.playerController.setSrc(attributeValue);
+                    if (mConfig.getMediaPlayFrom() > 0) {
+                        playerController.setCurrentPlaybackTime((float)mConfig.getMediaPlayFrom());
+                    }
                     break;
                 case currentTime:
                     if (eventListeners != null) {
@@ -784,13 +824,24 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
-                    Log.d("chromecast.initialize", attributeValue);
+                    Log.d(TAG, "chromecast.initialize:" +  attributeValue);
+                    break;
+                case playerError:
+                    if (eventListeners != null) {
+                        sendOnKPlayerError(attributeValue);
+                    }
                     break;
             }
         }
     }
 
-    
+    private void sendOnKPlayerError(String attributeValue) {
+        for (KPEventListener listener: eventListeners) {
+            Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
+            listener.onKPlayerError(this, new KPError(attributeValue));
+        }
+    }
+
     private void switchFlavor(String index) {
         int flavorIndex = -1;
         try {

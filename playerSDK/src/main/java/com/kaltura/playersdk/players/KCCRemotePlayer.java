@@ -1,5 +1,6 @@
 package com.kaltura.playersdk.players;
 
+import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -25,7 +26,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     private GoogleApiClient mApiClient;
     private KPlayerListener mPlayerListener;
     private String mPlayerSource;
-    private float mCurrentPlaybackTime = 0;
+    private long mCurrentPlaybackTime = 0;
     private boolean isPlaying = false;
     private boolean isConnecting = true;
     private MediaInfo mMediaInfo;
@@ -54,7 +55,9 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
-                    Log.e(TAG, "Failed to request status.");
+                    String errMsg = "Failed to request status";
+                    Log.e(TAG, errMsg);
+                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
                 } else {
                     mListener.remoteMediaPlayerReady();
                 }
@@ -68,15 +71,17 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
             public void run() {
 
                 try {
-                    float currentTime = getCurrentPlaybackTime();
+                    long currentTime = getCurrentPlaybackTime();
                     if (currentTime != 0 && currentTime < getDuration() && mPlayerListener != null) {
-                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(currentTime));
+                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(currentTime / 1000f));
                         Log.d(TAG, Long.toString(mRemoteMediaPlayer.getApproximateStreamPosition()));
 //                        float percent = currentTime / getDuration();
 //                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.ProgressKey, Float.toString(percent));
                     }
                 } catch (IllegalStateException e) {
-                    Log.e(TAG, "Looper Exception", e);
+                    String errMsg = "Failed to request status";
+                    Log.e(TAG, errMsg);
+                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg + "-" + e.getMessage());
                 }
                 mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
             }
@@ -125,26 +130,31 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                                     mPlayerListener.eventWithValue(KCCRemotePlayer.this, "chromecastDeviceConnected", null);
                                 }
 
-                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.DurationChangedKey, Float.toString(getDuration()));
+                                mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
                                 mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.LoadedMetaDataKey, "");
                                 mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.CanPlayKey, null);
                                 mListener.mediaLoaded();
                             }
                         }
                     });
-        } catch (IllegalStateException e) {
-            Log.e(TAG, "Problem occurred with media during loading", e);
+        } catch (IllegalStateException e){
+            String errMsg = "Error occurred with media during loading";
+            Log.e(TAG, errMsg, e);
+            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
+
         } catch (Exception e) {
-            Log.e(TAG, "Problem opening media during loading", e);
+            String errMsg = "Error in opening media during loading";
+            Log.e(TAG, errMsg, e);
+            mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
         }
     }
 
     @Override
-    public void setCurrentPlaybackTime(float currentPlaybackTime) {
+    public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (currentPlaybackTime > 0) {
             mCurrentPlaybackTime = currentPlaybackTime;
             stopTimer();
-            mRemoteMediaPlayer.seek(mApiClient, (long) (currentPlaybackTime * 1000)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            mRemoteMediaPlayer.seek(mApiClient, (long) (currentPlaybackTime)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                 @Override
                 public void onResult(@NonNull RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                     Status status = mediaChannelResult.getStatus();
@@ -154,8 +164,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         }
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.SeekedKey, null);
                     } else {
-                        Log.w(TAG, "Unable to toggle seek: "
-                                + status.getStatusCode());
+                        Log.w(TAG, "Unable to toggle seek: " + status.getStatusCode());
                     }
                 }
             });
@@ -163,13 +172,13 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public float getCurrentPlaybackTime() {
-        return mRemoteMediaPlayer.getApproximateStreamPosition() / 1000f;
+    public long getCurrentPlaybackTime() {
+        return mRemoteMediaPlayer.getApproximateStreamPosition();
     }
 
     @Override
-    public float getDuration() {
-        return mRemoteMediaPlayer.getStreamDuration() / 1000f;
+    public long getDuration() {
+        return mRemoteMediaPlayer.getStreamDuration();
     }
 
     @Override
@@ -185,8 +194,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PlayKey, null);
                     } else {
                         isPlaying = false;
-                        Log.w(TAG, "Unable to toggle play: "
-                                + status.getStatusCode());
+                        Log.w(TAG, "Unable to toggle play: " + status.getStatusCode());
                     }
                 }
             });
@@ -207,8 +215,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PauseKey, null);
                     } else {
                         isPlaying = true;
-                        Log.w(TAG, "Unable to toggle pause: "
-                                + status.getStatusCode());
+                        Log.w(TAG, "Unable to toggle pause: " + status.getStatusCode());
                     }
                 }
             });
@@ -217,6 +224,11 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
 
     @Override
     public void changeSubtitleLanguage(String languageCode) {
+
+    }
+
+    @Override
+    public void freezePlayer() {
 
     }
 
@@ -241,6 +253,16 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
+    public void savePlayerState() {
+        
+    }
+
+    @Override
+    public void recoverPlayerState() {
+
+    }
+
+    @Override
     public void onStatusUpdated() {
         MediaStatus mediaStatus = mRemoteMediaPlayer.getMediaStatus();
         if (mediaStatus != null) {
@@ -248,7 +270,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                 case MediaStatus.PLAYER_STATE_IDLE:
                     if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
                         stopTimer();
-                        mCurrentPlaybackTime = 0f;
+                        mCurrentPlaybackTime = 0;
                         mPlayerListener.eventWithValue(this, KPlayerListener.EndedKey, null);
                         loadMedia();
                     }

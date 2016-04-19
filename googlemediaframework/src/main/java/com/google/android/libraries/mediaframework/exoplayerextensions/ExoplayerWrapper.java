@@ -33,6 +33,7 @@ import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer.DecoderInitializationException;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioTrack;
@@ -43,6 +44,7 @@ import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer.MetadataRenderer;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
 import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.BandwidthMeter;
@@ -51,7 +53,6 @@ import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -63,7 +64,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     DefaultBandwidthMeter.EventListener, MediaCodecVideoTrackRenderer.EventListener,
     MediaCodecAudioTrackRenderer.EventListener, TextRenderer,
     StreamingDrmSessionManager.EventListener, DashChunkSource.EventListener,
-        HlsSampleSource.EventListener, MetadataRenderer<Map<String, Object>> {
+    HlsSampleSource.EventListener, MetadataRenderer<List<Id3Frame>> {
 
   /**
    * Builds renderers for the player.
@@ -157,6 +158,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     void onDrmSessionManagerError(Exception e);
 
     void onLoadError(int sourceId, IOException e);
+
+    void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs);
+
   }
 
   /**
@@ -222,8 +226,20 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
 
     void onDecoderInitialized(String decoderName, long elapsedRealtimeMs,
                               long initializationDurationMs);
-    void onAvailableRangeChanged(TimeRange availableRange);
+    void onAvailableRangeChanged(int sourceId, TimeRange availableRange);
+
   }
+
+  /**
+   * A listener for receiving notifications of id3Frames.
+   */
+  @Override
+  public void onMetadata(List<Id3Frame> id3Frames) {
+    if (id3MetadataListener != null && getSelectedTrack(TYPE_METADATA) != TRACK_DISABLED) {
+      id3MetadataListener.onId3Metadata(id3Frames);
+    }
+  }
+
 
   /**
    * A listener for receiving notifications of timed text.
@@ -248,7 +264,8 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * A listener for receiving ID3 metadata parsed from the media stream.
    */
   public interface Id3MetadataListener {
-    void onId3Metadata(Map<String, Object> metadata);
+    void onId3Metadata(List<Id3Frame> id3Frames);
+
   }
 
   /**
@@ -446,7 +463,9 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
    * @param playbackListener
    */
   public void addListener(PlaybackListener playbackListener) {
-    playbackListeners.add(playbackListener);
+    if (!playbackListeners.contains(playbackListener)) {
+        playbackListeners.add(playbackListener);
+    }
   }
 
   /**
@@ -725,6 +744,15 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     return mainHandler;
   }
 
+  public int getTrackCount(int trackType){
+    return player.getTrackCount(trackType);
+  }
+
+  public MediaFormat getTrackFormat(int trackType, int trackIndex){
+    return player.getTrackFormat(trackType, trackIndex);
+  }
+
+
   @Override
   public void onPlayerStateChanged(boolean playWhenReady, int state) {
     maybeReportPlayerState();
@@ -827,6 +855,14 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   @Override
+  public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+    if (internalErrorListener != null) {
+      internalErrorListener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+    }
+  }
+
+
+  @Override
   public void onCryptoError(CryptoException e) {
     if (internalErrorListener != null) {
       internalErrorListener.onCryptoError(e);
@@ -838,11 +874,10 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     // Do nothing.
   }
 
-  /* package */ MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>
-      getId3MetadataRenderer() {
-    return new MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>() {
+  /* package */ MetadataTrackRenderer.MetadataRenderer<List<Id3Frame>> getId3MetadataRenderer() {
+    return new MetadataTrackRenderer.MetadataRenderer<List<Id3Frame>>() {
       @Override
-      public void onMetadata(Map<String, Object> metadata) {
+      public void onMetadata(List<Id3Frame> metadata) {
         if (id3MetadataListener != null) {
           id3MetadataListener.onId3Metadata(metadata);
         }
@@ -872,17 +907,11 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     }
   }
 
-  @Override
-  public void onMetadata(Map<String, Object> metadata) {
-    if (id3MetadataListener != null && getSelectedTrack(TYPE_METADATA) != TRACK_DISABLED) {
-      id3MetadataListener.onId3Metadata(metadata);
-    }
-  }
 
   @Override
-  public void onAvailableRangeChanged(TimeRange availableRange) {
+  public void onAvailableRangeChanged(int sourceId, TimeRange availableRange) {
     if (infoListener != null) {
-      infoListener.onAvailableRangeChanged(availableRange);
+      infoListener.onAvailableRangeChanged(sourceId, availableRange);
     }
   }
 

@@ -39,42 +39,6 @@
                 <data android:host="kgit.html5video.org" android:pathPrefix="/kplay" android:scheme="http"/>
             </intent-filter>
         </activity>
-
-        <activity
-            android:name="com.google.sample.castcompanionlibrary.cast.player.VideoCastControllerActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTask"
-            android:parentActivityName="com.kaltura.kalturaplayertoolkit.MainActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.kaltura.kms.kmsLogin"/>
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-            </intent-filter>
-        </activity>
-
-        <receiver android:name="com.google.sample.castcompanionlibrary.remotecontrol.VideoIntentReceiver">
-            <intent-filter>
-                <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
-                <action android:name="com.google.sample.castcompanionlibrary.action.toggleplayback"/>
-                <action android:name="com.google.sample.castcompanionlibrary.action.stop"/>
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name="com.google.sample.castcompanionlibrary.notification.VideoCastNotificationService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.sample.castcompanionlibrary.action.toggleplayback"/>
-                <action android:name="com.google.sample.castcompanionlibrary.action.stop"/>
-                <action android:name="com.google.sample.castcompanionlibrary.action.notificationvisibility"/>
-            </intent-filter>
-        </service>
-
     </application>
 
 </manifest>

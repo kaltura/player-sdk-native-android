@@ -4,8 +4,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,12 +18,15 @@ import java.util.HashMap;
 public class CacheSQLHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "KCache.db";
+    private static final String TAG = "CacheSQLHelper";
     private final String TABLE_NAME = "KCacheTable";
-    private final String id = "_id";
-    public static final String Encoding = "Encoding";
-    public static final String MimeType = "MimeType";
-    public static final String LastUsed = "LastUsed";
-    public static final String Size = "Size";
+    private final String COL_FILEID = "_id";
+    public static final String COL_ENCODING = "Encoding";
+    public static final String COL_MIMETYPE = "MimeType";
+    public static final String COL_LASTUSED = "LastUsed";
+    public static final String COL_SIZE = "Size";
+
+    private SQLiteDatabase mDatabase;
 
     public interface KSQLHelperDeleteListener {
         void fileDeleted(String fileId);
@@ -34,8 +40,8 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_PRODUCTS_TABLE = "Create table IF NOT EXISTS " +
                 TABLE_NAME + "("
-                + id + " TEXT," + Encoding
-                + " TEXT," + MimeType + " TEXT," + LastUsed + " INTEGER," + Size + " INTEGER)";
+                + COL_FILEID + " TEXT," + COL_ENCODING
+                + " TEXT," + COL_MIMETYPE + " TEXT," + COL_LASTUSED + " INTEGER," + COL_SIZE + " INTEGER)";
         db.execSQL(CREATE_PRODUCTS_TABLE);
     }
 
@@ -45,104 +51,183 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-
-
-    public void addFile(String fileName, String mimeType, String encoding) {
-        ContentValues values = new ContentValues();
-        values.put(id, fileName);
-        values.put(MimeType, mimeType);
-        values.put(Encoding, encoding);
-        values.put(LastUsed, 0);
-        values.put(Size, 0);
-        SQLiteDatabase db = getWritableDatabase();
-        db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+    private SQLiteDatabase db() {
+        // Keep db open.
+        if (mDatabase == null) {
+            synchronized (this) {
+                if (mDatabase == null) {
+                    mDatabase = getWritableDatabase();
+                }
+            }
+        }
+        return mDatabase;
     }
 
-    public void removeFile(String fileId) {
 
+    @Override
+    protected void finalize() throws Throwable {
+        // Finalizers are unpredictable, but Android's CloseGuards use them.
+        try {
+            if (mDatabase != null) {
+                mDatabase.close();
+                mDatabase = null;
+            }
+        } finally {
+            super.finalize();
+        }
+    }
+
+    public void addFile(String fileId, String mimeType, String encoding) {
+        ContentValues values = new ContentValues();
+        values.put(COL_FILEID, fileId);
+        values.put(COL_MIMETYPE, mimeType);
+        values.put(COL_ENCODING, encoding);
+        values.put(COL_LASTUSED, 0);
+        values.put(COL_SIZE, 0);
+        try {
+            if (entryExists(fileId)) {
+                db().update(TABLE_NAME, values, this.COL_FILEID + "=?", new String[]{fileId});
+            } else {
+                db().insert(TABLE_NAME, null, values);
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG, "Error adding file, fileId=" + fileId);
+        }
+    }
+
+    private boolean entryExists(String fileId) {
+        Cursor c = null;
+        try {
+            c = db().query(TABLE_NAME, null, this.COL_FILEID + "=?", new String[]{fileId}, null, null, null);
+            return c.getCount() > 0;
+        } finally {
+            quietClose(c);
+        }
+    }
+
+    public boolean removeFile(String fileId) {
+        try {
+            db().delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
+            return true;
+        } catch (SQLiteException e) {
+            return false;
+        }
     }
 
     public long cacheSize() {
         String query = "SELECT SUM(Size) FROM KCacheTable";
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
+        Cursor cursor = null; 
         long size = 0;
-        if (cursor.moveToFirst()) {
-            size = cursor.getInt(0);
+        try {
+            cursor = db().rawQuery(query, null);
+            if (cursor.moveToFirst()) {
+                size = cursor.getInt(0);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting total cache size", e);
+        } finally {
+            quietClose(cursor);
         }
-        cursor.close();
+        
         return size;
     }
 
     public void updateDate(String fileId) {
         ContentValues data = new ContentValues();
-        data.put(LastUsed, System.currentTimeMillis());
-        SQLiteDatabase db = getWritableDatabase();
-        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        data.put(COL_LASTUSED, System.currentTimeMillis());
+        try {
+            db().update(TABLE_NAME, data, COL_FILEID + "=?", new String[]{fileId});
+        } catch (SQLiteException e) {
+            Log.e(TAG, "Error updating entry date", e);
+        }
     }
 
     public void updateFileSize(String fileId, long fileSize) {
         ContentValues data = new ContentValues();
-        data.put(Size, fileSize);
-        data.put(LastUsed, System.currentTimeMillis());
-        SQLiteDatabase db = getWritableDatabase();
-        db.update(TABLE_NAME, data, id + "=?", new String[]{fileId});
-//        if (db.isOpen()) {
-//            db.close();
-//        }
+        data.put(COL_SIZE, fileSize);
+        data.put(COL_LASTUSED, System.currentTimeMillis());
+        try {
+            db().update(TABLE_NAME, data, COL_FILEID + "=?", new String[]{fileId});
+        } catch (SQLiteException e) {
+            Log.e(TAG, "Error updating entry size", e);
+        }
     }
 
-    public long sizeForId(String fileId) {
-        String query = "Select Size FROM " + TABLE_NAME + " WHERE " + id + " =  \"" + fileId + "\"";
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        if (cursor.moveToFirst()) {
-            int size = cursor.getInt(0);
-            cursor.close();
-            return size;
+    private void quietClose(Cursor c) {
+        try {
+            if (c != null) {
+                c.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed closing " + c);
         }
-        return 0;
+    }
+    
+    public long sizeForId(String fileId) {
+        Cursor cursor = null;
+        long size = 0;
+        try {
+            cursor = db().query(TABLE_NAME, new String[]{COL_SIZE}, COL_FILEID + "=?", new String[]{fileId}, null, null, null);
+            if (cursor.moveToFirst()) {
+                size = cursor.getInt(0);
+            }
+        } finally {
+            quietClose(cursor);
+        }
+        return size;
     }
 
     public void deleteLessUsedFiles(long sizeToDelete, KSQLHelperDeleteListener listener) {
-        String query = "SELECT * FROM KCacheTable ORDER BY LastUsed Desc";
-        SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        boolean stop = false;
+        
+        SQLiteDatabase db = db();
+
         ArrayList<String> deletedIds = new ArrayList<>();
-        while (!stop) {
-            if (cursor.moveToFirst()) {
-                int size = cursor.getInt(4);
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_NAME, new String[]{COL_FILEID, COL_SIZE}, null, null, null, null, COL_LASTUSED + " DESC");
+            while (cursor.moveToNext()) {
                 String fileId = cursor.getString(0);
-                sizeToDelete -= size;
-                stop = sizeToDelete <= 0;
+                int size = cursor.getInt(1);
                 deletedIds.add(fileId);
+                sizeToDelete -= size;
+                if (sizeToDelete <= 0) {
+                    break;
+                }
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG, "Error getting list of files to delete");
+        } finally {
+            quietClose(cursor);
+        }
+        
+        
+        for (String fileId : deletedIds) {
+            try {
+                db.delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
+                listener.fileDeleted(fileId);
+            } catch (SQLiteException e) {
+                Log.e(TAG, "Error deleting entry (lessUsed) " + fileId);
             }
         }
-        for (String fileId: deletedIds) {
-            db.delete(TABLE_NAME, id + "=?", new String[]{fileId});
-            listener.fileDeleted(fileId);
-        }
-        cursor.close();
     }
 
-    public HashMap<String, Object> fetchParamsForFile(String fileName) {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, new String[]{id, Encoding,MimeType}, id + "=?", new String[]{fileName}, null, null, null);
+    public HashMap<String, Object> fetchParamsForFile(String fileId) {
+        SQLiteDatabase db = db();
+        Cursor cursor = null;
 
-        HashMap<String , Object> params = null;
-        if (cursor.moveToFirst()) {
-            params = new HashMap<>();
-            params.put(Encoding, cursor.getString(1));
-            params.put(MimeType, cursor.getString(2));
+        HashMap<String, Object> params = null;
+        try {
+            cursor = db.query(TABLE_NAME, new String[]{COL_FILEID, COL_ENCODING, COL_MIMETYPE}, COL_FILEID + "=?", new String[]{fileId}, null, null, null);
+            if (cursor.moveToFirst()) {
+                params = new HashMap<>();
+                params.put(COL_ENCODING, cursor.getString(1));
+                params.put(COL_MIMETYPE, cursor.getString(2));
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG, "Error fetching params for " + fileId);
+        } finally {
+            quietClose(cursor);
         }
-        cursor.close();
         return params;
     }
 }

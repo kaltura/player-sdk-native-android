@@ -109,9 +109,11 @@ public class SimpleVideoPlayer {
     layers.add(playbackControlLayer);
     layers.add(subtitleLayer);
 
+    boolean preferedSoftwareDecoder = checkIfSoftwareDecoderPrefered();
     layerManager = new LayerManager(activity,
         container,
         video,
+        preferedSoftwareDecoder,
         layers);
 
     layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
@@ -119,6 +121,14 @@ public class SimpleVideoPlayer {
     if (startPostitionMs > 0) {
       layerManager.getExoplayerWrapper().seekTo(startPostitionMs);
     }
+  }
+
+  private boolean checkIfSoftwareDecoderPrefered() {
+    //boolean isSoftwareDecoderPrefered = false;
+    //if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) { // For Galaxy S4 Lolipop so it is hardware problem ...
+    //  isSoftwareDecoderPrefered = true;
+    //}
+    return true;
   }
 
   /**

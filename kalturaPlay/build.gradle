@@ -1,16 +1,19 @@
 apply plugin: 'com.android.application'
 
+apply from: "../kalturaCommon.gradle"
+
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion kaltura.compileSdkVersion
+    buildToolsVersion kaltura.buildToolsVersion
 
     defaultConfig {
         applicationId "com.kaltura.kalturaplayertoolkit"
-        minSdkVersion 16
-        targetSdkVersion 23
+        minSdkVersion kaltura.minSdkVersion
+        targetSdkVersion kaltura.targetSdkVersion
+        versionName kaltura.version
         versionCode 6
-        versionName "2.4.0.rc1"
     }
+    
     buildTypes {
         release {
             minifyEnabled false

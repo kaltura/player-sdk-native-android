@@ -11,17 +11,19 @@ public interface KPlayer {
 
     void setPlayerSource(String playerSource);
 
-    void setCurrentPlaybackTime(float playbackTime);
+    void setCurrentPlaybackTime(long playbackTime);
 
-    float getCurrentPlaybackTime();
+    long getCurrentPlaybackTime();
 
-    float getDuration();
+    long getDuration();
 
     void play();
 
     void pause();
 
     void changeSubtitleLanguage(String languageCode);
+
+    void freezePlayer();
 
     void removePlayer();
 
@@ -30,4 +32,8 @@ public interface KPlayer {
     void setShouldCancelPlay(boolean shouldCancelPlay);
 
     void setLicenseUri(String licenseUri);
+
+    void savePlayerState();
+
+    void recoverPlayerState();
 }

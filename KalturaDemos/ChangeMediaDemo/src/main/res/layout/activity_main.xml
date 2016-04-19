@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.kaltura.nativeControlls.MainActivity"
+    android:weightSum="10"
+    android:orientation="vertical">
+
+
+
+    <FrameLayout
+        android:id="@+id/contentFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="338dp" >
+
+        <com.kaltura.playersdk.PlayerViewController
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/player"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_gravity="left|center_vertical">
+
+        </com.kaltura.playersdk.PlayerViewController>
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:layout_weight="8">
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:orientation="vertical"
+        android:id="@+id/playerContainer">
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play"
+            android:id="@+id/button"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <SeekBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignBottom="@+id/button"
+            android:layout_toRightOf="@+id/button"
+            android:layout_toEndOf="@+id/button" />
+    </RelativeLayout>
+
+    <Button
+        android:layout_width="151dp"
+        android:layout_height="66dp"
+        android:id="@+id/open_select_media_fragment_button"
+        android:text="@string/pick_media"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_gravity="right" />
+
+    <FrameLayout
+        android:layout_width="250dp"
+        android:layout_height="220dp" >
+
+    </FrameLayout>
+</LinearLayout>

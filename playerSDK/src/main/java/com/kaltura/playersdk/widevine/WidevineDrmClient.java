@@ -1,6 +1,7 @@
 
 package com.kaltura.playersdk.widevine;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.drm.DrmErrorEvent;
 import android.drm.DrmEvent;
@@ -9,6 +10,8 @@ import android.drm.DrmInfoEvent;
 import android.drm.DrmInfoRequest;
 import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
+import android.drm.DrmStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.FileDescriptor;
@@ -45,6 +48,56 @@ public class WidevineDrmClient {
     }
 
     private EventListener mEventListener;
+    
+    public static class RightsInfo {
+        
+        public enum Status {
+            VALID,
+            INVALID,
+            EXPIRED,
+            NOT_ACQUIRED,
+        }
+        
+        public Status status;
+        
+        public int startTime;
+        public int expiryTime;
+        public int availableTime;
+        
+        public ContentValues rawConstraints;
+        
+        private RightsInfo(int status, ContentValues values) {
+            this.rawConstraints = values;
+
+            switch (status) {
+                case DrmStore.RightsStatus.RIGHTS_VALID:
+                    this.status = Status.VALID;
+                    if (values != null) {
+                        try {
+                            this.startTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_START_TIME);
+                            this.expiryTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_EXPIRY_TIME);
+                            this.availableTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_AVAILABLE_TIME);
+                        } catch (NullPointerException e) {
+                            Log.e(TAG, "Invalid constraints: " + values);
+                        }
+                    }
+                    break;
+
+                case DrmStore.RightsStatus.RIGHTS_INVALID:
+                    this.status = Status.INVALID;
+                    break;
+
+                case DrmStore.RightsStatus.RIGHTS_EXPIRED:
+                    this.status = Status.EXPIRED;
+                    break;
+
+                case DrmStore.RightsStatus.RIGHTS_NOT_ACQUIRED:
+                    this.status = Status.NOT_ACQUIRED;
+                    break;
+            }
+            
+        }
+    }
 
     public interface EventListener {
         void onError(DrmErrorEvent event);
@@ -103,6 +156,19 @@ public class WidevineDrmClient {
         registerPortal();
     }
     
+    @Override
+    protected void finalize() throws Throwable {
+        // Prevent Android's CloseGuard from shouting at us.
+        // We need the drmManagerClient to be released AT SOME POINT, doesn't matter when.
+        try {
+            Log.d(TAG, "finalize - release");
+            mDrmManager.release();
+            mDrmManager = null;
+        } finally {
+            super.finalize();
+        }
+    }
+
     private void logEvent(DrmEvent event) {
 //		if (! BuildConfig.DEBUG) {
 //			// Basic log
@@ -153,22 +219,28 @@ public class WidevineDrmClient {
         }
 
         DrmInfo drmInfo = (DrmInfo) event.getAttribute(DrmEvent.DRM_INFO_OBJECT);
-        if (drmInfo != null) {
-            logString.append(" info={");
-            for (Iterator<String> it = drmInfo.keyIterator(); it.hasNext();) {
-                String key = it.next();
-                Object value = drmInfo.get(key);
-                logString.append("{").append(key).append("=").append(value).append("}");
-                if (it.hasNext()) {
-                    logString.append(" ");
-                }
-            }
-            logString.append("}");
-        }
+        logString.append("info=").append(extractDrmInfo(drmInfo));
 
         Log.d(TAG, logString.toString());
     }
-    
+
+    private String extractDrmInfo(DrmInfo drmInfo) {
+        StringBuilder sb = new StringBuilder();
+        if (drmInfo != null) {
+            sb.append("{");
+            for (Iterator<String> it = drmInfo.keyIterator(); it.hasNext();) {
+                String key = it.next();
+                Object value = drmInfo.get(key);
+                sb.append("{").append(key).append("=").append(value).append("}");
+                if (it.hasNext()) {
+                    sb.append(" ");
+                }
+            }
+            sb.append("}");
+        }
+        return sb.toString();
+    }
+
     private DrmInfoRequest createDrmInfoRequest(String assetUri, String licenseServerUri) {
         DrmInfoRequest rightsAcquisitionInfo;
         rightsAcquisitionInfo = new DrmInfoRequest(DrmInfoRequest.TYPE_RIGHTS_ACQUISITION_INFO,
@@ -202,12 +274,12 @@ public class WidevineDrmClient {
         request.put(WV_PORTAL_KEY, portal);
         DrmInfo response = mDrmManager.acquireDrmInfo(request);
 
+        Log.i(TAG, "Widevine Plugin Info: " + extractDrmInfo(response));
+
         String drmInfoRequestStatusKey = (String)response.get(WV_DRM_INFO_REQUEST_STATUS_KEY);
-        if (null != drmInfoRequestStatusKey && !drmInfoRequestStatusKey.equals("")) {
+        if (!TextUtils.isEmpty(drmInfoRequestStatusKey)) {
             mWVDrmInfoRequestStatusKey = Long.parseLong(drmInfoRequestStatusKey);
         }
-
-        String pluginVersion = (String) response.get(WV_DRM_INFO_REQUEST_VERSION_KEY);
     }
 
     public int acquireRights(String assetUri, String licenseServerUri) {
@@ -269,14 +341,16 @@ public class WidevineDrmClient {
         }
     }
 
-    public int checkRightsStatus(String assetUri) {
+    public RightsInfo getRightsInfo(String assetUri) {
 
         // Need to use acquireDrmInfo prior to calling checkRightsStatus
         mDrmManager.acquireDrmInfo(createDrmInfoRequest(assetUri));
         int status = mDrmManager.checkRightsStatus(assetUri);
-        logMessage("checkRightsStatus  = " + status + "\n");
-
-        return status;
+        logMessage("getRightsInfo  = " + status + "\n");
+        
+        ContentValues values = mDrmManager.getConstraints(assetUri, DrmStore.Action.PLAY);
+        
+        return new RightsInfo(status, values);
     }
     
     public int removeRights(String assetUri) {
