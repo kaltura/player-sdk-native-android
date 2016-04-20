@@ -176,7 +176,7 @@ public class PlayerFragment extends Fragment implements KPEventListener {
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        Log.d("KPlayer State Changed", state.toString());
+        Log.d(TAG, "KPlayer State Changed " + state.toString());
     }
 
     @Override
@@ -186,7 +186,7 @@ public class PlayerFragment extends Fragment implements KPEventListener {
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-        Log.d("KPlayer onKPlayerPlayheadUpdate ", Float.toString(currentTime));
+        Log.d(TAG, "KPlayer onKPlayerPlayheadUpdate " +Float.toString(currentTime));
     }
 
     @Override
