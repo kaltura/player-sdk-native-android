@@ -69,9 +69,11 @@ public class PlayerFragment extends Fragment implements KPEventListener {
     }
 
     public void killPlayer() {
-        mPlayerView.removePlayer();
-        mPlayerView = null;
-        getActivity().getFragmentManager().beginTransaction().remove(this).commit();
+        if (mPlayerView != null) {
+            mPlayerView.removePlayer();
+            mPlayerView = null;
+            getActivity().getFragmentManager().beginTransaction().remove(this).commit();
+        }
     }
 
 
