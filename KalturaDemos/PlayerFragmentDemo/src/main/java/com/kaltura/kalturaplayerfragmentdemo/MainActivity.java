@@ -12,8 +12,10 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity implements PlayerFragment.OnFragmentInteractionListener {
+
     private static final String TAG = "PlayerFragmentDemo";
     private PlayerFragment mPlayerFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-        Log.d(TAG, "URI" + uri.toString());
+        Log.d(TAG, "URI " + uri.toString());
     }
 
     @Override
