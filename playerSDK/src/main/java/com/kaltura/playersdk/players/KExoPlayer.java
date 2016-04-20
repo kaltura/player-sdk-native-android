@@ -169,6 +169,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
                 } else {
                     mExoPlayer.setSurface(holder.getSurface());
+                    mExoPlayer.addListener(KExoPlayer.this);
                 }
             }
 
