@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:id="@+id/fragment_container"
     tools:context="com.kaltura.kalturaplayerdemos.kalturaplayerfragmentdemo.MainActivity"
-    android:background="#ffffea56">
+    android:background="#00D6FF">
 
 
     <Button
