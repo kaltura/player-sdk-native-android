@@ -36,7 +36,6 @@ import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
 import com.kaltura.playersdk.types.KPError;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -99,9 +98,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void onRouteAdded(boolean isAdded, KRouterInfo route) {
         if (getRouterManager().getAppListener() != null) {
             if (isAdded) {
-                getRouterManager().getAppListener().addedCastDevice(route);
+                getRouterManager().getAppListener().onAddedCastDevice(route);
             } else {
-                getRouterManager().getAppListener().removedCastDevice(route);
+                getRouterManager().getAppListener().onRemovedCastDevice(route);
             }
         }
     }
@@ -112,7 +111,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
         }
         if (getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().didDetectCastDevices(didFound);
+            getRouterManager().getAppListener().shouldPresentCastIcon(didFound);
         }
     }
 
@@ -121,7 +120,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         playerController.stopCasting();
         mWebView.triggerEvent("chromecastDeviceDisConnected", null);
         if (getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().castDeviceConnectionState(false);
+            getRouterManager().getAppListener().onApplicationStatusChanged(false);
         }
     }
 
@@ -133,7 +132,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     @Override
     public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
         if (getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().castDeviceConnectionState(true);
+            getRouterManager().getAppListener().onApplicationStatusChanged(true);
         }
         playerController.startCasting(apiClient);
     }
@@ -920,7 +919,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private void showChromecastDeviceList() {
         if(!mActivity.isFinishing() && getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().castButtonClicked();
+            getRouterManager().getAppListener().onCastButtonClicked();
         }
     }
 

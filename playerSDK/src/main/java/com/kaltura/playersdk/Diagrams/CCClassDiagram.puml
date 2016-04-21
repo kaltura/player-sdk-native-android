@@ -3,11 +3,11 @@
 abstract class AbstractList
 abstract AbstractCollection
 interface KCastRouterManagerListener {
-    castButtonClicked
-    castDeviceConnectionState: boolean isConnected
-    didDetectCastDevices:boolean didDetect
-    addedCastDevice:KRouterInfo info
-    removedCastDevice:KRouterInfo info
+    onCastButtonClicked
+    onApplicationStatusChanged: boolean isConnected
+    shouldPresentCastIcon:boolean didDetect
+    onAddedCastDevice:KRouterInfo info
+    onRemovedCastDevice:KRouterInfo info
 }
 
 interface KCastRouterManager {

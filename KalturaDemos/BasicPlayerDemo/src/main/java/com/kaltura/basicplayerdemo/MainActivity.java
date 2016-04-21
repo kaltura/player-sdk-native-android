@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean shouldResume = false;
     private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
     private boolean isCCActive = false;
+    private Button ccButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mPlayPauseButton.setOnClickListener(this);
         mSeekBar = (SeekBar)findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(this);
+        ccButton = (Button)findViewById(R.id.ccButto);
+        ccButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presentCCDevices();
+            }
+        });
         onCreate = true;
         getPlayer();
     }
@@ -61,14 +69,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-            KPPlayerConfig config = new KPPlayerConfig("http://192.168.161.180/html5.kaltura/mwEmbed/mwEmbedFrame.php", "21099702", "243342").setEntryId("0_l1v5vzh3");
+            KPPlayerConfig config = new KPPlayerConfig("http://192.168.161.180/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
             config.addConfig("chromecast.plugin", "true");
             config.addConfig("chromecast.applicationID", "5247861F");
             config.addConfig("chromecast.useKalturaPlayer", "true");
             config.addConfig("chromecast.receiverLogo", "true");
+            mPlayer.getKCastRouterManager().enableKalturaCastButton(false);
+            mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "someId", new PlayerViewController.EventListener() {
+                @Override
+                public void handler(String eventName, String params) {
+                    Log.d(TAG, eventName);
+                }
+            });
             mPlayer.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
                 @Override
-                public void castButtonClicked() {
+                public void onCastButtonClicked() {
                     if (!isCCActive) {
                         presentCCDevices();
                     } else {
@@ -77,29 +92,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 @Override
-                public void castDeviceConnectionState(boolean isConnected) {
+                public void onApplicationStatusChanged(boolean isConnected) {
                     isCCActive = isConnected;
                 }
 
                 @Override
-                public void didDetectCastDevices(boolean didDetect) {
-
+                public void shouldPresentCastIcon(boolean didDetect) {
+                    ccButton.setVisibility(View.VISIBLE);
                 }
 
                 @Override
-                public void addedCastDevice(KRouterInfo info) {
+                public void onAddedCastDevice(KRouterInfo info) {
                     mRouterInfos.add(info);
                 }
 
                 @Override
-                public void removedCastDevice(KRouterInfo info) {
+                public void onRemovedCastDevice(KRouterInfo info) {
                     mRouterInfos.remove(info);
                 }
             });
-//            config.addConfig("controlBarContainer.plugin", "false");
-//            config.addConfig("topBarContainer.plugin", "false");
-//            config.addConfig("largePlayBtn.plugin", "false");
-//            KPPlayerConfig config = new KPPlayerConfig()
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
         }

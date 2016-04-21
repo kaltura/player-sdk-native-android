@@ -61,5 +61,15 @@
             android:layout_alignBottom="@+id/button"
             android:layout_toRightOf="@+id/button"
             android:layout_toEndOf="@+id/button" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chromecast"
+            android:id="@+id/ccButto"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="invisible"/>
     </RelativeLayout>
 </LinearLayout>
