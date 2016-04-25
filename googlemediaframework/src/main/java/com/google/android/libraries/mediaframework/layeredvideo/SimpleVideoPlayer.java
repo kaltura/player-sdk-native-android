@@ -43,7 +43,7 @@ public class SimpleVideoPlayer {
   /**
    * The underlying {@link LayerManager} which is used to assemble the player.
    */
-  private final LayerManager layerManager;
+   LayerManager layerManager;
 
   /**
    * The customizable view for playback control. It handles pause/play, fullscreen, seeking,
@@ -123,6 +123,25 @@ public class SimpleVideoPlayer {
     }
   }
 
+  public void changeAdMedia(FrameLayout container, Video v, boolean doPlay){
+    boolean preferedSoftwareDecoder = checkIfSoftwareDecoderPrefered();
+    List<Layer> layers = new ArrayList<Layer>();
+    layers.add(videoSurfaceLayer);
+    layers.add(playbackControlLayer);
+    layers.add(subtitleLayer);
+
+    layerManager = new LayerManager(activity,
+            container,
+            v,
+            preferedSoftwareDecoder,
+            layers);
+
+    layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
+    if (doPlay) {
+      play();
+    }
+
+  }
   private boolean checkIfSoftwareDecoderPrefered() {
     //boolean isSoftwareDecoderPrefered = false;
     //if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) { // For Galaxy S4 Lolipop so it is hardware problem ...
@@ -245,6 +264,14 @@ public class SimpleVideoPlayer {
     videoSurfaceLayer.setAutoplay(false);
 
     layerManager.getControl().pause();
+  }
+
+  /**
+   *  Seek video playback.
+   */
+  public void seek(int miliSeconds, boolean isAutoPlay) {
+    videoSurfaceLayer.setAutoplay(isAutoPlay);
+    layerManager.getControl().seekTo(miliSeconds);
   }
 
   /**
