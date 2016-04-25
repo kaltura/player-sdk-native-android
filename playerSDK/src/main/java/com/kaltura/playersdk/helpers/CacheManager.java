@@ -23,7 +23,6 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
@@ -99,6 +98,10 @@ public class CacheManager {
         
         if (! (uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
             return false;   // only cache http(s)
+        }
+
+        if (! uri.toString().startsWith(mBaseURL)) {
+            return false;   // not our server
         }
         
         // #HACK# until we implement do-not-cache patterns.
