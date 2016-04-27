@@ -280,6 +280,21 @@ public class WidevineDrmClient {
         }
     }
 
+    /**
+     * returns whether or not we should acquire rights for this url
+     *
+     * @param assetUri
+     * @return
+     */
+    public boolean needToAcquireRights(String assetUri){
+        mDrmManager.acquireDrmInfo(createDrmInfoRequest(assetUri));
+        int rightsStatus = mDrmManager.checkRightsStatus(assetUri);
+        if(rightsStatus == DrmStore.RightsStatus.RIGHTS_INVALID){
+            mDrmManager.removeRights(assetUri); // clear current invalid rights and re-acquire new rights
+        }
+        return rightsStatus != DrmStore.RightsStatus.RIGHTS_VALID;
+    }
+
     public int acquireRights(String assetUri, String licenseServerUri) {
 
         if (assetUri.startsWith("/")) {

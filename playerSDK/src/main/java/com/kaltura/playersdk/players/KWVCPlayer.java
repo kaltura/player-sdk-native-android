@@ -373,7 +373,10 @@ public class KWVCPlayer
             }
         });
         mPlayer.setVideoURI(Uri.parse(widevineUri));
-        mDrmClient.acquireRights(widevineUri, mLicenseUri);
+
+        if(mDrmClient.needToAcquireRights(mAssetUri)) {
+            mDrmClient.acquireRights(mAssetUri, mLicenseUri);
+        }
     }
 
     private enum PrepareState {
