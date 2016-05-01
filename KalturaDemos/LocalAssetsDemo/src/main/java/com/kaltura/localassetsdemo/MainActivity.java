@@ -1,10 +1,12 @@
 package com.kaltura.localassetsdemo;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -60,7 +62,11 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+
         loadItems();
         
         mPlayerContainer = (ViewGroup) findViewById(R.id.layout_player_container);
@@ -223,12 +229,17 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
             for (int i=0; i<items.length(); i++) {
                 JSONObject jsonItem = items.getJSONObject(i);
                 KPPlayerConfig config = KPPlayerConfig.fromJSONObject(baseConfig);
-                String entryId = jsonItem.getString("entryId");
+                String entryId = getString(jsonItem, "entryId");
+                if (entryId == null) {
+                    continue;
+                }
                 config.setEntryId(entryId);
                 String localPath = getString(jsonItem, "localPath");
                 String remoteUrl = getString(jsonItem, "remoteUrl");
                 String flavorId = getString(jsonItem, "flavorId");
-                Item item = new Item(config, flavorId, remoteUrl, localPath, getString(jsonItem, "name"));
+                String name = getString(jsonItem, "name");
+                config.setLocalContentId(name);
+                Item item = new Item(config, flavorId, remoteUrl, localPath, name);
                 
                 mContentItems.add(item);
                 mContentMap.put(entryId, i);

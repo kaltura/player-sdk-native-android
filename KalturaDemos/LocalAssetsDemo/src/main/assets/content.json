@@ -16,7 +16,11 @@
       "remoteUrl": "http://cfvod.kaltura.com/pd/p/1851571/sp/185157100/serveFlavor/entryId/1_aegxx56o/v/11/flavorId/1_6dadj61z/name/a.mp4"
     },
     {
-      "name": "sintel - drm", "entryId": "0_pl5lbfo0", "flavorId": "1_e0qtaj1j", "localPath": "/sdcard/Download/sintel.wvm",
+      "name": "sintel - cenc", "entryId": "0_pl5lbfo0", "flavorId": "0_ywkmqnkg", "localPath": "/sdcard/Download/sintel-cenc/manifest.mpd",
+      "downloadUrl": "http://cfvod.kaltura.com/edash/p/1851571/sp/185157100/serveFlavor/entryId/0_pl5lbfo0/v/2/flavorId/0_ywkmqnkg/forceproxy/true/name/a.mp4/manifest.mpd"
+    },
+    {
+      "name": "sintel - wvm", "*entryId": "0_pl5lbfo0", "flavorId": "1_e0qtaj1j", "localPath": "/sdcard/Download/sintel.wvm",
       "downloadUrl": "http://cdnapi.kaltura.com/p/1851571/sp/185157100/playManifest/entryId/0_pl5lbfo0/flavorId/1_e0qtaj1j/format/url/protocol/http/uiConfId/31578861/a.wvm"
     }
   ]
