@@ -27,9 +27,6 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -39,9 +36,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
 
     private final String adUrl1 = "http://html5demos.com/assets/dizzy.mp4";
-    //private final String adUrl = "http://dpndczlul8yjf.cloudfront.net/creatives/assets/9d266094-8d1e-49e3-b13c-249515529bfc/c01b6747-0a3b-4480-9286-811d469b977d.mp4";
-    private final String adUrl2 = "http://dpndczlul8yjf.cloudfront.net/creatives/assets/79dba610-b5ee-448b-8e6b-531b3d3ebd54/5fe7eb54-0296-4688-af06-9526007054a4.mp4";
-    private final String adUrl ="http://dpndczlul8yjf.cloudfront.net/creatives/assets/c00cfcf0-985c-4d83-b32a-af8824025e9b/fa69a864-0e37-4597-b2f0-bdaceb16b56b.mp4";
+    private final String adUrl2 = "http://html5demos.com/assets/remy-and-ellis2.mp4";
 
     private static final String TAG = "KalturaMultiPlayer";
     private Button mPlayPauseButton;
@@ -54,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private FrameLayout adPlayerContainer;
     private SimpleVideoPlayer mAdPlayer;
-    private boolean adPlayerIsPlaying;
+    private boolean adPlayerIsPlaying = false;
     private boolean adIsDone;
     private boolean kPlayerReady;
     private int lastGroupIndex = 0;
@@ -86,8 +81,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         skipAd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e(TAG, "GILAD Skip selected");
-                mAdPlayer.seek(mAdPlayer.getDuration(), true);
+                if (mAdPlayer != null) {
+                    Log.e(TAG, "Skip selected");
+                    mAdPlayer.seek(mAdPlayer.getDuration(), true);
+                }
             }
         });
 
@@ -102,18 +99,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //  mPlayer.changeMedia("384080");
                     mPlayer.getMediaControl().pause();
                     mPlayer.detachView();
-
-                    try {
-                        config = KPPlayerConfig.fromJSONObject(new JSONObject(getJson("384080")));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");
+                    config.addConfig("autoPlay", "true");
                     if (adList.size() > 0) {
                         mPlayer.setPrepareWithConfigurationMode(true);
                     }
                     mPlayer.changeConfiguration(config);
                     addMultiAdPlayer();
+                }else{
+                    Log.e(TAG,"Next selected not executed");
                 }
+
             }
         });
 
@@ -124,9 +120,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // nextInt is normally exclusive of the top value,
         // so add 1 to make it inclusive
         int randomNum = rand.nextInt((2));
-        Log.e(TAG, "GILAD " + randomNum);
+        Log.e(TAG, "randomNum " + randomNum);
         if (randomNum == 1) {
-            adList.add(adUrl);
+            adList.add(adUrl1);
             //adList.add(adUrl1);
             adList.add(adUrl2);
         }else{
@@ -143,9 +139,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController) findViewById(com.kaltura.adplayerdemo.R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-            
-//            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-//            //config.addConfig("autoPlay", "true");
+
+            config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
+            config.addConfig("autoPlay", "true");
 //            //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
 ////            config.addConfig("topBarContainer.hover", "true");
 ////            config.addConfig("controlBarContainer.hover", "true");
@@ -156,32 +152,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //
 ////            config.addConfig("doubleClick.adTagUrl",adTagUrl);
 ////            config.addConfig("doubleClick.plugin","true");
-
-
-
-            String json = getJson("388409");
-
-
-            //KPPlayerConfig config = null;
-            try {
-                config = KPPlayerConfig.fromJSONObject(new JSONObject(json));
-
-                config.addConfig("topBarContainer.hover", "true");
-                //config.addConfig("autoPlay", "true");
-                config.addConfig("controlBarContainer.plugin", "true");
-                config.addConfig("durationLabel.prefix", " ");
-                config.addConfig("largePlayBtn.plugin", "true");
-                //        config.addConfig("mediaProxy.mediaPlayFrom", String.valueOf("100"));
-                config.addConfig("scrubber.sliderPreview", "false");
-                //config.addConfig("largePlayBtn","false");
-                //config.addConfig("debugKalturaPlayer", "true");
-                config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
-                mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
-                mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
 
             if (adList.size() > 0) {
                 boolean prepareWithConfigurationMode = true; // false to load surface automatically
@@ -194,79 +164,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return mPlayer;
     }
 
-    public String getJson(String mediaID){
-        String json = "{\n" +
-                "  \"base\": {\n" +
-                "    \"server\": \"http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php\",\n" +
-                //                 "    \"server\": \"http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
 
-                "    \"partnerId\": \"\",\n" +
-                "    \"uiConfId\": \"32626752\",\n" +
-                //"    \"entryId\": \"374130\"\n" +
-                //                 "    \"entryId\": \"384080\"\n" +
-                "    \"entryId\": \"" + mediaID + "\"\n" +
-
-
-
-                "  },\n" +
-                "  \"extra\": {\n" +
-                "    \"watermark.plugin\": \"true\",\n" +
-                "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
-                "    \"watermark.title\": \"Viacom18\",\n" +
-                "    \"watermark.cssClass\": \"topRight\",\n" +
-                "    \n" +
-                "    \"controlBarContainer.hover\": true,\n" +
-                "    \"controlBarContainer.plugin\": true,\n" +
-//                    "    \"adultPlayer.plugin\": false,\n" +
-                "    \"kidsPlayer.plugin\": true,\n" +
-                "    \"nextBtnComponent.plugin\": true,\n" +
-                "    \"prevBtnComponent.plugin\": true,\n" +
-                "    \n" +
-                "    \"liveCore.disableLiveCheck\": true,\n" +
-                "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
-                "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
-                "    \"proxyData\": {\n";
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2 /*4.3*/) {
-            json = json + "\"config\": {\n" +
-                    "                                    \"flavorassets\": {\n" +
-                    "                                        \"filters\": {\n" +
-                    "                                            \"include\": {\n" +
-                    "                                                \"Format\": [\n" +
-                    "                                                    \"dash Main\"\n" +
-                    "                                                ]\n" +
-                    "                                            }\n" +
-                    "                                        }\n" +
-                    "                                    }\n" +
-                    "                                },";
-        }
-        json = json + "      \"MediaID\": \"" + mediaID + "\",\n" +
-                "      \"iMediaID\": \"" + mediaID + "\",\n" +
-                "      \"mediaType\": \"0\",\n" +
-                "      \"picSize\": \"640x360\",\n" +
-                "      \"withDynamic\": \"false\",\n" +
-                "      \"initObj\": {\n" +
-                "        \"ApiPass\": \"11111\",\n" +
-                "        \"ApiUser\": \"tvpapi_225\",\n" +
-                "        \"DomainID\": 0,\n" +
-                "        \"Locale\": {\n" +
-                "            \"LocaleCountry\": \"null\",\n" +
-                "            \"LocaleDevice\": \"null\",\n" +
-                "            \"LocaleLanguage\": \"null\",\n" +
-                "            \"LocaleUserState\": \"Unknown\"\n" +
-                "        },\n" +
-                "        \"Platform\": \"Cellular\",\n" +
-                "        \"SiteGuid\": \"\",\n" +
-                "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "}\n";
-        return json;
-
-
-
-    }
     private RelativeLayout getPlayerContainer() {
         return (RelativeLayout)findViewById(com.kaltura.adplayerdemo.R.id.playerContainer);
     }
@@ -389,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.READY){
-            Log.e(TAG, "GILAD onKPlayerStateChanged PLAYER STATE_READY");
+            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
             kPlayerReady = true;
         }
         if (state == KPlayerState.ENDED && adIsDone){
@@ -469,15 +367,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lp = new ViewGroup.LayoutParams(lp.width, lp.height);
         mPlayer.addView(adPlayerContainer, lp);
 
-        Video source = new Video(adUrl, Video.VideoType.MP4);
-        mAdPlayer = new SimpleVideoPlayer(this, adPlayerContainer, source, "", true);
-        mAdPlayer.disableSeeking();
         changeAdMedia(adList.get(0), 0);
     }
 
     public void changeAdMedia(String adUrl, final int index){
 
         Video source = new Video(adUrl, Video.VideoType.MP4);
+        if (mAdPlayer == null){
+            mAdPlayer = new SimpleVideoPlayer(this, adPlayerContainer, source, "", true);
+            mAdPlayer.disableSeeking();
+        }
         mAdPlayer.changeAdMedia(adPlayerContainer, source, true);
         mAdPlayer.addPlaybackListener(new ExoplayerWrapper.PlaybackListener() {
             @Override
@@ -485,13 +384,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 switch (playbackState) {
                     case ExoPlayer.STATE_READY:
                         if (!playWhenReady && adPlayerIsPlaying) {
-                            Log.e(TAG, "GILAD SimpleVideoPlayer STATE_READY playWhenReady pause " + playWhenReady);
+                            Log.e(TAG, "SimpleVideoPlayer STATE_READY playWhenReady pause " + playWhenReady);
                             adPlayerIsPlaying = false;
                             mAdPlayer.pause();
                             break;
                         }
 
-                        Log.e(TAG, "GILAD SimpleVideoPlayer STATE_READY playWhenReady play " + playWhenReady);
+                        Log.e(TAG, "SimpleVideoPlayer STATE_READY playWhenReady play " + playWhenReady);
                         //if (playWhenReady) {
                         if (!adPlayerIsPlaying && adPlayerContainer != null && mAdPlayer != null) {
                             Log.e(TAG, "START PLAY AD ");
@@ -519,7 +418,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                         break;
                     case ExoPlayer.STATE_ENDED:
-                        Log.e(TAG, "GILAD changeAdMedia AD ENDED prev index = " + currentAdIndex);
+                        Log.e(TAG, "changeAdMedia AD ENDED prev index = " + currentAdIndex);
                         skipAd.setClickable(true);
                         skipAd.setVisibility(View.INVISIBLE);
                         currentAdIndex++;
@@ -528,8 +427,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
 
                         adPlayerIsPlaying = false;
+                        Log.e(TAG, "adPlayerIsPlaying = " + adPlayerIsPlaying);
                         adIsDone = true;
-                        Log.e(TAG, "GILAD isLast " + index + "/" + adList.size());
+                        Log.e(TAG, "isLast " + index + "/" + adList.size());
                         if (index == adList.size() - 1) {
                             currentAdIndex = 0;
                             //changeAdMedia(adUrl1,true);
@@ -556,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         removeAdPlayer();
 
         if (kPlayerReady){
-            Log.e(TAG, "GILAD KPLAY FROM NORMAL PATH");
+            Log.e(TAG, "KPLAY FROM NORMAL PATH");
             if (!wvClassicRequired(isDRMContent)) {
                 mPlayer.attachView();
             }
@@ -564,24 +464,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             nextContent.setClickable(true);
             nextContent.setVisibility(View.VISIBLE);
             mPlayer.getMediaControl().start();
-            Log.e(TAG, "GILAD ENDED KPLAY FROM NORMAL PATH");
+            Log.e(TAG, "ENDED KPLAY FROM NORMAL PATH");
 
 
         }else {
             mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
                 @Override
                 public void handler() {
-                        Log.e(TAG, "GILAD KPLAY FROM HANDLER");
+                        Log.e(TAG, "KPLAY FROM HANDLER");
                         if (!wvClassicRequired(isDRMContent)) {
                             mPlayer.attachView();
                         }
 
-                        Log.e(TAG, "BEFORE ENDED GILAD KPLAY FROM HANDLER");
+                        Log.e(TAG, "BEFORE ENDED KPLAY FROM HANDLER");
                         nextContent.setClickable(true);
                         nextContent.setVisibility(View.VISIBLE);
                         mPlayer.getMediaControl().start();
 
-                        Log.e(TAG, "ENDED GILAD KPLAY FROM HANDLER");
+                        Log.e(TAG, "ENDED KPLAY FROM HANDLER");
                     kPlayerReady = false;
 
                 }
