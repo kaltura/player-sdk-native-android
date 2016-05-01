@@ -204,11 +204,15 @@ public class KStringUtilities {
     }
 
     static public String md5(String string) {
+        return md5(string.getBytes());
+    }
+
+    static public String md5(byte[] data) {
         try {
             // Create MD5 Hash
             java.security.MessageDigest digest = java.security.MessageDigest
                     .getInstance("MD5");
-            digest.update(string.getBytes());
+            digest.update(data);
             byte messageDigest[] = digest.digest();
 
             // Create Hex String
