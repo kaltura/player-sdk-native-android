@@ -162,10 +162,13 @@ public class HlsRendererBuilder implements RendererBuilder {
       PtsTimestampAdjusterProvider timestampAdjusterProvider = new PtsTimestampAdjusterProvider();
 
       DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-      HlsChunkSource chunkSource = new HlsChunkSource(true /* isMaster */, dataSource, url,
+      HlsChunkSource chunkSource = new HlsChunkSource(true /* isMaster */, dataSource,
               manifest, DefaultHlsTrackSelector.newDefaultInstance(context), bandwidthMeter,
-              timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
-        HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
+              timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE,
+              HlsChunkSource.DEFAULT_MIN_BUFFER_TO_SWITCH_UP_MS,
+              HlsChunkSource.DEFAULT_MAX_BUFFER_TO_SWITCH_DOWN_MS, mainHandler, player);
+
+      HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
         MAIN_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, ExoplayerWrapper.TYPE_VIDEO);
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context,
                 sampleSource, MediaCodecSelector.DEFAULT, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, mainHandler, player, 50);
@@ -184,9 +187,12 @@ public class HlsRendererBuilder implements RendererBuilder {
         if (preferWebvtt) {
             DataSource textDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
             HlsChunkSource textChunkSource = new HlsChunkSource(false /* isMaster */, textDataSource,
-                    url, manifest, DefaultHlsTrackSelector.newVttInstance(), bandwidthMeter,
-                    timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
-            HlsSampleSource textSampleSource = new HlsSampleSource(textChunkSource, loadControl,
+                    manifest, DefaultHlsTrackSelector.newSubtitleInstance(), bandwidthMeter,
+                    timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE,
+                    HlsChunkSource.DEFAULT_MIN_BUFFER_TO_SWITCH_UP_MS,
+                    HlsChunkSource.DEFAULT_MAX_BUFFER_TO_SWITCH_DOWN_MS, mainHandler, player);
+
+          HlsSampleSource textSampleSource = new HlsSampleSource(textChunkSource, loadControl,
                     TEXT_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, ExoplayerWrapper.TYPE_TEXT);
             textRenderer = new TextTrackRenderer(textSampleSource, player, mainHandler.getLooper());
         } else {
@@ -201,7 +207,5 @@ public class HlsRendererBuilder implements RendererBuilder {
             renderers[ExoplayerWrapper.TYPE_TEXT] = textRenderer;
             player.onRenderers(renderers, bandwidthMeter);
         }
-
     }
-
 }
