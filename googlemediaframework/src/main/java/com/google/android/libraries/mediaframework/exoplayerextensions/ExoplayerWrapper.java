@@ -160,6 +160,12 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
 
     void onLoadError(int sourceId, IOException e);
 
+    /**
+     * Respond to error when running the audio track.
+     * @param bufferSize The buffer size.
+     * @param bufferSizeMs The buffer size in Ms.
+     * @param elapsedSinceLastFeedMs The time elapsed since last feed in Ms.
+    */
     void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs);
 
   }
