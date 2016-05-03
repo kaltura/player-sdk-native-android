@@ -1,5 +1,6 @@
 package com.kaltura.localassetsdemo;
 
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -10,15 +11,17 @@ import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.kaltura.playersdk.KPPlayerConfig;
-import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.Utilities;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.offline.LocalAssetsManager;
 import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONArray;
@@ -70,7 +73,18 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
         loadItems();
         
         mPlayerContainer = (ViewGroup) findViewById(R.id.layout_player_container);
-        
+
+        final WifiManager wifiManager = (WifiManager)this.getSystemService(WIFI_SERVICE);
+        Switch wifiSwitch = (Switch) findViewById(R.id.switch_wifi);
+        assert wifiSwitch != null;
+        wifiSwitch.setChecked(wifiManager.isWifiEnabled());
+        wifiSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                wifiManager.setWifiEnabled(isChecked);
+            }
+        });
+
         setButtonAction(R.id.btn_register, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
