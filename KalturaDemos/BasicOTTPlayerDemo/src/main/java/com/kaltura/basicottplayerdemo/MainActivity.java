@@ -43,9 +43,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public static final String OTT_TOKEN_URL = "http://tvpapi-preprod.ott.kaltura.com/v3_7/gateways/jsonpostgw.aspx?m=SignIn";
     public static final String OTT_REST_JSON = "{\"initObj\":{\"Locale\":{\"LocaleLanguage\":\"en\",\"LocaleCountry\":null,\"LocaleDevice\":null,\"LocaleUserState\":\"Unknown\"},\"SiteGuid664\":\"0\",\"DomainID\":\"0\",\"Platform\":\"Cellular\",\"ApiUser\":\"tvpapi_198\",\"ApiPass\":\"11111\",\"UDID\":\"885bc1e13552233f\",\"Token\":\"\"},\"userName\":\"vladi@yahoo.com\",\"password\":\"123456\"}";
-    public static final String OTT_FRAME_URL = "http://player-227562931.eu-west-1.elb.amazonaws.com/v2.38.rc16/mwEmbed/mwEmbedFrame.php";
-
-
+    public static final String OTT_FRAME_URL = "http://player-227562931.eu-west-1.elb.amazonaws.com/v2.42.rc12/mwEmbed/mwEmbedFrame.php";
+    
     private static final String TAG = "BasicOTTPlayerDemo";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
