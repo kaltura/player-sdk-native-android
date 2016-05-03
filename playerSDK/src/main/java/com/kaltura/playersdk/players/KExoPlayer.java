@@ -1,6 +1,5 @@
 package com.kaltura.playersdk.players;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.MediaDrm;
 import android.net.Uri;
@@ -8,7 +7,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
@@ -16,19 +14,14 @@ import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlayer;
-import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Created by noamt on 18/01/2016.
@@ -139,7 +132,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         
         mReadiness = Readiness.Preparing;
 
-        mDrmCallback = new KPlayerExoDrmCallback();
+        boolean offline = mSourceURL.startsWith("/");
+        mDrmCallback = new KPlayerExoDrmCallback(getContext(), offline);
         Video video = new Video(mSourceURL, getVideoType());
         final ExoplayerWrapper.RendererBuilder rendererBuilder = RendererBuilderFactory
                 .createRendererBuilder(getContext(), video, mDrmCallback);
@@ -442,57 +436,3 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 }
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-class KPlayerExoDrmCallback implements MediaDrmCallback {
-
-    private static final String TAG = "KPlayerDrmCallback";
-    private static final long MAX_LICENCE_URI_WAIT = 8000;
-    private String mLicenseUri;
-    private final Object mLicenseLock = new Object();
-
-    KPlayerExoDrmCallback() {
-        Log.d(TAG, "KPlayerDrmCallback created");
-    }
-
-    @Override
-    public byte[] executeProvisionRequest(UUID uuid, MediaDrm.ProvisionRequest request) {
-               throw new UnsupportedOperationException("We don't have a provisioning service");
-    }
-
-    @Override
-    public byte[] executeKeyRequest(UUID uuid, MediaDrm.KeyRequest request) throws IOException {
-
-        Map<String, String> headers = new HashMap<>(1);
-        headers.put("Content-Type", "application/octet-stream");
-
-        // The license uri arrives on a different thread (typically the main thread).
-        // If this method is called before the uri has arrived, we have to wait for it.
-        // mLicenseLock is the wait lock.
-        synchronized (mLicenseLock) {
-            // No uri? wait.
-            if (mLicenseUri == null) {
-                try {
-                    mLicenseLock.wait(MAX_LICENCE_URI_WAIT);
-                } catch (InterruptedException e) {
-                    Log.d(TAG, "Interrupted", e);
-                }
-            }
-            // Still no uri? throw.
-            if (mLicenseUri == null) {
-                throw new IllegalStateException("licenseUri cannot be null");
-            }
-            // Execute request.
-            byte[] response = ExoplayerUtil.executePost(mLicenseUri, request.getData(), headers);
-            Log.d(TAG, "response data (b64): " + Base64.encodeToString(response, 0));
-            return response;
-        }
-    }
-
-    public void setLicenseUri(String licenseUri) {
-        synchronized (mLicenseLock) {
-            mLicenseUri = licenseUri;
-            // notify executeKeyRequest() that we have the license uri.
-            mLicenseLock.notify();
-        }
-    }
-}
