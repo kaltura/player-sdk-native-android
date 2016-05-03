@@ -100,6 +100,10 @@ public class CacheManager {
         if (! (uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
             return false;   // only cache http(s)
         }
+
+        if (! uri.toString().startsWith(mBaseURL)) {
+            return false;   // not our server
+        }
         
         // #HACK# until we implement do-not-cache patterns.
         if (uri.getHost().equals("stats.kaltura.com")) {

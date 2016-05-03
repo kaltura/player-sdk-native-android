@@ -248,6 +248,14 @@ public class SimpleVideoPlayer {
   }
 
   /**
+   *  Seek video playback.
+   */
+  public void seek(int miliSeconds, boolean isAutoPlay) {
+    videoSurfaceLayer.setAutoplay(isAutoPlay);
+    layerManager.getControl().seekTo(miliSeconds);
+  }
+  
+  /**
    * Resume video playback.
    */
   public void play() {
