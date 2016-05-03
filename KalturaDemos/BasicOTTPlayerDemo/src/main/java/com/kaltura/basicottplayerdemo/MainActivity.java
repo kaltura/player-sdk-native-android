@@ -25,26 +25,25 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
 
     public static final String OTT_TOKEN_URL = "http://tvpapi-preprod.ott.kaltura.com/v3_7/gateways/jsonpostgw.aspx?m=SignIn";
     public static final String OTT_REST_JSON = "{\"initObj\":{\"Locale\":{\"LocaleLanguage\":\"en\",\"LocaleCountry\":null,\"LocaleDevice\":null,\"LocaleUserState\":\"Unknown\"},\"SiteGuid664\":\"0\",\"DomainID\":\"0\",\"Platform\":\"Cellular\",\"ApiUser\":\"tvpapi_198\",\"ApiPass\":\"11111\",\"UDID\":\"885bc1e13552233f\",\"Token\":\"\"},\"userName\":\"vladi@yahoo.com\",\"password\":\"123456\"}";
     public static final String OTT_FRAME_URL = "http://player-227562931.eu-west-1.elb.amazonaws.com/v2.42.rc12/mwEmbed/mwEmbedFrame.php";
-    
+
     private static final String TAG = "BasicOTTPlayerDemo";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -73,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (!isOtt) {
             getOvpPlayer();
         } else {
-            new MyAsyncTask().execute(OTT_REST_JSON);
+            new GetOTTTokenAsyncTask().execute(OTT_REST_JSON);
         }
     }
 
@@ -261,25 +260,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(intent);
     }
 
-    public static HttpResponse makeRequest(String uri, String json) {
-        try {
-            HttpPost httpPost = new HttpPost(uri);
-            httpPost.setEntity(new StringEntity(json));
-            httpPost.setHeader("Accept", "application/json");
-            httpPost.setHeader("Content-type", "application/json");
-            return new DefaultHttpClient().execute(httpPost);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
-
-    private class MyAsyncTask extends AsyncTask<String, Integer, String> {
+    private class GetOTTTokenAsyncTask extends AsyncTask<String, Integer, String> {
         String token;
         @Override
         protected String doInBackground(String... params) {
@@ -302,43 +284,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         public String postData(String valueIWantToSend) {
-            // Create a new HttpClient and Post Header
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(OTT_TOKEN_URL);
 
+            Headers headers = null;
             try {
-                // Add your data
-                httppost.setEntity(new StringEntity(valueIWantToSend));
-                // Execute HTTP Post Request
-                HttpResponse response = httpclient.execute(httppost);
+                //Map<String, String> jsonParams = new HashMap<String, String>();
+                //new JSONObject(jsonParams).toString();
+                headers = okHttpPostHeaders(OTT_TOKEN_URL, OTT_REST_JSON);
 
-                Header[] headers = response.getAllHeaders();//response.getEntity().getContent()));
-
-                for (Header header : headers) {
-                    String headerStr = header.getValue();
-                    if ("access_token".equals(header.getName())){
-                        String tokenVal = header.getValue();
-                        String token =  tokenVal.substring(0, tokenVal.indexOf("|"));
-                        UUID uuid = null;
-                        try {
-                            String androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(),
-                                    Settings.Secure.ANDROID_ID);
-                            uuid = UUID.nameUUIDFromBytes(androidId.getBytes("utf8"));
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
-                        }
-                        String json = "{\"initObj\":{\"Locale\":{\"LocaleLanguage\":\"en\",\"LocaleCountry\":null,\"LocaleDevice\":null,\"LocaleUserState\":\"Unknown\"},\"SiteGuid\":\"716158\",\"DomainID\":\"354531\",\"Platform\":\"Cellular\",\"ApiUser\":\"tvpapi_198\",\"ApiPass\":\"11111\",\"UDID\":\"" + uuid + "\",\"Token\":\"" + token +  "\"},\"mediaType\":420,\"withDynamic\":false,\"MediaID\":\"258464\",\"iMediaID\":\"258464\"}";
+                if (headers != null) {
+                    if (headers.get("access_token") != null) {
+                        String token = (headers.get("access_token")).substring(0, headers.get("access_token").indexOf("|"));
+                        UUID uuid = getDeviceUUID();
+                        String json = "{\"initObj\":{\"Locale\":{\"LocaleLanguage\":\"en\",\"LocaleCountry\":null,\"LocaleDevice\":null,\"LocaleUserState\":\"Unknown\"},\"SiteGuid\":\"716158\",\"DomainID\":\"354531\",\"Platform\":\"Cellular\",\"ApiUser\":\"tvpapi_198\",\"ApiPass\":\"11111\",\"UDID\":\"" + uuid + "\",\"Token\":\"" + token + "\"},\"mediaType\":420,\"withDynamic\":false,\"MediaID\":\"258464\",\"iMediaID\":\"258464\"}";
                         return json;
                     }
-                    continue;
                 }
-            } catch (ClientProtocolException e) {
-                // TODO Auto-generated catch block
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return "";
         }
 
+        public UUID getDeviceUUID(){
+            UUID uuid = null;
+            try {
+                String androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+                uuid = UUID.nameUUIDFromBytes(androidId.getBytes("utf8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            return uuid;
+        }
+
+        public String okHttpPostBody(String url, String json) throws IOException {
+            MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+            OkHttpClient client = new OkHttpClient();
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
+            Response response = client.newCall(request).execute();
+            return response.body().string();
+        }
+
+         public Headers okHttpPostHeaders(String url, String json) throws IOException {
+            MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+            OkHttpClient client = new OkHttpClient();
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
+            Response response = client.newCall(request).execute();
+            return response.headers();
+        }
     }
 }
