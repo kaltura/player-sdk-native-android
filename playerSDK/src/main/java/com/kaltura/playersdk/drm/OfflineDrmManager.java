@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.offline;
+package com.kaltura.playersdk.drm;
 
 import android.annotation.TargetApi;
 import android.content.Context;

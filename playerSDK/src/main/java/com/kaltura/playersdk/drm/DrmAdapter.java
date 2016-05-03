@@ -1,16 +1,18 @@
-package com.kaltura.playersdk.offline;
+package com.kaltura.playersdk.drm;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import com.kaltura.playersdk.LocalAssetsManager;
 
 import java.io.IOException;
 
 /**
  * Created by noamt on 20/04/2016.
  */
-abstract class DrmAdapter {
-    @NonNull static DrmAdapter getDrmAdapter(@NonNull final Context context, @NonNull final String localPath) {
+public abstract class DrmAdapter {
+    @NonNull public static DrmAdapter getDrmAdapter(@NonNull final Context context, @NonNull final String localPath) {
         if (localPath.endsWith(".wvm")) {
             return new WidevineClassicAdapter(context);
         }
@@ -22,17 +24,17 @@ abstract class DrmAdapter {
         return new NullDrmAdapter();
     }
 
-    abstract boolean registerAsset(@NonNull final String localPath, String licenseUri, @Nullable final LocalAssetsManager.AssetRegistrationListener listener) throws IOException;
+    public abstract boolean registerAsset(@NonNull final String localPath, String licenseUri, @Nullable final LocalAssetsManager.AssetRegistrationListener listener) throws IOException;
 
-    abstract boolean refreshAsset(@NonNull final String localPath, String licenseUri, @Nullable final LocalAssetsManager.AssetRegistrationListener listener);
+    public abstract boolean refreshAsset(@NonNull final String localPath, String licenseUri, @Nullable final LocalAssetsManager.AssetRegistrationListener listener);
 
-    abstract boolean unregisterAsset(@NonNull final String localPath, final LocalAssetsManager.AssetRemovalListener listener);
+    public abstract boolean unregisterAsset(@NonNull final String localPath, final LocalAssetsManager.AssetRemovalListener listener);
 
-    abstract boolean checkAssetStatus(@NonNull String localPath, @Nullable final LocalAssetsManager.AssetStatusListener listener);
+    public abstract boolean checkAssetStatus(@NonNull String localPath, @Nullable final LocalAssetsManager.AssetStatusListener listener);
 
-    abstract DRMScheme getScheme();
+    public abstract DRMScheme getScheme();
 
-    enum DRMScheme {
+    public enum DRMScheme {
         Null, WidevineClassic, WidevineCENC
     }
 }

@@ -1,5 +1,5 @@
 
-package com.kaltura.playersdk.widevine;
+package com.kaltura.playersdk.drm;
 
 import android.content.ContentValues;
 import android.content.Context;

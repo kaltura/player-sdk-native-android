@@ -10,7 +10,7 @@ import android.util.Log;
 import com.google.android.exoplayer.drm.DrmSessionManager;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExtendedMediaDrmCallback;
-import com.kaltura.playersdk.offline.OfflineDrmManager;
+import com.kaltura.playersdk.drm.OfflineDrmManager;
 
 import java.io.IOException;
 import java.util.HashMap;

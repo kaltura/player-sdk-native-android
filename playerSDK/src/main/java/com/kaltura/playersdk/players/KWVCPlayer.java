@@ -13,13 +13,10 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
-import com.kaltura.playersdk.widevine.WidevineDrmClient;
+import com.kaltura.playersdk.drm.WidevineDrmClient;
 
-import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Set;
-
-import javax.crypto.interfaces.PBEKey;
 
 
 /**

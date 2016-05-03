@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.offline;
+package com.kaltura.playersdk.drm;
 
 import android.content.Context;
 import android.drm.DrmErrorEvent;
@@ -8,7 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.kaltura.playersdk.widevine.WidevineDrmClient;
+import com.kaltura.playersdk.LocalAssetsManager;
 
 /**
  * Created by noamt on 01/05/2016.

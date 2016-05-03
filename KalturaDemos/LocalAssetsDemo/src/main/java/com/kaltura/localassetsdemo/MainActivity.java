@@ -21,7 +21,7 @@ import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.Utilities;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
-import com.kaltura.playersdk.offline.LocalAssetsManager;
+import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONArray;

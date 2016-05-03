@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.offline;
+package com.kaltura.playersdk.drm;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.kaltura.playersdk.ImpossibleException;
+import com.kaltura.playersdk.LocalAssetsManager;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -71,11 +72,6 @@ public class WidevineModularAdapter extends DrmAdapter {
         }
     }
     
-    boolean unregisterAsset(@NonNull String localPath) {
-        // TODO: remove offline key
-        return false;
-    }
-
     private byte[] provideKeyResponse(byte[] sessionId, byte[] response) {
         try {
             return mMediaDrm.provideKeyResponse(sessionId, response);
@@ -105,7 +101,7 @@ public class WidevineModularAdapter extends DrmAdapter {
     }
 
     @Override
-    boolean registerAsset(@NonNull String localPath, String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
+    public boolean registerAsset(@NonNull String localPath, String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
         byte[] sessionId = openSession();
         if (sessionId == null) {
             Log.e(TAG, "Error: can't open session for registration");
@@ -145,22 +141,22 @@ public class WidevineModularAdapter extends DrmAdapter {
     }
 
     @Override
-    boolean refreshAsset(@NonNull String localPath, String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
+    public boolean refreshAsset(@NonNull String localPath, String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
         return false;
     }
 
     @Override
-    boolean unregisterAsset(@NonNull String localPath, LocalAssetsManager.AssetRemovalListener listener) {
+    public boolean unregisterAsset(@NonNull String localPath, LocalAssetsManager.AssetRemovalListener listener) {
         return false;
     }
 
     @Override
-    boolean checkAssetStatus(@NonNull String localPath, @Nullable LocalAssetsManager.AssetStatusListener listener) {
+    public boolean checkAssetStatus(@NonNull String localPath, @Nullable LocalAssetsManager.AssetStatusListener listener) {
         return false;
     }
 
     @Override
-    DRMScheme getScheme() {
+    public DRMScheme getScheme() {
         return DRMScheme.WidevineCENC;
     }
 }

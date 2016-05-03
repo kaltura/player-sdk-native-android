@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.offline;
+package com.kaltura.playersdk;
 
 import android.content.Context;
 import android.net.Uri;
@@ -6,9 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.kaltura.playersdk.KPPlayerConfig;
-import com.kaltura.playersdk.Utilities;
 import com.kaltura.playersdk.helpers.CacheManager;
+import com.kaltura.playersdk.drm.DrmAdapter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
