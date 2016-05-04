@@ -10,6 +10,7 @@ import android.util.Log;
 import com.google.android.exoplayer.drm.DrmSessionManager;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExtendedMediaDrmCallback;
+import com.kaltura.playersdk.BuildConfig;
 import com.kaltura.playersdk.drm.OfflineDrmManager;
 
 import java.io.IOException;
@@ -43,6 +44,14 @@ class KPlayerExoDrmCallback implements ExtendedMediaDrmCallback {
 
     @Override
     public byte[] executeKeyRequest(UUID uuid, MediaDrm.KeyRequest request) throws IOException {
+        
+        if (mOffline) {
+            if (BuildConfig.DEBUG) {
+                throw new AssertionError("executeKeyRequest is not allowed in offline mode");
+            } else {
+                return null;
+            }
+        }
 
         Map<String, String> headers = new HashMap<>(1);
         headers.put("Content-Type", "application/octet-stream");
