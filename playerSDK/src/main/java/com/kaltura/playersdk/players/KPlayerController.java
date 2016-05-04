@@ -76,7 +76,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public static Set<MediaFormat> supportedFormats(Context context) {
-        // TODO: dynamically determine available players, use reflection.
 
         Set<MediaFormat> formats = new HashSet<>();
 
