@@ -7,21 +7,16 @@ import android.media.MediaDrm;
 import android.media.NotProvisionedException;
 import android.media.UnsupportedSchemeException;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 import android.util.Log;
 
 import com.google.android.exoplayer.drm.DrmInitData;
 import com.google.android.exoplayer.drm.DrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
-import com.google.android.exoplayer.extractor.mp4.PsshAtomUtil;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil.WIDEVINE_UUID;
@@ -38,23 +33,19 @@ class OfflineDrmSessionManager implements DrmSessionManager {
 
     private final MediaDrm mMediaDrm;
     private final OfflineKeySetStorage mStorage;
-    private final HandlerThread mRequestHandlerThread;
     private MediaCrypto mMediaCrypto;
     private byte[] mSessionId;
     private int mState = STATE_CLOSED;
     private Exception mLastError;
     private AtomicInteger mOpenCount = new AtomicInteger(0);
-    private DrmInitData mDrmInitData;
 
     OfflineDrmSessionManager(OfflineKeySetStorage storage) throws UnsupportedDrmException {
 
         mStorage = storage;
-        mRequestHandlerThread = new HandlerThread("DrmRequestHandler");
-        mRequestHandlerThread.start();
 
         try {
             mMediaDrm = new MediaDrm(WIDEVINE_UUID);
-            printAllProperties();
+            OfflineDrmManager.printAllProperties(mMediaDrm);
 
             mMediaDrm.setOnEventListener(new MediaDrm.OnEventListener() {
                 @Override
@@ -80,30 +71,6 @@ class OfflineDrmSessionManager implements DrmSessionManager {
         }
     }
 
-    void printAllProperties() {
-        String[] stringProps = {MediaDrm.PROPERTY_VENDOR, MediaDrm.PROPERTY_VERSION, MediaDrm.PROPERTY_DESCRIPTION, MediaDrm.PROPERTY_ALGORITHMS, "securityLevel", "systemId", "privacyMode", "sessionSharing", "usageReportingSupport", "appId", "origin", "hdcpLevel", "maxHdcpLevel", "maxNumberOfSessions", "numberOfOpenSessions"};
-        String[] byteArrayProps = {MediaDrm.PROPERTY_DEVICE_UNIQUE_ID, "provisioningUniqueId", "serviceCertificate"};
-
-        Map<String, String> map = new LinkedHashMap<>();
-
-        for (String prop : stringProps) {
-            try {
-                map.put(prop, mMediaDrm.getPropertyString(prop));
-            } catch (Exception e) {
-                Log.d(TAG, "Invalid property " + prop);
-            }
-        }
-        for (String prop : byteArrayProps) {
-            try {
-                map.put(prop, Base64.encodeToString(mMediaDrm.getPropertyByteArray(prop), Base64.NO_WRAP));
-            } catch (Exception e) {
-                Log.d(TAG, "Invalid property " + prop);
-            }
-        }
-
-        Log.d(TAG, "MediaDrm properties: " + map);
-    }
-
     void onError(Exception error) {
         mLastError = error;
         mState = STATE_ERROR;
@@ -125,33 +92,12 @@ class OfflineDrmSessionManager implements DrmSessionManager {
             return;
         }
 
-        mDrmInitData = drmInitData;
-
         mState = STATE_OPENING;
 
-        new Handler(mRequestHandlerThread.getLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                openInternal();
-            }
-        });
-    }
-
-    private void openInternal() {
-        DrmInitData.SchemeInitData schemeInitData = mDrmInitData.get(WIDEVINE_UUID);
+        DrmInitData.SchemeInitData schemeInitData = OfflineDrmManager.getWidevineInitData(drmInitData);
         if (schemeInitData == null) {
-            onError(new IllegalStateException("Media does not support Widevine"));
+            onError(new IllegalStateException("Widevine PSSH not found"));
             return;
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            // Prior to L the Widevine CDM required data to be extracted from the PSSH atom.
-            byte[] psshData = PsshAtomUtil.parseSchemeSpecificData(schemeInitData.data, WIDEVINE_UUID);
-            if (psshData == null) {
-                // Extraction failed. schemeData isn't a Widevine PSSH atom, so leave it unchanged.
-            } else {
-                schemeInitData = new DrmInitData.SchemeInitData(schemeInitData.mimeType, psshData);
-            }
         }
 
         try {
@@ -198,8 +144,6 @@ class OfflineDrmSessionManager implements DrmSessionManager {
         }
 
         mState = STATE_CLOSED;
-
-        mDrmInitData = null;
     }
 
     @Override

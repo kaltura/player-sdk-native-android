@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
 
+import com.google.android.exoplayer.drm.DrmInitData;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.kaltura.playersdk.ImpossibleException;
 import com.kaltura.playersdk.LocalAssetsManager;
@@ -88,12 +89,17 @@ public class WidevineModularAdapter extends DrmAdapter {
         byte[] initData;
         try {
             SimpleDashParser dashParser = new SimpleDashParser().parse(localPath);
-            initData = dashParser.drmInitData.get(WIDEVINE_UUID).data;
+            DrmInitData.SchemeInitData widevineInitData = OfflineDrmManager.getWidevineInitData(dashParser.drmInitData);
+            if (widevineInitData == null) {
+                throw new RegisterException("No Widevine PSSH in media", null);
+            }
+            initData = widevineInitData.data;
+            if (dashParser.format == null) {
+                throw new RegisterException("Unknown format", null);
+            }
             mimeType = dashParser.format.mimeType;
         } catch (IOException e) {
             throw new RegisterException("Can't parse local dash", e);
-        } catch (NullPointerException e) {
-            throw new RegisterException("Dash missing mimeType or pssh", e);
         }
 
 
@@ -142,16 +148,19 @@ public class WidevineModularAdapter extends DrmAdapter {
 
     @Override
     public boolean refreshAsset(@NonNull String localPath, String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
+        // TODO
         return false;
     }
 
     @Override
     public boolean unregisterAsset(@NonNull String localPath, LocalAssetsManager.AssetRemovalListener listener) {
+        // TODO
         return false;
     }
 
     @Override
     public boolean checkAssetStatus(@NonNull String localPath, @Nullable LocalAssetsManager.AssetStatusListener listener) {
+        // TODO
         return false;
     }
 
@@ -159,5 +168,4 @@ public class WidevineModularAdapter extends DrmAdapter {
     public DRMScheme getScheme() {
         return DRMScheme.WidevineCENC;
     }
-
 }
