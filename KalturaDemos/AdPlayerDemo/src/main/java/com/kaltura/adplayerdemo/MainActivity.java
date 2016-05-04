@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -172,8 +173,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onPause() {
+        // If the screen is off then the device has been locked
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        boolean isScreenOn = powerManager.isScreenOn();
+
+
         if (mPlayer != null) {
-            mPlayer.releaseAndSavePosition();
+            if (!isScreenOn) {
+                Log.d(TAG,"SCREEN OFF");
+                mPlayer.saveState();
+                mPlayer.getMediaControl().pause();
+            }else {
+                mPlayer.releaseAndSavePosition();
+            }
         }
         if (mAdPlayer != null) {
             mAdPlayer.pause();
@@ -182,7 +194,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         super.onPause();
         NetworkChangeReceiver.getObservable().deleteObserver(this);
-
     }
 
     @Override
@@ -517,6 +528,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onNetworkDisConnected () {
         Log.d(TAG, "onNetworkDisConnected");
         if (null != mPlayer) {
+            mPlayer.saveState();
             mPlayer.getMediaControl().pause();
         }
     }
