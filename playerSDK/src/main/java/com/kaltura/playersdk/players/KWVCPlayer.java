@@ -1,6 +1,8 @@
 package com.kaltura.playersdk.players;
 
 import android.content.Context;
+import android.drm.DrmErrorEvent;
+import android.drm.DrmEvent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -58,7 +60,22 @@ public class KWVCPlayer
     public KWVCPlayer(Context context) {
         super(context);
         mDrmClient = new WidevineDrmClient(context);
-        
+
+        mDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
+            @Override
+            public void onError(final DrmErrorEvent event) {
+                switch (event.getType()){
+                    case DrmErrorEvent.TYPE_PROCESS_DRM_INFO_FAILED:
+                    case DrmErrorEvent.TYPE_RIGHTS_NOT_INSTALLED:
+                        mShouldCancelPlay = true;
+                        break;
+                }
+            }
+
+            @Override
+            public void onEvent(DrmEvent event) {
+            }
+        });
         mSavedState = new PlayerState();
         
         // Set no-op listeners so we don't have to check for null on use
@@ -359,7 +376,7 @@ public class KWVCPlayer
                     // we were already playing, so just resume playback from the saved position
                     mPlayer.seekTo(mSavedState.position);
                     play();
-                } else {
+                } else if(!mShouldCancelPlay){
                     mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
                     mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
                     mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
