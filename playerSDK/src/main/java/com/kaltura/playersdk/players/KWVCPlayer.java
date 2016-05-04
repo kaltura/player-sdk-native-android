@@ -325,7 +325,9 @@ public class KWVCPlayer
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                mCallback.playerStateChanged(KPlayerCallback.ENDED);
+                if(mCallback != null && mp != null) {
+                    mCallback.playerStateChanged(KPlayerCallback.ENDED);
+                }
             }
         });
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
@@ -335,8 +337,7 @@ public class KWVCPlayer
                 Log.e(TAG, errMsg);
                 mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
 
-                // TODO
-                return false;
+                return true; // prevents the VideoView error popups
             }
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
