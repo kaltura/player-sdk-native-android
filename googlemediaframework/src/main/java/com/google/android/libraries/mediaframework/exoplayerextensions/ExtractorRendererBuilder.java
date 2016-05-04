@@ -20,6 +20,9 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.net.Uri;
+import android.os.Build;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.android.exoplayer.DecoderInfo;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
@@ -61,13 +64,22 @@ public class ExtractorRendererBuilder implements RendererBuilder {
         @Override
         public DecoderInfo getDecoderInfo(String mimeType, boolean requiresSecureDecoder) throws MediaCodecUtil.DecoderQueryException {
 
-           if (!requiresSecureDecoder) {
-               if ("video/avc".equals(mimeType)) {
-                   return new DecoderInfo("OMX.google.h264.decoder", false);
-               } else if (mimeType.startsWith("audio/mp4a")) {
-                   return new DecoderInfo("OMX.google.aac.decoder", false);
-               }
-           }
+            DecoderInfo decoderInfo = MediaCodecUtil.getDecoderInfo(mimeType, false);
+
+            Log.d("Kaltura", "android.os.Build.MANUFACTURER:" + getDeviceName() + ", mimeType:" + mimeType + ", decoderName = " + decoderInfo.name);
+            if (!requiresSecureDecoder && !isVendorSupportDefaultDecoder()) {
+                Log.d("Kaltura", "Using Specific Decoder");
+                return new DecoderInfo(decoderInfo.name, false);
+            } else {
+                Log.d("Kaltura", "Using Default Decoder");
+            }
+//          if (!requiresSecureDecoder) {
+//                if ("video/avc".equals(mimeType)) {
+//                    return new DecoderInfo("OMX.google.h264.decoder", false);
+//                } else if (mimeType.startsWith("audio/mp4a")) {
+//                    return new DecoderInfo("OMX.google.aac.decoder", false);
+//                }
+//          }
            return MediaCodecSelector.DEFAULT.getDecoderInfo(mimeType,requiresSecureDecoder);
         }
 
@@ -76,6 +88,44 @@ public class ExtractorRendererBuilder implements RendererBuilder {
             return MediaCodecSelector.DEFAULT.getPassthroughDecoderName();
         }
     };
+
+    /** Returns the consumer friendly device name */
+    public static String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return capitalize(model);
+        }
+        return capitalize(manufacturer) + " " + model;
+    }
+
+    private static String capitalize(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return str;
+        }
+        char[] arr = str.toCharArray();
+        boolean capitalizeNext = true;
+        String phrase = "";
+        for (char c : arr) {
+            if (capitalizeNext && Character.isLetter(c)) {
+                phrase += Character.toUpperCase(c);
+                capitalizeNext = false;
+                continue;
+            } else if (Character.isWhitespace(c)) {
+                capitalizeNext = true;
+            }
+            phrase += c;
+        }
+        return phrase;
+    }
+
+    private boolean isVendorSupportDefaultDecoder(){
+        if (android.os.Build.MANUFACTURER.equals("LGE")){
+            return true;
+        }else {
+            return false;
+        }
+    }
 
     @Override
     public void buildRenderers(ExoplayerWrapper player) {
