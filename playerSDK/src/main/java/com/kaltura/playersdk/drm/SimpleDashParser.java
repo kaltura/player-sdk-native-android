@@ -24,11 +24,14 @@ import java.util.List;
 
 /**
  * Created by noamt on 03/05/2016.
+ * 
+ * A simple (limited) dash parser. Extracts Format and DrmInitData from the manifest and/or initialization chink.
+ * Currently only reads the first Representation of the video AdaptationSet of the first Period. 
  */
 class SimpleDashParser {
     private static final String TAG = "SimpleDashParser";
     DrmInitData drmInitData;
-    Format format;
+    Format format;  // format of the first Representation of the video AdaptationSet
 
     public SimpleDashParser parse(String localPath) throws IOException {
 
@@ -36,20 +39,36 @@ class SimpleDashParser {
 
         MediaPresentationDescriptionParser mpdParser = new MediaPresentationDescriptionParser();
         MediaPresentationDescription mpd = mpdParser.parse(localPath, inputStream);
-
+        
+        if (mpd.getPeriodCount() < 1) {
+            throw new IOException("At least one period is required");
+        }
 
         Period period = mpd.getPeriod(0);
         List<AdaptationSet> adaptationSets = period.adaptationSets;
         AdaptationSet videoAdaptation = adaptationSets.get(period.getAdaptationSetIndex(AdaptationSet.TYPE_VIDEO));
-        Representation representation = videoAdaptation.representations.get(0);
 
+        List<Representation> representations = videoAdaptation.representations;
+
+        if (representations == null || representations.isEmpty()) {
+            throw new IOException("At least one video representation is required");
+        }
+        Representation representation = representations.get(0);
+
+        format = representation.format;
+
+
+        loadDrmInitData(representation);
+
+        return this;
+    }
+
+    private void loadDrmInitData(Representation representation) throws IOException {
         Uri initFile = representation.getInitializationUri().getUri();
-
-
+        
         FileDataSource initChunkSource = new FileDataSource();
         DataSpec initDataSpec = new DataSpec(initFile);
         int trigger = 2;
-        format = representation.format;
         ChunkExtractorWrapper extractorWrapper = new ChunkExtractorWrapper(new FragmentedMp4Extractor());
         InitializationChunk chunk = new InitializationChunk(initChunkSource, initDataSpec, trigger, format, extractorWrapper);
         try {
@@ -60,7 +79,5 @@ class SimpleDashParser {
         if (!chunk.isLoadCanceled()) {
             drmInitData = chunk.getDrmInitData();
         }
-
-        return this;
     }
 }
