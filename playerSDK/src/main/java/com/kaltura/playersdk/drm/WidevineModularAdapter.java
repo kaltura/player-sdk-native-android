@@ -31,57 +31,25 @@ import static com.google.android.exoplayer.drm.StreamingDrmSessionManager.WIDEVI
 public class WidevineModularAdapter extends DrmAdapter {
     
     private static final String TAG = "WidevineModularAdapter";
-    public static final String VIDEO_MIME_TYPE = "video/mp4";
     
     private final MediaDrm mMediaDrm;
-    private final OfflineDrmManager.KeySetStorage mStore;
+    private final OfflineKeySetStorage mStore;
     
     public static boolean isSupported() {
         // Make sure Widevine is supported.
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && MediaDrm.isCryptoSchemeSupported(WIDEVINE_UUID);
     }
     
-    byte[] extractInitData(@NonNull String localPath) {
 
-        String psshString = "AAAAUHBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAADAIARIQo586eNRX5Z5yXUqgoFpBrxoHa2FsdHVyYSIKMF9wbDVsYmZvMCoFU0RfSEQ=";
-        
-        return Base64.decode(psshString, Base64.NO_WRAP);
-        
-        // TODO: parse xml, extract widevine pssh
-    }
-    
     WidevineModularAdapter(Context context) {
         mStore = OfflineDrmManager.getStorage(context);
         try {
             mMediaDrm = new MediaDrm(WIDEVINE_UUID);
         } catch (UnsupportedSchemeException e) {
-            throw new ImpossibleException("Widevine is always supported on Android", e);
+            throw new WidevineNotSupported(e);
         }
     }
     
-    byte[] openSession() {
-        try {
-            return mMediaDrm.openSession();
-        } catch (NotProvisionedException e) {
-            throw new ImpossibleException("Widevine on Android is pre-provisioned", e);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            Log.e(TAG, "Error: can't open session", e);
-            return null;
-        }
-    }
-    
-    private byte[] provideKeyResponse(byte[] sessionId, byte[] response) {
-        try {
-            return mMediaDrm.provideKeyResponse(sessionId, response);
-        } catch (NotProvisionedException e) {
-            throw new ImpossibleException("Widevine on Android is pre-provisioned", e);
-        } catch (DeniedByServerException e) {
-            throw new ImpossibleException("Server denial is already handled", e);
-        }
-    }
-
     private byte[] httpPost(@NonNull String licenseUri, byte[] data) throws IOException {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/octet-stream");
@@ -91,53 +59,85 @@ public class WidevineModularAdapter extends DrmAdapter {
         return response;
     }
 
-    @NonNull
-    private MediaDrm.KeyRequest getDashOfflineKeyRequest(byte[] sessionId, byte[] pssh) {
-        try {
-            return mMediaDrm.getKeyRequest(sessionId, pssh, VIDEO_MIME_TYPE, MediaDrm.KEY_TYPE_OFFLINE, null);
-        } catch (NotProvisionedException e) {
-            throw new ImpossibleException("Widevine on Android is pre-provisioned", e);
-        }
-    }
-
     @Override
     public boolean registerAsset(@NonNull String localPath, String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
-        byte[] sessionId = openSession();
-        if (sessionId == null) {
-            Log.e(TAG, "Error: can't open session for registration");
-            return false;
-        }
 
-        byte[] initData = extractInitData(localPath);
-
-        MediaDrm.KeyRequest keyRequest = getDashOfflineKeyRequest(sessionId, initData);
-
-
-        // Send request to server
-        byte[] keyResponse = null;
         try {
-            keyResponse = httpPost(licenseUri, keyRequest.getData());
-        } catch (IOException e) {
-            Log.e(TAG, "Error: can't send key request for registration");
+            boolean result = registerAsset(localPath, licenseUri);
+            if (listener != null) {
+                listener.onRegistered(localPath);
+            }
+            return result;
+        } catch (RegisterException e) {
             if (listener != null) {
                 listener.onFailed(localPath, e);
             }
             return false;
         }
+    }
 
-        // Forward keyResponse
-        byte[] offlineKeyId = provideKeyResponse(sessionId, keyResponse);
+    private class RegisterException extends Exception {
+        public RegisterException(String detailMessage, Throwable throwable) {
+            super(detailMessage, throwable);
+        }
+    }
+    
+    private boolean registerAsset(@NonNull String localPath, String licenseUri) throws RegisterException {
 
-        // Store offlineKeyId for later
-        mStore.storeKeySetId(initData, offlineKeyId);
-
-        mMediaDrm.closeSession(sessionId);
-        
-        if (listener != null) {
-            listener.onRegistered(localPath);
+        String mimeType;
+        byte[] initData;
+        try {
+            SimpleDashParser dashParser = new SimpleDashParser().parse(localPath);
+            initData = dashParser.drmInitData.get(WIDEVINE_UUID).data;
+            mimeType = dashParser.format.mimeType;
+        } catch (IOException e) {
+            throw new RegisterException("Can't parse local dash", e);
+        } catch (NullPointerException e) {
+            throw new RegisterException("Dash missing mimeType or pssh", e);
         }
 
-        return true;    
+
+        byte[] sessionId;
+        try {
+            sessionId = mMediaDrm.openSession();
+        } catch (NotProvisionedException e) {
+            throw new WidevineNotSupported(e);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RegisterException("Can't open session", e);
+        }
+
+
+        // Get keyRequest
+        MediaDrm.KeyRequest keyRequest;
+        try {
+            keyRequest = mMediaDrm.getKeyRequest(sessionId, initData, mimeType, MediaDrm.KEY_TYPE_OFFLINE, null);
+        } catch (NotProvisionedException e) {
+            throw new WidevineNotSupported(e);
+        }
+        
+        // Send request to server
+        byte[] keyResponse;
+        try {
+            keyResponse = httpPost(licenseUri, keyRequest.getData());
+        } catch (IOException e) {
+            throw new RegisterException("Can't send key request for registration", e);
+        }
+
+        // Provide keyResponse
+        try {
+            byte[] offlineKeyId = mMediaDrm.provideKeyResponse(sessionId, keyResponse);
+            mStore.storeKeySetId(initData, offlineKeyId);
+        } catch (NotProvisionedException e) {
+            throw new WidevineNotSupported(e);
+        } catch (DeniedByServerException e) {
+            throw new ImpossibleException("Server denial is already handled", e);
+        }
+
+        mMediaDrm.closeSession(sessionId);
+
+        return true;
     }
 
     @Override
@@ -159,4 +159,5 @@ public class WidevineModularAdapter extends DrmAdapter {
     public DRMScheme getScheme() {
         return DRMScheme.WidevineCENC;
     }
+
 }
