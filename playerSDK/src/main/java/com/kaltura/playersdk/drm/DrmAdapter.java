@@ -37,41 +37,42 @@ public abstract class DrmAdapter {
     public enum DRMScheme {
         Null, WidevineClassic, WidevineCENC
     }
+
+    static class NullDrmAdapter extends DrmAdapter {
+        @Override
+        public boolean checkAssetStatus(@NonNull String localPath, @Nullable LocalAssetsManager.AssetStatusListener listener) {
+            if (listener != null) {
+                listener.onStatus(localPath, -1, -1);
+            }
+            return true;
+        }
+    
+        @Override
+        public DRMScheme getScheme() {
+            return DRMScheme.Null;
+        }
+    
+        @Override
+        public boolean registerAsset(@NonNull String localPath, @NonNull String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
+            if (listener != null) {
+                listener.onRegistered(localPath);
+            }
+            return true;
+        }
+    
+        @Override
+        public boolean refreshAsset(@NonNull String localPath, @NonNull String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
+            return registerAsset(localPath, licenseUri, listener);
+        }
+    
+        @Override
+        public boolean unregisterAsset(@NonNull String localPath, LocalAssetsManager.AssetRemovalListener listener) {
+            if (listener != null) {
+                listener.onRemoved(localPath);
+            }
+            return true;
+        }
+    }
 }
 
 
-class NullDrmAdapter extends DrmAdapter {
-    @Override
-    public boolean checkAssetStatus(@NonNull String localPath, @Nullable LocalAssetsManager.AssetStatusListener listener) {
-        if (listener != null) {
-            listener.onStatus(localPath, -1, -1);
-        }
-        return true;
-    }
-
-    @Override
-    public DRMScheme getScheme() {
-        return DrmAdapter.DRMScheme.Null;
-    }
-
-    @Override
-    public boolean registerAsset(@NonNull String localPath, @NonNull String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
-        if (listener != null) {
-            listener.onRegistered(localPath);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean refreshAsset(@NonNull String localPath, @NonNull String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
-        return registerAsset(localPath, licenseUri, listener);
-    }
-
-    @Override
-    public boolean unregisterAsset(@NonNull String localPath, LocalAssetsManager.AssetRemovalListener listener) {
-        if (listener != null) {
-            listener.onRemoved(localPath);
-        }
-        return true;
-    }
-}
