@@ -118,6 +118,10 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         return mState;
     }
 
+    public void freeze() {
+        mCanPause = false; //isPlaying() will return false
+    }
+
     public interface KControlsViewClient {
         void handleHtml5LibCall(String functionName, int callbackId, String args);
         void openURL(String url);
