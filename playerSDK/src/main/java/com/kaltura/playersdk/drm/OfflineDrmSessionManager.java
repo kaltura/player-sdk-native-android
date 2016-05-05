@@ -116,7 +116,7 @@ class OfflineDrmSessionManager implements DrmSessionManager {
             mState = STATE_OPENED_WITH_KEYS;
 
         } catch (NotProvisionedException e) {
-            throw new WidevineNotSupported(e);
+            throw new WidevineNotSupportedException(e);
         } catch (MediaCryptoException e) {
             Log.e(TAG, "Can't create MediaCrypto for offline Widevine playback", e);
             onError(e);

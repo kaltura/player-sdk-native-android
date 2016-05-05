@@ -31,7 +31,7 @@ public class OfflineDrmManager {
         try {
             return new OfflineDrmSessionManager(getStorage(context));
         } catch (UnsupportedDrmException e) {
-            throw new WidevineNotSupported(e);
+            throw new WidevineNotSupportedException(e);
         }
     }
     

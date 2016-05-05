@@ -47,7 +47,7 @@ public class WidevineModularAdapter extends DrmAdapter {
         try {
             mMediaDrm = new MediaDrm(WIDEVINE_UUID);
         } catch (UnsupportedSchemeException e) {
-            throw new WidevineNotSupported(e);
+            throw new WidevineNotSupportedException(e);
         }
     }
     
@@ -107,7 +107,7 @@ public class WidevineModularAdapter extends DrmAdapter {
         try {
             sessionId = mMediaDrm.openSession();
         } catch (NotProvisionedException e) {
-            throw new WidevineNotSupported(e);
+            throw new WidevineNotSupportedException(e);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -120,7 +120,7 @@ public class WidevineModularAdapter extends DrmAdapter {
         try {
             keyRequest = mMediaDrm.getKeyRequest(sessionId, initData, mimeType, MediaDrm.KEY_TYPE_OFFLINE, null);
         } catch (NotProvisionedException e) {
-            throw new WidevineNotSupported(e);
+            throw new WidevineNotSupportedException(e);
         }
         
         // Send request to server
@@ -136,7 +136,7 @@ public class WidevineModularAdapter extends DrmAdapter {
             byte[] offlineKeyId = mMediaDrm.provideKeyResponse(sessionId, keyResponse);
             mStore.storeKeySetId(initData, offlineKeyId);
         } catch (NotProvisionedException e) {
-            throw new WidevineNotSupported(e);
+            throw new WidevineNotSupportedException(e);
         } catch (DeniedByServerException e) {
             throw new ImpossibleException("Server denial is already handled", e);
         }

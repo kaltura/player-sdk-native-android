@@ -8,8 +8,8 @@ package com.kaltura.playersdk.drm;
  * 1. We explicitly check for Widevine support before attempting to use it.
  * 2. Having to handle those exceptions where they occur just complicates the code.
  */
-public class WidevineNotSupported extends RuntimeException {
-    public WidevineNotSupported(Throwable throwable) {
+public class WidevineNotSupportedException extends RuntimeException {
+    public WidevineNotSupportedException(Throwable throwable) {
         super(throwable);
     }
 }
