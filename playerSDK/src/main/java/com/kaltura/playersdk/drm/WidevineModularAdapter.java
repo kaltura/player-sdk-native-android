@@ -3,7 +3,9 @@ package com.kaltura.playersdk.drm;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.DeniedByServerException;
+import android.media.MediaCryptoException;
 import android.media.MediaDrm;
+import android.media.MediaDrmException;
 import android.media.NotProvisionedException;
 import android.media.UnsupportedSchemeException;
 import android.os.Build;
@@ -12,11 +14,11 @@ import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
 
-import com.google.android.exoplayer.drm.DrmInitData;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.kaltura.playersdk.ImpossibleException;
 import com.kaltura.playersdk.LocalAssetsManager;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +35,6 @@ public class WidevineModularAdapter extends DrmAdapter {
     
     private static final String TAG = "WidevineModularAdapter";
     
-    private final MediaDrm mMediaDrm;
     private final OfflineKeySetStorage mStore;
     
     public static boolean isSupported() {
@@ -44,11 +45,6 @@ public class WidevineModularAdapter extends DrmAdapter {
 
     WidevineModularAdapter(Context context) {
         mStore = OfflineDrmManager.getStorage(context);
-        try {
-            mMediaDrm = new MediaDrm(WIDEVINE_UUID);
-        } catch (UnsupportedSchemeException e) {
-            throw new WidevineNotSupportedException(e);
-        }
     }
     
     private byte[] httpPost(@NonNull String licenseUri, byte[] data) throws IOException {
@@ -89,11 +85,10 @@ public class WidevineModularAdapter extends DrmAdapter {
         byte[] initData;
         try {
             SimpleDashParser dashParser = new SimpleDashParser().parse(localPath);
-            DrmInitData.SchemeInitData widevineInitData = OfflineDrmManager.getWidevineInitData(dashParser.drmInitData);
-            if (widevineInitData == null) {
+            initData = dashParser.widevineInitData;
+            if (initData == null) {
                 throw new RegisterException("No Widevine PSSH in media", null);
             }
-            initData = widevineInitData.data;
             if (dashParser.format == null) {
                 throw new RegisterException("Unknown format", null);
             }
@@ -104,13 +99,12 @@ public class WidevineModularAdapter extends DrmAdapter {
 
 
         byte[] sessionId;
+        MediaDrm mediaDrm = createMediaDrm();
         try {
-            sessionId = mMediaDrm.openSession();
+            sessionId = mediaDrm.openSession();
         } catch (NotProvisionedException e) {
             throw new WidevineNotSupportedException(e);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (MediaDrmException e) {
             throw new RegisterException("Can't open session", e);
         }
 
@@ -118,7 +112,7 @@ public class WidevineModularAdapter extends DrmAdapter {
         // Get keyRequest
         MediaDrm.KeyRequest keyRequest;
         try {
-            keyRequest = mMediaDrm.getKeyRequest(sessionId, initData, mimeType, MediaDrm.KEY_TYPE_OFFLINE, null);
+            keyRequest = mediaDrm.getKeyRequest(sessionId, initData, mimeType, MediaDrm.KEY_TYPE_OFFLINE, null);
         } catch (NotProvisionedException e) {
             throw new WidevineNotSupportedException(e);
         }
@@ -133,7 +127,7 @@ public class WidevineModularAdapter extends DrmAdapter {
 
         // Provide keyResponse
         try {
-            byte[] offlineKeyId = mMediaDrm.provideKeyResponse(sessionId, keyResponse);
+            byte[] offlineKeyId = mediaDrm.provideKeyResponse(sessionId, keyResponse);
             mStore.storeKeySetId(initData, offlineKeyId);
         } catch (NotProvisionedException e) {
             throw new WidevineNotSupportedException(e);
@@ -141,9 +135,20 @@ public class WidevineModularAdapter extends DrmAdapter {
             throw new ImpossibleException("Server denial is already handled", e);
         }
 
-        mMediaDrm.closeSession(sessionId);
+        mediaDrm.closeSession(sessionId);
 
         return true;
+    }
+
+    @NonNull
+    private MediaDrm createMediaDrm() throws RegisterException {
+        MediaDrm mediaDrm;
+        try {
+            mediaDrm = new MediaDrm(WIDEVINE_UUID);
+        } catch (UnsupportedSchemeException e) {
+            throw new WidevineNotSupportedException(e);
+        }
+        return mediaDrm;
     }
 
     @Override

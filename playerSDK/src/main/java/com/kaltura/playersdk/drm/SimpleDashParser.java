@@ -32,8 +32,9 @@ class SimpleDashParser {
     private static final String TAG = "SimpleDashParser";
     DrmInitData drmInitData;
     Format format;  // format of the first Representation of the video AdaptationSet
+    byte[] widevineInitData;
 
-    public SimpleDashParser parse(String localPath) throws IOException {
+    SimpleDashParser parse(String localPath) throws IOException {
 
         InputStream inputStream = new BufferedInputStream(new FileInputStream(localPath));
 
@@ -57,7 +58,6 @@ class SimpleDashParser {
 
         format = representation.format;
 
-
         loadDrmInitData(representation);
 
         return this;
@@ -78,6 +78,13 @@ class SimpleDashParser {
         }
         if (!chunk.isLoadCanceled()) {
             drmInitData = chunk.getDrmInitData();
+        }
+        
+        if (drmInitData != null) {
+            DrmInitData.SchemeInitData schemeInitData = OfflineDrmManager.getWidevineInitData(drmInitData);
+            if (schemeInitData != null) {
+                widevineInitData = schemeInitData.data;
+            }
         }
     }
 }

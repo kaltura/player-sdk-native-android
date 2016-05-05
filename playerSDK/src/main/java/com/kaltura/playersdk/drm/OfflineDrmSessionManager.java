@@ -14,7 +14,6 @@ import com.google.android.exoplayer.drm.DrmInitData;
 import com.google.android.exoplayer.drm.DrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,20 +98,11 @@ class OfflineDrmSessionManager implements DrmSessionManager {
             onError(new IllegalStateException("Widevine PSSH not found"));
             return;
         }
+        byte[] initData = schemeInitData.data;
 
         try {
-            mSessionId = mMediaDrm.openSession();
-
+            mSessionId = OfflineDrmManager.openSessionWithKeys(mMediaDrm, mStorage, initData);
             mMediaCrypto = new MediaCrypto(WIDEVINE_UUID, mSessionId);
-
-            mState = STATE_OPENED;
-
-            byte[] keySetId = mStorage.loadKeySetId(schemeInitData.data);
-            mMediaDrm.restoreKeys(mSessionId, keySetId);
-
-            HashMap<String, String> keyStatus = mMediaDrm.queryKeyStatus(mSessionId);
-            Log.d(TAG, "keyStatus: " + keyStatus);
-
             mState = STATE_OPENED_WITH_KEYS;
 
         } catch (NotProvisionedException e) {
