@@ -33,7 +33,7 @@ class OfflineDrmSessionManager implements DrmSessionManager {
     private final MediaDrm mMediaDrm;
     private final OfflineKeySetStorage mStorage;
     private MediaCrypto mMediaCrypto;
-    private byte[] mSessionId;
+    private MediaDrmSession mSession;
     private int mState = STATE_CLOSED;
     private Exception mLastError;
     private AtomicInteger mOpenCount = new AtomicInteger(0);
@@ -101,8 +101,8 @@ class OfflineDrmSessionManager implements DrmSessionManager {
         byte[] initData = schemeInitData.data;
 
         try {
-            mSessionId = OfflineDrmManager.openSessionWithKeys(mMediaDrm, mStorage, initData);
-            mMediaCrypto = new MediaCrypto(WIDEVINE_UUID, mSessionId);
+            mSession = OfflineDrmManager.openSessionWithKeys(mMediaDrm, mStorage, initData);
+            mMediaCrypto = new MediaCrypto(WIDEVINE_UUID, mSession.getId());
             mState = STATE_OPENED_WITH_KEYS;
 
         } catch (NotProvisionedException e) {
@@ -128,9 +128,9 @@ class OfflineDrmSessionManager implements DrmSessionManager {
         mMediaCrypto = null;
 
         mLastError = null;
-        if (mSessionId != null) {
-            mMediaDrm.closeSession(mSessionId);
-            mSessionId = null;
+        if (mSession != null) {
+            mSession.close();
+            mSession = null;
         }
 
         mState = STATE_CLOSED;

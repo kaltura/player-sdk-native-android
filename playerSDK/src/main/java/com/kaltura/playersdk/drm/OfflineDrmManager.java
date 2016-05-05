@@ -5,7 +5,6 @@ import android.content.Context;
 import android.media.MediaCryptoException;
 import android.media.MediaDrm;
 import android.media.MediaDrmException;
-import android.media.NotProvisionedException;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.Base64;
@@ -17,7 +16,6 @@ import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.extractor.mp4.PsshAtomUtil;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -95,22 +93,16 @@ public class OfflineDrmManager {
         return schemeInitData;
     }
 
-    static byte[] openSessionWithKeys(MediaDrm mediaDrm, OfflineKeySetStorage storage, byte[] initData) throws MediaDrmException, MediaCryptoException, FileNotFoundException {
-        
-        byte[] sessionId;
-        try {
-            sessionId = mediaDrm.openSession();
-        } catch (NotProvisionedException e) {
-            throw new WidevineNotSupportedException(e);
-        }
+    static MediaDrmSession openSessionWithKeys(MediaDrm mediaDrm, OfflineKeySetStorage storage, byte[] initData) throws MediaDrmException, MediaCryptoException, FileNotFoundException {
 
         byte[] keySetId = storage.loadKeySetId(initData);
-        mediaDrm.restoreKeys(sessionId, keySetId);
 
-        HashMap<String, String> keyStatus = mediaDrm.queryKeyStatus(sessionId);
-        Log.d(TAG, "keyStatus: " + keyStatus);
-
+        MediaDrmSession session = MediaDrmSession.open(mediaDrm);
+        session.restoreKeys(keySetId);
         
-        return sessionId;
+        Map<String, String> keyStatus = session.queryKeyStatus();
+        Log.d(TAG, "keyStatus: " + keyStatus);
+        
+        return session;
     }
 } 

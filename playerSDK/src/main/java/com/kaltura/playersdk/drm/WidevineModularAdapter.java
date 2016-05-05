@@ -6,7 +6,6 @@ import android.media.DeniedByServerException;
 import android.media.MediaCryptoException;
 import android.media.MediaDrm;
 import android.media.MediaDrmException;
-import android.media.NotProvisionedException;
 import android.media.UnsupportedSchemeException;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -15,7 +14,6 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
-import com.kaltura.playersdk.ImpossibleException;
 import com.kaltura.playersdk.LocalAssetsManager;
 
 import java.io.FileNotFoundException;
@@ -97,26 +95,19 @@ public class WidevineModularAdapter extends DrmAdapter {
             throw new RegisterException("Can't parse local dash", e);
         }
 
-
-        byte[] sessionId;
+        
+        MediaDrmSession session;
         MediaDrm mediaDrm = createMediaDrm();
         try {
-            sessionId = mediaDrm.openSession();
-        } catch (NotProvisionedException e) {
-            throw new WidevineNotSupportedException(e);
+            session = MediaDrmSession.open(mediaDrm);
         } catch (MediaDrmException e) {
             throw new RegisterException("Can't open session", e);
         }
 
 
         // Get keyRequest
-        MediaDrm.KeyRequest keyRequest;
-        try {
-            keyRequest = mediaDrm.getKeyRequest(sessionId, initData, mimeType, MediaDrm.KEY_TYPE_OFFLINE, null);
-        } catch (NotProvisionedException e) {
-            throw new WidevineNotSupportedException(e);
-        }
-        
+        MediaDrm.KeyRequest keyRequest = session.getOfflineKeyRequest(initData, mimeType);
+
         // Send request to server
         byte[] keyResponse;
         try {
@@ -127,15 +118,13 @@ public class WidevineModularAdapter extends DrmAdapter {
 
         // Provide keyResponse
         try {
-            byte[] offlineKeyId = mediaDrm.provideKeyResponse(sessionId, keyResponse);
+            byte[] offlineKeyId = session.provideKeyResponse(keyResponse);
             mStore.storeKeySetId(initData, offlineKeyId);
-        } catch (NotProvisionedException e) {
-            throw new WidevineNotSupportedException(e);
         } catch (DeniedByServerException e) {
-            throw new ImpossibleException("Server denial is already handled", e);
+            throw new RegisterException("Request denied by server", e);
         }
 
-        mediaDrm.closeSession(sessionId);
+        session.close();
 
         return true;
     }
@@ -206,16 +195,16 @@ public class WidevineModularAdapter extends DrmAdapter {
 
         MediaDrm mediaDrm = createMediaDrm();
 
-        byte[] sessionId;
+        MediaDrmSession session;
         try {
-            sessionId = OfflineDrmManager.openSessionWithKeys(mediaDrm, mStore, dashParser.widevineInitData);
+            session = OfflineDrmManager.openSessionWithKeys(mediaDrm, mStore, dashParser.widevineInitData);
         } catch (MediaDrmException | MediaCryptoException | FileNotFoundException e) {
             throw new RegisterException("Can't open session with keys", e);
         }
 
-        HashMap<String, String> keyStatus = mediaDrm.queryKeyStatus(sessionId);
-        
-        mediaDrm.closeSession(sessionId);
+        Map<String, String> keyStatus = session.queryKeyStatus();
+
+        session.close();
         mediaDrm.release();
         
         return keyStatus;
