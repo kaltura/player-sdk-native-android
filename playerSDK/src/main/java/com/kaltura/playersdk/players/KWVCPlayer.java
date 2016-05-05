@@ -379,6 +379,18 @@ public class KWVCPlayer
         }
     }
 
+    public void hide() {
+        if(mPlayer != null){
+            mPlayer.setVisibility(INVISIBLE);
+        }
+    }
+
+    public void show() {
+        if(mPlayer != null){
+            mPlayer.setVisibility(VISIBLE);
+        }
+    }
+
     private enum PrepareState {
         NotPrepared,
         Preparing,

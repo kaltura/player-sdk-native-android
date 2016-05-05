@@ -318,6 +318,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void addAdPlayer() {
+        player.hide();
 
         // Add adPlayer view
         adPlayerContainer = new FrameLayout(mActivity.get());
@@ -399,7 +400,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
                 isPlayerCanPlay = true;
-                if (mActivity != null) {
+                if (mActivity != null && !isIMAActive) {
                     addAdPlayer();
                 }
                 if (mCurrentPlaybackTime > 0) {
@@ -408,6 +409,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SHOULD_PLAY:
+                player.show();
+
                 isIMAActive = false;
                 player.setShouldCancelPlay(false);
                 player.play();
