@@ -17,11 +17,8 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
-import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Set;
-
-import javax.crypto.interfaces.PBEKey;
 
 
 /**
@@ -432,6 +429,11 @@ public class KWVCPlayer
             public void run() {
                 try {
                     float playbackTime;
+                    if (mPlayer.getCurrentPosition() == mPlayer.getDuration()){
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.ENDED);
+                    }
+                    
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
