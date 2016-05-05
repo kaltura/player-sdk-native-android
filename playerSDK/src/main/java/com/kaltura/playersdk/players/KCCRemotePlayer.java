@@ -261,6 +261,16 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
         return false;
     }
 
+    @Override
+    public void hide() {
+
+    }
+
+    @Override
+    public void show() {
+
+    }
+
 
     @Override
     public void onStatusUpdated() {
