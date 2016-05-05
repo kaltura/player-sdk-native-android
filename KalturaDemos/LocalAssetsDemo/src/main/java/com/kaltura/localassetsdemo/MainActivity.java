@@ -123,14 +123,24 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
                 }
             }
         });
-
-
+        
+        setButtonAction(R.id.btn_status, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LocalAssetsManager.checkAssetStatus(MainActivity.this, mSelectedItem.localPath, new LocalAssetsManager.AssetStatusListener() {
+                    @Override
+                    public void onStatus(String assetPath, int expiryTimeSeconds, int availableTimeSeconds) {
+                        uiLog("expiryTime:" + expiryTimeSeconds);
+                    }
+                });
+            }
+        });
     }
 
+    
     private PlayerViewController getPlayer() {
 
         KPPlayerConfig config = mSelectedItem.config;
-        
         
         if (mPlayer == null) {
             mPlayer = new PlayerViewController(this);
