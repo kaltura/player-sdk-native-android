@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
-    private boolean shouldResume = false;
     private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
     private boolean isCCActive = false;
     private Button ccButton;
@@ -71,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer.loadPlayerIntoActivity(this);
 
             KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            config.addConfig("autoPlay", "true");
             config.addConfig("chromecast.plugin", "true");
             config.addConfig("chromecast.applicationID", "5247861F");
             config.addConfig("chromecast.useKalturaPlayer", "true");
@@ -147,9 +147,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer != null) {
             PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
             if (powerManager.isScreenOn()) {
-                mPlayer.releaseAndSavePosition(false);
-                shouldResume = true;
+                mPlayer.releaseAndSavePosition(true);
             }
+
         }
         super.onPause();
     }
@@ -158,8 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStop() {
         PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
         if (!powerManager.isScreenOn()) {
-            mPlayer.getMediaControl().pause();
-            shouldResume = false;
+            mPlayer.saveState();
         }
         super.onStop();
     }
@@ -168,10 +167,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         if (onCreate) {
             onCreate = false;
-        } else if (shouldResume) {
-            mPlayer.resumePlayer();
-            shouldResume = false;
         }
+        mPlayer.resumePlayer();
         super.onResume();
     }
 
