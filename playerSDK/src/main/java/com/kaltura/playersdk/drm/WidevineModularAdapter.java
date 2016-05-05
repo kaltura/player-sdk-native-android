@@ -166,7 +166,59 @@ public class WidevineModularAdapter extends DrmAdapter {
     @Override
     public boolean checkAssetStatus(@NonNull String localPath, @Nullable LocalAssetsManager.AssetStatusListener listener) {
         // TODO
-        return false;
+
+        try {
+            Map<String, String> assetStatus = checkAssetStatus(localPath);
+            if (assetStatus != null) {
+                int licenseDurationRemaining = 0;
+                int playbackDurationRemaining = 0;
+                try {
+                    licenseDurationRemaining = Integer.parseInt(assetStatus.get("LicenseDurationRemaining"));
+                    playbackDurationRemaining = Integer.parseInt(assetStatus.get("PlaybackDurationRemaining"));
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "Invalid integers in KeyStatus: " + assetStatus);
+                }
+                if (listener != null) {
+                    listener.onStatus(localPath, licenseDurationRemaining, playbackDurationRemaining);
+                }
+            }            
+        } catch (RegisterException e) {
+            if (listener != null) {
+                listener.onStatus(localPath, 0, 0);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    private Map<String, String> checkAssetStatus(@NonNull String localPath) throws RegisterException {
+        SimpleDashParser dashParser;
+        try {
+            dashParser = new SimpleDashParser().parse(localPath);
+        } catch (IOException e) {
+            throw new RegisterException("Can't parse dash", e);
+        }
+        if (dashParser.widevineInitData == null) {
+            throw new RegisterException("No Widevine PSSH in media", null);
+        }
+
+
+        MediaDrm mediaDrm = createMediaDrm();
+
+        byte[] sessionId;
+        try {
+            sessionId = OfflineDrmManager.openSessionWithKeys(mediaDrm, mStore, dashParser.widevineInitData);
+        } catch (MediaDrmException | MediaCryptoException | FileNotFoundException e) {
+            throw new RegisterException("Can't open session with keys", e);
+        }
+
+        HashMap<String, String> keyStatus = mediaDrm.queryKeyStatus(sessionId);
+        
+        mediaDrm.closeSession(sessionId);
+        mediaDrm.release();
+        
+        return keyStatus;
     }
 
     @Override
