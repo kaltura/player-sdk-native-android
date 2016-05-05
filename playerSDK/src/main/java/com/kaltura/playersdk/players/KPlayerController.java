@@ -129,7 +129,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void pause() {
         if (!isCasting) {
             if (isBackgrounded && isIMAActive) {
-                imaManager.pause();
+                if(imaManager != null) {
+                    imaManager.pause();
+                }
             } else {
                 player.pause();
             }
@@ -188,9 +190,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     }
 
-    public void savePlayerState() {
+    public void savePlayerState(boolean isOnBackground) {
+        isBackgrounded = isOnBackground;
         if (player != null) {
-            isPlaying = player.isPlaying();
+            isPlaying = player.isPlaying() || isIMAActive;
             pause();
         } else {
             isPlaying = false;
@@ -211,9 +214,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         isBackgrounded = true;
         if (player != null) {
             if (shouldSaveState) {
-                savePlayerState();
+                savePlayerState(false);
+            } else {
+                isPlaying = false;
+                pause();
             }
-            pause();
             player.freezePlayer();
         }
     }
