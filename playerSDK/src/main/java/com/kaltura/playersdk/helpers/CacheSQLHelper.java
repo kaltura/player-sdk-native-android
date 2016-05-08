@@ -52,9 +52,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     private SQLiteDatabase db() {
         // Keep db open.
-        if (mDatabase == null) {
+        if (mDatabase == null || !mDatabase.isOpen()) {
             synchronized (this) {
-                if (mDatabase == null) {
+                if (mDatabase == null || !mDatabase.isOpen()) {
                     mDatabase = getWritableDatabase();
                 }
             }
@@ -115,7 +115,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     public boolean removeFile(String fileId) {
         try {
-            db().delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
+            SQLiteDatabase db = db();
+            db.delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
+            db.close();
             return true;
         } catch (SQLiteException e) {
             return false;

@@ -226,6 +226,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 fireIMAEvent(AllAdsCompletedKey);
                 if (mContentCompleted && mPlayerListener != null) {
                     mPlayerListener.contentCompleted(null);
+                } else if (mPLayerCallback != null) {
+                    mPLayerCallback.playerStateChanged(KPlayerCallback.REMOVE_ADS);
                 }
                 break;
             case SKIPPED:
