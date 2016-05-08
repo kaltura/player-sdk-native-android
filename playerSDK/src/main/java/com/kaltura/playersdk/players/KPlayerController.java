@@ -129,7 +129,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void pause() {
         if (!isCasting) {
             if (isBackgrounded && isIMAActive) {
-                imaManager.pause();
+                if(imaManager != null) {
+                    imaManager.pause();
+                }
             } else {
                 player.pause();
             }
@@ -186,19 +188,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void changeSubtitleLanguage(String isoCode) {
 
-    }
-
-    public void lightFreeze(boolean saveState){
-        if(player == null){
-            return;
-        }
-
-        isBackgrounded = true;
-        if(saveState){
-            savePlayerState(false);
-        } else {
-            pause();
-        }
     }
 
     public void savePlayerState(boolean isOnBackground) {
@@ -334,6 +323,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void addAdPlayer() {
+        player.hide();
 
         // Add adPlayer view
         adPlayerContainer = new FrameLayout(mActivity.get());
@@ -424,6 +414,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SHOULD_PLAY:
+                player.show();
+
                 isIMAActive = false;
                 player.setShouldCancelPlay(false);
                 player.play();
@@ -439,9 +431,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 } else {
                     contentCompleted(null);
                 }
-                break;
-            case KPlayerCallback.REMOVE_ADS:
-                removeAdPlayer();
                 break;
         }
     }
