@@ -3,13 +3,16 @@ package com.kaltura.kalturaplayerfragmentdemo;
 import android.app.Activity;
 import android.app.Fragment;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
@@ -26,7 +29,7 @@ import com.kaltura.playersdk.types.KPError;
  * Use the {@link PlayerFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PlayerFragment extends Fragment implements KPEventListener {
+public class PlayerFragment extends Fragment{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = "PlayerFragment";
@@ -35,6 +38,7 @@ public class PlayerFragment extends Fragment implements KPEventListener {
     private boolean isResumed = false;
     private View mFragmentView = null;
     private PlayerViewController mPlayerView;
+    public static View g;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -100,6 +104,7 @@ public class PlayerFragment extends Fragment implements KPEventListener {
             mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
             mPlayerView.loadPlayerIntoActivity(getActivity());
 
+
 //            mPlayerView.addKPlayerEventListener("onEnableKeyboardBinding", "someID", new PlayerViewController.EventListener() {
 //                @Override
 //                public void handler(String eventName, String params) {
@@ -120,9 +125,6 @@ public class PlayerFragment extends Fragment implements KPEventListener {
                 }
             });
 
-
-
-
             mPlayerView.addEventListener(new KPEventListener() {
                 @Override
                 public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
@@ -137,6 +139,28 @@ public class PlayerFragment extends Fragment implements KPEventListener {
                 @Override
                 public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
                     Log.d(TAG, "KPlayer onKPlayerFullScreenToggeled " +  Boolean.toString(isFullscreen));
+
+                    if (isFullscreen) {
+                        Log.d(TAG,"Set to onOpenFullScreen");
+                        mPlayerView.sendNotification("onOpenFullScreen", null);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            toggleFullscreen(getActivity(), true);
+                        }else{
+                            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                            ((AppCompatActivity)getActivity()).getSupportActionBar().hide();
+                        }
+                    } else {
+                        Log.d(TAG,"Set to onCloseFullScreen");
+                        mPlayerView.sendNotification("onCloseFullScreen", null);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            toggleFullscreen(getActivity(), false);
+                        }else{
+                            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                            ((AppCompatActivity)getActivity()).getSupportActionBar().show();
+                        }
+                    }
                 }
 
                 @Override
@@ -145,9 +169,38 @@ public class PlayerFragment extends Fragment implements KPEventListener {
                 }
             });
         }
-
-
         return mFragmentView;
+    }
+
+    private void toggleFullscreen(Activity activity, boolean fullscreen) {
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            if (fullscreen) {
+                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+            }
+            else{
+                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                ((AppCompatActivity)getActivity()).getSupportActionBar().show();
+            }
+        }else {
+            int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
+            int newUiOptions = uiOptions;
+            newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+            newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            if (fullscreen) {
+                ((AppCompatActivity) activity).getSupportActionBar().hide();
+            } else {
+                ((AppCompatActivity) activity).getSupportActionBar().show();
+            }
+        }
+        // set landscape
+        // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        // else activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -173,27 +226,6 @@ public class PlayerFragment extends Fragment implements KPEventListener {
         super.onDetach();
         mListener = null;
     }
-
-    @Override
-    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        Log.d(TAG, "KPlayer State Changed " + state.toString());
-    }
-
-    @Override
-    public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-
-    }
-
-    @Override
-    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-        Log.d(TAG, "KPlayer onKPlayerPlayheadUpdate " +Float.toString(currentTime));
-    }
-
-    @Override
-    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
-
-    }
-
 
     /**
      * This interface must be implemented by activities that contain this
