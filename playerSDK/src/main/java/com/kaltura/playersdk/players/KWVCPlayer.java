@@ -83,7 +83,7 @@ public class KWVCPlayer
     // Convert file:///local/path/a.wvm to /local/path/a.wvm
     // Convert http://example.com/path/a.wvm to widevine://example.com/path/a.wvm
     // Every else remains the same.
-    public static String getWidevineURI(String assetUri) {
+    public static String getWidevineAssetPlaybackUri(String assetUri) {
         if (assetUri.startsWith("file:")) {
             assetUri = Uri.parse(assetUri).getPath();
         } else if (assetUri.startsWith("http:")) {
@@ -91,6 +91,19 @@ public class KWVCPlayer
         }
         return assetUri;
     }
+
+    // Convert file:///local/path/a.wvm to /local/path/a.wvm
+    // Convert widevine://example.com/path/a.wvm to http://example.com/path/a.wvm
+    // Everything else remains the same.
+    public static String getWidevineAssetAcquireUri(String assetUri) {
+        if (assetUri.startsWith("file:")) {
+            assetUri = Uri.parse(assetUri).getPath();
+        } else if (assetUri.startsWith("widevine:")) {
+            assetUri = assetUri.replaceFirst("widevine", "http");
+        }
+        return assetUri;
+    }
+
 
     @Override
     public void setPlayerListener(KPlayerListener listener) {
@@ -319,7 +332,7 @@ public class KWVCPlayer
             return;
         }
 
-        String widevineUri = getWidevineURI(mAssetUri);
+        String widevineUri = getWidevineAssetPlaybackUri(mAssetUri);
 
         // Start preparing.
         mPrepareState = PrepareState.Preparing;
@@ -397,8 +410,10 @@ public class KWVCPlayer
         });
         mPlayer.setVideoURI(Uri.parse(widevineUri));
 
-        if(mDrmClient.needToAcquireRights(mAssetUri)) {
-            mDrmClient.acquireRights(mAssetUri, mLicenseUri);
+        String assetAcquireUri = getWidevineAssetAcquireUri(mAssetUri);
+
+        if(mDrmClient.needToAcquireRights(assetAcquireUri)) {
+            mDrmClient.acquireRights(assetAcquireUri, mLicenseUri);
         }
     }
 
