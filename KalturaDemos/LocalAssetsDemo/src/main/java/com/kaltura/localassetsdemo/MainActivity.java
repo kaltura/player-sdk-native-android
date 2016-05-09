@@ -17,11 +17,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.kaltura.playersdk.KPPlayerConfig;
+import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.Utilities;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
-import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONArray;
@@ -131,6 +131,18 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
                     @Override
                     public void onStatus(String assetPath, long expiryTimeSeconds, long availableTimeSeconds) {
                         uiLog("expiryTime:" + expiryTimeSeconds);
+                    }
+                });
+            }
+        });
+        
+        setButtonAction(R.id.btn_unregister, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LocalAssetsManager.unregisterAsset(MainActivity.this, mSelectedItem.config, mSelectedItem.localPath, new LocalAssetsManager.AssetRemovalListener() {
+                    @Override
+                    public void onRemoved(String assetPath) {
+                        Log.d(TAG, "Removed " + assetPath);
                     }
                 });
             }

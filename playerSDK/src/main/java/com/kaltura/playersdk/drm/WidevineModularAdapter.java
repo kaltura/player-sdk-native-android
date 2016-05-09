@@ -6,6 +6,7 @@ import android.media.DeniedByServerException;
 import android.media.MediaCryptoException;
 import android.media.MediaDrm;
 import android.media.MediaDrmException;
+import android.media.NotProvisionedException;
 import android.media.UnsupportedSchemeException;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -76,25 +77,29 @@ public class WidevineModularAdapter extends DrmAdapter {
             super(detailMessage, throwable);
         }
     }
-    
-    private boolean registerAsset(@NonNull String localPath, String licenseUri) throws RegisterException {
 
-        String mimeType;
-        byte[] initData;
+    private SimpleDashParser parseDash(@NonNull String localPath) throws RegisterException {
+        SimpleDashParser dashParser;
         try {
-            SimpleDashParser dashParser = new SimpleDashParser().parse(localPath);
-            initData = dashParser.widevineInitData;
-            if (initData == null) {
+            dashParser = new SimpleDashParser().parse(localPath);
+            if (dashParser.widevineInitData == null) {
                 throw new RegisterException("No Widevine PSSH in media", null);
             }
             if (dashParser.format == null) {
                 throw new RegisterException("Unknown format", null);
             }
-            mimeType = dashParser.format.mimeType;
         } catch (IOException e) {
             throw new RegisterException("Can't parse local dash", e);
         }
 
+        return dashParser;        
+    }
+    
+    private boolean registerAsset(@NonNull String localPath, String licenseUri) throws RegisterException {
+
+        SimpleDashParser dash = parseDash(localPath);
+        String mimeType = dash.format.mimeType;
+        byte[] initData = dash.widevineInitData;
         
         MediaDrmSession session;
         MediaDrm mediaDrm = createMediaDrm();
@@ -129,6 +134,52 @@ public class WidevineModularAdapter extends DrmAdapter {
         return true;
     }
 
+    private boolean unregisterAsset(String localPath) throws RegisterException {
+
+        SimpleDashParser dash = parseDash(localPath);
+        
+        
+        byte[] keySetId;
+        try {
+            keySetId = mStore.loadKeySetId(dash.widevineInitData);
+        } catch (FileNotFoundException e) {
+            throw new RegisterException("Can't unregister -- keySetId not found", e);
+        }
+
+
+        MediaDrm mediaDrm = createMediaDrm();
+        MediaDrm.KeyRequest releaseRequest;
+        try {
+            releaseRequest = mediaDrm.getKeyRequest(keySetId, null, null, MediaDrm.KEY_TYPE_RELEASE, null);
+        } catch (NotProvisionedException e) {
+            throw new WidevineNotSupportedException(e);
+        }
+        
+        Log.d(TAG, "releaseRequest:" + Base64.encodeToString(releaseRequest.getData(), Base64.NO_WRAP));
+
+        mStore.removeKeySetId(dash.widevineInitData);
+        
+        return true;
+    }
+
+
+    @Override
+    public boolean unregisterAsset(@NonNull String localPath, LocalAssetsManager.AssetRemovalListener listener) {
+        // TODO
+
+        try {
+            unregisterAsset(localPath);
+            return true;
+        } catch (RegisterException e) {
+            Log.e(TAG, "Failed to unregister", e);
+            return false;
+        } finally {
+            if (listener != null) {
+                listener.onRemoved(localPath);
+            }
+        }
+    }
+
     @NonNull
     private MediaDrm createMediaDrm() throws RegisterException {
         MediaDrm mediaDrm;
@@ -142,14 +193,9 @@ public class WidevineModularAdapter extends DrmAdapter {
 
     @Override
     public boolean refreshAsset(@NonNull String localPath, String licenseUri, @Nullable LocalAssetsManager.AssetRegistrationListener listener) {
-        // TODO
-        return false;
-    }
-
-    @Override
-    public boolean unregisterAsset(@NonNull String localPath, LocalAssetsManager.AssetRemovalListener listener) {
-        // TODO
-        return false;
+        // TODO -- verify that we just need to register again
+        
+        return registerAsset(localPath, licenseUri, listener);
     }
 
     @Override
