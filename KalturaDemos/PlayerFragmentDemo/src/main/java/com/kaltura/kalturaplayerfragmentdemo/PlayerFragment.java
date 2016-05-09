@@ -139,28 +139,7 @@ public class PlayerFragment extends Fragment{
                 @Override
                 public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
                     Log.d(TAG, "KPlayer onKPlayerFullScreenToggeled " +  Boolean.toString(isFullscreen));
-
-                    if (isFullscreen) {
-                        Log.d(TAG,"Set to onOpenFullScreen");
-                        mPlayerView.sendNotification("onOpenFullScreen", null);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                            toggleFullscreen(getActivity(), true);
-                        }else{
-                            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                            ((AppCompatActivity)getActivity()).getSupportActionBar().hide();
-                        }
-                    } else {
-                        Log.d(TAG,"Set to onCloseFullScreen");
-                        mPlayerView.sendNotification("onCloseFullScreen", null);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                            toggleFullscreen(getActivity(), false);
-                        }else{
-                            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                            ((AppCompatActivity)getActivity()).getSupportActionBar().show();
-                        }
-                    }
+                    toggleFullscreen(getActivity(), isFullscreen);
                 }
 
                 @Override
@@ -174,29 +153,34 @@ public class PlayerFragment extends Fragment{
 
     private void toggleFullscreen(Activity activity, boolean fullscreen) {
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            if (fullscreen) {
-                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+        int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+        if (fullscreen) {
+            Log.d(TAG,"Set to onOpenFullScreen");
+            mPlayerView.sendNotification("onOpenFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
             }
-            else{
-                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                ((AppCompatActivity)getActivity()).getSupportActionBar().show();
+            ((AppCompatActivity) activity).getSupportActionBar().hide();
+        } else {
+            Log.d(TAG,"Set to onCloseFullScreen");
+            mPlayerView.sendNotification("onCloseFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
             }
-        }else {
-            int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
-            int newUiOptions = uiOptions;
-            newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
-            newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
-            if (fullscreen) {
-                ((AppCompatActivity) activity).getSupportActionBar().hide();
-            } else {
-                ((AppCompatActivity) activity).getSupportActionBar().show();
-            }
+            ((AppCompatActivity) activity).getSupportActionBar().show();
+
         }
         // set landscape
         // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);

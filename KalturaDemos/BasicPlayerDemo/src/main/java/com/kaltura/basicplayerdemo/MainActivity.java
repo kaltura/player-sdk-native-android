@@ -270,15 +270,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
         Log.d(TAG, "KPlayer onKPlayerFullScreenToggeled " +  Boolean.toString(isFullscreen));
         Log.e(TAG, "GILAD onKPlayerFullScreenToggeled " + isFullscreen);
-        if (isFullscreen) {
-            Log.d(TAG,"Set to onOpenFullScreen");
-            mPlayer.sendNotification("onOpenFullScreen", null);
-            toggleFullscreen(this, true);
-        } else {
-            Log.d(TAG,"Set to onCloseFullScreen");
-            mPlayer.sendNotification("onCloseFullScreen", null);
-            toggleFullscreen(this, false);
-        }
+        toggleFullscreen(this, isFullscreen);
     }
 
     @Override
@@ -288,29 +280,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void toggleFullscreen(Activity activity, boolean fullscreen) {
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            if (fullscreen) {
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                getSupportActionBar().hide();
+        int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+        if (fullscreen) {
+            Log.d(TAG,"Set to onOpenFullScreen");
+            mPlayer.sendNotification("onOpenFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
             }
-            else{
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                getSupportActionBar().show();
+            getSupportActionBar().hide();
+        } else {
+            Log.d(TAG,"Set to onCloseFullScreen");
+            mPlayer.sendNotification("onCloseFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
             }
-        }else {
-            int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
-            int newUiOptions = uiOptions;
-            newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
-            newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
-            if (fullscreen) {
-                ((AppCompatActivity) activity).getSupportActionBar().hide();
-            } else {
-                ((AppCompatActivity) activity).getSupportActionBar().show();
-            }
+            getSupportActionBar().show();
         }
         // set landscape
         // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
