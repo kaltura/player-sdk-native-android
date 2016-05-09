@@ -59,6 +59,10 @@ public class LocalAssetsManager {
         checkNotEmpty(localPath, "localPath");
 
 
+        if (! Utilities.isOnline(context)) {
+            Log.i(TAG, "Can't register/refresh when offline");
+            return false;
+        }
 
         doInBackground(new Runnable() {
             @Override
@@ -67,38 +71,41 @@ public class LocalAssetsManager {
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
                 cacheManager.setCacheSize(entry.getCacheSize());
                 try {
-                    Uri uri = Uri.parse(entry.getVideoURL());
-                    if (!refresh) {
+                    try {
+                        Uri uri = Uri.parse(entry.getVideoURL());
+                        if (refresh) {
+                            cacheManager.removeCachedResponse(uri);
+                        }
                         cacheManager.cacheResponse(uri);
-                    } else {
-                        cacheManager.removeCachedResponse(uri);
-                        cacheManager.cacheResponse(uri);
+                    } catch (IOException e) {
+                        if (listener != null) {
+                            listener.onFailed(localPath, e);
+                        }
+                        return;
                     }
-                } catch (IOException e) {
-                    if (listener != null) {
-                        listener.onFailed(localPath, e);
+
+                    // If not widevine, stop here.
+                    if (!isWidevineClassic(localPath)) {
+                        if (listener != null) {
+                            listener.onRegistered(localPath);
+                        }
+                        return;
                     }
-                    return;
+
+
+                    try {
+                        Uri licenseUri = prepareLicenseUri(entry, flavor, DRMScheme.WidevineClassic);
+                        registerWidevineClassicAsset(context, localPath, licenseUri, listener);
+                    } catch (JSONException | IOException e) {
+                        Log.e(TAG, "Error", e);
+                        if (listener != null) {
+                            listener.onFailed(localPath, e);
+                        }
+                    }
+                } finally {
+                    cacheManager.release();
                 }
 
-                // If not widevine, stop here.
-                if (!isWidevineClassic(localPath)) {
-                    if (listener != null) {
-                        listener.onRegistered(localPath);
-                    }
-                    return;
-                } 
-                
-
-                try {
-                    Uri licenseUri = prepareLicenseUri(entry, flavor, DRMScheme.WidevineClassic);
-                    registerWidevineClassicAsset(context, localPath, licenseUri, listener);
-                } catch (JSONException | IOException e) {
-                    Log.e(TAG, "Error", e);
-                    if (listener != null) {
-                        listener.onFailed(localPath, e);
-                    }
-                }
             }
         });
 
@@ -108,12 +115,6 @@ public class LocalAssetsManager {
     public static boolean refreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
 
-        
-        // Remove cache
-        CacheManager cacheManager = new CacheManager(context.getApplicationContext());
-        cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
-        cacheManager.setCacheSize(entry.getCacheSize());
-        cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
 
         return registerOrRefreshAsset(context, entry, flavor, localPath, true, listener);
 
@@ -129,7 +130,6 @@ public class LocalAssetsManager {
                 CacheManager cacheManager = new CacheManager(context.getApplicationContext());
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
                 cacheManager.setCacheSize(entry.getCacheSize());
-                cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
                 cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
 
                 if (!isWidevineClassic(localPath)) {

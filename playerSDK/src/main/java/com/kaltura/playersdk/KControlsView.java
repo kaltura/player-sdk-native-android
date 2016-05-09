@@ -3,10 +3,12 @@ package com.kaltura.playersdk;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Looper;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,6 +18,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -115,6 +118,10 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         return mState;
     }
 
+    public void freeze() {
+        mCanPause = false; //isPlaying() will return false
+    }
+
     public interface KControlsViewClient {
         void handleHtml5LibCall(String functionName, int callbackId, String args);
         void openURL(String url);
@@ -151,6 +158,8 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         getSettings().setAllowUniversalAccessFromFileURLs(true);
         getSettings().setAllowFileAccess(true);
         getSettings().setDomStorageEnabled(true);
+        getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        getSettings().setAppCacheEnabled(false);
         this.addJavascriptInterface(this, "android");
         this.setWebViewClient(new CustomWebViewClient());
         this.setWebChromeClient(new WebChromeClient());
@@ -232,6 +241,12 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     public void triggerEventWithJSON(String event, String jsonString) {
         this.loadUrl(KStringUtilities.triggerEventWithJSON(event, jsonString));
     }
+    
+    private WebResourceResponse getWhiteFaviconResponse() {
+        // 16x16 white favicon
+        byte[] data = Base64.decode("AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 0);
+        return new WebResourceResponse("image/x-icon", null, new ByteArrayInputStream(data));
+    }
 
     private WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) {
         // Only handle http(s)
@@ -239,14 +254,19 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
             Log.d(TAG, "Will not handle " + requestUrl);
             return null;
         }
-        try {
-            if (mCacheManager != null) {
-                return mCacheManager.getResponse(requestUrl, headers, method);
+        WebResourceResponse response = null;
+        if (mCacheManager != null) {
+            try {
+                response = mCacheManager.getResponse(requestUrl, headers, method);
+            } catch (IOException e) {
+                if (requestUrl.getPath().endsWith("favicon.ico")) {
+                    response = getWhiteFaviconResponse();
+                } else {
+                    Log.e(TAG, "getResponse From CacheManager error::", e);
+                }
             }
-            return null;
-        } catch (IOException e) {
-            return null;
         }
+        return response;
     }
 
     @JavascriptInterface
@@ -258,8 +278,25 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         }
     }
 
+    @Override
+    public void destroy() {
+        Log.d(TAG, "destroy()");
+        super.destroy();
+    }
 
     private class CustomWebViewClient extends WebViewClient {
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            Log.d(TAG, "onPageStarted:" + url);
+            super.onPageStarted(view, url, favicon);
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            Log.d(TAG, "onPageFinished:" + url);
+            super.onPageFinished(view, url);
+        }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Log.d(TAG, "shouldOverrideUrlLoading: " + url);
@@ -287,18 +324,18 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+//            controlsViewClient.handleKControlsError(new KPError(error.toString()));
 
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-            controlsViewClient.handleKControlsError(new KPError(errorResponse.toString()));
+//            controlsViewClient.handleKControlsError(new KPError(errorResponse.toString()));
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+//            controlsViewClient.handleKControlsError(new KPError(error.toString()));
         }
 
         private WebResourceResponse textResponse(String text) {
@@ -323,7 +360,9 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            return handleWebRequest(view, request.getUrl().toString(), request.getRequestHeaders(), request.getMethod());
+            Map<String, String> headers = request.getRequestHeaders();
+            String method = request.getMethod();
+            return handleWebRequest(view, request.getUrl().toString(), headers, method);
         }
     }
 }

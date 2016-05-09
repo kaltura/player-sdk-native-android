@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -53,9 +52,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     private SQLiteDatabase db() {
         // Keep db open.
-        if (mDatabase == null) {
+        if (mDatabase == null || !mDatabase.isOpen()) {
             synchronized (this) {
-                if (mDatabase == null) {
+                if (mDatabase == null || !mDatabase.isOpen()) {
                     mDatabase = getWritableDatabase();
                 }
             }
@@ -75,6 +74,15 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         } finally {
             super.finalize();
         }
+    }
+
+    @Override
+    public synchronized void close() {
+        if (mDatabase != null) {
+            mDatabase.close();
+            mDatabase = null;
+        }
+        super.close();
     }
 
     public void addFile(String fileId, String mimeType, String encoding) {
@@ -107,7 +115,9 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
 
     public boolean removeFile(String fileId) {
         try {
-            db().delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
+            SQLiteDatabase db = db();
+            db.delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
+            db.close();
             return true;
         } catch (SQLiteException e) {
             return false;

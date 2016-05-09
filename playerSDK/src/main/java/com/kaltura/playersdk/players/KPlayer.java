@@ -33,7 +33,9 @@ public interface KPlayer {
 
     void setLicenseUri(String licenseUri);
 
-    void savePlayerState();
+    boolean isPlaying();
 
-    void recoverPlayerState();
+    void hide();
+
+    void show();
 }

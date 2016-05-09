@@ -42,6 +42,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private RelativeLayout mAdControls;
     private boolean isBackgrounded = false;
     private float mCurrentPlaybackTime = 0;
+    private boolean isPlaying = false;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -54,6 +55,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             isIMAActive = false;
             mActivity.clear();
             mActivity = null;
+            removeAdPlayer();
         }
         playerListener.eventWithJSON(player, eventName, jsonValue);
     }
@@ -127,7 +129,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void pause() {
         if (!isCasting) {
             if (isBackgrounded && isIMAActive) {
-                imaManager.pause();
+                if(imaManager != null) {
+                    imaManager.pause();
+                }
             } else {
                 player.pause();
             }
@@ -161,14 +165,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         isCasting = false;
         switchingBackFromCasting = true;
         ((View) player).setVisibility(View.VISIBLE);
-        castPlayer.removePlayer();
         player.setPlayerCallback(this);
         player.setPlayerListener(playerListener);
         player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
         player.play();
+        removeCastPlayer();
     }
 
     public void removeCastPlayer() {
+        castPlayer.removePlayer();
         castPlayer.setPlayerCallback(null);
         castPlayer.setPlayerListener(null);
         castPlayer = null;
@@ -185,24 +190,35 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     }
 
-    public void savePlayerState() {
+    public void savePlayerState(boolean isOnBackground) {
+        isBackgrounded = isOnBackground;
         if (player != null) {
-            player.savePlayerState();
+            isPlaying = player.isPlaying() || isIMAActive;
+            pause();
+        } else {
+            isPlaying = false;
         }
     }
 
     public void recoverPlayerState() {
-        if (player != null) {
-            player.recoverPlayerState();
+        if (isPlaying) {
+            if (isIMAActive && imaManager != null) {
+                imaManager.resume();
+            } else if (player != null) {
+                play();
+            }
         }
     }
 
-    public void removePlayer() {
+    public void removePlayer(boolean shouldSaveState) {
         isBackgrounded = true;
-        if (imaManager != null && isIMAActive) {
-            imaManager.pause();
-        }
         if (player != null) {
+            if (shouldSaveState) {
+                savePlayerState(false);
+            } else {
+                isPlaying = false;
+                pause();
+            }
             player.freezePlayer();
         }
     }
@@ -214,6 +230,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
         if (player != null) {
             player.recoverPlayer();
+            recoverPlayerState();
         }
     }
 
@@ -223,7 +240,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             removeAdPlayer();
         }
         if (player != null) {
-            player.freezePlayer();
+            player.removePlayer();
         }
     }
 
@@ -306,6 +323,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void addAdPlayer() {
+        player.hide();
 
         // Add adPlayer view
         adPlayerContainer = new FrameLayout(mActivity.get());
@@ -387,7 +405,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
                 isPlayerCanPlay = true;
-                if (mActivity != null) {
+                if (mActivity != null && !isIMAActive) {
                     addAdPlayer();
                 }
                 if (mCurrentPlaybackTime > 0) {
@@ -396,6 +414,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SHOULD_PLAY:
+                player.show();
+
                 isIMAActive = false;
                 player.setShouldCancelPlay(false);
                 player.play();
