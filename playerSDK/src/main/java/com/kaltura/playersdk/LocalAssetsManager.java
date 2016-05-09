@@ -97,6 +97,7 @@ public class LocalAssetsManager {
         checkNotEmpty(entry.getServerURL(), "entry.domain");
         checkNotEmpty(entry.getUiConfId(), "entry.uiConfId");
         checkNotEmpty(entry.getEntryId(), "entry.entryId");
+        checkNotEmpty(entry.getLocalContentId(), "entry.localContentId");
         checkNotEmpty(flavor, "flavor");
         checkNotEmpty(localPath, "localPath");
 
