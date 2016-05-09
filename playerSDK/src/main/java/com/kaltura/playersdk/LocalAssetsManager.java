@@ -29,7 +29,7 @@ public class LocalAssetsManager {
     }
     
     public interface AssetStatusListener {
-        void onStatus(String assetPath, int expiryTimeSeconds, int availableTimeSeconds);
+        void onStatus(String assetPath, long expiryTimeSeconds, long availableTimeSeconds);
     }
     
     public interface AssetRemovalListener {

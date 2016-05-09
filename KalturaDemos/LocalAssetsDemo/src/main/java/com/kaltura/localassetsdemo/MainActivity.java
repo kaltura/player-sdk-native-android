@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
             public void onClick(View v) {
                 LocalAssetsManager.checkAssetStatus(MainActivity.this, mSelectedItem.localPath, new LocalAssetsManager.AssetStatusListener() {
                     @Override
-                    public void onStatus(String assetPath, int expiryTimeSeconds, int availableTimeSeconds) {
+                    public void onStatus(String assetPath, long expiryTimeSeconds, long availableTimeSeconds) {
                         uiLog("expiryTime:" + expiryTimeSeconds);
                     }
                 });

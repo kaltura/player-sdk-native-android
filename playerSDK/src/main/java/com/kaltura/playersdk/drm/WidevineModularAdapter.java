@@ -159,11 +159,11 @@ public class WidevineModularAdapter extends DrmAdapter {
         try {
             Map<String, String> assetStatus = checkAssetStatus(localPath);
             if (assetStatus != null) {
-                int licenseDurationRemaining = 0;
-                int playbackDurationRemaining = 0;
+                long licenseDurationRemaining = 0;
+                long playbackDurationRemaining = 0;
                 try {
-                    licenseDurationRemaining = Integer.parseInt(assetStatus.get("LicenseDurationRemaining"));
-                    playbackDurationRemaining = Integer.parseInt(assetStatus.get("PlaybackDurationRemaining"));
+                    licenseDurationRemaining = Long.parseLong(assetStatus.get("LicenseDurationRemaining"));
+                    playbackDurationRemaining = Long.parseLong(assetStatus.get("PlaybackDurationRemaining"));
                 } catch (NumberFormatException e) {
                     Log.e(TAG, "Invalid integers in KeyStatus: " + assetStatus);
                 }
