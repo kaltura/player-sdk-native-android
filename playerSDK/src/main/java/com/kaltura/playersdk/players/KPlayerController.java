@@ -190,8 +190,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     }
 
-    public void savePlayerState(boolean isOnBackground) {
-        isBackgrounded = isOnBackground;
+    public void savePlayerState() {
+//        isBackgrounded = isOnBackground;
         if (player != null) {
             isPlaying = player.isPlaying() || isIMAActive;
             pause();
@@ -214,12 +214,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         isBackgrounded = true;
         if (player != null) {
             if (shouldSaveState) {
-                savePlayerState(false);
+                savePlayerState();
             } else {
                 isPlaying = false;
                 pause();
             }
-            player.freezePlayer();
+            if (!isIMAActive) {
+                player.freezePlayer();
+            }
         }
     }
 
@@ -227,8 +229,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         isBackgrounded = false;
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
-        }
-        if (player != null) {
+        } else if (player != null) {
             player.recoverPlayer();
             recoverPlayerState();
         }
@@ -323,7 +324,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void addAdPlayer() {
-        player.hide();
+        ((View)player).setVisibility(View.INVISIBLE);
 
         // Add adPlayer view
         adPlayerContainer = new FrameLayout(mActivity.get());
@@ -414,7 +415,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SHOULD_PLAY:
-                player.show();
+                ((View)player).setVisibility(View.VISIBLE);
 
                 isIMAActive = false;
                 player.setShouldCancelPlay(false);
@@ -422,7 +423,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
             case KPlayerCallback.SHOULD_PAUSE:
                 isIMAActive = true;
-                player.pause();
+                pause();
+                ((View)player).setVisibility(View.INVISIBLE);
                 break;
             case KPlayerCallback.ENDED:
                 if (imaManager != null) {

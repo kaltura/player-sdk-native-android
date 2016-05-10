@@ -24,6 +24,9 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     private Activity mActivity;
     private SimpleVideoPlayer mAdPlayer;
     private KIMAAdPlayerEvents mListener;
+    private String mSrc;
+    private boolean isSeeking;
+    private int currentPosition;
     private final List<VideoAdPlayerCallback> mAdCallbacks =
             new ArrayList<VideoAdPlayerCallback>(1);
 
@@ -31,7 +34,12 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     // [START VideoAdPlayer region]
     @Override
     public void playAd() {
-        mAdPlayer.play();
+        if (mAdPlayer != null) {
+            mAdPlayer.play();
+        } else {
+            setAdPlayerSource(mSrc);
+        }
+
     }
 
     @Override
@@ -50,6 +58,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void pauseAd() {
         if (mAdPlayer != null) {
             mAdPlayer.pause();
+            removeAd();
         }
     }
 
@@ -89,6 +98,14 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
                         callback.onPlay();
                     }
+                } else if (currentPosition > 0) {
+                    mAdPlayer.seek(currentPosition, true);
+                    isSeeking = true;
+                    currentPosition = 0;
+                    mSrc = null;
+                } else if (isSeeking) {
+                    isSeeking = false;
+                    mAdPlayer.play();
                 } else {
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
                         callback.onPause();
@@ -119,7 +136,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
 
     public interface KIMAAdPlayerEvents {
-        public void adDidProgress(float toTome, float totalTime);
+        void adDidProgress(float toTome, float totalTime);
     }
 
     public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer) {
@@ -137,6 +154,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     private void setAdPlayerSource(String src) {
+        mSrc = src;
         Video source = new Video(src.toString(), Video.VideoType.MP4);
         mAdPlayer = new SimpleVideoPlayer(mActivity, mPlayerContainer, source, "", true);
         mAdPlayer.addPlaybackListener(this);
@@ -148,6 +166,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     public void removeAd() {
         if (mAdPlayer != null) {
+            currentPosition = mAdPlayer.getCurrentPosition();
             mAdPlayer.release();
             mAdPlayer.moveSurfaceToBackground();
             mPlayerContainer.setVisibility(View.INVISIBLE);

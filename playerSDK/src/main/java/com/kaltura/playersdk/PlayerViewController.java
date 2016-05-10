@@ -290,7 +290,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void saveState(boolean isOnBackground) {
         mWebView.freeze();
-        playerController.savePlayerState(isOnBackground);
+        playerController.savePlayerState();
     }
 
     public void resumeState() {
