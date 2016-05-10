@@ -36,10 +36,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void playAd() {
         if (mAdPlayer != null) {
             mAdPlayer.play();
-        } else {
-            setAdPlayerSource(mSrc);
         }
-
     }
 
     @Override
@@ -58,7 +55,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void pauseAd() {
         if (mAdPlayer != null) {
             mAdPlayer.pause();
-            removeAd();
         }
     }
 
@@ -145,6 +141,15 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         mAdUIContainer = adUIContainer;
     }
 
+    public void resume() {
+        setAdPlayerSource(mSrc);
+    }
+
+    public void pause() {
+        currentPosition = mAdPlayer.getCurrentPosition();
+        removeAd();
+    }
+
     public void setKIMAAdEventListener(KIMAAdPlayerEvents listener) {
         mListener = listener;
     }
@@ -160,13 +165,12 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         mAdPlayer.addPlaybackListener(this);
         mPlayerContainer.setVisibility(View.VISIBLE);
         mAdPlayer.moveSurfaceToForeground();
-        mAdPlayer.disableSeeking();
+//        mAdPlayer.disableSeeking();
         mAdPlayer.hideTopChrome();
     }
 
     public void removeAd() {
         if (mAdPlayer != null) {
-            currentPosition = mAdPlayer.getCurrentPosition();
             mAdPlayer.release();
             mAdPlayer.moveSurfaceToBackground();
             mPlayerContainer.setVisibility(View.INVISIBLE);

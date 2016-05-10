@@ -116,15 +116,11 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     }
 
     public void pause() {
-        if (mAdsManager != null) {
-            mAdsManager.pause();
-        }
+        mIMAPlayer.pause();
     }
 
     public void resume() {
-        if (mAdsManager != null) {
-            mAdsManager.resume();
-        }
+        mIMAPlayer.resume();
     }
 
     /**
