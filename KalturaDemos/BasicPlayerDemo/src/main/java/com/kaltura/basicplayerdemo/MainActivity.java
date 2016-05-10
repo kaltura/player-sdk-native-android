@@ -1,5 +1,6 @@
 package com.kaltura.basicplayerdemo;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -10,13 +11,26 @@ import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.accessibility.CaptioningManager;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
+import com.google.android.exoplayer.metadata.id3.GeobFrame;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer.metadata.id3.PrivFrame;
+import com.google.android.exoplayer.metadata.id3.TxxxFrame;
+import com.google.android.exoplayer.text.CaptionStyleCompat;
+import com.google.android.exoplayer.text.Cue;
+import com.google.android.exoplayer.text.SubtitleLayout;
+import com.google.android.exoplayer.util.Util;
+import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
@@ -24,13 +38,19 @@ import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.types.TrackType;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener, ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener {
     private static final String TAG = "BasicPlayerDemo";
+
+    private static final int MENU_GROUP_TRACKS = 1;
+    private static final int ID_OFFSET = 2;
+
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
@@ -38,6 +58,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
     private boolean isCCActive = false;
     private Button ccButton;
+    private boolean enableBackgroundAudio;
+    private Button videoButton;
+    private Button audioButton;
+    private Button textButton;
+    private SubtitleLayout subtitleLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +75,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
+        videoButton = (Button) findViewById(R.id.video_controls);
+        audioButton = (Button) findViewById(R.id.audio_controls);
+        textButton = (Button) findViewById(R.id.text_controls);
+        subtitleLayout = (SubtitleLayout) findViewById(R.id.subtitles);
         mPlayPauseButton = (Button)findViewById(R.id.button);
         mPlayPauseButton.setOnClickListener(this);
         mSeekBar = (SeekBar)findViewById(R.id.seekBar);
@@ -68,8 +98,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
-
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.addConfig("autoPlay", "true");
             config.addConfig("chromecast.plugin", "true");
             config.addConfig("chromecast.applicationID", "5247861F");
@@ -114,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
+
         }
         return mPlayer;
     }
@@ -246,6 +277,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (state == KPlayerState.PLAYING) {
 //            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
         }
+        else if (state == KPlayerState.READY){
+            if (mPlayer != null) {
+                updateButtonVisibilities();
+                mPlayer.getTracks().setCaptionListener(this);
+                configureSubtitleView();
+
+                Log.d(TAG, "aud tracks num = " + mPlayer.getTracks().getTracksList(TrackType.AUDIO).size());
+                Log.d(TAG, "vid tracks num = " + mPlayer.getTracks().getTracksList(TrackType.VIDEO).size());
+                Log.d(TAG, "text tracks num = " + mPlayer.getTracks().getTracksList(TrackType.TEXT).size());
+                for (String track : mPlayer.getTracks().getTracksList(TrackType.AUDIO)) {
+                    Log.d(TAG, track);
+                }
+                Log.e(TAG, "----------------");
+                for (String track : mPlayer.getTracks().getTracksList(TrackType.VIDEO)) {
+                    Log.e(TAG, track);
+                }
+                Log.d(TAG, "----------------");
+                for (String track : mPlayer.getTracks().getTracksList(TrackType.TEXT)) {
+                    Log.d(TAG, track);
+                }
+                Log.d(TAG, "----------------");
+                Log.d(TAG, "curr audindex = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.AUDIO));
+                //mPlayer.getTracks().switchTrack(TrackType.AUDIO,2);
+                Log.d(TAG, "curr aud index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.AUDIO));
+                Log.d(TAG, "curr vid index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.VIDEO));
+                //mPlayer.getTracks().switchTrack(TrackType.VIDEO,2);
+                Log.d(TAG, "curr vid index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.VIDEO));
+                Log.d(TAG, "curr text index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.TEXT));
+                //mPlayer.getTracks().switchTrack(TrackType.TEXT,1);
+                Log.d(TAG, "curr text index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.TEXT));
+            }
+        }
     }
 
     @Override
@@ -261,5 +324,138 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
         Log.e(TAG, "Error Received:" + error.getErrorMsg());
+    }
+
+    private void configurePopupWithTracks(PopupMenu popup,
+                                          final PopupMenu.OnMenuItemClickListener customActionClickListener,
+                                          final TrackType trackType) {
+        if (mPlayer == null) {
+            return;
+        }
+        int trackCount = mPlayer.getTracks().getTrackCount(trackType);
+        if (trackCount == 0) {
+            return;
+        }
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                return (customActionClickListener != null
+                        && customActionClickListener.onMenuItemClick(item))
+                        || onTrackItemClick(item, trackType);
+            }
+        });
+        Menu menu = popup.getMenu();
+        // ID_OFFSET ensures we avoid clashing with Menu.NONE (which equals 0).
+        menu.add(MENU_GROUP_TRACKS, ExoplayerWrapper.TRACK_DISABLED + ID_OFFSET, Menu.NONE, R.string.off);
+        for (int i = 0; i < trackCount; i++) {
+            menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
+                    mPlayer.getTracks().getTrackName(mPlayer.getTracks().getTrackFormat(trackType, i)));
+        }
+        menu.setGroupCheckable(MENU_GROUP_TRACKS, true, true);
+        menu.findItem(mPlayer.getTracks().getCurrentTrackIndex(trackType) + ID_OFFSET).setChecked(true);
+    }
+
+    private boolean onTrackItemClick(MenuItem item, TrackType type) {
+        if (mPlayer == null || item.getGroupId() != MENU_GROUP_TRACKS) {
+            return false;
+        }
+        mPlayer.getTracks().switchTrack(type, item.getItemId() - ID_OFFSET);
+        return true;
+    }
+
+    public void showVideoPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        configurePopupWithTracks(popup, null,TrackType.VIDEO);
+        popup.show();
+    }
+
+    public void showAudioPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        Menu menu = popup.getMenu();
+        menu.add(Menu.NONE, Menu.NONE, Menu.NONE, R.string.enable_background_audio);
+        final MenuItem backgroundAudioItem = menu.findItem(0);
+        backgroundAudioItem.setCheckable(true);
+        backgroundAudioItem.setChecked(enableBackgroundAudio);
+        PopupMenu.OnMenuItemClickListener clickListener = new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item == backgroundAudioItem) {
+                    enableBackgroundAudio = !item.isChecked();
+                    return true;
+                }
+                return false;
+            }
+        };
+        configurePopupWithTracks(popup, clickListener, TrackType.AUDIO);
+        popup.show();
+    }
+
+    public void showTextPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        configurePopupWithTracks(popup, null, TrackType.TEXT);
+        popup.show();
+    }
+
+    private void updateButtonVisibilities() {
+        videoButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.VIDEO) > 0) ? View.VISIBLE : View.GONE);
+        audioButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.AUDIO) > 0) ? View.VISIBLE : View.GONE);
+        textButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.TEXT) > 0) ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onCues(List<Cue> cues) {
+        StringBuilder sb = new StringBuilder();
+        for (Cue cue : cues){
+            sb.append(cue.text);
+        }
+        Log.d(TAG, "subTille = " + sb.toString());
+        subtitleLayout.setCues(cues);
+    }
+
+    @Override
+    public void onId3Metadata(List<Id3Frame> id3Frames) {
+        for (Id3Frame id3Frame : id3Frames) {
+            if (id3Frame instanceof TxxxFrame) {
+                TxxxFrame txxxFrame = (TxxxFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
+                        txxxFrame.description, txxxFrame.value));
+            } else if (id3Frame instanceof PrivFrame) {
+                PrivFrame privFrame = (PrivFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
+            } else if (id3Frame instanceof GeobFrame) {
+                GeobFrame geobFrame = (GeobFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
+                        geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
+            } else {
+                Log.i(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
+            }
+        }
+    }
+
+    private void configureSubtitleView() {
+        CaptionStyleCompat style;
+        float fontScale;
+        if (Util.SDK_INT >= 19) {
+            style = getUserCaptionStyleV19();
+            fontScale = getUserCaptionFontScaleV19();
+        } else {
+            style = CaptionStyleCompat.DEFAULT;
+            fontScale = 1.0f;
+        }
+        subtitleLayout.setStyle(style);
+        subtitleLayout.setFractionalTextSize(SubtitleLayout.DEFAULT_TEXT_SIZE_FRACTION * fontScale);
+    }
+    @TargetApi(19)
+    private float getUserCaptionFontScaleV19() {
+        CaptioningManager captioningManager =
+                (CaptioningManager) getSystemService(Context.CAPTIONING_SERVICE);
+        return captioningManager.getFontScale();
+    }
+
+    @TargetApi(19)
+    private CaptionStyleCompat getUserCaptionStyleV19() {
+        CaptioningManager captioningManager =
+                (CaptioningManager) getSystemService(Context.CAPTIONING_SERVICE);
+        return CaptionStyleCompat.createFromCaptionStyle(captioningManager.getUserStyle());
     }
 }

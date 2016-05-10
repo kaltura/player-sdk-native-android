@@ -1,6 +1,5 @@
 package com.kaltura.playersdk.players;
 
-import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -14,8 +13,12 @@ import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
+import com.kaltura.playersdk.types.TrackType;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by nissimpardo on 08/12/15.
@@ -33,6 +36,82 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     private KCCRemotePlayerListener mListener;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
+
+    @Override
+    public List<String> getTracksList(TrackType trackType) {
+//        MediaTrack englishSubtitle = new MediaTrack.Builder(1 /* ID */, MediaTrack.TYPE_TEXT)
+//                .setName("English Subtitle")
+//                .setSubtype(MediaTrack.SUBTYPE_CAPTIONS)
+//                .setContentId("https://some-url/caption_en.vtt")
+//  /* language is required for subtitle type but optional otherwise */
+//                .setLanguage("en-US")
+//                .build();
+//
+//        MediaTrack frenchSubtitle = new MediaTrack.Builder(2, MediaTrack.TYPE_TEXT)
+//                .setName("French Subtitle")
+//                .setSubtype(MediaTrack.SUBTYPE_CAPTIONS)
+//                .setContentId("https://some-url/caption_fr.vtt")
+//                .setLanguage("fr")
+//                .build();
+//
+////        MediaTrack frenchAudio = new MediaTrack.Builder(3, MediaTrack.TYPE_AUDIO)
+////                .setName("French Audio")
+////                .setContentId("trk0001")
+////                .setLanguage("fr")
+////                .build();
+//        List tracks = new ArrayList();
+//        tracks.add(englishSubtitle);
+//        tracks.add(frenchSubtitle);
+////        tracks.add(frenchAudio);
+//        MediaInfo mediaInfo = MediaInfo.Builder(mRemoteMediaPlayer)
+//                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+//                .setContentType(getContentType())
+//                .setMetadata(getMetadata())
+//                .setMediaTracks(tracks)
+//                .build();
+        return new ArrayList<>();
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+//        mRemoteMediaPlayer.setActiveMediaTracks(mApiClient, new long[]{newIndex})
+//                .setResultCallback(new ResultCallback() {
+//                    @Override
+//                    public void onResult(@NonNull Result result) {
+//                        if (!result.getStatus().isSuccess()) {
+//                            Log.e(TAG, "Failed with status code:" + result.getStatus().getStatusCode());
+//                        }
+//                    }
+//                });
+    }
+
+    public com.google.android.exoplayer.MediaFormat getTrackFormat(TrackType trackType, int index){
+        return null;
+    }
+
+    public String getTrackName(com.google.android.exoplayer.MediaFormat format) {
+        return null;
+    }
+
+    @Override
+    public void setCaptionListener(ExoplayerWrapper.CaptionListener listener) {
+
+    }
+
+    @Override
+    public void setMetadataListener(ExoplayerWrapper.Id3MetadataListener listener) {
+
+    }
 
     public interface KCCRemotePlayerListener {
         void remoteMediaPlayerReady();

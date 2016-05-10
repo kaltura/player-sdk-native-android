@@ -13,13 +13,14 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
+import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
+import com.kaltura.playersdk.types.TrackType;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
-import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
-
-import javax.crypto.interfaces.PBEKey;
 
 
 /**
@@ -438,6 +439,44 @@ public class KWVCPlayer
         if(mDrmClient.needToAcquireRights(assetAcquireUri)) {
             mDrmClient.acquireRights(assetAcquireUri, mLicenseUri);
         }
+    }
+
+    @Override
+    public List<String> getTracksList(TrackType trackType) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+
+    }
+
+    public com.google.android.exoplayer.MediaFormat getTrackFormat(TrackType trackType, int index){
+        return null;
+    }
+
+    public String getTrackName(com.google.android.exoplayer.MediaFormat format) {
+        return null;
+    }
+
+    @Override
+    public void setCaptionListener(ExoplayerWrapper.CaptionListener listener) {
+
+    }
+
+    @Override
+    public void setMetadataListener(ExoplayerWrapper.Id3MetadataListener listener) {
+
     }
 
     private enum PrepareState {

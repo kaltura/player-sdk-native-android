@@ -35,6 +35,7 @@ import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.types.TrackType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -190,6 +191,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public KMediaControl getMediaControl() {
         return mWebView;
+    }
+
+    public KTracksInterface getTracks(){
+        return playerController.getPlayer();
     }
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
@@ -877,9 +882,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
 
         KPlayer player = playerController.getPlayer();
-        if (player instanceof QualityTracksInterface) {
-            QualityTracksInterface adaptivePlayer = (QualityTracksInterface) player;
-            adaptivePlayer.switchQualityTrack(flavorIndex);
+        if (player instanceof KTracksInterface) {
+            KTracksInterface adaptivePlayer = (KTracksInterface) player;
+            adaptivePlayer.switchTrack(TrackType.VIDEO,flavorIndex);
         }
     }
     

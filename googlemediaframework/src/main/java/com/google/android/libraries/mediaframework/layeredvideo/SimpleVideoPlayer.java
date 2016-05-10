@@ -116,7 +116,7 @@ public class SimpleVideoPlayer {
         preferedSoftwareDecoder,
         layers);
 
-    layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
+    layerManager.getExoplayerWrapper().setCaptionListener(subtitleLayer);
 
     if (startPostitionMs > 0) {
       layerManager.getExoplayerWrapper().seekTo(startPostitionMs);
@@ -278,8 +278,7 @@ public class SimpleVideoPlayer {
             v,
             preferedSoftwareDecoder,
             layers);
-
-    layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
+    layerManager.getExoplayerWrapper().setCaptionListener(subtitleLayer);
     if (doPlay) {
       play();
     }

@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
@@ -15,17 +16,27 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 
+import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
+import com.google.android.exoplayer.MediaCodecTrackRenderer;
+import com.google.android.exoplayer.MediaCodecUtil;
 import com.google.android.exoplayer.drm.MediaDrmCallback;
+import com.google.android.exoplayer.drm.UnsupportedDrmException;
+import com.google.android.exoplayer.util.MimeTypes;
+import com.google.android.exoplayer.util.Util;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
+import com.kaltura.playersdk.types.TrackType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -101,9 +112,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void setPlayerSource(String playerSource) {
-
         mSourceURL = playerSource;
-        
         prepare();
     }
     
@@ -166,7 +175,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         return;
                     }
                     mExoPlayer.addListener(KExoPlayer.this);
-
                     mExoPlayer.prepare();
 
                 } else {
@@ -421,12 +429,156 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void onError(Exception e) {
         String errMsg = "Player Error";
         Log.e(TAG, errMsg, e);
-        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" + e.getMessage());
+        String errorString = "";
+        if (e instanceof UnsupportedDrmException) {
+            // Special case DRM failures.
+            UnsupportedDrmException unsupportedDrmException = (UnsupportedDrmException) e;
+            errorString = (Util.SDK_INT < 18) ? "error_drm_not_supported"
+                    : unsupportedDrmException.reason == UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME
+                    ? "error_drm_unsupported_scheme" : "error_drm_unknown";
+        } else if (e instanceof ExoPlaybackException
+                && e.getCause() instanceof MediaCodecTrackRenderer.DecoderInitializationException) {
+            // Special case for decoder initialization failures.
+            MediaCodecTrackRenderer.DecoderInitializationException decoderInitializationException =
+                    (MediaCodecTrackRenderer.DecoderInitializationException) e.getCause();
+            if (decoderInitializationException.decoderName == null) {
+                if (decoderInitializationException.getCause() instanceof MediaCodecUtil.DecoderQueryException) {
+                    errorString = "error_querying_decoders ";
+                } else if (decoderInitializationException.secureDecoderRequired) {
+                    errorString = "error_no_secure_decoder " +
+                            decoderInitializationException.mimeType;
+                } else {
+                    errorString = "error_no_decoder " +
+                            decoderInitializationException.mimeType;
+                }
+            } else {
+                errorString = "error_instantiating_decoder " +
+                        decoderInitializationException.decoderName;
+            }
+        }
+        if (!"".equals(errorString)){
+            Log.e(TAG, errorString);
+            errorString += "-";
+        }
+
+        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" +  errorString  + e.getMessage());
     }
 
     @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         mSurfaceView.setVideoWidthHeightRatio((float)width / height);
+    }
+
+    @Override
+    public List<String> getTracksList(TrackType trackType) {
+        List<String> tracksList = new ArrayList<>();
+        //ExoplayerWrapper.TYPE_AUDIO
+        //ExoplayerWrapper.TYPE_TEXT
+        //ExoplayerWrapper.TYPE_VIDEO
+        int exoTrackType = getExoTrackType(trackType);
+        int trackCount = mExoPlayer.getTrackCount(exoTrackType);
+        //menu.add(MENU_GROUP_TRACKS, DemoPlayer.TRACK_DISABLED + ID_OFFSET, Menu.NONE, R.string.off);
+        for (int i = 0; i < trackCount; i++) {
+            tracksList.add(getTrackName(mExoPlayer.getTrackFormat(exoTrackType, i)));
+        }
+        //menu.findItem(player.getSelectedTrack(trackType) + ID_OFFSET).setChecked(true);
+        return tracksList;
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return getTracksList(trackType).size();
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return mExoPlayer.getSelectedTrack(getExoTrackType(trackType));
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+        int exoTrackType = ExoplayerWrapper.TRACK_DISABLED;
+        if (trackType == null){
+            return;
+        }
+        mExoPlayer.setSelectedTrack(getExoTrackType(trackType), newIndex);
+    }
+
+    private int getExoTrackType(TrackType trackType) {
+        int exoTrackType = ExoplayerWrapper.TRACK_DISABLED;
+        switch (trackType){
+            case AUDIO:
+                exoTrackType = ExoplayerWrapper.TYPE_AUDIO;
+                break;
+            case VIDEO:
+                exoTrackType = ExoplayerWrapper.TYPE_VIDEO;
+                break;
+            case TEXT:
+                exoTrackType = ExoplayerWrapper.TYPE_TEXT;
+                break;
+        }
+        return exoTrackType;
+    }
+
+    public com.google.android.exoplayer.MediaFormat getTrackFormat(TrackType trackType, int index){
+        return mExoPlayer.getTrackFormat(getExoTrackType(trackType), index);
+    }
+
+    public String getTrackName(com.google.android.exoplayer.MediaFormat format) {
+        if (format.adaptive) {
+            return "auto";
+        }
+        String trackName;
+        if (MimeTypes.isVideo(format.mimeType)) {
+            trackName = joinWithSeparator(joinWithSeparator(buildResolutionString(format),
+                    buildBitrateString(format)), buildTrackIdString(format));
+        } else if (MimeTypes.isAudio(format.mimeType)) {
+            trackName = joinWithSeparator(joinWithSeparator(joinWithSeparator(buildLanguageString(format),
+                    buildAudioPropertyString(format)), buildBitrateString(format)),
+                    buildTrackIdString(format));
+        } else {
+            trackName = joinWithSeparator(joinWithSeparator(buildLanguageString(format),
+                    buildBitrateString(format)), buildTrackIdString(format));
+        }
+        return trackName.length() == 0 ? "unknown" : trackName;
+    }
+
+    @Override
+    public void setCaptionListener(ExoplayerWrapper.CaptionListener listener) {
+        mExoPlayer.setCaptionListener(listener);
+    }
+
+    @Override
+    public void setMetadataListener(ExoplayerWrapper.Id3MetadataListener listener) {
+        mExoPlayer.setMetadataListener(listener);
+    }
+
+    private String buildResolutionString(com.google.android.exoplayer.MediaFormat format) {
+        return format.width == com.google.android.exoplayer.MediaFormat.NO_VALUE || format.height == com.google.android.exoplayer.MediaFormat.NO_VALUE
+                ? "" : format.width + "x" + format.height;
+    }
+
+    private String buildAudioPropertyString(com.google.android.exoplayer.MediaFormat format) {
+        return format.channelCount == com.google.android.exoplayer.MediaFormat.NO_VALUE || format.sampleRate == com.google.android.exoplayer.MediaFormat.NO_VALUE
+                ? "" : format.channelCount + "ch, " + format.sampleRate + "Hz";
+    }
+
+    private String buildLanguageString(com.google.android.exoplayer.MediaFormat format) {
+        return TextUtils.isEmpty(format.language) || "und".equals(format.language) ? ""
+                : format.language;
+    }
+
+    private static String buildBitrateString(com.google.android.exoplayer.MediaFormat format) {
+        return format.bitrate == com.google.android.exoplayer.MediaFormat.NO_VALUE ? ""
+                : String.format(Locale.US, "%.2fMbit", format.bitrate / 1000000f);
+    }
+
+    private String joinWithSeparator(String first, String second) {
+        return first.length() == 0 ? second : (second.length() == 0 ? first : first + ", " + second);
+    }
+
+    private String buildTrackIdString(com.google.android.exoplayer.MediaFormat format) {
+        return format.trackId == null ? "" : " (" + format.trackId + ")";
     }
 
     // Utility classes
