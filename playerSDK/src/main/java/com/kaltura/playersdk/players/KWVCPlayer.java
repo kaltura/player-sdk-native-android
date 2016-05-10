@@ -288,19 +288,19 @@ public class KWVCPlayer
         }
     }
 
-    @Override
-    public void hide() {
-        if(mPlayer != null){
-            mPlayer.setVisibility(INVISIBLE);
-        }
-    }
-
-    @Override
-    public void show() {
-        if(mPlayer != null){
-            mPlayer.setVisibility(VISIBLE);
-        }
-    }
+//    @Override
+//    public void hide() {
+//        if(mPlayer != null){
+//            mPlayer.setVisibility(INVISIBLE);
+//        }
+//    }
+//
+//    @Override
+//    public void show() {
+//        if(mPlayer != null){
+//            mPlayer.setVisibility(VISIBLE);
+//        }
+//    }
 
 
     @Override
