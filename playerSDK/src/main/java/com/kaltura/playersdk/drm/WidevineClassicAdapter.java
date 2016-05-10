@@ -27,6 +27,7 @@ class WidevineClassicAdapter extends DrmAdapter {
         mContext = context;
     }
 
+    @Override
     public boolean checkAssetStatus(@NonNull String localPath, @Nullable final LocalAssetsManager.AssetStatusListener listener) {
         WidevineDrmClient widevineDrmClient = new WidevineDrmClient(mContext);
         WidevineDrmClient.RightsInfo info = widevineDrmClient.getRightsInfo(localPath);
