@@ -62,6 +62,32 @@ Now, you are linked to the playerSDK by reference. Be sure that you cloned the p
 
 Make sure that you cloned the **_player-sdk-native-android_** project to the same folder of your project, if you prefer to clone it else where, you should update the _**`settings.gradle`**_.
 
+### SDK integration using a compiled version:
+
+Alternativley you can integrate the Kaltura Android SDK directly into your gradle project using a compiled version using jitpack. This is useful when you run automated builds on an integration server.
+
+In your root level _**`build.gradle`**_ add the following:
+
+```
+allprojects {
+    repositories {
+        ...
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+
+In your app level _**`app/build.gradle`**_ add the following:
+
+```
+dependencies {
+    ...
+    compile 'com.github.kaltura.player-sdk-native-android:playerSDK:v2.5.4'
+    compile 'com.github.kaltura.player-sdk-native-android:googlemediaframework:v2.5.4'
+}
+
+```
+
 API Overview
 =====
 
