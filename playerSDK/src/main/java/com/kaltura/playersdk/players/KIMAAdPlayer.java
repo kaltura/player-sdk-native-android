@@ -98,7 +98,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                     mAdPlayer.seek(currentPosition, true);
                     isSeeking = true;
                     currentPosition = 0;
-                    mSrc = null;
                 } else if (isSeeking) {
                     isSeeking = false;
                     mAdPlayer.play();
