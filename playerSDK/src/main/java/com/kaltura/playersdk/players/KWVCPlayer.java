@@ -308,7 +308,7 @@ public class KWVCPlayer
 
 
     @Override
-    public void recoverPlayer() {
+    public void recoverPlayer(boolean isPlaying) {
         if (mWasDestroyed && mPlayer != null) {
             mSavedState.set(false, mSavedState.position);
             mPlayer.resume();
