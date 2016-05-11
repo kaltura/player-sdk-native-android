@@ -64,7 +64,7 @@ Make sure that you cloned the **_player-sdk-native-android_** project to the sam
 
 ### SDK integration using a compiled version:
 
-Alternativley you can integrate the Kaltura Android SDK directly into your gradle project using a compiled version using jitpack. This is useful when you run automated builds on an integration server.
+Alternativley you can integrate the Kaltura Android SDK directly into your gradle project using a compiled version by jitpack. This is useful when you intend to run automated builds on an integration server.
 
 In your root level _**`build.gradle`**_ add the following:
 
