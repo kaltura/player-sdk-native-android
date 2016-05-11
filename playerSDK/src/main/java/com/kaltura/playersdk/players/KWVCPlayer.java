@@ -46,6 +46,8 @@ public class KWVCPlayer
     private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
     private boolean isFirstPreparation = true;
+    private int mCurrentPosition;
+    private boolean mWasDestroyed;
 
     public static Set<MediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
@@ -268,15 +270,15 @@ public class KWVCPlayer
 
     @Override
     public void freezePlayer() {
-        if (mPlayer != null) {
-            savePosition();
-            mPlayer.suspend();
-        }
+//        if (mPlayer != null) {
+//            savePosition();
+//            mPlayer.suspend();
+//        }
     }
 
     private void saveState() {
         if (mPlayer != null) {
-            mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
+            mSavedState.set(mPlayer.isPlaying(), mCurrentPosition);
         } else {
             mSavedState.set(false, 0);
         }
@@ -297,6 +299,7 @@ public class KWVCPlayer
 
     private void stopPlayheadTracker() {
         if (mPlayheadTracker != null) {
+            mCurrentPosition = (int) mPlayheadTracker.getPlaybackTime() * 1000;
             mPlayheadTracker.stop();
             mPlayheadTracker = null;
         }
@@ -319,9 +322,10 @@ public class KWVCPlayer
 
     @Override
     public void recoverPlayer() {
-        if (mPlayer != null) {
+        if (mWasDestroyed && mPlayer != null) {
             mSavedState.set(false, mSavedState.position);
             mPlayer.resume();
+            mWasDestroyed = false;
         }
     }
 
@@ -351,23 +355,6 @@ public class KWVCPlayer
         mPlayer = new VideoView(getContext());
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
-
-        mPlayer.getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-            }
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-
-            }
-        });
 
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -451,6 +438,29 @@ public class KWVCPlayer
                 }
             }
         });
+        mPlayer.getHolder().addCallback(new SurfaceHolder.Callback2() {
+            @Override
+            public void surfaceRedrawNeeded(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceRedrawNeeded");
+            }
+
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceCreated");
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                Log.d(TAG, "surfaceChanged");
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceDestroyed");
+                mWasDestroyed = true;
+                savePlayerState();
+            }
+        });
         mPlayer.setVideoURI(Uri.parse(widevineUri));
 
         if(mDrmClient.needToAcquireRights(mAssetUri)) {
@@ -476,11 +486,11 @@ public class KWVCPlayer
     
     class PlayheadTracker {
         Handler mHandler;
+        float playbackTime;
         Runnable mRunnable = new Runnable() {
             @Override
             public void run() {
                 try {
-                    float playbackTime;
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
@@ -497,6 +507,10 @@ public class KWVCPlayer
                 }
             }
         };
+
+        float getPlaybackTime() {
+            return playbackTime;
+        }
 
         void start() {
             if (mHandler == null) {
