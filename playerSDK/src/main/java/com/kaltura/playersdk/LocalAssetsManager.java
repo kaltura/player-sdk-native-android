@@ -222,6 +222,11 @@ public class LocalAssetsManager {
 
     private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DRMScheme drmScheme) throws IOException, JSONException {
 
+        String overrideUrl = config.getConfigValueString("Kaltura.overrideDrmServerURL");
+        if (overrideUrl != null) {
+            return Uri.parse(overrideUrl);
+        }
+        
         // load license data
         Uri getLicenseDataURL = prepareGetLicenseDataURL(config, flavor, drmScheme);
         String licenseData = Utilities.loadStringFromURL(getLicenseDataURL, JSON_BYTE_LIMIT);

@@ -216,4 +216,8 @@ public class KPPlayerConfig implements Serializable{
 	public double getMediaPlayFrom() {
 		return mMediaPlayFrom;
 	}
+	
+	public String getConfigValueString(String key) {
+		return mExtraConfig.get(key);
+	}
 }
