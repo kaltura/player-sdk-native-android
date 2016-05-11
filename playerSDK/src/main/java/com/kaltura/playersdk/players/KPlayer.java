@@ -27,7 +27,7 @@ public interface KPlayer {
 
     void removePlayer();
 
-    void recoverPlayer();
+    void recoverPlayer(boolean isPlaying);
 
     void setShouldCancelPlay(boolean shouldCancelPlay);
 

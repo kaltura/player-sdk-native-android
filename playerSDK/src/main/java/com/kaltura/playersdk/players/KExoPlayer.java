@@ -128,11 +128,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 && mExoPlayer.getPlayWhenReady();
     }
 
-     public void hide(){
-     }
-
-    public void show(){
-    }
 
     private void prepare() {
         
@@ -288,7 +283,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void freezePlayer() {
-        if (mExoPlayer != null) {
+        if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
             mExoPlayer.setBackgrounded(true);
         }
     }
@@ -309,9 +304,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
     
     @Override
-    public void recoverPlayer() {
-        if (mExoPlayer != null) {
+    public void recoverPlayer(boolean isPlaying) {
+        if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
             mExoPlayer.setBackgrounded(false);
+            if (isPlaying) {
+                mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+            }
         }
     }
 
