@@ -145,7 +145,9 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     public void pause() {
-        currentPosition = mAdPlayer.getCurrentPosition();
+        if(mAdPlayer != null) {
+            currentPosition = mAdPlayer.getCurrentPosition();
+        }
         removeAd();
     }
 
