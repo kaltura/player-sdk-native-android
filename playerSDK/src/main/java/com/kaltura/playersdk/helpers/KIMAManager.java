@@ -116,11 +116,15 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     }
 
     public void pause() {
-        mIMAPlayer.pause();
+        if (mIMAPlayer != null) {
+            mIMAPlayer.pause();
+        }
     }
 
     public void resume() {
-        mIMAPlayer.resume();
+        if (mIMAPlayer != null) {
+            mIMAPlayer.resume();
+        }
     }
 
     /**
@@ -216,7 +220,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 if (!mContentCompleted && mPLayerCallback != null) {
                     mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
                 }
-//                mIMAPlayer.removeAd();
                 break;
             case ALL_ADS_COMPLETED:
                 fireIMAEvent(AllAdsCompletedKey);

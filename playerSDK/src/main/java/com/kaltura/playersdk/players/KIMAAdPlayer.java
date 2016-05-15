@@ -1,9 +1,14 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
 
 import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
@@ -29,6 +34,10 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     private int currentPosition;
     private final List<VideoAdPlayerCallback> mAdCallbacks =
             new ArrayList<VideoAdPlayerCallback>(1);
+    private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
+    private static final String TAG = "KIMAAdPlayer";
+    @NonNull
+    private Handler mPlaybackTimeReporter = new Handler(Looper.getMainLooper());
 
 
     // [START VideoAdPlayer region]
@@ -54,12 +63,14 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     @Override
     public void pauseAd() {
         if (mAdPlayer != null) {
+            stopPlaybackTimeReporter();
             mAdPlayer.pause();
         }
     }
 
     @Override
     public void resumeAd() {
+        startPlaybackTimeReporter();
         mAdPlayer.play();
     }
 
@@ -82,6 +93,30 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             mListener.adDidProgress((float)mAdPlayer.getCurrentPosition() / 1000, (float)mAdPlayer.getDuration() / 1000);
         }
         return new VideoProgressUpdate(mAdPlayer.getCurrentPosition(), mAdPlayer.getDuration());
+    }
+
+    private void startPlaybackTimeReporter() {
+        mPlaybackTimeReporter.removeMessages(0); // Stop reporter if already running
+        mPlaybackTimeReporter.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mAdPlayer != null) {
+                    maybeReportPlaybackTime();
+                    mPlaybackTimeReporter.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
+                }
+            }
+        });
+    }
+
+    private void stopPlaybackTimeReporter() {
+        Log.d(TAG, "remove handler callbacks");
+        mPlaybackTimeReporter.removeMessages(0);
+    }
+
+    private void maybeReportPlaybackTime() {
+        if (mListener != null) {
+            mListener.adDidProgress((float)mAdPlayer.getCurrentPosition() / 1000, (float)mAdPlayer.getDuration() / 1000);
+        }
     }
     // [END VideoAdPlayer region]
 
@@ -153,6 +188,10 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         mListener = listener;
     }
 
+    public KIMAAdPlayerEvents getKIMAAdEventListener() {
+        return mListener;
+    }
+
     public ViewGroup getAdUIContainer() {
         return mAdUIContainer;
     }
@@ -164,7 +203,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         mAdPlayer.addPlaybackListener(this);
         mPlayerContainer.setVisibility(View.VISIBLE);
         mAdPlayer.moveSurfaceToForeground();
-//        mAdPlayer.disableSeeking();
+        mAdPlayer.disableSeeking();
         mAdPlayer.hideTopChrome();
     }
 
