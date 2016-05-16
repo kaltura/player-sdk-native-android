@@ -68,7 +68,7 @@ public class KWVCPlayer
             @Override
             public void onError(final DrmErrorEvent event) {
                 mShouldCancelPlay = true;
-                getHandler().post(new Runnable() {
+                KWVCPlayer.this.post(new Runnable() {
                     @Override
                     public void run() {
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, "DRM error");
