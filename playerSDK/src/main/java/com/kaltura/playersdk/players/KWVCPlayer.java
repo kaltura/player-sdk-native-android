@@ -66,8 +66,14 @@ public class KWVCPlayer
         mDrmClient = new WidevineDrmClient(context);
         mDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
             @Override
-            public void onError(DrmErrorEvent event) {
+            public void onError(final DrmErrorEvent event) {
                 mShouldCancelPlay = true;
+                getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, "DRM error");
+                    }
+                });
             }
 
             @Override
