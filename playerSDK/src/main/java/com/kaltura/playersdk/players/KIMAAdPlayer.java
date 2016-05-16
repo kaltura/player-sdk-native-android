@@ -70,8 +70,9 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     @Override
     public void resumeAd() {
-        startPlaybackTimeReporter();
-        mAdPlayer.play();
+        if (mAdPlayer != null) {
+            mAdPlayer.play();
+        }
     }
 
     @Override
@@ -177,6 +178,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     public void resume() {
         setAdPlayerSource(mSrc);
+        startPlaybackTimeReporter();
     }
 
     public void pause() {
@@ -186,10 +188,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     public void setKIMAAdEventListener(KIMAAdPlayerEvents listener) {
         mListener = listener;
-    }
-
-    public KIMAAdPlayerEvents getKIMAAdEventListener() {
-        return mListener;
     }
 
     public ViewGroup getAdUIContainer() {

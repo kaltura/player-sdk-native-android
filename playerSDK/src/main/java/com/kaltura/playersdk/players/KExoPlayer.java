@@ -324,17 +324,17 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         mDrmCallback.setLicenseUri(licenseUri);
     }
 
-    private void savePlayerState() {
-        saveState();
-        pause();
-    }
-
-    private void recoverPlayerState() {
-        setCurrentPlaybackTime(mSavedState.position);
-        if (mSavedState.playing) {
-            play();
-        }
-    }
+//    private void savePlayerState() {
+//        saveState();
+//        pause();
+//    }
+//
+//    private void recoverPlayerState() {
+//        setCurrentPlaybackTime(mSavedState.position);
+//        if (mSavedState.playing) {
+//            play();
+//        }
+//    }
 
 
     // PlaybackListener
@@ -386,14 +386,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             case ExoPlayer.STATE_ENDED:
                 Log.d(TAG, "state ended");
-//                if (mExoPlayer != null) {
-//                    Log.d(TAG, "state ended: set play when ready false");
-//                    setPlayWhenReady(false);
-//                }
-//                if (mExoPlayer != null) {
-//                    Log.d(TAG, "state ended: seek to 0");
-//                    setCurrentPlaybackTime(0);
-//                }
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
                 } 
