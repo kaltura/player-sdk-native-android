@@ -15,7 +15,10 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.Utilities;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
@@ -27,7 +30,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity implements KPEventListener {
+public class MainActivity extends AppCompatActivity implements
+        KPErrorEventListener,KPPlayheadUpdateEventListener,KPStateChangedEventListener,KPFullScreenToggeledEventListener {
+
 
     private static final String TAG = "MainActivity";
     

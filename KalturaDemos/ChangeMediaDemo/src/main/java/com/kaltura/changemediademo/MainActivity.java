@@ -19,14 +19,19 @@ import android.widget.Toast;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener, SelectMediaFragment.MediaIdPostman {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, SelectMediaFragment.MediaIdPostman,
+        KPErrorEventListener,KPFullScreenToggeledEventListener,KPPlayheadUpdateEventListener,KPStateChangedEventListener {
+
     public static final String MEDIA_ID_KEY = "MEDIA_ID";
 
     private static final String TAG = "ChangeMediaDemo";

@@ -21,7 +21,10 @@ import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
@@ -37,7 +40,9 @@ import java.util.TimerTask;
  * Use the {@link PlayerFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PlayerFragment extends Fragment {
+public class PlayerFragment extends Fragment implements
+        KPErrorEventListener,KPFullScreenToggeledEventListener,KPPlayheadUpdateEventListener,KPStateChangedEventListener {
+
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = PlayerFragment.class.getSimpleName();
@@ -109,54 +114,53 @@ public class PlayerFragment extends Fragment {
             }
         });
         mPlayerView.loadPlayerIntoActivity(getActivity());
-
-        mPlayerView.addEventListener(new KPEventListener() {
-            @Override
-            public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-                switch (state) {
-                    case READY:
-                        mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-
-                            @Override
-                            public void onSystemUiVisibilityChange(int visibility) {
-                                Log.d(TAG, "onSystemVisibility change");
-                                if (visibility == FULL_SCREEN_FLAG) {
-                                    Point size = getRealScreenSize();
-                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                                } else {
-                                    Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
-                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                                }
-                            }
-                        });
-                        break;
-                    case PLAYING:
-                        if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT) {
-                            setFullScreen();
-                        }
-                        break;
-                    case PAUSED:
-                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        break;
-                }
-            }
-
-            @Override
-            public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-
-            }
-
-            @Override
-            public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-
-            }
-
-            @Override
-            public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
-                setFullScreen();
-            }
-        });
+        mPlayerView.addEventListener(this);
         return fragmentView;
+    }
+
+    @Override
+    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        switch (state) {
+            case READY:
+                mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+
+                    @Override
+                    public void onSystemUiVisibilityChange(int visibility) {
+                        Log.d(TAG, "onSystemVisibility change");
+                        if (visibility == FULL_SCREEN_FLAG) {
+                            Point size = getRealScreenSize();
+                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                        } else {
+                            Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
+                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                        }
+                    }
+                });
+                break;
+            case PLAYING:
+                if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT) {
+                    setFullScreen();
+                }
+                break;
+            case PAUSED:
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                break;
+        }
+    }
+
+    @Override
+    public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
+    }
+
+    @Override
+    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+
+    }
+
+    @Override
+    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+        setFullScreen();
     }
 
     // TODO: Rename method, update argument and hook method into UI event

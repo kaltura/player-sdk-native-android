@@ -13,11 +13,16 @@ import android.widget.Button;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
-public class MainActivity extends AppCompatActivity implements PlayerFragment.OnFragmentInteractionListener, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements PlayerFragment.OnFragmentInteractionListener, View.OnClickListener,
+        KPErrorEventListener,KPFullScreenToggeledEventListener,KPPlayheadUpdateEventListener,KPStateChangedEventListener {
     private PlayerFragment mPlayerFragment;
     private PlayerViewController mPlayer;
     private Button mPreloadButton;
@@ -132,29 +137,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                     config.setEntryId("1_32865911");
                     mPlayer.loadPlayerIntoActivity(this);
                     mPlayer.initWithConfiguration(config);
-                    mPlayer.addEventListener(new KPEventListener() {
-                        @Override
-                        public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-                            if (state == KPlayerState.READY) {
-                                mPreloadButton.setText("Ready To Play");
-                            }
-                        }
-
-                        @Override
-                        public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-
-                        }
-
-                        @Override
-                        public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-
-                        }
-
-                        @Override
-                        public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
-
-                        }
-                    });
+                    mPlayer.addEventListener(this);
                 }
             }
         } else {
@@ -164,5 +147,26 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
 //            Intent intent = new Intent(this, OfflineActivity.class);
 //            startActivity(intent);
         }
+    }
+    @Override
+    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        if (state == KPlayerState.READY) {
+            mPreloadButton.setText("Ready To Play");
+        }
+    }
+
+    @Override
+    public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
+    }
+
+    @Override
+    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+
+    }
+
+    @Override
+    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+
     }
 }

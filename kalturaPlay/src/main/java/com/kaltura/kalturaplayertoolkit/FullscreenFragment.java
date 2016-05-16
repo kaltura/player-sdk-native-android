@@ -22,7 +22,10 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
 import com.kaltura.playersdk.casting.KRouterInfo;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
@@ -33,7 +36,8 @@ import java.util.TimerTask;
 /**
  * Created by itayi on 2/12/15.
  */
-public class FullscreenFragment extends Fragment{
+public class FullscreenFragment extends Fragment implements
+        KPErrorEventListener,KPFullScreenToggeledEventListener,KPPlayheadUpdateEventListener,KPStateChangedEventListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = FullscreenFragment.class.getSimpleName();
@@ -119,48 +123,7 @@ public class FullscreenFragment extends Fragment{
           });
 
         mPlayerView.getKCastRouterManager().enableKalturaCastButton(true);
-        mPlayerView.addEventListener(new KPEventListener() {
-            @Override
-            public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-                switch (state) {
-                    case READY:
-                        setFullScreen();
-                        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-                            @Override
-                            public void onSystemUiVisibilityChange(int visibility) {
-                                Log.d(TAG, "onSystemVisibility change");
-                                if (visibility == FULL_SCREEN_FLAG) {
-                                    Point size = getRealScreenSize();
-                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                                } else {
-                                    Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
-                                    mPlayerView.setPlayerViewDimensions(size.x, size.y);
-                                }
-                            }
-                        });
-                        break;
-                    case PAUSED:
-                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        break;
-                }
-            }
-
-            @Override
-            public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-
-            }
-
-            @Override
-            public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
-                setFullScreen();
-            }
-
-            @Override
-            public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-
-            }
-        });
+        mPlayerView.addEventListener(this);
 
         showPlayerView();
         Bundle bundle = getArguments();
@@ -175,7 +138,46 @@ public class FullscreenFragment extends Fragment{
 
         return mFragmentView;
     }
+    @Override
+    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        switch (state) {
+            case READY:
+                setFullScreen();
+                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                mPlayerView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+                    @Override
+                    public void onSystemUiVisibilityChange(int visibility) {
+                        Log.d(TAG, "onSystemVisibility change");
+                        if (visibility == FULL_SCREEN_FLAG) {
+                            Point size = getRealScreenSize();
+                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                        } else {
+                            Point size = getScreenWithoutNavigationSize();//getActivity().getWindowManager().getDefaultDisplay().getSize(size)
+                            mPlayerView.setPlayerViewDimensions(size.x, size.y);
+                        }
+                    }
+                });
+                break;
+            case PAUSED:
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                break;
+        }
+    }
 
+    @Override
+    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+
+    }
+
+    @Override
+    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
+        setFullScreen();
+    }
+
+    @Override
+    public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
+    }
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {

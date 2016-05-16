@@ -1,6 +1,5 @@
 package com.kaltura.basicplayerdemo;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -12,7 +11,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -23,7 +21,9 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
 import com.kaltura.playersdk.casting.KRouterInfo;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener,
+        KPErrorEventListener,KPPlayheadUpdateEventListener,KPStateChangedEventListener {
     private static final String TAG = "BasicPlayerDemo";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -266,11 +267,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
     }
 
-    @Override
+    //@Override
     public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
         Log.d(TAG, "KPlayer onKPlayerFullScreenToggeled " +  Boolean.toString(isFullscreen));
         Log.e(TAG, "GILAD onKPlayerFullScreenToggeled " + isFullscreen);
-        toggleFullscreen(this, isFullscreen);
+        //toggleFullscreen(this, isFullscreen);
     }
 
     @Override
@@ -278,38 +279,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.e(TAG, "Error Received:" + error.getErrorMsg());
     }
 
-    private void toggleFullscreen(Activity activity, boolean fullscreen) {
 
-        int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
-        int newUiOptions = uiOptions;
-        newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
-        newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-
-        if (fullscreen) {
-            Log.d(TAG,"Set to onOpenFullScreen");
-            mPlayer.sendNotification("onOpenFullScreen", null);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-
-            }else{
-                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
-            }
-            getSupportActionBar().hide();
-        } else {
-            Log.d(TAG,"Set to onCloseFullScreen");
-            mPlayer.sendNotification("onCloseFullScreen", null);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            }else{
-                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
-            }
-            getSupportActionBar().show();
-        }
-        // set landscape
-        // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-        // else activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-    }
 }
