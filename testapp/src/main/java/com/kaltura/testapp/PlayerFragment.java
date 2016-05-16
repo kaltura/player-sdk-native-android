@@ -11,7 +11,10 @@ import android.view.ViewGroup;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
@@ -24,7 +27,8 @@ import com.kaltura.playersdk.types.KPError;
  * Use the {@link PlayerFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PlayerFragment extends Fragment {
+public class PlayerFragment extends Fragment implements
+        KPErrorEventListener,KPFullScreenToggeledEventListener,KPPlayheadUpdateEventListener,KPStateChangedEventListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -129,27 +133,7 @@ public class PlayerFragment extends Fragment {
 
                 }
             });
-            mPlayerView.addEventListener(new KPEventListener() {
-                @Override
-                public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-                    Log.d("KPlayer State Changed", state.toString());
-                }
-
-                @Override
-                public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-
-                }
-
-                @Override
-                public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-                    Log.d("KPlayer State Changed", Float.toString(currentTime));
-                }
-
-                @Override
-                public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
-                    Log.d("KPlayer toggeled", Boolean.toString(isFullscreen));
-                }
-            });
+            mPlayerView.addEventListener(this);
 //            mPlayerView.setPlayerViewControllerAdapter(new PlayerViewController.PlayerViewControllerAdapter() {
 //                @Override
 //                public String localURLForEntryId(String entryId) {
@@ -163,6 +147,25 @@ public class PlayerFragment extends Fragment {
         return mFragmentView;
     }
 
+    @Override
+    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        Log.d("KPlayer State Changed", state.toString());
+    }
+
+    @Override
+    public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+
+    }
+
+    @Override
+    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+        Log.d("KPlayer State Changed", Float.toString(currentTime));
+    }
+
+    @Override
+    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
+        Log.d("KPlayer toggeled", Boolean.toString(isFullscreen));
+    }
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
