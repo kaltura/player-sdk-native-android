@@ -242,7 +242,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public void recoverPlayer() {
+    public void recoverPlayer(boolean isPlaying) {
 
     }
 
@@ -259,16 +259,6 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     @Override
     public boolean isPlaying() {
         return false;
-    }
-
-    @Override
-    public void hide() {
-
-    }
-
-    @Override
-    public void show() {
-
     }
 
 
