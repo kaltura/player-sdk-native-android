@@ -28,6 +28,7 @@ public class KPPlayerConfig implements Serializable{
 	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
+	private boolean mAutoPlay = false;
 
 	static {
 		// Use System.out to print even when Log.X() are disabled.
@@ -130,7 +131,16 @@ public class KPPlayerConfig implements Serializable{
 		}
 		return this;
 	}
-	
+
+	public boolean isAutoPlay() {
+		return mAutoPlay;
+	}
+
+	public void setAutoPlay(boolean autoPlay) {
+		mAutoPlay = autoPlay;
+		addConfig("autoPlay", autoPlay ? "true" : "false");
+	}
+
 	public String getQueryString() {
 
 		Uri.Builder builder = new Uri.Builder();
