@@ -650,6 +650,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (bridgeMethod == null) {
             KPlayer player = this.playerController.getPlayer();
             bridgeMethod = KStringUtilities.isMethodImplemented(player, functionName);
+            Log.d("handleHtml5LibCall", "bridgeMethod: " + bridgeMethod);
             object = player;
         }
         if (bridgeMethod != null) {
@@ -812,6 +813,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             if (attribute == null) {
                 return;
             }
+            Log.d(TAG, "setAttribute Attribute: " + attribute + " " + attributeValue);
             switch (attribute) {
                 case src:
                     // attributeValue is the selected source -- allow override.
@@ -861,33 +863,70 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                         sendOnKPlayerError(attributeValue);
                     }
                     break;
+                case textTrackSelected:
+                    Log.d(TAG, "textTrackSelected");
+                    switchTextTrack(attributeValue);
+                    break;
+                case audioTrackSelected:
+                    Log.d(TAG, "audioTrackSelected");
+                    switchAudioTrack(attributeValue);
+                    break;
             }
         }
     }
 
     private void sendOnKPlayerError(String attributeValue) {
         for (KPEventListener listener: eventListeners) {
-            Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
+            Log.d(TAG, "sendOnKPlayerError: " + attributeValue);
             listener.onKPlayerError(this, new KPError(attributeValue));
         }
     }
 
     private void switchFlavor(String index) {
-        int flavorIndex = -1;
+        Log.d(TAG, "switchFlavor index = " + index);
+        switchTrack(TrackType.VIDEO,index);
+    }
+
+    private void switchAudioTrack(String index) {
+        Log.d(TAG, "switchAudioTrack index = " + index);
+        switchTrack(TrackType.AUDIO,index);
+    }
+
+    private void selectClosedCaptions(String index) {
+        Log.d(TAG, "selectClosedCaptions index = " + index);
+        switchTrack(TrackType.TEXT,index);
+    }
+
+    private void switchTextTrack(String languageId){
+        Log.d(TAG, "switchTextTrack languageId = " + languageId);
+        if (languageId == null){
+            return;
+        }
+        if ("Off".equalsIgnoreCase(languageId)){
+            getTracks().switchTrack(TrackType.TEXT,-1);
+            return;
+        }
+        for (int index = 0 ; index < getTracks().getTracksList(TrackType.TEXT).size() ; index++) {
+            Log.d(TAG, "<" + getTracks().getTracksList(TrackType.TEXT).get(index) + ">/<" + languageId + ">");
+            if ((getTracks().getTracksList(TrackType.TEXT).get(index)).equals(languageId)){
+                getTracks().switchTrack(TrackType.TEXT,index);
+                return;
+            }
+        }
+    }
+    private void switchTrack(TrackType trackType, String index) {
+        int trackIndex = -1;
+
         try {
-            flavorIndex = Integer.parseInt(index);
+            trackIndex = Integer.parseInt(index);
         } catch (NumberFormatException e) {
-            Log.e(TAG, "switchFlavor failed parsing index, ignoring request" + index);
+            Log.e(TAG, "switchTrack " + trackType.name() + " failed parsing index, ignoring request" + index);
             return;
         }
 
-        KPlayer player = playerController.getPlayer();
-        if (player instanceof KTracksInterface) {
-            KTracksInterface adaptivePlayer = (KTracksInterface) player;
-            adaptivePlayer.switchTrack(TrackType.VIDEO,flavorIndex);
-        }
+        getTracks().switchTrack(trackType, trackIndex);
     }
-    
+
     private void notifyJsReady() {
         mIsJsCallReadyRegistration = true;
         if (mCallBackReadyRegistrations != null) {

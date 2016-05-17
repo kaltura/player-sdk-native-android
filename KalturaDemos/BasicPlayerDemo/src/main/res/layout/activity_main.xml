@@ -75,7 +75,8 @@
             android:layout_toRightOf="@+id/audio_controls"
             android:layout_toEndOf="@+id/audio_controls" />
 
-        <com.google.android.exoplayer.text.SubtitleLayout android:id="@+id/subtitles"
+        <com.google.android.exoplayer.text.SubtitleLayout
+            android:id="@+id/subtitles"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_alignParentBottom="true"

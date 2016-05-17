@@ -29,7 +29,13 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
+import com.kaltura.playersdk.LanguageTrack;
+import com.kaltura.playersdk.QualityTrack;
 import com.kaltura.playersdk.types.TrackType;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -119,10 +125,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private Video.VideoType getVideoType() {
         String videoFileName = Uri.parse(mSourceURL).getLastPathSegment();
         switch (videoFileName.substring(videoFileName.lastIndexOf('.')).toLowerCase()) {
-            case ".mpd": 
-                return Video.VideoType.DASH; 
-            case ".mp4": 
-                return Video.VideoType.MP4; 
+            case ".mpd":
+                return Video.VideoType.DASH;
+            case ".mp4":
+                return Video.VideoType.MP4;
             case ".m3u8": 
                 return Video.VideoType.HLS;
             default: 
@@ -379,7 +385,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 // ExoPlayer is ready.
                 if (mReadiness != Readiness.Ready) {
                     mReadiness = Readiness.Ready;
-
+                    sendTracksList(TrackType.TEXT);
+                    sendTracksList(TrackType.AUDIO);
+                    sendTracksList(TrackType.VIDEO);
                     // TODO what about mShouldResumePlayback?
                     mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
                     mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
@@ -485,6 +493,63 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         return tracksList;
     }
 
+    private JSONObject getLangTracksAsJson(TrackType trackType) {
+        if(TrackType.VIDEO.equals(trackType)){
+            return null;
+        }
+        JSONObject resultJsonObj = new JSONObject();
+        try {
+            JSONArray tracksJsonArray = new JSONArray();
+            int exoTrackType = getExoTrackType(trackType);
+            int trackCount = mExoPlayer.getTrackCount(exoTrackType);
+            String resultJsonKey = "languages";
+
+            for (int index = 0; index < trackCount; index++) {
+                com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
+                LanguageTrack languageTrack = new LanguageTrack();
+                languageTrack.setIndex(index);
+                languageTrack.setKind("subtitle"); //"caption"??
+                languageTrack.setTitle(getTrackName(mExoPlayer.getTrackFormat(exoTrackType, index)));
+                String trackId = (mediaFormat.trackId != null) ? mediaFormat.trackId : "Auto";
+                languageTrack.setLanguage(trackId);
+                languageTrack.setScrlang(trackId);
+                languageTrack.setLabel(trackId);
+
+                tracksJsonArray.put(languageTrack.toJSONObject());
+            }
+            resultJsonObj.put(resultJsonKey, tracksJsonArray);
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        Log.e(TAG, "Lang Json Result  " + resultJsonObj.toString());
+        return resultJsonObj;
+    }
+
+
+    private JSONArray getVideoTracksAsJson(TrackType trackType) {
+        if(!TrackType.VIDEO.equals(trackType)){
+            return null;
+        }
+        JSONArray tracksJsonArray= new JSONArray();
+        int exoTrackType = getExoTrackType(trackType);
+        int trackCount = mExoPlayer.getTrackCount(exoTrackType);
+        for (int index = 0; index < trackCount; index++) {
+            if (TrackType.VIDEO.equals(trackType)) {
+                com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
+                QualityTrack qualityTrack = new QualityTrack();
+                qualityTrack.setAssetId(String.valueOf(index));
+                qualityTrack.setBandwidth(mediaFormat.bitrate);
+                qualityTrack.setType(mediaFormat.mimeType);
+                qualityTrack.setHeight(mediaFormat.height);
+                qualityTrack.setWidth(mediaFormat.width); // not returnrd in the get JSON metohd
+                tracksJsonArray.put(qualityTrack.toJSONObject());
+            }
+        }
+        Log.d(TAG, "Video Track Json " + tracksJsonArray.toString());
+        return tracksJsonArray;
+    }
+
     @Override
     public int getTrackCount(TrackType trackType) {
         return getTracksList(trackType).size();
@@ -578,7 +643,22 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
     private String buildTrackIdString(com.google.android.exoplayer.MediaFormat format) {
-        return format.trackId == null ? "" : " (" + format.trackId + ")";
+        return format.trackId == null ? "" : format.trackId;
+    }
+
+    private void sendTracksList(TrackType trackType) {
+        Log.d(TAG, "sendTracksList with:" + trackType);
+        switch(trackType) {
+            case AUDIO:
+                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.AudioTracksReceivedKey, getLangTracksAsJson(TrackType.AUDIO).toString());
+                break;
+            case TEXT:
+                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.TextTracksReceivedKey,  getLangTracksAsJson(TrackType.TEXT).toString());
+                break;
+            case VIDEO:
+                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.FlavorsListChangedKey,  getVideoTracksAsJson(TrackType.VIDEO).toString());
+                break;
+        }
     }
 
     // Utility classes
