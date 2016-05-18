@@ -373,6 +373,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 }
                 if (mSeeking) {
                     // ready after seeking
+                    mReadiness = Readiness.Ready;
                     mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
                     mSeeking = false;
                     startPlaybackTimeReporter();
@@ -388,6 +389,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 Log.d(TAG, "state ended");
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
+                    mReadiness = Readiness.Idle;
                 } 
                 stopPlaybackTimeReporter();
                 break;
