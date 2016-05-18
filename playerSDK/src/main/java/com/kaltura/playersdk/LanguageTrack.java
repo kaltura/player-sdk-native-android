@@ -9,17 +9,17 @@ public class LanguageTrack {
 	public String kind;
 	public String label;
 	public String language;
-	public String scrlang;
+	public String srclang;
 	public String title;
 
 	public LanguageTrack(){}
 
-	public LanguageTrack(int index, String kind, String label, String language, String scrlang, String title) {
+	public LanguageTrack(int index, String kind, String label, String language, String srclang, String title) {
 		this.index = index;
 		this.kind = kind;
 		this.label = label;
 		this.language = language;
-		this.scrlang = scrlang;
+		this.srclang = srclang;
 		this.title = title;
 	}
 
@@ -55,12 +55,12 @@ public class LanguageTrack {
 		this.language = language;
 	}
 
-	public String getScrlang() {
-		return scrlang;
+	public String getSrclang() {
+		return srclang;
 	}
 
-	public void setScrlang(String scrlang) {
-		this.scrlang = scrlang;
+	public void setSrclang(String srclang) {
+		this.srclang = srclang;
 	}
 
 	public String getTitle() {
@@ -74,12 +74,12 @@ public class LanguageTrack {
 	public String toJSONString() {
 		JSONObject jsonObject = new JSONObject();
 		try {
-			jsonObject.put("index", getIndex());
-			jsonObject.put("kind", getKind());
-			jsonObject.put("label", getLabel());
+			jsonObject.put("index",    getIndex());
+			jsonObject.put("kind",     getKind());
+			jsonObject.put("label",    getLabel());
 			jsonObject.put("language", getLanguage());
-			jsonObject.put("scrlang", getScrlang());
-			jsonObject.put("title", getTitle());
+			jsonObject.put("srclang",  getSrclang());
+			jsonObject.put("title",    getTitle());
 			return jsonObject.toString();
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
@@ -91,11 +91,13 @@ public class LanguageTrack {
 	public JSONObject toJSONObject() {
 		JSONObject jsonObject = new JSONObject();
 		try {
+			// need id???
+			// need mode???
 			jsonObject.put("index", getIndex());
 			jsonObject.put("kind", getKind());
 			jsonObject.put("label", getLabel());
 			jsonObject.put("language", getLanguage());
-			jsonObject.put("scrlang", getScrlang());
+			jsonObject.put("srclang", getSrclang());
 			jsonObject.put("title", getTitle());
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block

@@ -493,61 +493,50 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         return tracksList;
     }
 
-    private JSONObject getLangTracksAsJson(TrackType trackType) {
-        if(TrackType.VIDEO.equals(trackType)){
-            return null;
-        }
+    private JSONObject getTracksAsJson(TrackType trackType) {
         JSONObject resultJsonObj = new JSONObject();
         try {
             JSONArray tracksJsonArray = new JSONArray();
             int exoTrackType = getExoTrackType(trackType);
             int trackCount = mExoPlayer.getTrackCount(exoTrackType);
-            String resultJsonKey = "languages";
+            String resultJsonKey = "";
 
-            for (int index = 0; index < trackCount; index++) {
-                com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
-                LanguageTrack languageTrack = new LanguageTrack();
-                languageTrack.setIndex(index);
-                languageTrack.setKind("subtitle"); //"caption"??
-                languageTrack.setTitle(getTrackName(mExoPlayer.getTrackFormat(exoTrackType, index)));
-                String trackId = (mediaFormat.trackId != null) ? mediaFormat.trackId : "Auto";
-                languageTrack.setLanguage(trackId);
-                languageTrack.setScrlang(trackId);
-                languageTrack.setLabel(trackId);
-
-                tracksJsonArray.put(languageTrack.toJSONObject());
+            if (TrackType.VIDEO.equals(trackType)){
+                resultJsonKey = "tracks";
+                for (int index = 0; index < trackCount; index++) {
+                    if (TrackType.VIDEO.equals(trackType)) {
+                        com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
+                        QualityTrack qualityTrack = new QualityTrack();
+                        qualityTrack.setAssetId(String.valueOf(index));
+                        qualityTrack.setBandwidth(mediaFormat.bitrate);
+                        qualityTrack.setType(mediaFormat.mimeType);
+                        qualityTrack.setHeight(mediaFormat.height);
+                        qualityTrack.setWidth(mediaFormat.width);
+                        tracksJsonArray.put(qualityTrack.toJSONObject());
+                    }
+                }
+            }else if (TrackType.TEXT.equals(trackType) || TrackType.AUDIO.equals(trackType)) {
+                    resultJsonKey = "languages";
+                for (int index = 0; index < trackCount; index++) {
+                    com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
+                    LanguageTrack languageTrack = new LanguageTrack();
+                    languageTrack.setIndex(index);
+                    languageTrack.setKind("subtitle"); //"caption"??
+                    languageTrack.setTitle(getTrackName(mExoPlayer.getTrackFormat(exoTrackType, index)));
+                    String trackId = (mediaFormat.trackId != null) ? mediaFormat.trackId: "Auto";
+                    languageTrack.setLanguage(trackId);
+                    languageTrack.setSrclang(trackId);
+                    languageTrack.setLabel(trackId);
+                    tracksJsonArray.put(languageTrack.toJSONObject());
+                }
             }
             resultJsonObj.put(resultJsonKey, tracksJsonArray);
         } catch (JSONException ex) {
             ex.printStackTrace();
             return null;
         }
-        Log.e(TAG, "Lang Json Result  " + resultJsonObj.toString());
+        Log.e(TAG, "Track/Lang Json Result  " + resultJsonObj.toString());
         return resultJsonObj;
-    }
-
-
-    private JSONArray getVideoTracksAsJson(TrackType trackType) {
-        if(!TrackType.VIDEO.equals(trackType)){
-            return null;
-        }
-        JSONArray tracksJsonArray= new JSONArray();
-        int exoTrackType = getExoTrackType(trackType);
-        int trackCount = mExoPlayer.getTrackCount(exoTrackType);
-        for (int index = 0; index < trackCount; index++) {
-            if (TrackType.VIDEO.equals(trackType)) {
-                com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
-                QualityTrack qualityTrack = new QualityTrack();
-                qualityTrack.setAssetId(String.valueOf(index));
-                qualityTrack.setBandwidth(mediaFormat.bitrate);
-                qualityTrack.setType(mediaFormat.mimeType);
-                qualityTrack.setHeight(mediaFormat.height);
-                qualityTrack.setWidth(mediaFormat.width); // not returnrd in the get JSON metohd
-                tracksJsonArray.put(qualityTrack.toJSONObject());
-            }
-        }
-        Log.d(TAG, "Video Track Json " + tracksJsonArray.toString());
-        return tracksJsonArray;
     }
 
     @Override
@@ -650,13 +639,13 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         Log.d(TAG, "sendTracksList with:" + trackType);
         switch(trackType) {
             case AUDIO:
-                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.AudioTracksReceivedKey, getLangTracksAsJson(TrackType.AUDIO).toString());
+                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.AudioTracksReceivedKey, getTracksAsJson(TrackType.AUDIO).toString());
                 break;
             case TEXT:
-                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.TextTracksReceivedKey,  getLangTracksAsJson(TrackType.TEXT).toString());
+                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.TextTracksReceivedKey,  getTracksAsJson(TrackType.TEXT).toString());
                 break;
             case VIDEO:
-                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.FlavorsListChangedKey,  getVideoTracksAsJson(TrackType.VIDEO).toString());
+                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.FlavorsListChangedKey,  getTracksAsJson(TrackType.VIDEO).toString());
                 break;
         }
     }
