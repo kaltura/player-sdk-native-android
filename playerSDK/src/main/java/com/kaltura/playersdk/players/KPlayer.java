@@ -29,15 +29,11 @@ public interface KPlayer extends KTracksInterface{
 
     void removePlayer();
 
-    void recoverPlayer();
+    void recoverPlayer(boolean isPlaying);
 
     void setShouldCancelPlay(boolean shouldCancelPlay);
 
     void setLicenseUri(String licenseUri);
 
     boolean isPlaying();
-
-    void hide();
-
-    void show();
 }
