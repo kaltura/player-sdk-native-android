@@ -92,7 +92,7 @@ public class QualityTrack {
 	private JSONObject getQualityTrakJsonObject() {
 		JSONObject jsonObject = new JSONObject();
 		try {
-			jsonObject.put("assetId", getAssetId());
+			jsonObject.put("assetid", getAssetId());
 			jsonObject.put("originalIndex", getOriginalIndex());
 			jsonObject.put("bandwidth", getBandwidth());
 			jsonObject.put("type", getType());

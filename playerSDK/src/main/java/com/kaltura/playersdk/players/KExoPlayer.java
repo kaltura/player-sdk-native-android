@@ -506,8 +506,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 for (int index = 0; index < trackCount; index++) {
                     if (TrackType.VIDEO.equals(trackType)) {
                         com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
+                        if (mediaFormat.bitrate == -1){ //remove track that is not relevant
+                            continue;
+                        }
                         QualityTrack qualityTrack = new QualityTrack();
                         qualityTrack.setAssetId(String.valueOf(index));
+                        qualityTrack.setOriginalIndex(index);
                         qualityTrack.setBandwidth(mediaFormat.bitrate);
                         qualityTrack.setType(mediaFormat.mimeType);
                         qualityTrack.setHeight(mediaFormat.height);

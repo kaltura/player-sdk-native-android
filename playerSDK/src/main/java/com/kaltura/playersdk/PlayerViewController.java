@@ -883,6 +883,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void switchFlavor(String index) {
+        try {
+            index = URLDecoder.decode(index, "UTF-8").replaceAll("\"", ""); // neend to unescape
+
+        } catch (UnsupportedEncodingException e) {
+            return;
+        }
         Log.d(TAG, "switchFlavor index = " + index);
         switchTrack(TrackType.VIDEO,index);
     }
