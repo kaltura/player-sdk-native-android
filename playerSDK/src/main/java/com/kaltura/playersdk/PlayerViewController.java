@@ -191,7 +191,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public KMediaControl getMediaControl() {
-        return mWebView;
+        return playerController;
     }
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
@@ -282,7 +282,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void freeze(){
         if(playerController != null) {
-            mWebView.freeze();
             playerController.pause();
         }
     }
@@ -292,7 +291,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void saveState(boolean isOnBackground) {
-        mWebView.freeze();
         playerController.savePlayerState();
     }
 
@@ -310,14 +308,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void releaseAndSavePosition(boolean shouldResumeState) {
         if (playerController != null) {
-            mWebView.freeze();
             playerController.removePlayer(shouldResumeState);
         }
     }
 
     public void resetPlayer() {
         if (playerController != null) {
-            mWebView.freeze();
             playerController.reset();
         }
     }
@@ -570,7 +566,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public double getDurationSec() {
         double duration = 0;
         if (playerController != null) {
-            duration = playerController.getDuration();
+            duration = playerController.getDuration() / 1000;
         }
         return duration;
     }
@@ -687,10 +683,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                         isMediaChanged = false;
                         play();
                     }
-                    if (kState == KPlayerState.SEEKED && shouldReplay) {
-                        shouldReplay = false;
-                        play();
-                    }
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
@@ -722,7 +714,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void pause() {
-        mWebView.freeze();
         playerController.pause();
     }
     
@@ -835,7 +826,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                         }
                     }
                     float time = Float.parseFloat(attributeValue);
-                    shouldReplay = time == 0.01f;
                     this.playerController.setCurrentPlaybackTime(time);
                     break;
                 case visible:
