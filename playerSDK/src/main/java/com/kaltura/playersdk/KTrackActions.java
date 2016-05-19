@@ -6,9 +6,7 @@ import com.kaltura.playersdk.types.TrackType;
 
 import java.util.List;
 
-public interface KTracksInterface {
-
-
+public interface KTrackActions {
 	 public List<String> getTracksList(TrackType trackType);
 	 public int          getTrackCount(TrackType trackType);
 	 public int          getCurrentTrackIndex(TrackType trackType);

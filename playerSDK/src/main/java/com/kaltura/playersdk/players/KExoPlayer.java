@@ -496,12 +496,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                             continue;
                         }
                         QualityTrack qualityTrack = new QualityTrack();
-                        qualityTrack.setAssetId(String.valueOf(index));
-                        qualityTrack.setOriginalIndex(index);
-                        qualityTrack.setBandwidth(mediaFormat.bitrate);
-                        qualityTrack.setType(mediaFormat.mimeType);
-                        qualityTrack.setHeight(mediaFormat.height);
-                        qualityTrack.setWidth(mediaFormat.width);
+                        qualityTrack.assetId = String.valueOf(index);
+                        qualityTrack.originalIndex = index;
+                        qualityTrack.bandwidth = mediaFormat.bitrate;
+                        qualityTrack.type      = mediaFormat.mimeType;
+                        qualityTrack.height    = mediaFormat.height;
+                        qualityTrack.width     = mediaFormat.width;
                         tracksJsonArray.put(qualityTrack.toJSONObject());
                     }
                 }
@@ -510,13 +510,13 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 for (int index = 0; index < trackCount; index++) {
                     com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
                     LanguageTrack languageTrack = new LanguageTrack();
-                    languageTrack.setIndex(index);
-                    languageTrack.setKind("subtitle"); //"caption"??
-                    languageTrack.setTitle(getTrackName(mExoPlayer.getTrackFormat(exoTrackType, index)));
-                    String trackId = (mediaFormat.trackId != null) ? mediaFormat.trackId: "Auto";
-                    languageTrack.setLanguage(trackId);
-                    languageTrack.setSrclang(trackId);
-                    languageTrack.setLabel(trackId);
+                    languageTrack.index = index;
+                    languageTrack.kind  = "subtitle"; //"caption"??
+                    languageTrack.title = getTrackName(mExoPlayer.getTrackFormat(exoTrackType, index));
+                    String trackId      = (mediaFormat.trackId != null) ? mediaFormat.trackId: "Auto";
+                    languageTrack.language = trackId;
+                    languageTrack.srcLang  = trackId;
+                    languageTrack.label    = trackId;
                     tracksJsonArray.put(languageTrack.toJSONObject());
                 }
             }

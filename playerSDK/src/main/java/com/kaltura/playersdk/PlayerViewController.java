@@ -193,7 +193,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         return mWebView;
     }
 
-    public KTracksInterface getTracks(){
+    public KTrackActions getTracks(){
         return playerController.getPlayer();
     }
 
@@ -854,7 +854,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     playerController.initIMA(attributeValue, mActivity);
                     break;
                 case goLive:
-                    ((LiveStreamInterface)playerController.getPlayer()).switchToLive();
+                    ((KLiveStream)playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);

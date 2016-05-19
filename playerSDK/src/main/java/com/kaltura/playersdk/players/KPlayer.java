@@ -1,11 +1,11 @@
 package com.kaltura.playersdk.players;
 
-import com.kaltura.playersdk.KTracksInterface;
+import com.kaltura.playersdk.KTrackActions;
 
 /**
  * Created by noamt on 07/02/2016.
  */
-public interface KPlayer extends KTracksInterface{
+public interface KPlayer extends KTrackActions {
 
     void setPlayerListener(KPlayerListener listener);
 
