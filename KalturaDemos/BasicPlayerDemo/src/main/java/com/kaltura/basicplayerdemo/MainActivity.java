@@ -21,7 +21,9 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
 import com.kaltura.playersdk.casting.KRouterInfo;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
@@ -29,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, /*KPFullScreenToggeledEventListener,*/ KPPlayheadUpdateEventListener,KPErrorEventListener,KPStateChangedEventListener {
     private static final String TAG = "BasicPlayerDemo";
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -113,7 +115,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
             mPlayer.initWithConfiguration(config);
-            mPlayer.addEventListener(this);
+            //mPlayer.addEventListener(this);
+            mPlayer.setOnKPErrorEventListener(this);
+            mPlayer.setOnKPPlayheadUpdateEventListener(this);
+            //mPlayer.setOnKPFullScreenToggeledEventListener(this);
+            mPlayer.setOnKPStateChangedEventListener(this);
         }
         return mPlayer;
     }
@@ -241,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        Log.e(TAG, "onKPlayerStateChanged state " + state.name());
         if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
 //            findViewById(R.id.replay).setVisibility(View.VISIBLE);
         } else if (state == KPlayerState.PLAYING) {
@@ -249,17 +256,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, long currentTime) {
         mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
+        Log.e(TAG, "onKPlayerPlayheadUpdate currentTime " + currentTime);
     }
 
-    @Override
-    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
-
-    }
+//    @Override
+//    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
+//        Log.e(TAG, "onKPlayerFullScreenToggeled isFullscreen " + isFullscreen);
+//    }
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.e(TAG, "Error Received:" + error.getErrorMsg());
+        Log.e(TAG, "onKPlayerError Error Received:" + error.getErrorMsg());
     }
 }

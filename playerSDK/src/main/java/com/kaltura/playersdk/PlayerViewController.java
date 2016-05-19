@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -16,6 +17,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -25,7 +27,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.cast.KRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
@@ -75,6 +81,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
+
+    private Set<KPErrorEventListener>              mOnKPErrorEventListeners;
+    private Set<KPFullScreenToggeledEventListener> mOnKPFullScreenToggeledEventListeners;
+    private Set<KPStateChangedEventListener>       mOnKPStateChangedEventListeners;
+    private Set<KPPlayheadUpdateEventListener>     mOnKPPlayheadUpdateEventListeners;
+
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
     private boolean isMediaChanged = false;
@@ -209,18 +221,59 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     for (KPEventListener listener: eventListeners) {
                         listener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
                     }
+                }else if (mOnKPStateChangedEventListeners != null) {
+                    for (KPStateChangedEventListener listener: mOnKPStateChangedEventListeners) {
+                        listener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
+                    }
                 }
             }
         });
         mActivity = activity;
     }
 
+    @SuppressWarnings("deprecation")
     public void addEventListener(KPEventListener listener) {
         if (listener != null) {
             if (eventListeners == null) {
                 eventListeners = new HashSet<>();
             }
             eventListeners.add(listener);
+        }
+    }
+
+    public void setOnKPErrorEventListener(KPErrorEventListener kpErrorEventListener) {
+        if (kpErrorEventListener != null) {
+            if (mOnKPErrorEventListeners == null) {
+                mOnKPErrorEventListeners = new HashSet<>();
+            }
+            mOnKPErrorEventListeners.add(kpErrorEventListener);
+        }
+    }
+
+    public void setOnKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
+        if (kpFullScreenToggeledEventListener != null) {
+            if (mOnKPFullScreenToggeledEventListeners == null) {
+                mOnKPFullScreenToggeledEventListeners = new HashSet<>();
+            }
+            mOnKPFullScreenToggeledEventListeners.add(kpFullScreenToggeledEventListener);
+        }
+    }
+
+    public void setOnKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
+        if (kpStateChangedEventListener != null) {
+            if (mOnKPStateChangedEventListeners == null) {
+                mOnKPStateChangedEventListeners = new HashSet<>();
+            }
+            mOnKPStateChangedEventListeners.add(kpStateChangedEventListener);
+        }
+    }
+
+    public void setOnKPPlayheadUpdateEventListener(KPPlayheadUpdateEventListener kpPlayheadUpdateEventListener) {
+        if (kpPlayheadUpdateEventListener != null) {
+            if (mOnKPPlayheadUpdateEventListeners == null) {
+                mOnKPPlayheadUpdateEventListeners = new HashSet<>();
+            }
+            mOnKPPlayheadUpdateEventListeners.add(kpPlayheadUpdateEventListener);
         }
     }
 
@@ -260,9 +313,34 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void removeEventListener(KPEventListener listener) {
         if (listener != null && eventListeners != null && eventListeners.contains(listener)) {
             eventListeners.remove(listener);
+        }
+    }
+
+    public void removeKPErrorEventListener(KPErrorEventListener kpErrorEventListener) {
+        if (kpErrorEventListener != null && mOnKPErrorEventListeners != null && eventListeners.contains(kpErrorEventListener)) {
+            mOnKPErrorEventListeners.remove(kpErrorEventListener);
+        }
+    }
+
+    public void removeKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
+        if (kpFullScreenToggeledEventListener != null && mOnKPFullScreenToggeledEventListeners != null && eventListeners.contains(kpFullScreenToggeledEventListener)) {
+            mOnKPFullScreenToggeledEventListeners.remove(kpFullScreenToggeledEventListener);
+        }
+    }
+
+    public void removeKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
+        if (kpStateChangedEventListener != null && mOnKPStateChangedEventListeners != null && eventListeners.contains(kpStateChangedEventListener)) {
+            mOnKPStateChangedEventListeners.remove(kpStateChangedEventListener);
+        }
+    }
+
+    public void removeKPPlayheadUpdateEventListener(KPPlayheadUpdateEventListener kpPlayheadUpdateEventListener) {
+        if (kpPlayheadUpdateEventListener != null && mOnKPPlayheadUpdateEventListeners != null && eventListeners.contains(kpPlayheadUpdateEventListener)) {
+            mOnKPPlayheadUpdateEventListeners.remove(kpPlayheadUpdateEventListener);
         }
     }
 
@@ -679,8 +757,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
         Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
+        KPlayerState kState = KPlayerState.getStateForEventName(eventName);
         if (eventListeners != null) {
-            KPlayerState kState = KPlayerState.getStateForEventName(eventName);
             for (KPEventListener listener : eventListeners) {
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
                     if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
@@ -698,6 +776,34 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     contentCompleted(player);
                 }
             }
+        }else {
+            if (mOnKPStateChangedEventListeners != null) {
+                for (KPStateChangedEventListener listener : mOnKPStateChangedEventListeners) {
+                    if (!KPlayerState.UNKNOWN.equals(kState)) {
+                        if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
+                            isMediaChanged = false;
+                            play();
+                        }
+                        if (kState == KPlayerState.SEEKED && shouldReplay) {
+                            shouldReplay = false;
+                            play();
+                        }
+                        listener.onKPlayerStateChanged(this, kState);
+                    } else if (event.isEnded()) {
+                        contentCompleted(player);
+                    }
+                }
+            }
+
+            if (mOnKPPlayheadUpdateEventListeners != null) {
+                for (KPPlayheadUpdateEventListener listener : mOnKPPlayheadUpdateEventListeners) {
+                    if (event.isTimeUpdate()) {
+                        for (KPPlayheadUpdateEventListener playUpdateListener : mOnKPPlayheadUpdateEventListeners) {
+                            playUpdateListener.onKPlayerPlayheadUpdate(this, (long) (Float.parseFloat(eventValue) * 1000));
+                        }
+                    }
+                }
+            }
         }
         this.mWebView.triggerEvent(eventName, eventValue);
     }
@@ -712,6 +818,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void contentCompleted(KPlayer currentPlayer) {
         if (eventListeners != null) {
             for (KPEventListener listener: eventListeners) {
+                listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
+            }
+        }else if (mOnKPStateChangedEventListeners != null) {
+            for (KPStateChangedEventListener listener: mOnKPStateChangedEventListeners) {
                 listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
             }
         }
@@ -825,12 +935,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
                     this.playerController.setSrc(attributeValue);
                     if (mConfig.getMediaPlayFrom() > 0) {
-                        playerController.setCurrentPlaybackTime((float)mConfig.getMediaPlayFrom());
+                        playerController.setCurrentPlaybackTime((float) mConfig.getMediaPlayFrom());
                     }
                     break;
                 case currentTime:
                     if (eventListeners != null) {
-                        for (KPEventListener listener: eventListeners) {
+                        for (KPEventListener listener : eventListeners) {
+                            listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
+                        }
+                    }else if (mOnKPStateChangedEventListeners != null) {
+                        for (KPStateChangedEventListener listener : mOnKPStateChangedEventListeners) {
                             listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                         }
                     }
@@ -858,26 +972,31 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     playerController.initIMA(attributeValue, mActivity);
                     break;
                 case goLive:
-                    ((LiveStreamInterface)playerController.getPlayer()).switchToLive();
+                    ((LiveStreamInterface) playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
-                    Log.d(TAG, "chromecast.initialize:" +  attributeValue);
+                    Log.d(TAG, "chromecast.initialize:" + attributeValue);
                     break;
                 case playerError:
-                    if (eventListeners != null) {
-                        sendOnKPlayerError(attributeValue);
-                    }
+                    sendOnKPlayerError(attributeValue);
                     break;
             }
         }
     }
 
+
     private void sendOnKPlayerError(String attributeValue) {
-        for (KPEventListener listener: eventListeners) {
-            Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
-            listener.onKPlayerError(this, new KPError(attributeValue));
+        if (eventListeners != null) {
+            for (KPEventListener listener : eventListeners) {
+                Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
+                listener.onKPlayerError(this, new KPError(attributeValue));
+            }
+        }else if (mOnKPErrorEventListeners != null){
+            for (KPErrorEventListener listener : mOnKPErrorEventListeners) {
+              listener.onKPlayerError(this, new KPError(attributeValue));
+            }
         }
     }
 
@@ -946,8 +1065,51 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             for (KPEventListener listener : eventListeners) {
                 listener.onKPlayerFullScreenToggeled(this, isFullScreen);
             }
+        } else if (mOnKPFullScreenToggeledEventListeners != null) {
+            for (KPFullScreenToggeledEventListener listener : mOnKPFullScreenToggeledEventListeners) {
+                listener.onKPlayerFullScreenToggeled(this, isFullScreen);
+            }
+        }else{
+            toggleFullscreen(mActivity, isFullScreen);
         }
     }
+
+
+    private void toggleFullscreen(Activity activity, boolean fullscreen) {
+
+        int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+        if (fullscreen) {
+            Log.d(TAG,"Set to onOpenFullScreen");
+            sendNotification("onOpenFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            ((AppCompatActivity) activity).getSupportActionBar().hide();
+        } else {
+            Log.d(TAG,"Set to onCloseFullScreen");
+            sendNotification("onCloseFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            ((AppCompatActivity) activity).getSupportActionBar().show();
+        }
+        // set landscape
+        // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        // else activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+    }
+
 
     private void showChromecastDeviceList() {
         if(!mActivity.isFinishing() && getRouterManager().getAppListener() != null) {
