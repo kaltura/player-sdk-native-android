@@ -12,7 +12,9 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
+import com.kaltura.playersdk.interfaces.KMediaControl;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -22,7 +24,7 @@ import java.util.Set;
 /**
  * Created by nissopa on 6/14/15.
  */
-public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerListener {
+public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerListener, KMediaControl {
     private static final String TAG = "KPlayerController";
     private KPlayer player;
     private String src;
@@ -43,6 +45,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean isBackgrounded = false;
     private float mCurrentPlaybackTime = 0;
     private boolean isPlaying = false;
+    private UIState currentState = UIState.Idle;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -73,6 +76,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             player.setShouldCancelPlay(true);
             playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
         }
+    }
+
+    private enum UIState {
+        Idle,
+        PlayClicked,
+        PauseClicked,
+        SeekStart,
+        Replay
     }
 
     public static Set<MediaFormat> supportedFormats(Context context) {
@@ -112,33 +123,100 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (isBackgrounded && isIMAActive) {
-            imaManager.resume();
-            return;
-        }
-        if (isIMAActive) {
-            return;
-        }
-        if (!isCasting) {
-            player.play();
-        } else {
-            castPlayer.play();
+        if (currentState != UIState.PlayClicked) {
+            currentState = UIState.PlayClicked;
+            if (isBackgrounded && isIMAActive) {
+                imaManager.resume();
+                return;
+            }
+            if (isIMAActive) {
+                return;
+            }
+            if (!isCasting) {
+                player.play();
+            } else {
+                castPlayer.play();
+            }
         }
     }
 
+    @Override
+    public void start() {
+        play();
+    }
+
+    @Override
     public void pause() {
-        if (!isCasting) {
-            if (isBackgrounded && isIMAActive) {
-                if(imaManager != null) {
-                    imaManager.pause();
+        if (currentState != UIState.PauseClicked) {
+            currentState = UIState.PauseClicked;
+            if (!isCasting) {
+                if (isBackgrounded && isIMAActive) {
+                    if (imaManager != null) {
+                        imaManager.pause();
+                    }
+                } else {
+                    player.pause();
                 }
             } else {
-                player.pause();
+                castPlayer.pause();
             }
-        } else {
-            castPlayer.pause();
         }
     }
+
+    @Override
+    public void seek(double seconds) {
+        currentState = UIState.SeekStart;
+        setCurrentPlaybackTime((float) seconds);
+    }
+
+    @Override
+    public void replay() {
+        setCurrentPlaybackTime(0.01f);
+    }
+
+    @Override
+    public boolean canPause() {
+        return player.isPlaying();
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return (int) player.getCurrentPlaybackTime();
+    }
+
+    @Override
+    public int getDuration() {
+        if (player != null) {
+            return (int) player.getDuration();
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return player.isPlaying();
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return getDuration() > getCurrentPosition();
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return getCurrentPlaybackTime() > 0;
+    }
+
+    @Override
+    public void seek(long milliSeconds, SeekCallback callback) {
+        seek(milliSeconds / 1000f);
+    }
+
+    @Override
+    public KPlayerState state() {
+        return null;
+    }
+
 
     public void startCasting(GoogleApiClient apiClient) {
         player.pause();
@@ -177,13 +255,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         castPlayer.setPlayerCallback(null);
         castPlayer.setPlayerListener(null);
         castPlayer = null;
-    }
-
-    public float getDuration() {
-        if (player != null) {
-            return player.getDuration() / 1000f;
-        }
-        return 0;
     }
 
     public void changeSubtitleLanguage(String isoCode) {
@@ -366,6 +437,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (!isCasting) {
             if (isPlayerCanPlay) {
                 this.player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
+                if (currentPlaybackTime == 0.01f) {
+                    currentState = UIState.Replay;
+                }
             } else {
                 mCurrentPlaybackTime = currentPlaybackTime;
             }
@@ -432,6 +506,12 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     imaManager.contentComplete();
                 } else {
                     contentCompleted(null);
+                }
+                break;
+            case KPlayerCallback.SEEKED:
+                if (currentState == UIState.PlayClicked || currentState == UIState.Replay) {
+                    currentState = UIState.Idle;
+                    play();
                 }
                 break;
         }
