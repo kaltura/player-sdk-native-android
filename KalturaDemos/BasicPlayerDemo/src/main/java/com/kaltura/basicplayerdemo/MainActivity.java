@@ -1,5 +1,6 @@
 package com.kaltura.basicplayerdemo;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -11,6 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -53,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mPlayPauseButton.setOnClickListener(this);
         mSeekBar = (SeekBar)findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(this);
+
+
         ccButton = (Button)findViewById(R.id.ccButto);
         ccButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -203,13 +207,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
+            //findViewById(R.id.replay).setVisibility(View.VISIBLE);
+        }
+        if (state == KPlayerState.PAUSED) {
+            Log.d(TAG, "Stream PAUSED");
+            mPlayPauseButton.setText("Play");
+        }
+        if (state == KPlayerState.PLAYING) {
+            Log.d(TAG, "Stream PAUSED");
+            mPlayPauseButton.setText("Pause");
+            //findViewById(R.id.replay).setVisibility(View.INVISIBLE);
+        }
+        if (state == KPlayerState.ENDED) {
+            Log.d(TAG,"Stream ENDED");
+        }
+    }
+
+    @Override
     public void onClick(View v) {
         if (v.getId() != R.id.replay) {
+
             if (mPlayPauseButton.getText().equals("Play")) {
-                mPlayPauseButton.setText("Pause");
                 getPlayer().sendNotification("doPlay", null);
             } else {
-                mPlayPauseButton.setText("Play");
                 getPlayer().sendNotification("doPause", null);
             }
         } else {
@@ -240,26 +262,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
-//            findViewById(R.id.replay).setVisibility(View.VISIBLE);
-        } else if (state == KPlayerState.PLAYING) {
-//            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
-        }
-    }
-
-    @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
         mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
     }
 
     @Override
-    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
-
+    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
+        Log.d(TAG, "KPlayer onKPlayerFullScreenToggeled " +  Boolean.toString(isFullscreen));
+        Log.e(TAG, "GILAD onKPlayerFullScreenToggeled " + isFullscreen);
+        toggleFullscreen(this, isFullscreen);
     }
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
         Log.e(TAG, "Error Received:" + error.getErrorMsg());
+    }
+
+    private void toggleFullscreen(Activity activity, boolean fullscreen) {
+
+        int uiOptions = activity.getWindow().getDecorView().getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+        if (fullscreen) {
+            Log.d(TAG,"Set to onOpenFullScreen");
+            mPlayer.sendNotification("onOpenFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            getSupportActionBar().hide();
+        } else {
+            Log.d(TAG,"Set to onCloseFullScreen");
+            mPlayer.sendNotification("onCloseFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }else{
+                activity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            getSupportActionBar().show();
+        }
+        // set landscape
+        // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        // else activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
     }
 }
