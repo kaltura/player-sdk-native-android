@@ -406,6 +406,7 @@ public class KWVCPlayer
                             saveState();
                         }
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 });
 
