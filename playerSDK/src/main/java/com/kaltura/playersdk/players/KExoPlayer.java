@@ -525,7 +525,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             ex.printStackTrace();
             return null;
         }
-        Log.e(TAG, "Track/Lang Json Result  " + resultJsonObj.toString());
+        Log.d(TAG, "Track/Lang JSON Result  " + resultJsonObj.toString());
         return resultJsonObj;
     }
 
@@ -545,7 +545,14 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (trackType == null){
             return;
         }
-        mExoPlayer.setSelectedTrack(getExoTrackType(trackType), newIndex);
+
+        if (isAvailableTracksRelevant(trackType)) {
+            Log.d(TAG, "switchTrack for " + trackType.name() + " index = " + newIndex);
+            mExoPlayer.setSelectedTrack(getExoTrackType(trackType), newIndex);
+        }else{
+            Log.d(TAG, "switchTrack " + trackType.name() +  "skipped Reason: track count  < 2");
+        }
+
     }
 
     private int getExoTrackType(TrackType trackType) {
@@ -626,6 +633,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
     private void sendTracksList(TrackType trackType) {
+        //if (!isAvailableTracksRelevant(trackType)){ // need to decide if web should handle the data we have alone of we should help ...
+        //    return;
+        //}
+
         Log.d(TAG, "sendTracksList with:" + trackType);
         switch(trackType) {
             case AUDIO:
@@ -638,6 +649,13 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.FlavorsListChangedKey,  getTracksAsJson(TrackType.VIDEO).toString());
                 break;
         }
+    }
+
+    private boolean isAvailableTracksRelevant(TrackType trackType){
+        if (getTrackCount(trackType) > 1){
+            return true;
+        }
+        return false;
     }
 
     // Utility classes
