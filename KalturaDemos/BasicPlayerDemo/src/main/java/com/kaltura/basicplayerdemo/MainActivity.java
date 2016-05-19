@@ -296,9 +296,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 for (String track : mPlayer.getTracks().getTracksList(TrackType.AUDIO)) {
                     Log.d(TAG, track);
                 }
-                Log.e(TAG, "----------------");
+                Log.d(TAG, "----------------");
                 for (String track : mPlayer.getTracks().getTracksList(TrackType.VIDEO)) {
-                    Log.e(TAG, track);
+                    Log.d(TAG, track);
                 }
                 Log.d(TAG, "----------------");
                 for (String track : mPlayer.getTracks().getTracksList(TrackType.TEXT)) {
@@ -415,7 +415,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (Cue cue : cues){
             sb.append(cue.text);
         }
-        Log.d(TAG, "subTille = " + sb.toString());
+        Log.d(TAG, "subTitle = " + sb.toString());
         subtitleLayout.setCues(cues);
     }
 
