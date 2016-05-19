@@ -51,6 +51,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mPlayPauseButton = (Button)findViewById(R.id.button);
         mPlayPauseButton.setOnClickListener(this);
+        mPlayPauseButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                getPlayer().getMediaControl().replay();
+                return true;
+            }
+        });
         mSeekBar = (SeekBar)findViewById(R.id.seekBar);
         mSeekBar.setOnSeekBarChangeListener(this);
         ccButton = (Button)findViewById(R.id.ccButto);
@@ -70,7 +77,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer.loadPlayerIntoActivity(this);
 
             KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-            config.addConfig("autoPlay", "true");
+            config.setAutoPlay(true);
+            mPlayPauseButton.setText("Pause");
             config.addConfig("chromecast.plugin", "true");
             config.addConfig("chromecast.applicationID", "5247861F");
             config.addConfig("chromecast.useKalturaPlayer", "true");
@@ -145,21 +153,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         if (mPlayer != null) {
-            PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
-            if (powerManager.isScreenOn()) {
-                mPlayer.releaseAndSavePosition(true);
-            }
-
+            mPlayer.releaseAndSavePosition(true);
         }
         super.onPause();
     }
 
     @Override
     protected void onStop() {
-        PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
-        if (!powerManager.isScreenOn()) {
-            mPlayer.saveState();
-        }
         super.onStop();
     }
 
@@ -168,7 +168,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (onCreate) {
             onCreate = false;
         }
-        mPlayer.resumePlayer();
+        if (mPlayer != null) {
+            mPlayer.resumePlayer();
+        }
         super.onResume();
     }
 
@@ -198,8 +200,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
             }
         }, 100);
-
-
     }
 
     @Override
@@ -207,14 +207,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (v.getId() != R.id.replay) {
             if (mPlayPauseButton.getText().equals("Play")) {
                 mPlayPauseButton.setText("Pause");
-                getPlayer().sendNotification("doPlay", null);
+                getPlayer().getMediaControl().start();
             } else {
                 mPlayPauseButton.setText("Play");
-                getPlayer().sendNotification("doPause", null);
+                getPlayer().getMediaControl().pause();
             }
         } else {
-            mPlayer.sendNotification("doSeek", "0.1");
-            mPlayer.sendNotification("doPlay", null);
+            mPlayer.getMediaControl().replay();
             mPlayPauseButton.setText("Pause");
         }
 
@@ -225,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (fromUser) {
             float progressInPercent = progress / 100f;
             float seekVal = (float) (progressInPercent * mPlayer.getDurationSec());
-            getPlayer().sendNotification("doSeek", Float.toString(seekVal));
+            getPlayer().getMediaControl().seek(seekVal);
         }
     }
 
@@ -243,14 +242,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
 //            findViewById(R.id.replay).setVisibility(View.VISIBLE);
+            mPlayPauseButton.setText("Play");
         } else if (state == KPlayerState.PLAYING) {
 //            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
+            mPlayPauseButton.setText("Pause");
         }
     }
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-        mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
+        mSeekBar.setProgress((int) (currentTime / (playerViewController.getMediaControl().getDuration() / 1000f) * 100));
     }
 
     @Override
