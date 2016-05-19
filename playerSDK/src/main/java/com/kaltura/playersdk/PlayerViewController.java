@@ -231,7 +231,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         mActivity = activity;
     }
 
-    @SuppressWarnings("deprecation")
+    @Deprecated
     public void addEventListener(KPEventListener listener) {
         if (listener != null) {
             if (eventListeners == null) {
@@ -313,7 +313,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    @SuppressWarnings("deprecation")
+    @Deprecated
     public void removeEventListener(KPEventListener listener) {
         if (listener != null && eventListeners != null && eventListeners.contains(listener)) {
             eventListeners.remove(listener);
