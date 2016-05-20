@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.accessibility.CaptioningManager;
 import android.widget.FrameLayout;
 
 import com.google.android.exoplayer.ExoPlaybackException;
@@ -22,6 +23,13 @@ import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecUtil;
 import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
+import com.google.android.exoplayer.metadata.id3.GeobFrame;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer.metadata.id3.PrivFrame;
+import com.google.android.exoplayer.metadata.id3.TxxxFrame;
+import com.google.android.exoplayer.text.CaptionStyleCompat;
+import com.google.android.exoplayer.text.Cue;
+import com.google.android.exoplayer.text.SubtitleLayout;
 import com.google.android.exoplayer.util.MimeTypes;
 import com.google.android.exoplayer.util.Util;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
@@ -50,7 +58,7 @@ import java.util.UUID;
 /**
  * Created by noamt on 18/01/2016.
  */
-public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener {
+public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener,  ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener {
 
     private static final String TAG = "KExoPlayer";
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -64,6 +72,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private Readiness mReadiness = Readiness.Idle;
     private KPlayerExoDrmCallback mDrmCallback;
     private VideoSurfaceView mSurfaceView;
+    private com.google.android.exoplayer.text.SubtitleLayout mSubtView;
     private boolean mSeeking;
     private boolean mBuffering = false;
     private boolean mPassedPlay = false;
@@ -166,6 +175,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             if (surface != null) {
                 mExoPlayer.setSurface(surface);
             }
+            setCaptionListener(this);
+            configureSubtitleView();
             mExoPlayer.addListener(this);
             mExoPlayer.prepare();
         }
@@ -194,8 +205,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 }
             }
         };
+
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
         this.addView(mSurfaceView, layoutParams);
+        mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
+        this.addView(mSubtView,layoutParams);
+
     }
     
     @Override
@@ -596,7 +611,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void setCaptionListener(ExoplayerWrapper.CaptionListener listener) {
-        mExoPlayer.setCaptionListener(listener);
+        if (mExoPlayer != null) {
+            mExoPlayer.setCaptionListener(listener);
+        }
     }
 
     @Override
@@ -658,6 +675,67 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         return false;
     }
 
+    @Override
+    public void onCues(List<Cue> cues) {
+        StringBuilder sb = new StringBuilder();
+        for (Cue cue : cues){
+            sb.append(cue.text);
+        }
+        Log.d(TAG, "subTitle = " + sb.toString());
+        if (mSubtView != null) {
+            mSubtView.setCues(cues);
+        }
+    }
+
+    @Override
+    public void onId3Metadata(List<Id3Frame> id3Frames) {
+        for (Id3Frame id3Frame : id3Frames) {
+            if (id3Frame instanceof TxxxFrame) {
+                TxxxFrame txxxFrame = (TxxxFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
+                        txxxFrame.description, txxxFrame.value));
+            } else if (id3Frame instanceof PrivFrame) {
+                PrivFrame privFrame = (PrivFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
+            } else if (id3Frame instanceof GeobFrame) {
+                GeobFrame geobFrame = (GeobFrame) id3Frame;
+                Log.i(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
+                        geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
+            } else {
+                Log.i(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
+            }
+        }
+    }
+
+    private void configureSubtitleView() {
+        CaptionStyleCompat style;
+        float fontScale;
+        if (Util.SDK_INT >= 19) {
+            style = getUserCaptionStyleV19();
+            fontScale = getUserCaptionFontScaleV19();
+        } else {
+            style = CaptionStyleCompat.DEFAULT;
+            fontScale = 1.0f;
+        }
+        if (mSubtView != null) {
+            mSubtView.setStyle(style);
+            mSubtView.setFractionalTextSize(SubtitleLayout.DEFAULT_TEXT_SIZE_FRACTION * fontScale);
+        }
+    }
+
+    @TargetApi(19)
+    private float getUserCaptionFontScaleV19() {
+        CaptioningManager captioningManager =
+                (CaptioningManager) getContext().getSystemService(Context.CAPTIONING_SERVICE);
+        return captioningManager.getFontScale();
+    }
+
+    @TargetApi(19)
+    private CaptionStyleCompat getUserCaptionStyleV19() {
+        CaptioningManager captioningManager =
+                (CaptioningManager) getContext().getSystemService(Context.CAPTIONING_SERVICE);
+        return CaptionStyleCompat.createFromCaptionStyle(captioningManager.getUserStyle());
+    }
     // Utility classes
     private enum Readiness {
         Idle,

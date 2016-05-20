@@ -1,6 +1,5 @@
 package com.kaltura.basicplayerdemo;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -14,7 +13,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.accessibility.CaptioningManager;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -22,14 +20,7 @@ import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
-import com.google.android.exoplayer.metadata.id3.GeobFrame;
-import com.google.android.exoplayer.metadata.id3.Id3Frame;
-import com.google.android.exoplayer.metadata.id3.PrivFrame;
-import com.google.android.exoplayer.metadata.id3.TxxxFrame;
-import com.google.android.exoplayer.text.CaptionStyleCompat;
-import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.SubtitleLayout;
-import com.google.android.exoplayer.util.Util;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
@@ -41,11 +32,10 @@ import com.kaltura.playersdk.types.KPError;
 import com.kaltura.playersdk.types.TrackType;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener, ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
     private static final String TAG = "BasicPlayerDemo";
 
     private static final int MENU_GROUP_TRACKS = 1;
@@ -287,9 +277,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else if (state == KPlayerState.READY){
             if (mPlayer != null) {
                 updateButtonVisibilities();
-                mPlayer.getTracks().setCaptionListener(this);
-                configureSubtitleView();
-
                 Log.d(TAG, "aud tracks num = " + mPlayer.getTracks().getTracksList(TrackType.AUDIO).size());
                 Log.d(TAG, "vid tracks num = " + mPlayer.getTracks().getTracksList(TrackType.VIDEO).size());
                 Log.d(TAG, "text tracks num = " + mPlayer.getTracks().getTracksList(TrackType.TEXT).size());
@@ -336,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void configurePopupWithTracks(PopupMenu popup,
                                           final PopupMenu.OnMenuItemClickListener customActionClickListener,
                                           final TrackType trackType) {
-        if (mPlayer == null) {
+        if (mPlayer == null || mPlayer.getTracks() == null) {
             return;
         }
         int trackCount = mPlayer.getTracks().getTrackCount(trackType);
@@ -407,62 +394,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         videoButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.VIDEO) > 0) ? View.VISIBLE : View.GONE);
         audioButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.AUDIO) > 0) ? View.VISIBLE : View.GONE);
         textButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.TEXT) > 0) ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
-    public void onCues(List<Cue> cues) {
-        StringBuilder sb = new StringBuilder();
-        for (Cue cue : cues){
-            sb.append(cue.text);
-        }
-        Log.d(TAG, "subTitle = " + sb.toString());
-        subtitleLayout.setCues(cues);
-    }
-
-    @Override
-    public void onId3Metadata(List<Id3Frame> id3Frames) {
-        for (Id3Frame id3Frame : id3Frames) {
-            if (id3Frame instanceof TxxxFrame) {
-                TxxxFrame txxxFrame = (TxxxFrame) id3Frame;
-                Log.i(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
-                        txxxFrame.description, txxxFrame.value));
-            } else if (id3Frame instanceof PrivFrame) {
-                PrivFrame privFrame = (PrivFrame) id3Frame;
-                Log.i(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
-            } else if (id3Frame instanceof GeobFrame) {
-                GeobFrame geobFrame = (GeobFrame) id3Frame;
-                Log.i(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
-                        geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
-            } else {
-                Log.i(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
-            }
-        }
-    }
-
-    private void configureSubtitleView() {
-        CaptionStyleCompat style;
-        float fontScale;
-        if (Util.SDK_INT >= 19) {
-            style = getUserCaptionStyleV19();
-            fontScale = getUserCaptionFontScaleV19();
-        } else {
-            style = CaptionStyleCompat.DEFAULT;
-            fontScale = 1.0f;
-        }
-        subtitleLayout.setStyle(style);
-        subtitleLayout.setFractionalTextSize(SubtitleLayout.DEFAULT_TEXT_SIZE_FRACTION * fontScale);
-    }
-    @TargetApi(19)
-    private float getUserCaptionFontScaleV19() {
-        CaptioningManager captioningManager =
-                (CaptioningManager) getSystemService(Context.CAPTIONING_SERVICE);
-        return captioningManager.getFontScale();
-    }
-
-    @TargetApi(19)
-    private CaptionStyleCompat getUserCaptionStyleV19() {
-        CaptioningManager captioningManager =
-                (CaptioningManager) getSystemService(Context.CAPTIONING_SERVICE);
-        return CaptionStyleCompat.createFromCaptionStyle(captioningManager.getUserStyle());
     }
 }
