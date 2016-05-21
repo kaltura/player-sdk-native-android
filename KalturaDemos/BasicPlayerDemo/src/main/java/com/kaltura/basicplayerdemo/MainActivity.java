@@ -20,7 +20,6 @@ import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
-import com.google.android.exoplayer.text.SubtitleLayout;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
@@ -52,8 +51,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button videoButton;
     private Button audioButton;
     private Button textButton;
-    private SubtitleLayout subtitleLayout;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         videoButton = (Button) findViewById(R.id.video_controls);
         audioButton = (Button) findViewById(R.id.audio_controls);
         textButton = (Button) findViewById(R.id.text_controls);
-        subtitleLayout = (SubtitleLayout) findViewById(R.id.subtitles);
         mPlayPauseButton = (Button)findViewById(R.id.button);
         mPlayPauseButton.setOnClickListener(this);
         mSeekBar = (SeekBar)findViewById(R.id.seekBar);
