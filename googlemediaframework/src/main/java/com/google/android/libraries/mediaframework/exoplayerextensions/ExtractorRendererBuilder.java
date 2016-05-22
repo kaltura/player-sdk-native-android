@@ -20,6 +20,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.net.Uri;
+import android.util.Log;
 
 import com.google.android.exoplayer.DecoderInfo;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
@@ -37,6 +38,7 @@ import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
+import com.google.android.libraries.mediaframework.layeredvideo.Util;
 
 /**
  * A {@link RendererBuilder} for streams that can be read using an {@link Extractor}.
@@ -60,24 +62,38 @@ public class ExtractorRendererBuilder implements RendererBuilder {
     private MediaCodecSelector preferSoftwareMediaCodecSelector = new MediaCodecSelector() {
         @Override
         public DecoderInfo getDecoderInfo(String mimeType, boolean requiresSecureDecoder) throws MediaCodecUtil.DecoderQueryException {
-
-           if (!requiresSecureDecoder) {
-               for (DecoderInfo decoderInfo : MediaCodecUtil.getDecoderInfos(mimeType,requiresSecureDecoder)) {
-                   if ("OMX.google.h264.decoder".equals(decoderInfo.name) && "video/avc".equals(mimeType)) {
-                          return decoderInfo;//new DecoderInfo("", decoderInfo.getCapa;
-                   } else if ("OMX.google.aac.decoder".equals(decoderInfo.name) && mimeType.startsWith("audio/mp4a")) {
-                          return decoderInfo;//new DecoderInfo("OMX.google.aac.decoder", codecInfo.getCapabilitiesForType(mimeType));
-                   }
-               }
-           }
+            Log.d("Kaltura", "Using android.os.Build.MANUFACTURER:" + Util.getDeviceName() + ", mimeType:" + mimeType);
+            if (!requiresSecureDecoder && !isVendorSupportDefaultDecoder()) {
+                DecoderInfo decoderInfo = MediaCodecUtil.getDecoderInfo(mimeType, requiresSecureDecoder);
+                Log.d("Kaltura", "Using Decoder = " + decoderInfo.name);
+                return  decoderInfo;
+            }
+           Log.d("Kaltura", "Using Default Decoder");
            return MediaCodecSelector.DEFAULT.getDecoderInfo(mimeType,requiresSecureDecoder);
         }
+
+//      if (!requiresSecureDecoder) {
+//           if ("video/avc".equals(mimeType)) {
+//                 return new DecoderInfo("OMX.google.h264.decoder", false);
+//           } else if (mimeType.startsWith("audio/mp4a")) {
+//               return new DecoderInfo("OMX.google.aac.decoder", false);
+//          }
+//       }
 
         @Override
         public String getPassthroughDecoderName() throws MediaCodecUtil.DecoderQueryException {
             return MediaCodecSelector.DEFAULT.getPassthroughDecoderName();
         }
     };
+
+    private boolean isVendorSupportDefaultDecoder(){
+        if (android.os.Build.MANUFACTURER.equals("LGE")){
+            return true;
+        }else {
+            return false;
+        }
+    }
+
 
     @Override
     public void buildRenderers(ExoplayerWrapper player) {
