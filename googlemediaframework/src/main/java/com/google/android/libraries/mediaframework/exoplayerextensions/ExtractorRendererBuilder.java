@@ -72,14 +72,6 @@ public class ExtractorRendererBuilder implements RendererBuilder {
            return MediaCodecSelector.DEFAULT.getDecoderInfo(mimeType,requiresSecureDecoder);
         }
 
-//      if (!requiresSecureDecoder) {
-//           if ("video/avc".equals(mimeType)) {
-//                 return new DecoderInfo("OMX.google.h264.decoder", false);
-//           } else if (mimeType.startsWith("audio/mp4a")) {
-//               return new DecoderInfo("OMX.google.aac.decoder", false);
-//          }
-//       }
-
         @Override
         public String getPassthroughDecoderName() throws MediaCodecUtil.DecoderQueryException {
             return MediaCodecSelector.DEFAULT.getPassthroughDecoderName();
