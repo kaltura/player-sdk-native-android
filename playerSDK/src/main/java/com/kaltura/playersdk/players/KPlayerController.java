@@ -46,6 +46,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private float mCurrentPlaybackTime = 0;
     private boolean isPlaying = false;
     private UIState currentState = UIState.Idle;
+    private SeekCallback mSeekCallback;
 
     @Override
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
@@ -209,6 +210,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void seek(long milliSeconds, SeekCallback callback) {
+        mSeekCallback = callback;
         seek(milliSeconds / 1000f);
     }
 
@@ -512,6 +514,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 if (currentState == UIState.PlayClicked || currentState == UIState.Replay) {
                     currentState = UIState.Idle;
                     play();
+                }
+                if (mSeekCallback != null) {
+                    mSeekCallback.seeked(player.getCurrentPlaybackTime());
+                    mSeekCallback = null;
                 }
                 break;
         }
