@@ -512,7 +512,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
             case KPlayerCallback.SEEKED:
                 if (currentState == UIState.PlayClicked || currentState == UIState.Replay) {
-                    currentState = UIState.Idle;
+//                    currentState = UIState.Idle;
                     play();
                 }
                 if (mSeekCallback != null) {
