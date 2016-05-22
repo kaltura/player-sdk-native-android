@@ -82,10 +82,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
 
-    private Set<KPErrorEventListener>              mOnKPErrorEventListeners;
-    private Set<KPFullScreenToggeledEventListener> mOnKPFullScreenToggeledEventListeners;
-    private Set<KPStateChangedEventListener>       mOnKPStateChangedEventListeners;
-    private Set<KPPlayheadUpdateEventListener>     mOnKPPlayheadUpdateEventListeners;
+    private KPErrorEventListener               mOnKPErrorEventListener;
+    private KPFullScreenToggeledEventListener  mOnKPFullScreenToggeledEventListener;
+    private KPStateChangedEventListener        mOnKPStateChangedEventListener;
+    private KPPlayheadUpdateEventListener      mOnKPPlayheadUpdateEventListener;
 
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
@@ -221,10 +221,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     for (KPEventListener listener: eventListeners) {
                         listener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
                     }
-                }else if (mOnKPStateChangedEventListeners != null) {
-                    for (KPStateChangedEventListener listener: mOnKPStateChangedEventListeners) {
-                        listener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
-                    }
+                }else if (mOnKPStateChangedEventListener != null) {
+                         mOnKPStateChangedEventListener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
                 }
             }
         });
@@ -243,37 +241,33 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void setOnKPErrorEventListener(KPErrorEventListener kpErrorEventListener) {
         if (kpErrorEventListener != null) {
-            if (mOnKPErrorEventListeners == null) {
-                mOnKPErrorEventListeners = new HashSet<>();
+            if (mOnKPErrorEventListener == null) {
+                mOnKPErrorEventListener = kpErrorEventListener;
             }
-            mOnKPErrorEventListeners.add(kpErrorEventListener);
         }
     }
 
     public void setOnKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
         if (kpFullScreenToggeledEventListener != null) {
-            if (mOnKPFullScreenToggeledEventListeners == null) {
-                mOnKPFullScreenToggeledEventListeners = new HashSet<>();
+            if (mOnKPFullScreenToggeledEventListener == null) {
+                mOnKPFullScreenToggeledEventListener = kpFullScreenToggeledEventListener;
             }
-            mOnKPFullScreenToggeledEventListeners.add(kpFullScreenToggeledEventListener);
         }
     }
 
     public void setOnKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
         if (kpStateChangedEventListener != null) {
-            if (mOnKPStateChangedEventListeners == null) {
-                mOnKPStateChangedEventListeners = new HashSet<>();
+            if (mOnKPStateChangedEventListener == null) {
+                mOnKPStateChangedEventListener = kpStateChangedEventListener;
             }
-            mOnKPStateChangedEventListeners.add(kpStateChangedEventListener);
         }
     }
 
     public void setOnKPPlayheadUpdateEventListener(KPPlayheadUpdateEventListener kpPlayheadUpdateEventListener) {
         if (kpPlayheadUpdateEventListener != null) {
-            if (mOnKPPlayheadUpdateEventListeners == null) {
-                mOnKPPlayheadUpdateEventListeners = new HashSet<>();
+            if (mOnKPPlayheadUpdateEventListener == null) {
+                mOnKPPlayheadUpdateEventListener = kpPlayheadUpdateEventListener;
             }
-            mOnKPPlayheadUpdateEventListeners.add(kpPlayheadUpdateEventListener);
         }
     }
 
@@ -320,28 +314,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    public void removeKPErrorEventListener(KPErrorEventListener kpErrorEventListener) {
-        if (kpErrorEventListener != null && mOnKPErrorEventListeners != null && eventListeners.contains(kpErrorEventListener)) {
-            mOnKPErrorEventListeners.remove(kpErrorEventListener);
-        }
+    public void removeKPErrorEventListener() {
+        mOnKPErrorEventListener = null;
     }
 
-    public void removeKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
-        if (kpFullScreenToggeledEventListener != null && mOnKPFullScreenToggeledEventListeners != null && eventListeners.contains(kpFullScreenToggeledEventListener)) {
-            mOnKPFullScreenToggeledEventListeners.remove(kpFullScreenToggeledEventListener);
-        }
+    public void removeKPFullScreenToggeledEventListener() {
+        mOnKPFullScreenToggeledEventListener = null;
     }
 
-    public void removeKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
-        if (kpStateChangedEventListener != null && mOnKPStateChangedEventListeners != null && eventListeners.contains(kpStateChangedEventListener)) {
-            mOnKPStateChangedEventListeners.remove(kpStateChangedEventListener);
-        }
+    public void removeKPStateChangedEventListener() {
+            mOnKPStateChangedEventListener = null;
     }
 
-    public void removeKPPlayheadUpdateEventListener(KPPlayheadUpdateEventListener kpPlayheadUpdateEventListener) {
-        if (kpPlayheadUpdateEventListener != null && mOnKPPlayheadUpdateEventListeners != null && eventListeners.contains(kpPlayheadUpdateEventListener)) {
-            mOnKPPlayheadUpdateEventListeners.remove(kpPlayheadUpdateEventListener);
-        }
+    public void removeKPPlayheadUpdateEventListener() {
+            mOnKPPlayheadUpdateEventListener = null;
     }
 
     public void setCustomSourceURLProvider(SourceURLProvider provider) {
@@ -777,8 +763,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 }
             }
         }else {
-            if (mOnKPStateChangedEventListeners != null) {
-                for (KPStateChangedEventListener listener : mOnKPStateChangedEventListeners) {
+            if (mOnKPStateChangedEventListener != null) {
                     if (!KPlayerState.UNKNOWN.equals(kState)) {
                         if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
                             isMediaChanged = false;
@@ -788,20 +773,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                             shouldReplay = false;
                             play();
                         }
-                        listener.onKPlayerStateChanged(this, kState);
+                        mOnKPStateChangedEventListener.onKPlayerStateChanged(this, kState);
                     } else if (event.isEnded()) {
                         contentCompleted(player);
                     }
-                }
             }
 
-            if (mOnKPPlayheadUpdateEventListeners != null) {
-                for (KPPlayheadUpdateEventListener listener : mOnKPPlayheadUpdateEventListeners) {
-                    if (event.isTimeUpdate()) {
-                        for (KPPlayheadUpdateEventListener playUpdateListener : mOnKPPlayheadUpdateEventListeners) {
-                            playUpdateListener.onKPlayerPlayheadUpdate(this, (long) (Float.parseFloat(eventValue) * 1000));
-                        }
-                    }
+            if (mOnKPPlayheadUpdateEventListener != null) {
+                if (event.isTimeUpdate()) {
+                    mOnKPPlayheadUpdateEventListener.onKPlayerPlayheadUpdate(this, (long) (Float.parseFloat(eventValue) * 1000));
                 }
             }
         }
@@ -820,10 +800,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             for (KPEventListener listener: eventListeners) {
                 listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
             }
-        }else if (mOnKPStateChangedEventListeners != null) {
-            for (KPStateChangedEventListener listener: mOnKPStateChangedEventListeners) {
-                listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-            }
+        }else if (mOnKPStateChangedEventListener != null) {
+                 mOnKPStateChangedEventListener.onKPlayerStateChanged(this, KPlayerState.ENDED);
         }
     }
 
@@ -943,10 +921,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                         for (KPEventListener listener : eventListeners) {
                             listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                         }
-                    }else if (mOnKPStateChangedEventListeners != null) {
-                        for (KPStateChangedEventListener listener : mOnKPStateChangedEventListeners) {
-                            listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
-                        }
+                    }else if (mOnKPStateChangedEventListener != null) {
+                             mOnKPStateChangedEventListener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                     }
                     float time = Float.parseFloat(attributeValue);
                     shouldReplay = time == 0.01f;
@@ -993,10 +969,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
                 listener.onKPlayerError(this, new KPError(attributeValue));
             }
-        }else if (mOnKPErrorEventListeners != null){
-            for (KPErrorEventListener listener : mOnKPErrorEventListeners) {
-              listener.onKPlayerError(this, new KPError(attributeValue));
-            }
+        }else if (mOnKPErrorEventListener != null){
+                mOnKPErrorEventListener.onKPlayerError(this, new KPError(attributeValue));
         }
     }
 
@@ -1065,10 +1039,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             for (KPEventListener listener : eventListeners) {
                 listener.onKPlayerFullScreenToggeled(this, isFullScreen);
             }
-        } else if (mOnKPFullScreenToggeledEventListeners != null) {
-            for (KPFullScreenToggeledEventListener listener : mOnKPFullScreenToggeledEventListeners) {
-                listener.onKPlayerFullScreenToggeled(this, isFullScreen);
-            }
+        } else if (mOnKPFullScreenToggeledEventListener != null) {
+                mOnKPFullScreenToggeledEventListener.onKPlayerFullScreenToggeled(this, isFullScreen);
         }else{
             toggleFullscreen(mActivity, isFullScreen);
         }
