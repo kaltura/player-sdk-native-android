@@ -62,7 +62,7 @@ public class ExtractorRendererBuilder implements RendererBuilder {
     private MediaCodecSelector preferSoftwareMediaCodecSelector = new MediaCodecSelector() {
         @Override
         public DecoderInfo getDecoderInfo(String mimeType, boolean requiresSecureDecoder) throws MediaCodecUtil.DecoderQueryException {
-            Log.d("Kaltura", "Using android.os.Build.MANUFACTURER:" + Util.getDeviceName() + ", mimeType:" + mimeType);
+            Log.d("Kaltura", "DeviceInfo: " + Util.getDeviceInfo() + ", mimeType:" + mimeType);
             if (!requiresSecureDecoder && !isVendorSupportDefaultDecoder()) {
                 DecoderInfo decoderInfo = MediaCodecUtil.getDecoderInfo(mimeType, requiresSecureDecoder);
                 Log.d("Kaltura", "Using Decoder = " + decoderInfo.name);
