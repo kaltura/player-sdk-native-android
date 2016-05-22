@@ -78,7 +78,7 @@ public class Util {
     if (model.startsWith(manufacturer)) {
       return capitalize(model);
     }
-    return capitalize(manufacturer) + " " + model;
+    return capitalize(manufacturer) + " " + model + " " + android.os.Build.VERSION.RELEASE;
   }
 
   private static String capitalize(String str) {
