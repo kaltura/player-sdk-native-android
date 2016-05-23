@@ -18,11 +18,8 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
-import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Set;
-
-import javax.crypto.interfaces.PBEKey;
 
 
 /**
@@ -259,6 +256,11 @@ public class KWVCPlayer
             return mPlayer.isPlaying();
         }
         return false;
+    }
+
+    @Override
+    public void switchToLive() {
+
     }
 
     @Override

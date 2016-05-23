@@ -128,6 +128,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 && mExoPlayer.getPlayWhenReady();
     }
 
+    @Override
+    public void switchToLive() {
+        mExoPlayer.seekTo(0);
+    }
+
 
     private void prepare() {
         
