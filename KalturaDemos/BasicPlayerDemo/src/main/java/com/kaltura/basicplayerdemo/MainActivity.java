@@ -1,12 +1,10 @@
 package com.kaltura.basicplayerdemo;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -34,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
-    private boolean onCreate = false;
+    private boolean onCreate = true;
     private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
     private boolean isCCActive = false;
     private Button ccButton;
@@ -165,11 +163,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onResume() {
+
+        if (!onCreate && mPlayer != null) {
+            mPlayer.resumePlayer();
+        }
         if (onCreate) {
             onCreate = false;
-        }
-        if (mPlayer != null) {
-            mPlayer.resumePlayer();
         }
         super.onResume();
     }

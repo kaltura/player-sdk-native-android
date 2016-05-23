@@ -325,6 +325,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void resumePlayer() {
         if (playerController != null) {
             playerController.recoverPlayer();
+            if ("true".equals(mConfig.getConfigValueString("autoPlay"))){
+                double currentPlaybackTime = getCurrentPlaybackTime();
+                Log.e(TAG, "currentPlaybackTime = " + currentPlaybackTime);
+                if (currentPlaybackTime < 1f){
+                    playerController.start();
+                }
+            }
         }
     }
 
@@ -583,7 +590,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (playerController != null) {
             return playerController.getCurrentPlaybackTime();
         }
-        return 0.0;
+        return 0f;
     }
 
 
