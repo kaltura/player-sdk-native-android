@@ -24,10 +24,11 @@ public class KPPlayerConfig implements Serializable{
 	private String mEntryId;
 	private String mUiConfId;
 	private String mPartnerId;
-    private String mLocalContentId = "";
+	private String mLocalContentId = "";
 	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
+	private boolean mAutoPlay = false;
 
 	static {
 		// Use System.out to print even when Log.X() are disabled.
@@ -92,31 +93,31 @@ public class KPPlayerConfig implements Serializable{
 		
 		return config;
 	}
-	
+
 	public static KPPlayerConfig fromJSONObject(JSONObject configJSON) throws JSONException {
 
 		JSONObject base = configJSON.getJSONObject("base");
-		JSONObject extra = configJSON.getJSONObject("extra");
-
+		
 		KPPlayerConfig config = new KPPlayerConfig(
 				base.getString("server"), 
 				base.getString("uiConfId"), 
 				base.getString("partnerId"));
 		
-		if (base.has("entryId")) {
-			config.setEntryId(base.getString("entryId"));
-		}
-		if (base.has("ks")) {
-			config.setKS(base.getString("ks"));
-		}
+		config.setEntryId(Utilities.optString(base, "entryId"));
+		config.setKS(Utilities.optString(base, "ks"));
+		
+		if (!configJSON.isNull("extra")) {
+			JSONObject extra = configJSON.getJSONObject("extra");
 
-		for (Iterator<String> it = extra.keys(); it.hasNext(); ) {
-			String key = it.next();
-			Object value = extra.opt(key);
-			if (value != null) {
-				config.addConfig(key, value.toString());
+			for (Iterator<String> it = extra.keys(); it.hasNext(); ) {
+				String key = it.next();
+				Object value = extra.opt(key);
+				if (value != null) {
+					config.addConfig(key, value.toString());
+				}
 			}
 		}
+
 		return config;
 	}
 
@@ -130,7 +131,16 @@ public class KPPlayerConfig implements Serializable{
 		}
 		return this;
 	}
-	
+
+	public boolean isAutoPlay() {
+		return mAutoPlay;
+	}
+
+	public void setAutoPlay(boolean autoPlay) {
+		mAutoPlay = autoPlay;
+		addConfig("autoPlay", autoPlay ? "true" : "false");
+	}
+
 	public String getQueryString() {
 
 		Uri.Builder builder = new Uri.Builder();
@@ -215,5 +225,9 @@ public class KPPlayerConfig implements Serializable{
 
 	public double getMediaPlayFrom() {
 		return mMediaPlayFrom;
+	}
+	
+	public String getConfigValueString(String key) {
+		return mExtraConfig.get(key);
 	}
 }

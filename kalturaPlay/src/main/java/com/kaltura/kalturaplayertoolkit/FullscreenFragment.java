@@ -92,31 +92,32 @@ public class FullscreenFragment extends Fragment{
         mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
         mPlayerView.loadPlayerIntoActivity(getActivity());
         mPlayerView.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
-            @Override
-            public void castButtonClicked() {
-                getDevicesDialog().show();
-            }
+              @Override
+              public void onCastButtonClicked() {
+                 getDevicesDialog().show();
+              }
 
-            @Override
-            public void castDeviceConnectionState(boolean isConnected) {
-                getDevicesDialog().deviceConnectionStateDidChange(isConnected);
-            }
+              @Override
+              public void onApplicationStatusChanged(boolean isConnected) {
+                  getDevicesDialog().deviceConnectionStateDidChange(isConnected);
+              }
 
-            @Override
-            public void didDetectCastDevices(boolean didDetect) {
+              @Override
+              public void shouldPresentCastIcon(boolean shouldPresentOrDismiss) {
 
-            }
+              }
 
-            @Override
-            public void addedCastDevice(KRouterInfo info) {
-                getDevicesDialog().addCastDevice(info);
-            }
+              @Override
+              public void onAddedCastDevice(KRouterInfo info) {
+                  getDevicesDialog().addCastDevice(info);
+              }
 
-            @Override
-            public void removedCastDevice(KRouterInfo info) {
-                getDevicesDialog().removeCastDevice(info);
-            }
-        });
+              @Override
+              public void onRemovedCastDevice(KRouterInfo info) {
+                  getDevicesDialog().removeCastDevice(info);
+              }
+          });
+
         mPlayerView.getKCastRouterManager().enableKalturaCastButton(true);
         mPlayerView.addEventListener(new KPEventListener() {
             @Override
