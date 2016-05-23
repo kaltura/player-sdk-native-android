@@ -81,9 +81,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     private enum UIState {
         Idle,
-        PlayClicked,
-        PauseClicked,
-        SeekStart,
+        Play,
+        Pause,
+        Seeking,
         Replay
     }
 
@@ -124,8 +124,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (currentState != UIState.PlayClicked) {
-            currentState = UIState.PlayClicked;
+        if (currentState != UIState.Play) {
+            currentState = UIState.Play;
             if (isBackgrounded && isIMAActive) {
                 imaManager.resume();
                 return;
@@ -148,8 +148,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void pause() {
-        if (currentState != UIState.PauseClicked) {
-            currentState = UIState.PauseClicked;
+        if (currentState != UIState.Pause) {
+            currentState = UIState.Pause;
             if (!isCasting) {
                 if (isBackgrounded && isIMAActive) {
                     if (imaManager != null) {
@@ -166,7 +166,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void seek(double seconds) {
-        currentState = UIState.SeekStart;
+        currentState = UIState.Seeking;
         setCurrentPlaybackTime((float) seconds);
     }
 
@@ -511,7 +511,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SEEKED:
-                if (currentState == UIState.PlayClicked || currentState == UIState.Replay) {
+                if (currentState == UIState.Play || currentState == UIState.Replay) {
 //                    currentState = UIState.Idle;
                     play();
                 }
