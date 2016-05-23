@@ -375,6 +375,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     // ready after seeking
                     mReadiness = Readiness.Ready;
                     mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                    mPlayerCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     mSeeking = false;
                     startPlaybackTimeReporter();
                 }
