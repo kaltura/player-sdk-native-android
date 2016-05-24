@@ -262,7 +262,9 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
 
     @Override
     public void switchToLive() {
-
+        Log.w(TAG, "switchToLive - Feature is not implemented yet");
+        //TODO
+        //loadMedia();
     }
 
 
