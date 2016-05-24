@@ -38,88 +38,13 @@ import java.util.Map;
 /**
  * Created by nissopa on 6/7/15.
  */
-public class KControlsView extends WebView implements View.OnTouchListener, KMediaControl {
+public class KControlsView extends WebView implements View.OnTouchListener {
 
     private static final String TAG = "KControlsView";
-    private boolean mCanPause = false;
-    private int mCurrentPosition = 0;
-    private int mDuration = 0;
-    private SeekCallback mSeekCallback;
-    private KPlayerState mState = KPlayerState.UNKNOWN;
-    private long mSeekedToValue = 0;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         return false;
-    }
-
-    @Override
-    public void start() {
-        sendNotification("doPlay", null);
-    }
-
-    @Override
-    public void pause() {
-        sendNotification("doPause", null);
-    }
-
-    @Override
-    public void seek(double seconds) {
-        sendNotification("doSeek", Double.toString(seconds));
-    }
-
-    @Override
-    public void replay() {
-        sendNotification("doReplay", null);
-    }
-
-    @Override
-    public boolean canPause() {
-        return mCanPause;
-    }
-
-    @Override
-    public int getCurrentPosition() {
-        return mCurrentPosition;
-    }
-
-    @Override
-    public int getDuration() {
-        return mDuration;
-    }
-
-    @Override
-    public boolean isPlaying() {
-        return mCanPause;
-    }
-
-    @Override
-    public boolean canSeekBackward() {
-        return mCurrentPosition > 0;
-    }
-
-    @Override
-    public boolean canSeekForward() {
-        return mCurrentPosition < mDuration;
-    }
-
-    @Override
-    public void seek(long seconds, SeekCallback callback) {
-        mSeekedToValue = seconds;
-        if (seconds == 0) {
-            seconds = 100;
-        }
-        mSeekCallback = callback;
-        seek((double)seconds / 1000f);
-    }
-
-    @Override
-    public KPlayerState state() {
-        return mState;
-    }
-
-    public void freeze() {
-        mCanPause = false; //isPlaying() will return false
     }
 
     public interface KControlsViewClient {
@@ -135,7 +60,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     private KControlsViewClient controlsViewClient;
     private String entryId;
     private ControlsBarHeightFetcher fetcher;
-    private Context mContext;
     private CacheManager mCacheManager;
 
     private static String AddJSListener = "addJsListener";
@@ -144,7 +68,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     @SuppressLint("SetJavaScriptEnabled")
     public KControlsView(Context context) {
         super(context);
-        mContext = context;
         getSettings().setJavaScriptEnabled(true);
         init();
     }
@@ -210,31 +133,6 @@ public class KControlsView extends WebView implements View.OnTouchListener, KMed
     }
 
     public void triggerEvent(final String event, final String value) {
-        mState = KPlayerState.getStateForEventName(event);
-        switch (mState) {
-            case PLAYING:
-                mCanPause = true;
-                break;
-            case PAUSED:
-                mCanPause = false;
-                break;
-            case SEEKED:
-                if (mSeekCallback != null) {
-                    mSeekCallback.seeked(mSeekedToValue);
-                    mSeekCallback = null;
-                }
-                break;
-            case UNKNOWN:
-                //Log.w("TAG", ", unsupported event name : " + event);
-                break;
-        }
-        if (event.equals(KPlayerListener.TimeUpdateKey)) {
-            mCurrentPosition = (int) (Double.parseDouble(value) * 1000);
-        }
-        if (event.equals(KPlayerListener.DurationChangedKey)) {
-            mDuration = (int) (Double.parseDouble(value) * 1000);
-        }
-
         loadUrl(KStringUtilities.triggerEvent(event, value));
     }
 

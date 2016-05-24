@@ -10,6 +10,7 @@ public interface KPlayerCallback {
     int SHOULD_PLAY = 3;
     int ENDED = 4;
     int REMOVE_ADS = 5;
+    int SEEKED = 6;
 
     void playerStateChanged(int state);
 }

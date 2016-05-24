@@ -1,6 +1,5 @@
 package com.kaltura.playersdk.players;
 
-import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -259,6 +258,13 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     @Override
     public boolean isPlaying() {
         return false;
+    }
+
+    @Override
+    public void switchToLive() {
+        Log.w(TAG, "switchToLive - Feature is not implemented yet");
+        //TODO
+        //loadMedia();
     }
 
 

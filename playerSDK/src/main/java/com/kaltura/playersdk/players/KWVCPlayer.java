@@ -18,11 +18,8 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
-import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Set;
-
-import javax.crypto.interfaces.PBEKey;
 
 
 /**
@@ -262,6 +259,11 @@ public class KWVCPlayer
     }
 
     @Override
+    public void switchToLive() {
+        Log.w(TAG, "switchToLive is not implemented for Widevine Classic player");
+    }
+
+    @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
     }
@@ -406,6 +408,7 @@ public class KWVCPlayer
                             saveState();
                         }
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 });
 
