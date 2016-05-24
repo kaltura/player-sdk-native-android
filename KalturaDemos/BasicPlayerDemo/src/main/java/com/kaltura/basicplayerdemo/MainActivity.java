@@ -18,7 +18,6 @@ import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
-import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
@@ -36,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "BasicPlayerDemo";
 
     private static final int MENU_GROUP_TRACKS = 1;
+    private static final int TRACK_DISABLED = -1;
     private static final int ID_OFFSET = 2;
 
     private Button mPlayPauseButton;
@@ -90,7 +90,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
+
             KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.addConfig("autoPlay", "true");
             
@@ -339,10 +341,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         Menu menu = popup.getMenu();
         // ID_OFFSET ensures we avoid clashing with Menu.NONE (which equals 0).
-        menu.add(MENU_GROUP_TRACKS, ExoplayerWrapper.TRACK_DISABLED + ID_OFFSET, Menu.NONE, R.string.off);
+        menu.add(MENU_GROUP_TRACKS, TRACK_DISABLED + ID_OFFSET, Menu.NONE, R.string.off);
+
         for (int i = 0; i < trackCount; i++) {
             menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
-                    mPlayer.getTracks().getTrackName(mPlayer.getTracks().getTrackFormat(trackType, i)));
+            mPlayer.getTracks().getTrackName(mPlayer.getTracks().getTrackFormat(trackType, i)));
         }
         menu.setGroupCheckable(MENU_GROUP_TRACKS, true, true);
         menu.findItem(mPlayer.getTracks().getCurrentTrackIndex(trackType) + ID_OFFSET).setChecked(true);
@@ -352,7 +355,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer == null || item.getGroupId() != MENU_GROUP_TRACKS) {
             return false;
         }
-        mPlayer.getTracks().switchTrack(type, item.getItemId() - ID_OFFSET);
+
+        int switchTrackIndex = item.getItemId() - ID_OFFSET;
+        Log.d(TAG, "onTrackItemClick switchTrackIndex: " + switchTrackIndex);
+        mPlayer.getTracks().switchTrack(type, switchTrackIndex);
+
         return true;
     }
 
