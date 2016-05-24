@@ -92,9 +92,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void onAdError(String errorMsg) {
-        if (playerListener != null) {
-            playerListener.eventWithValue(player, KPlayerListener.ErrorKey, errorMsg);
-        }
+        removeAdPlayer();
+        ((View)player).setVisibility(View.VISIBLE);
+        isIMAActive = false;
+        player.play();
     }
 
 
@@ -526,5 +527,4 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
         }
     }
-
 }

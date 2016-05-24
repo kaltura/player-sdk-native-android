@@ -290,12 +290,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void removePlayer() {
-//        saveState();
-//        stopPlaybackTimeReporter();
+        stopPlaybackTimeReporter();
         pause();
-//        if (mSurfaceView != null && mSurfaceCallback != null) {
-//            mSurfaceView.getHolder().removeCallback(mSurfaceCallback);
-//        }
         if (mExoPlayer != null) {
             mExoPlayer.release();
             mExoPlayer = null;
