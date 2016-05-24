@@ -32,16 +32,12 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, /*KPFullScreenToggeledEventListener,*/ KPPlayheadUpdateEventListener,KPErrorEventListener,KPStateChangedEventListener {
     private static final String TAG = "BasicPlayerDemo";
     private Button mPlayPauseButton;
+    private Button ccButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
     private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
-    private boolean isCCActive = false;    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, long currentTime) {
-        mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
-        Log.e(TAG, "onKPlayerPlayheadUpdate currentTime " + currentTime);
-
-    private Button ccButton;
-
+    private boolean isCCActive = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
