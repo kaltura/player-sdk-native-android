@@ -78,6 +78,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private Set<KPEventListener> eventListeners;
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
+    private boolean isMediaChanged = false;
+    private boolean shouldReplay = false;
 
     private KRouterManager routerManager;
 
@@ -190,7 +192,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public KMediaControl getMediaControl() {
-        return mWebView;
+        return playerController;
     }
 
     public KTrackActions getTracks(){
@@ -235,6 +237,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (entryId != null && entryId.length() > 0) {
             JSONObject entryJson = new JSONObject();
             try {
+                isMediaChanged = true;
                 entryJson.put("entryId", entryId);
                 sendNotification("changeMedia", entryJson.toString());
             } catch (JSONException e) {
@@ -284,7 +287,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void freeze(){
         if(playerController != null) {
-            mWebView.freeze();
             playerController.pause();
         }
     }
@@ -294,7 +296,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void saveState(boolean isOnBackground) {
-        mWebView.freeze();
         playerController.savePlayerState();
     }
 
@@ -312,14 +313,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void releaseAndSavePosition(boolean shouldResumeState) {
         if (playerController != null) {
-            mWebView.freeze();
             playerController.removePlayer(shouldResumeState);
         }
     }
 
     public void resetPlayer() {
         if (playerController != null) {
-            mWebView.freeze();
             playerController.reset();
         }
     }
@@ -572,7 +571,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public double getDurationSec() {
         double duration = 0;
         if (playerController != null) {
-            duration = playerController.getDuration();
+            duration = playerController.getDuration() / 1000;
         }
         return duration;
     }
@@ -645,6 +644,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void handleHtml5LibCall(String functionName, int callbackId, String args) {
+        Log.d(TAG + " handleHtml5LibCall", functionName + " " + args);
         Method bridgeMethod = KStringUtilities.isMethodImplemented(this, functionName);
         Object object = this;
         if (bridgeMethod == null) {
@@ -685,7 +685,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             KPlayerState kState = KPlayerState.getStateForEventName(eventName);
             for (KPEventListener listener : eventListeners) {
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
-                    if (kState == KPlayerState.READY && getConfig().isAutoPlay()) {
+                    if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
+                        isMediaChanged = false;
                         play();
                     }
                     listener.onKPlayerStateChanged(this, kState);
@@ -719,7 +720,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void pause() {
-        mWebView.freeze();
         playerController.pause();
     }
     
@@ -832,7 +832,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                             listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                         }
                     }
-                    this.playerController.setCurrentPlaybackTime(Float.parseFloat(attributeValue));
+                    float time = Float.parseFloat(attributeValue);
+                    this.playerController.setCurrentPlaybackTime(time);
                     break;
                 case visible:
                     this.triggerEvent("visible", attributeValue);
@@ -854,7 +855,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     playerController.initIMA(attributeValue, mActivity);
                     break;
                 case goLive:
-                    ((KLiveStream)playerController.getPlayer()).switchToLive();
+                    (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);

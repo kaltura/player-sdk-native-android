@@ -36,4 +36,6 @@ public interface KPlayer extends KTrackActions {
     void setLicenseUri(String licenseUri);
 
     boolean isPlaying();
+
+    void switchToLive();
 }

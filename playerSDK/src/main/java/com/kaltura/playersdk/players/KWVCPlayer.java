@@ -19,7 +19,6 @@ import android.widget.VideoView;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.kaltura.playersdk.types.TrackType;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -263,6 +262,11 @@ public class KWVCPlayer
     }
 
     @Override
+    public void switchToLive() {
+        Log.w(TAG, "switchToLive is not implemented for Widevine Classic player");
+    }
+
+    @Override
     public void changeSubtitleLanguage(String languageCode) {
         // TODO: forward to player
     }
@@ -373,9 +377,7 @@ public class KWVCPlayer
                 String errMsg = "VideoView:onError";
                 Log.e(TAG, errMsg);
                 mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
-
-                // TODO
-                return false;
+                return true; // prevents the VideoView error popups
             }
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -383,7 +385,6 @@ public class KWVCPlayer
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
                     Log.i(TAG, "onInfo(" + what + "," + extra + ")");
-                    // TODO
                     return false;
                 }
             });
@@ -407,6 +408,7 @@ public class KWVCPlayer
                             saveState();
                         }
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 });
 

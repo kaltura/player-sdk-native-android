@@ -152,6 +152,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 && mExoPlayer.getPlayWhenReady();
     }
 
+    @Override
+    public void switchToLive() {
+        mExoPlayer.seekTo(0);
+    }
+
 
     private void prepare() {
         
@@ -405,7 +410,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 }
                 if (mSeeking) {
                     // ready after seeking
+                    mReadiness = Readiness.Ready;
                     mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                    mPlayerCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     mSeeking = false;
                     startPlaybackTimeReporter();
                 }
@@ -420,6 +427,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 Log.d(TAG, "state ended");
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
+                    mReadiness = Readiness.Idle;
                 } 
                 stopPlaybackTimeReporter();
                 break;
