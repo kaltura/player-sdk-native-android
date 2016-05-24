@@ -260,7 +260,7 @@ public class KWVCPlayer
 
     @Override
     public void switchToLive() {
-
+        Log.w(TAG, "switchToLive is not implemented for Widevine Classic player");
     }
 
     @Override
