@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        Log.e(TAG, "onKPlayerStateChanged state " + state.name());
+        Log.d(TAG, "onKPlayerStateChanged state " + state.name());
         if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
 //            findViewById(R.id.replay).setVisibility(View.VISIBLE);
             mPlayPauseButton.setText("Play");
@@ -256,16 +256,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, long currentTime) {
         mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
-        Log.e(TAG, "onKPlayerPlayheadUpdate currentTime " + currentTime);
+        Log.d(TAG, "onKPlayerPlayheadUpdate currentTime " + currentTime);
     }
 
 //    @Override
 //    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
-//        Log.e(TAG, "onKPlayerFullScreenToggeled isFullscreen " + isFullscreen);
+//        Log.d(TAG, "onKPlayerFullScreenToggeled isFullscreen " + isFullscreen);
 //    }
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.e(TAG, "onKPlayerError Error Received:" + error.getErrorMsg());
+        Log.d(TAG, "onKPlayerError Error Received:" + error.getErrorMsg());
     }
 }

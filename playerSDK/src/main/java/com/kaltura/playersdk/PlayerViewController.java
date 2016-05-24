@@ -723,24 +723,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
-                } else if (event.isEnded()) {
-                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
                 }
             }
         }
 
         if (mOnKPStateChangedEventListener != null) {
-              if (!KPlayerState.UNKNOWN.equals(kState)) {
-                        mOnKPStateChangedEventListener.onKPlayerStateChanged(this, kState);
-                    } else if (event.isEnded()) {
-                        mOnKPStateChangedEventListener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-                    }
+          if (!KPlayerState.UNKNOWN.equals(kState)) {
+                    mOnKPStateChangedEventListener.onKPlayerStateChanged(this, kState);
+          }
         }
 
         if (mOnKPPlayheadUpdateEventListener != null) {
-                if (event.isTimeUpdate()) {
-                    mOnKPPlayheadUpdateEventListener.onKPlayerPlayheadUpdate(this, (long) (Float.parseFloat(eventValue) * 1000));
-                }
+            if (event.isTimeUpdate()) {
+                mOnKPPlayheadUpdateEventListener.onKPlayerPlayheadUpdate(this, (long) (Float.parseFloat(eventValue) * 1000));
+            }
         }
 
         this.mWebView.triggerEvent(eventName, eventValue);
