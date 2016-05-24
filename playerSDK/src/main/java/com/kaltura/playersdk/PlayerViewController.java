@@ -848,7 +848,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     playerController.initIMA(attributeValue, mActivity);
                     break;
                 case goLive:
-                    ((LiveStreamInterface)playerController.getPlayer()).switchToLive();
+                    (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
 //                    getRouterManager().initialize(attributeValue, mActivity);

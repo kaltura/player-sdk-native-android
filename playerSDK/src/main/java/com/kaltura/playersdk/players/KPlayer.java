@@ -34,4 +34,6 @@ public interface KPlayer {
     void setLicenseUri(String licenseUri);
 
     boolean isPlaying();
+
+    void switchToLive();
 }
