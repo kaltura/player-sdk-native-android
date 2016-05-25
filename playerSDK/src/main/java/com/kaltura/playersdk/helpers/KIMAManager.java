@@ -167,6 +167,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
             jsonValue = new JSONObject();
             switch (adEvent.getType()) {
                 case LOADED:
+                    mAdsManager.start();
                     jsonValue.put(IsLinearKey, ad.isLinear());
                     jsonValue.put(AdIDKey, ad.getAdId());
                     jsonValue.put(AdSystemKey, "null");

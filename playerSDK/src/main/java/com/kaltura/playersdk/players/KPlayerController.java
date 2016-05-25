@@ -77,9 +77,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 removeAdPlayer();
                 break;
-            case CLICKED:
-                imaManager.pause();
-                break;
         }
     }
 
@@ -314,6 +311,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
             if (!isIMAActive) {
                 player.freezePlayer();
+            } else {
+                imaManager.pause();
             }
         }
     }
