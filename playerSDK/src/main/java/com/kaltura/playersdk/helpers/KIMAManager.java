@@ -88,15 +88,17 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
 
     public void pause() {
-        if (mIMAPlayer != null) {
-            mIMAPlayer.pause();
-        }
+//        if (mIMAPlayer != null) {
+//            mIMAPlayer.pause();
+//        }
+        mAdsManager.pause();
     }
 
     public void resume() {
-        if (mIMAPlayer != null) {
-            mIMAPlayer.resume();
-        }
+//        if (mIMAPlayer != null) {
+//            mIMAPlayer.resume();
+//        }
+        mAdsManager.resume();
     }
 
     /**
