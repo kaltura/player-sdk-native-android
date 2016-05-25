@@ -611,8 +611,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     buildAudioPropertyString(format)), buildBitrateString(format)),
                     buildTrackIdString(format));
         } else {
-            trackName = joinWithSeparator(joinWithSeparator(buildLanguageString(format),
-                    buildBitrateString(format)), buildTrackIdString(format));
+            trackName = buildTrackIdString(format);
+            Log.d(TAG, "Full TEXT CC name = " + joinWithSeparator(joinWithSeparator(buildLanguageString(format),
+                 buildBitrateString(format)), buildTrackIdString(format)));
         }
         return trackName.length() == 0 ? "unknown" : trackName;
     }
@@ -677,8 +678,15 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
     private boolean isAvailableTracksRelevant(TrackType trackType){
-        if (getTrackCount(trackType) > 1){
+        int tracksCount = getTrackCount(trackType);
+        Log.d(TAG, "isAvailableTracksRelevant trackType = " + trackType + "tracksCount =" + tracksCount);
+        if (tracksCount > 1){
             return true;
+        } else if (tracksCount == 1) {
+            Log.d(TAG, "Single Track is " + getTracksList(trackType).get(0));
+            if (!getTracksList(trackType).get(0).contains("auto") && !getTracksList(trackType).get(0).contains("Auto")) {
+                return true;
+            }
         }
         return false;
     }
