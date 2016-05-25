@@ -21,7 +21,6 @@ public interface KPlayerListener {
 
     void eventWithValue(KPlayer player, String eventName, String eventValue);
     void eventWithJSON(KPlayer player, String eventName, String jsonValue);
-    void contentCompleted(KPlayer currentPlayer);
 }
 
 

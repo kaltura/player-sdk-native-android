@@ -687,7 +687,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
                 } else if (event.isEnded()) {
-                    contentCompleted(player);
+                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
                 }
             }
         }
@@ -698,15 +698,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
         Log.d("EventWithJSON", "Name: " + eventName + " Value: " + jsonValue);
         this.mWebView.triggerEventWithJSON(eventName, jsonValue);
-    }
-
-    @Override
-    public void contentCompleted(KPlayer currentPlayer) {
-        if (eventListeners != null) {
-            for (KPEventListener listener: eventListeners) {
-                listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-            }
-        }
     }
 
     private void play() {
