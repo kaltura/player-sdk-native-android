@@ -406,6 +406,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
     public void initIMA(String adTagURL, Activity activity) {
+        ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
         player.setShouldCancelPlay(true);
         this.adTagURL = adTagURL;

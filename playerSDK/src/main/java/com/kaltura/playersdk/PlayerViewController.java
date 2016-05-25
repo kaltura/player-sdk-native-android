@@ -696,7 +696,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
-        Log.d("EventWithJSON", "Name: " + eventName + " Value: " + jsonValue);
         this.mWebView.triggerEventWithJSON(eventName, jsonValue);
     }
 
@@ -842,9 +841,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     ((LiveStreamInterface)playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
-//                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
-                    Log.d(TAG, "chromecast.initialize:" +  attributeValue);
                     break;
                 case playerError:
                     if (eventListeners != null) {
