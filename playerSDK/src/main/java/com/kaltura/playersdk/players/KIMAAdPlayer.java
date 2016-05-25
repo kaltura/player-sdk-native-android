@@ -45,6 +45,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void playAd() {
         if (mAdPlayer != null) {
             mAdPlayer.play();
+            startPlaybackTimeReporter();
         }
     }
 
@@ -89,9 +90,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public VideoProgressUpdate getAdProgress() {
         if (mAdPlayer == null || mAdPlayer.getDuration() <= 0) {
             return VideoProgressUpdate.VIDEO_TIME_NOT_READY;
-        }
-        if (mListener != null) {
-            mListener.adDidProgress((float)mAdPlayer.getCurrentPosition() / 1000, (float)mAdPlayer.getDuration() / 1000);
         }
         return new VideoProgressUpdate(mAdPlayer.getCurrentPosition(), mAdPlayer.getDuration());
     }
@@ -178,7 +176,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     public void resume() {
         setAdPlayerSource(mSrc);
-        startPlaybackTimeReporter();
     }
 
     public void pause() {
