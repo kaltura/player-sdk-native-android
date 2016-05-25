@@ -47,6 +47,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -512,35 +514,58 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             if (TrackType.VIDEO.equals(trackType)){
                 resultJsonKey = "tracks";
+                List<QualityTrack> qualityTrackList = new ArrayList<>();
                 for (int index = 0; index < trackCount; index++) {
                     if (TrackType.VIDEO.equals(trackType)) {
                         com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
-                        if (mediaFormat.bitrate == -1){ //remove track that is not relevant
+                        if (mediaFormat.bitrate == -1) { //remove track that is not relevant
                             continue;
                         }
                         QualityTrack qualityTrack = new QualityTrack();
                         qualityTrack.assetId = String.valueOf(index);
                         qualityTrack.originalIndex = index;
                         qualityTrack.bandwidth = mediaFormat.bitrate;
-                        qualityTrack.type      = mediaFormat.mimeType;
-                        qualityTrack.height    = mediaFormat.height;
-                        qualityTrack.width     = mediaFormat.width;
-                        tracksJsonArray.put(qualityTrack.toJSONObject());
+                        qualityTrack.type = mediaFormat.mimeType;
+                        qualityTrack.height = mediaFormat.height;
+                        qualityTrack.width = mediaFormat.width;
+                        qualityTrackList.add(qualityTrack);
                     }
+                }
+                Collections.sort(qualityTrackList, new Comparator<QualityTrack>() {
+                            @Override
+                            public int compare(QualityTrack lhs, QualityTrack rhs) {
+                                return rhs.bandwidth - lhs.bandwidth;
+                            }
+                        }
+                );
+                for (QualityTrack qt : qualityTrackList){
+                    tracksJsonArray.put(qt.toJSONObject());
                 }
             }else if (TrackType.TEXT.equals(trackType) || TrackType.AUDIO.equals(trackType)) {
                     resultJsonKey = "languages";
+                List<LanguageTrack> languageTrackList = new ArrayList<>();
                 for (int index = 0; index < trackCount; index++) {
                     com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
                     LanguageTrack languageTrack = new LanguageTrack();
                     languageTrack.index = index;
                     languageTrack.kind  = "subtitle"; //"caption"??
                     languageTrack.title = getTrackName(mExoPlayer.getTrackFormat(exoTrackType, index));
-                    String trackId      = (mediaFormat.trackId != null) ? mediaFormat.trackId: "Auto";
-                    languageTrack.language = trackId;
+                    languageTrack.language = languageTrack.title;//trackId;
+                    languageTrack.label    = languageTrack.title;//trackId;
+                    String trackId         = (mediaFormat.trackId != null) ? mediaFormat.trackId: "Auto";
                     languageTrack.srcLang  = trackId;
-                    languageTrack.label    = trackId;
-                    tracksJsonArray.put(languageTrack.toJSONObject());
+                    languageTrackList.add(languageTrack);
+                }
+                Collections.sort(languageTrackList, new Comparator<LanguageTrack>() {
+                       @Override
+                       public int compare(LanguageTrack lhs, LanguageTrack rhs) {
+                          return lhs.label.compareTo(rhs.label);
+                      }
+
+                    }
+                );
+                for (LanguageTrack lt : languageTrackList){
+                    tracksJsonArray.put(lt.toJSONObject());
                 }
             }
             resultJsonObj.put(resultJsonKey, tracksJsonArray);
@@ -607,11 +632,18 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             trackName = joinWithSeparator(joinWithSeparator(buildResolutionString(format),
                     buildBitrateString(format)), buildTrackIdString(format));
         } else if (MimeTypes.isAudio(format.mimeType)) {
-            trackName = joinWithSeparator(joinWithSeparator(joinWithSeparator(buildLanguageString(format),
+            trackName = buildTrackIdString(format);
+            if (!"".equals(buildLanguageString(format))){
+                trackName = buildLanguageString(format) + "-" + trackName;
+            }
+            Log.d(TAG, "Full AUDIO Track name = " +joinWithSeparator(joinWithSeparator(joinWithSeparator(buildLanguageString(format),
                     buildAudioPropertyString(format)), buildBitrateString(format)),
-                    buildTrackIdString(format));
+                    buildTrackIdString(format)));
         } else {
             trackName = buildTrackIdString(format);
+            if (!"".equals(buildLanguageString(format))){
+                trackName = buildLanguageString(format) + "-" + trackName;
+            }
             Log.d(TAG, "Full TEXT CC name = " + joinWithSeparator(joinWithSeparator(buildLanguageString(format),
                  buildBitrateString(format)), buildTrackIdString(format)));
         }
@@ -679,7 +711,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     private boolean isAvailableTracksRelevant(TrackType trackType){
         int tracksCount = getTrackCount(trackType);
-        Log.d(TAG, "isAvailableTracksRelevant trackType = " + trackType + "tracksCount =" + tracksCount);
+        Log.d(TAG, "isAvailableTracksRelevant trackType = " + trackType + ", tracksCount = " + tracksCount);
         if (tracksCount > 1){
             return true;
         } else if (tracksCount == 1) {

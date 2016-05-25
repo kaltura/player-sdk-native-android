@@ -284,15 +284,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 for (String track : mPlayer.getTracks().getTracksList(TrackType.AUDIO)) {
                     Log.d(TAG, track);
                 }
-                Log.d(TAG, "----------------");
+                Log.e(TAG, "----------------");
                 for (String track : mPlayer.getTracks().getTracksList(TrackType.VIDEO)) {
-                    Log.d(TAG, track);
+                    Log.e(TAG, track);
                 }
-                Log.d(TAG, "----------------");
+                Log.e(TAG, "----------------");
                 for (String track : mPlayer.getTracks().getTracksList(TrackType.TEXT)) {
                     Log.d(TAG, track);
                 }
-                Log.d(TAG, "----------------");
+                Log.e(TAG, "----------------");
                 Log.d(TAG, "curr audindex = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.AUDIO));
                 //mPlayer.getTracks().switchTrack(TrackType.AUDIO,2);
                 Log.d(TAG, "curr aud index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.AUDIO));
