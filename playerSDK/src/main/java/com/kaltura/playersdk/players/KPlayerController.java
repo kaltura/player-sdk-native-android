@@ -513,6 +513,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     isContentCompleted = true;
                     isIMAActive = true;
                     imaManager.contentComplete();
+                } else {
+                    playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
                 }
                 break;
             case KPlayerCallback.SEEKED:
