@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -15,6 +16,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.tracks.KTrackActions;
+import com.kaltura.playersdk.tracks.KTracksManager;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -27,6 +31,8 @@ import java.util.Set;
 public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerListener, KMediaControl {
     private static final String TAG = "KPlayerController";
     private KPlayer player;
+    private KTracksManager tracksManager;
+    private KTrackActions.EventListener tracksEventListener = null;
     private String src;
     private String adTagURL;
     private int adPlayerHeight;
@@ -79,6 +85,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
+        this.tracksEventListener = tracksEventListener;
+    }
+
     private enum UIState {
         Idle,
         Play,
@@ -87,10 +97,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         Replay
     }
 
-    public static Set<MediaFormat> supportedFormats(Context context) {
+    public static Set<KMediaFormat> supportedFormats(Context context) {
         // TODO: dynamically determine available players, use reflection.
 
-        Set<MediaFormat> formats = new HashSet<>();
+        Set<KMediaFormat> formats = new HashSet<>();
 
         // All known players
         formats.addAll(KExoPlayer.supportedFormats(context));
@@ -121,6 +131,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
         this.parentViewController.addView((View)this.player, 1, lp);
+    }
+
+    public KTracksManager getTracksManager() {
+        return tracksManager;
     }
 
     public void play() {
@@ -481,6 +495,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void playerStateChanged(int state) {
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
+                tracksManager = new KTracksManager(player);
+                if (tracksEventListener != null){
+                    //send tracks to app
+                    tracksEventListener.onTracksUpdate(tracksManager);
+                } else {
+                    //Send tracks to webView
+                    sendTracksList(TrackType.TEXT);
+                    sendTracksList(TrackType.AUDIO);
+                    sendTracksList(TrackType.VIDEO);
+                }
+
                 isPlayerCanPlay = true;
                 if (mActivity != null && !isIMAActive) {
                     addAdPlayer();
@@ -519,6 +544,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
                     mSeekCallback = null;
                 }
+                break;
+        }
+    }
+
+    private void sendTracksList(TrackType trackType) {
+        Log.d(TAG, "sendTracksList: " + trackType);
+        switch(trackType) {
+            case AUDIO:
+                eventWithJSON(getPlayer(), KPlayerListener.AudioTracksReceivedKey, tracksManager.getTrackListAsJson(TrackType.AUDIO, false).toString());
+                break;
+            case TEXT:
+                eventWithJSON(getPlayer(), KPlayerListener.TextTracksReceivedKey,  tracksManager.getTrackListAsJson(TrackType.TEXT, false).toString());
+                break;
+            case VIDEO:
+                eventWithJSON(getPlayer(), KPlayerListener.FlavorsListChangedKey,  tracksManager.getTrackListAsJson(TrackType.VIDEO, false).toString());
                 break;
         }
     }

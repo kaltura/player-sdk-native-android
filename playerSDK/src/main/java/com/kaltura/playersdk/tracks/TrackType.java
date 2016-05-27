@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.types;
+package com.kaltura.playersdk.tracks;
 
 public enum TrackType {
 	VIDEO,

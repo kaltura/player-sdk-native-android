@@ -24,14 +24,16 @@ import com.kaltura.playersdk.casting.KCastRouterManagerListener;
 import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.tracks.KTrackActions;
+import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.types.KPError;
-import com.kaltura.playersdk.types.TrackType;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener, KTrackActions.EventListener {
     private static final String TAG = "BasicPlayerDemo";
 
     private static final int MENU_GROUP_TRACKS = 1;
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
             KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-            //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
+            //KPPlayerConfig config = new KPPlayerConfig("http://192.168.1.10/html5.kaltura/mwEmbed/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.addConfig("autoPlay", "true");
             
@@ -111,12 +113,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.addConfig("chromecast.useKalturaPlayer", "true");
             config.addConfig("chromecast.receiverLogo", "true");
             mPlayer.getKCastRouterManager().enableKalturaCastButton(false);
+
+//            mPlayer.addKPlayerEventListener("firstPlay", "firstPlay", new PlayerViewController.EventListener() {
+//                @Override
+//                public void handler(String eventName, String params) {
+//                    Log.d(TAG, eventName);
+//
+//                }
+//            });
+
             mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "someId", new PlayerViewController.EventListener() {
                 @Override
                 public void handler(String eventName, String params) {
                     Log.d(TAG, eventName);
                 }
             });
+
             mPlayer.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
                 @Override
                 public void onCastButtonClicked() {
@@ -149,6 +161,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
+
+            // if this listener is removed the tracks will be pushed to the web layer
+            mPlayer.setTracksEventListener(this);
 
         }
         return mPlayer;
@@ -276,33 +291,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayPauseButton.setText("Pause");
         }
         else if (state == KPlayerState.READY){
-            if (mPlayer != null) {
-                updateButtonVisibilities();
-                Log.d(TAG, "aud tracks num = " + mPlayer.getTracks().getTracksList(TrackType.AUDIO).size());
-                Log.d(TAG, "vid tracks num = " + mPlayer.getTracks().getTracksList(TrackType.VIDEO).size());
-                Log.d(TAG, "text tracks num = " + mPlayer.getTracks().getTracksList(TrackType.TEXT).size());
-                for (String track : mPlayer.getTracks().getTracksList(TrackType.AUDIO)) {
-                    Log.d(TAG, track);
-                }
-                Log.e(TAG, "----------------");
-                for (String track : mPlayer.getTracks().getTracksList(TrackType.VIDEO)) {
-                    Log.e(TAG, track);
-                }
-                Log.e(TAG, "----------------");
-                for (String track : mPlayer.getTracks().getTracksList(TrackType.TEXT)) {
-                    Log.d(TAG, track);
-                }
-                Log.e(TAG, "----------------");
-                Log.d(TAG, "curr audindex = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.AUDIO));
-                //mPlayer.getTracks().switchTrack(TrackType.AUDIO,2);
-                Log.d(TAG, "curr aud index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.AUDIO));
-                Log.d(TAG, "curr vid index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.VIDEO));
-                //mPlayer.getTracks().switchTrack(TrackType.VIDEO,2);
-                Log.d(TAG, "curr vid index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.VIDEO));
-                Log.d(TAG, "curr text index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.TEXT));
-                //mPlayer.getTracks().switchTrack(TrackType.TEXT,1);
-                Log.d(TAG, "curr text index = " + mPlayer.getTracks().getCurrentTrackIndex(TrackType.TEXT));
-            }
+
         }
     }
 
@@ -324,13 +313,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void configurePopupWithTracks(PopupMenu popup,
                                           final PopupMenu.OnMenuItemClickListener customActionClickListener,
                                           final TrackType trackType) {
-        if (mPlayer == null || mPlayer.getTracks() == null) {
+        int trackCount = 0;
+        if (mPlayer == null || mPlayer.getTrackManager() == null) {
             return;
         }
-        int trackCount = mPlayer.getTracks().getTrackCount(trackType);
-        if (trackCount == 0) {
+        if (TrackType.AUDIO.equals(trackType)) {
+            trackCount = mPlayer.getTrackManager().getAudioTrackList().size();
+        }else if (TrackType.TEXT.equals(trackType)) {
+            trackCount = mPlayer.getTrackManager().getTextTrackList().size();
+        } else if (TrackType.VIDEO.equals(trackType)) {
+             trackCount = mPlayer.getTrackManager().getVideoTrackList().size();
+        }
+        if (trackCount <= 0) {
             return;
         }
+
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -344,11 +341,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         menu.add(MENU_GROUP_TRACKS, TRACK_DISABLED + ID_OFFSET, Menu.NONE, R.string.off);
 
         for (int i = 0; i < trackCount; i++) {
-            menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
-            mPlayer.getTracks().getTrackName(mPlayer.getTracks().getTrackFormat(trackType, i)));
+
+            if (TrackType.AUDIO.equals(trackType)) {
+                menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
+                        mPlayer.getTrackManager().getAudioTrackList().get(i).trackLabel);
+            }else if (TrackType.TEXT.equals(trackType)) {
+                menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
+                        mPlayer.getTrackManager().getTextTrackList().get(i).trackLabel);
+            } else if (TrackType.VIDEO.equals(trackType)) {
+                menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
+                        mPlayer.getTrackManager().getVideoTrackList().get(i).trackLabel);
+            }
+
         }
         menu.setGroupCheckable(MENU_GROUP_TRACKS, true, true);
-        menu.findItem(mPlayer.getTracks().getCurrentTrackIndex(trackType) + ID_OFFSET).setChecked(true);
+        menu.findItem(mPlayer.getTrackManager().getCurrentTrack(trackType).index + ID_OFFSET).setChecked(true);
     }
 
     private boolean onTrackItemClick(MenuItem item, TrackType type) {
@@ -358,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int switchTrackIndex = item.getItemId() - ID_OFFSET;
         Log.d(TAG, "onTrackItemClick switchTrackIndex: " + switchTrackIndex);
-        mPlayer.getTracks().switchTrack(type, switchTrackIndex);
+        mPlayer.getTrackManager().switchTrack(type, switchTrackIndex);
 
         return true;
     }
@@ -396,9 +403,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         popup.show();
     }
 
-    private void updateButtonVisibilities() {
-        videoButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.VIDEO) > 0) ? View.VISIBLE : View.GONE);
-        audioButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.AUDIO) > 0) ? View.VISIBLE : View.GONE);
-        textButton.setVisibility((mPlayer.getTracks().getTrackCount(TrackType.TEXT) > 0) ? View.VISIBLE : View.GONE);
+
+
+    @Override
+    public void onTracksUpdate(KTrackActions tracksManager) {
+        if (mPlayer != null) {
+            updateButtonVisibilities();
+            Log.d(TAG, "aud tracks num = " + mPlayer.getTrackManager().getAudioTrackList().size());
+            Log.d(TAG, "vid tracks num = " + mPlayer.getTrackManager().getVideoTrackList().size());
+            Log.d(TAG, "text tracks num = " + mPlayer.getTrackManager().getTextTrackList().size());
+            for (TrackFormat track : mPlayer.getTrackManager().getAudioTrackList()) {
+                Log.d(TAG, track.toString());
+            }
+            Log.e(TAG, "----------------");
+            for (TrackFormat track : mPlayer.getTrackManager().getVideoTrackList()) {
+                Log.e(TAG, track.toString());
+            }
+            Log.e(TAG, "----------------");
+            for (TrackFormat track : mPlayer.getTrackManager().getTextTrackList()) {
+                Log.d(TAG, track.toString());
+            }
+            Log.e(TAG, "----------------");
+            Log.d(TAG, "curr audindex = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.AUDIO).index);
+            //mPlayer.getTrackManager().switchTrack(TrackType.AUDIO,2);
+            Log.d(TAG, "curr aud index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.AUDIO).index);
+            Log.d(TAG, "curr vid index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.VIDEO).index);
+            //mPlayer.getTrackManager().switchTrack(TrackType.VIDEO,2);
+            Log.d(TAG, "curr vid index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.VIDEO).index);
+            Log.d(TAG, "curr text index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.TEXT).index);
+            //mPlayer.getTrackManager().switchTrack(TrackType.TEXT,1);
+            Log.d(TAG, "curr text index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.TEXT).index);
+        }
     }
+
+    private void updateButtonVisibilities() {
+        if (mPlayer != null) {
+            if (mPlayer.getTrackManager() != null) {
+                videoButton.setVisibility((mPlayer.getTrackManager().getVideoTrackList().size() > 0) ? View.VISIBLE : View.GONE);
+                audioButton.setVisibility((mPlayer.getTrackManager().getAudioTrackList().size() > 0) ? View.VISIBLE : View.GONE);
+                textButton.setVisibility((mPlayer.getTrackManager().getTextTrackList().size() > 0) ? View.VISIBLE : View.GONE);
+            }
+        }
+    }
+
 }

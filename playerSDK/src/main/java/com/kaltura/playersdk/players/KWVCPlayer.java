@@ -16,12 +16,11 @@ import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
-import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
-import com.kaltura.playersdk.types.TrackType;
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
-import java.util.ArrayList;
+
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 
@@ -49,9 +48,9 @@ public class KWVCPlayer
     private int mCurrentPosition;
     private boolean mWasDestroyed;
 
-    public static Set<MediaFormat> supportedFormats(Context context) {
+    public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
-            return Collections.singleton(MediaFormat.wvm_widevine);
+            return Collections.singleton(KMediaFormat.wvm_widevine);
         }
         return Collections.emptySet();
     }
@@ -267,8 +266,23 @@ public class KWVCPlayer
     }
 
     @Override
-    public void changeSubtitleLanguage(String languageCode) {
-        // TODO: forward to player
+    public TrackFormat getTrackFormat(TrackType trackType, int index) {
+        return null;
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+
     }
 
     public void savePosition() {
@@ -475,44 +489,6 @@ public class KWVCPlayer
         if(mDrmClient.needToAcquireRights(assetAcquireUri)) {
             mDrmClient.acquireRights(assetAcquireUri, mLicenseUri);
         }
-    }
-
-    @Override
-    public List<String> getTracksList(TrackType trackType) {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public int getTrackCount(TrackType trackType) {
-        return 0;
-    }
-
-    @Override
-    public int getCurrentTrackIndex(TrackType trackType) {
-        return -1;
-    }
-
-    @Override
-    public void switchTrack(TrackType trackType, int newIndex) {
-
-    }
-
-    public com.google.android.exoplayer.MediaFormat getTrackFormat(TrackType trackType, int index){
-        return null;
-    }
-
-    public String getTrackName(com.google.android.exoplayer.MediaFormat format) {
-        return null;
-    }
-
-    @Override
-    public void setCaptionListener(ExoplayerWrapper.CaptionListener listener) {
-
-    }
-
-    @Override
-    public void setMetadataListener(ExoplayerWrapper.Id3MetadataListener listener) {
-
     }
 
     private enum PrepareState {

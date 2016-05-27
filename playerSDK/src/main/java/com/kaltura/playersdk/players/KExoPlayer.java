@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
@@ -30,29 +29,19 @@ import com.google.android.exoplayer.metadata.id3.TxxxFrame;
 import com.google.android.exoplayer.text.CaptionStyleCompat;
 import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.SubtitleLayout;
-import com.google.android.exoplayer.util.MimeTypes;
 import com.google.android.exoplayer.util.Util;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerUtil;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
-import com.kaltura.playersdk.LanguageTrack;
-import com.kaltura.playersdk.QualityTrack;
-import com.kaltura.playersdk.types.TrackType;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -60,7 +49,7 @@ import java.util.UUID;
 /**
  * Created by noamt on 18/01/2016.
  */
-public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener,  ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener {
+public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener ,ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener {
 
     private static final String TAG = "KExoPlayer";
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -81,23 +70,23 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     private SurfaceHolder.Callback mSurfaceCallback;
 
-    public static Set<MediaFormat> supportedFormats(Context context) {
-        Set<MediaFormat> set = new HashSet<>();
+    public static Set<KMediaFormat> supportedFormats(Context context) {
+        Set<KMediaFormat> set = new HashSet<>();
         // Clear dash and mp4 are always supported by this player.
-        set.add(MediaFormat.dash_clear);
-        set.add(MediaFormat.mp4_clear);
-        set.add(MediaFormat.hls_clear);
+        set.add(KMediaFormat.dash_clear);
+        set.add(KMediaFormat.mp4_clear);
+        set.add(KMediaFormat.hls_clear);
 
         // Encrypted dash is only supported in Android v4.3 and up -- needs MediaDrm class.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             // Make sure Widevine is supported.
             if (MediaDrm.isCryptoSchemeSupported(ExoplayerUtil.WIDEVINE_UUID)) {
-                set.add(MediaFormat.dash_widevine);
+                set.add(KMediaFormat.dash_widevine);
             }
         }
         return set;
     }
-    
+
     public KExoPlayer(Context context) {
         super(context);
     }
@@ -109,13 +98,13 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             public void contentCompleted(KPlayer currentPlayer) {}
         };
     }
-    
+
     private KPlayerCallback noopEventListener() {
         return new KPlayerCallback() {
             public void playerStateChanged(int state) {}
         };
     }
-    
+
     // KPlayer implementation
     @Override
     public void setPlayerListener(@NonNull KPlayerListener listener) {
@@ -132,7 +121,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         mSourceURL = playerSource;
         prepare();
     }
-    
+
     private Video.VideoType getVideoType() {
         String videoFileName = Uri.parse(mSourceURL).getLastPathSegment();
         switch (videoFileName.substring(videoFileName.lastIndexOf('.')).toLowerCase()) {
@@ -140,12 +129,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 return Video.VideoType.DASH;
             case ".mp4":
                 return Video.VideoType.MP4;
-            case ".m3u8": 
+            case ".m3u8":
                 return Video.VideoType.HLS;
-            default: 
+            default:
                 return Video.VideoType.OTHER;
         }
-        
+
     }
 
     @Override
@@ -161,20 +150,20 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
 
     private void prepare() {
-        
+
         if (mReadiness != Readiness.Idle) {
             Log.d(TAG, "Already preparing");
             return;
         }
-        
+
         mReadiness = Readiness.Preparing;
-        
+
         mDrmCallback = new KPlayerExoDrmCallback();
         Video video = new Video(mSourceURL, getVideoType());
         final ExoplayerWrapper.RendererBuilder rendererBuilder = RendererBuilderFactory
                 .createRendererBuilder(getContext(), video, mDrmCallback);
-        
-        mSurfaceView = new VideoSurfaceView( getContext() );
+
+        mSurfaceView = new VideoSurfaceView(getContext());
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         if (mExoPlayer == null) {
             mExoPlayer = new ExoplayerWrapper(rendererBuilder);
@@ -182,13 +171,16 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             if (surface != null) {
                 mExoPlayer.setSurface(surface);
             }
-            setCaptionListener(this);
+
+            mExoPlayer.setCaptionListener(this);
+            mExoPlayer.setMetadataListener(this);
+
             configureSubtitleView();
             mExoPlayer.addListener(this);
             mExoPlayer.prepare();
         }
         mSurfaceCallback = new SurfaceHolder.Callback() {
-            
+
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 if (mExoPlayer.getSurface() == null) {
@@ -197,12 +189,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     mExoPlayer.addListener(KExoPlayer.this);
                 }
             }
-            
+
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                 Log.d(TAG, "surfaceChanged(" + format + "," + width + "," + height + ")");
             }
-            
+
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
                 Log.d(TAG, "surfaceDestroyed");
@@ -216,10 +208,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
         this.addView(mSurfaceView, layoutParams);
         mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
-        this.addView(mSubtView,layoutParams);
+        this.addView(mSubtView, layoutParams);
 
     }
-    
+
     @Override
     public void setCurrentPlaybackTime(long time) {
         mSeeking = true;
@@ -251,19 +243,19 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (isPlaying()) {
             return;
         }
-        
+
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
             return;
         }
-        
+
         if (mReadiness == Readiness.Idle) {
             prepare();
             return;
         }
         mPassedPlay = true;
         setPlayWhenReady(true);
-        
+
         if (mSavedState.position != 0) {
             setCurrentPlaybackTime(mSavedState.position);
             mSavedState.position = 0;
@@ -271,7 +263,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
         startPlaybackTimeReporter();
     }
-    
+
     @Override
     public void pause() {
         stopPlaybackTimeReporter();
@@ -279,7 +271,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             setPlayWhenReady(false);
         }
     }
-    
+
     private void startPlaybackTimeReporter() {
         mPlaybackTimeReporter.removeMessages(0); // Stop reporter if already running
         mPlaybackTimeReporter.post(new Runnable() {
@@ -303,11 +295,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (position != 0 && position < getDuration() && isPlaying()) {
             mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(position / 1000f));
         }
-    }
-
-    @Override
-    public void changeSubtitleLanguage(String languageCode) {
-        // TODO
     }
 
     private void saveState() {
@@ -339,7 +326,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         }
         mReadiness = Readiness.Idle;
     }
-    
+
     @Override
     public void recoverPlayer(boolean isPlaying) {
         if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
@@ -378,9 +365,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
         Log.d(TAG, "PlayerStateChanged: " + playbackState);
-        switch ( playbackState ) {
+        switch (playbackState) {
             case ExoPlayer.STATE_IDLE:
-                if ( mSeeking ) {
+                if (mSeeking) {
                     mSeeking = false;
                 }
                 break;
@@ -401,9 +388,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 // ExoPlayer is ready.
                 if (mReadiness != Readiness.Ready) {
                     mReadiness = Readiness.Ready;
-                    sendTracksList(TrackType.TEXT);
-                    sendTracksList(TrackType.AUDIO);
-                    sendTracksList(TrackType.VIDEO);
+
                     // TODO what about mShouldResumePlayback?
                     mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
                     mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
@@ -430,12 +415,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
                     mReadiness = Readiness.Idle;
-                } 
+                }
                 stopPlaybackTimeReporter();
                 break;
         }
     }
-    
+
 
     private void setPlayWhenReady(boolean shouldPlay) {
         if (mExoPlayer != null) {
@@ -475,116 +460,45 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         decoderInitializationException.decoderName;
             }
         }
-        if (!"".equals(errorString)){
+        if (!"".equals(errorString)) {
             Log.e(TAG, errorString);
             errorString += "-";
         }
 
-        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" +  errorString  + e.getMessage());
+        mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" + errorString + e.getMessage());
     }
 
     @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        mSurfaceView.setVideoWidthHeightRatio((float)width / height);
+        mSurfaceView.setVideoWidthHeightRatio((float) width / height);
     }
 
     @Override
-    public List<String> getTracksList(TrackType trackType) {
-        List<String> tracksList = new ArrayList<>();
-        //ExoplayerWrapper.TYPE_AUDIO
-        //ExoplayerWrapper.TYPE_TEXT
-        //ExoplayerWrapper.TYPE_VIDEO
-        int exoTrackType = getExoTrackType(trackType);
-        int trackCount = mExoPlayer.getTrackCount(exoTrackType);
-        //menu.add(MENU_GROUP_TRACKS, DemoPlayer.TRACK_DISABLED + ID_OFFSET, Menu.NONE, R.string.off);
-        for (int i = 0; i < trackCount; i++) {
-            tracksList.add(getTrackName(mExoPlayer.getTrackFormat(exoTrackType, i)));
-        }
-        //menu.findItem(player.getSelectedTrack(trackType) + ID_OFFSET).setChecked(true);
-        return tracksList;
-    }
+    public TrackFormat getTrackFormat(TrackType trackType, int index) {
+        com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(getExoTrackType(trackType), index);
+        return new TrackFormat(trackType, index, mediaFormat);
 
-    private JSONObject getTracksAsJson(TrackType trackType) {
-        JSONObject resultJsonObj = new JSONObject();
-        try {
-            JSONArray tracksJsonArray = new JSONArray();
-            int exoTrackType = getExoTrackType(trackType);
-            int trackCount = mExoPlayer.getTrackCount(exoTrackType);
-            String resultJsonKey = "";
-
-            if (TrackType.VIDEO.equals(trackType)){
-                resultJsonKey = "tracks";
-                List<QualityTrack> qualityTrackList = new ArrayList<>();
-                for (int index = 0; index < trackCount; index++) {
-                    if (TrackType.VIDEO.equals(trackType)) {
-                        com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
-                        if (mediaFormat.bitrate == -1) { //remove track that is not relevant
-                            continue;
-                        }
-                        QualityTrack qualityTrack = new QualityTrack();
-                        qualityTrack.assetId = String.valueOf(index);
-                        qualityTrack.originalIndex = index;
-                        qualityTrack.bandwidth = mediaFormat.bitrate;
-                        qualityTrack.type = mediaFormat.mimeType;
-                        qualityTrack.height = mediaFormat.height;
-                        qualityTrack.width = mediaFormat.width;
-                        qualityTrackList.add(qualityTrack);
-                    }
-                }
-                Collections.sort(qualityTrackList, new Comparator<QualityTrack>() {
-                            @Override
-                            public int compare(QualityTrack lhs, QualityTrack rhs) {
-                                return rhs.bandwidth - lhs.bandwidth;
-                            }
-                        }
-                );
-                for (QualityTrack qt : qualityTrackList){
-                    tracksJsonArray.put(qt.toJSONObject());
-                }
-            }else if (TrackType.TEXT.equals(trackType) || TrackType.AUDIO.equals(trackType)) {
-                    resultJsonKey = "languages";
-                List<LanguageTrack> languageTrackList = new ArrayList<>();
-                for (int index = 0; index < trackCount; index++) {
-                    com.google.android.exoplayer.MediaFormat mediaFormat = mExoPlayer.getTrackFormat(exoTrackType, index);
-                    LanguageTrack languageTrack = new LanguageTrack();
-                    languageTrack.index = index;
-                    languageTrack.kind  = "subtitle"; //"caption"??
-                    languageTrack.title = getTrackName(mExoPlayer.getTrackFormat(exoTrackType, index));
-                    languageTrack.language = languageTrack.title;//trackId;
-                    languageTrack.label    = languageTrack.title;//trackId;
-                    String trackId         = (mediaFormat.trackId != null) ? mediaFormat.trackId: "Auto";
-                    languageTrack.srcLang  = trackId;
-                    languageTrackList.add(languageTrack);
-                }
-                Collections.sort(languageTrackList, new Comparator<LanguageTrack>() {
-                       @Override
-                       public int compare(LanguageTrack lhs, LanguageTrack rhs) {
-                          return lhs.label.compareTo(rhs.label);
-                      }
-
-                    }
-                );
-                for (LanguageTrack lt : languageTrackList){
-                    tracksJsonArray.put(lt.toJSONObject());
-                }
-            }
-            resultJsonObj.put(resultJsonKey, tracksJsonArray);
-        } catch (JSONException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        Log.d(TAG, "Track/Lang JSON Result  " + resultJsonObj.toString());
-        return resultJsonObj;
     }
 
     @Override
     public int getTrackCount(TrackType trackType) {
-        return getTracksList(trackType).size();
+        if (mExoPlayer != null) {
+            return mExoPlayer.getTrackCount(getExoTrackType(trackType));
+        } else {
+            Log.e(TAG, "getTrackCount mExoPlayer = null");
+            return 0;
+        }
+
     }
 
     @Override
     public int getCurrentTrackIndex(TrackType trackType) {
-        return mExoPlayer.getSelectedTrack(getExoTrackType(trackType));
+        if (mExoPlayer != null) {
+            return mExoPlayer.getSelectedTrack(getExoTrackType(trackType));
+        } else {
+            Log.e(TAG, "getCurrentTrackIndex mExoPlayer = null");
+            return -1;
+        }
     }
 
     @Override
@@ -593,14 +507,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (trackType == null){
             return;
         }
-
-        if (isAvailableTracksRelevant(trackType)) {
-            Log.d(TAG, "switchTrack for " + trackType.name() + " index = " + newIndex);
+        if (mExoPlayer != null) {
             mExoPlayer.setSelectedTrack(getExoTrackType(trackType), newIndex);
-        }else{
-            Log.d(TAG, "switchTrack " + trackType.name() +  "skipped Reason: track count  < 2");
+        } else {
+            Log.e(TAG, "switchTrack mExoPlayer = null");
         }
-
     }
 
     private int getExoTrackType(TrackType trackType) {
@@ -617,110 +528,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 break;
         }
         return exoTrackType;
-    }
-
-    public com.google.android.exoplayer.MediaFormat getTrackFormat(TrackType trackType, int index){
-        return mExoPlayer.getTrackFormat(getExoTrackType(trackType), index);
-    }
-
-    public String getTrackName(com.google.android.exoplayer.MediaFormat format) {
-        if (format.adaptive) {
-            return "auto";
-        }
-        String trackName;
-        if (MimeTypes.isVideo(format.mimeType)) {
-            trackName = joinWithSeparator(joinWithSeparator(buildResolutionString(format),
-                    buildBitrateString(format)), buildTrackIdString(format));
-        } else if (MimeTypes.isAudio(format.mimeType)) {
-            trackName = buildTrackIdString(format);
-            if (!"".equals(buildLanguageString(format))){
-                trackName = buildLanguageString(format) + "-" + trackName;
-            }
-            Log.d(TAG, "Full AUDIO Track name = " +joinWithSeparator(joinWithSeparator(joinWithSeparator(buildLanguageString(format),
-                    buildAudioPropertyString(format)), buildBitrateString(format)),
-                    buildTrackIdString(format)));
-        } else {
-            trackName = buildTrackIdString(format);
-            if (!"".equals(buildLanguageString(format))){
-                trackName = buildLanguageString(format) + "-" + trackName;
-            }
-            Log.d(TAG, "Full TEXT CC name = " + joinWithSeparator(joinWithSeparator(buildLanguageString(format),
-                 buildBitrateString(format)), buildTrackIdString(format)));
-        }
-        return trackName.length() == 0 ? "unknown" : trackName;
-    }
-
-    @Override
-    public void setCaptionListener(ExoplayerWrapper.CaptionListener listener) {
-        if (mExoPlayer != null) {
-            mExoPlayer.setCaptionListener(listener);
-        }
-    }
-
-    @Override
-    public void setMetadataListener(ExoplayerWrapper.Id3MetadataListener listener) {
-        mExoPlayer.setMetadataListener(listener);
-    }
-
-    private String buildResolutionString(com.google.android.exoplayer.MediaFormat format) {
-        return format.width == com.google.android.exoplayer.MediaFormat.NO_VALUE || format.height == com.google.android.exoplayer.MediaFormat.NO_VALUE
-                ? "" : format.width + "x" + format.height;
-    }
-
-    private String buildAudioPropertyString(com.google.android.exoplayer.MediaFormat format) {
-        return format.channelCount == com.google.android.exoplayer.MediaFormat.NO_VALUE || format.sampleRate == com.google.android.exoplayer.MediaFormat.NO_VALUE
-                ? "" : format.channelCount + "ch, " + format.sampleRate + "Hz";
-    }
-
-    private String buildLanguageString(com.google.android.exoplayer.MediaFormat format) {
-        return TextUtils.isEmpty(format.language) || "und".equals(format.language) ? ""
-                : format.language;
-    }
-
-    private static String buildBitrateString(com.google.android.exoplayer.MediaFormat format) {
-        return format.bitrate == com.google.android.exoplayer.MediaFormat.NO_VALUE ? ""
-                : String.format(Locale.US, "%.2fMbit", format.bitrate / 1000000f);
-    }
-
-    private String joinWithSeparator(String first, String second) {
-        return first.length() == 0 ? second : (second.length() == 0 ? first : first + ", " + second);
-    }
-
-    private String buildTrackIdString(com.google.android.exoplayer.MediaFormat format) {
-        return format.trackId == null ? "" : format.trackId;
-    }
-
-    private void sendTracksList(TrackType trackType) {
-        //if (!isAvailableTracksRelevant(trackType)){ // need to decide if web should handle the data we have alone of we should help ...
-        //    return;
-        //}
-
-        Log.d(TAG, "sendTracksList with:" + trackType);
-        switch(trackType) {
-            case AUDIO:
-                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.AudioTracksReceivedKey, getTracksAsJson(TrackType.AUDIO).toString());
-                break;
-            case TEXT:
-                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.TextTracksReceivedKey,  getTracksAsJson(TrackType.TEXT).toString());
-                break;
-            case VIDEO:
-                mPlayerListener.eventWithJSON(KExoPlayer.this, KPlayerListener.FlavorsListChangedKey,  getTracksAsJson(TrackType.VIDEO).toString());
-                break;
-        }
-    }
-
-    private boolean isAvailableTracksRelevant(TrackType trackType){
-        int tracksCount = getTrackCount(trackType);
-        Log.d(TAG, "isAvailableTracksRelevant trackType = " + trackType + ", tracksCount = " + tracksCount);
-        if (tracksCount > 1){
-            return true;
-        } else if (tracksCount == 1) {
-            Log.d(TAG, "Single Track is " + getTracksList(trackType).get(0));
-            if (!getTracksList(trackType).get(0).contains("auto") && !getTracksList(trackType).get(0).contains("Auto")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -784,6 +591,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 (CaptioningManager) getContext().getSystemService(Context.CAPTIONING_SERVICE);
         return CaptionStyleCompat.createFromCaptionStyle(captioningManager.getUserStyle());
     }
+
     // Utility classes
     private enum Readiness {
         Idle,

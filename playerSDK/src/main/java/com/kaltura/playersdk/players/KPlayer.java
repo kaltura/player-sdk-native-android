@@ -1,11 +1,12 @@
 package com.kaltura.playersdk.players;
 
-import com.kaltura.playersdk.KTrackActions;
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 
 /**
  * Created by noamt on 07/02/2016.
  */
-public interface KPlayer extends KTrackActions {
+public interface KPlayer {
 
     void setPlayerListener(KPlayerListener listener);
 
@@ -23,8 +24,6 @@ public interface KPlayer extends KTrackActions {
 
     void pause();
 
-    void changeSubtitleLanguage(String languageCode);
-
     void freezePlayer();
 
     void removePlayer();
@@ -38,4 +37,12 @@ public interface KPlayer extends KTrackActions {
     boolean isPlaying();
 
     void switchToLive();
+
+    TrackFormat getTrackFormat(TrackType trackType, int index);
+
+    int getTrackCount(TrackType trackType);
+
+    int getCurrentTrackIndex(TrackType trackType);
+
+    void switchTrack(TrackType trackType, int newIndex);
 }

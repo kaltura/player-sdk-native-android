@@ -30,12 +30,13 @@ import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.players.KMediaFormat;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
-import com.kaltura.playersdk.players.MediaFormat;
+import com.kaltura.playersdk.tracks.KTrackActions;
+import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.types.KPError;
-import com.kaltura.playersdk.types.TrackType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -178,10 +179,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         super(context);
     }
 
-
-
-
-
     public PlayerViewController(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -195,8 +192,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         return playerController;
     }
 
-    public KTrackActions getTracks(){
-        return playerController.getPlayer();
+    public KTrackActions getTrackManager(){
+        return playerController.getTracksManager();
     }
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
@@ -397,7 +394,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
         return new Point(realWidth,realHeight);
     }
-
 
     /**
      * Sets the player's dimensions. Should be called for any player redraw
@@ -681,8 +677,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
         Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
+        KPlayerState kState = KPlayerState.getStateForEventName(eventName);
         if (eventListeners != null) {
-            KPlayerState kState = KPlayerState.getStateForEventName(eventName);
             for (KPEventListener listener : eventListeners) {
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
                     if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
@@ -913,13 +909,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             return;
         }
         if ("Off".equalsIgnoreCase(languageId)){
-            getTracks().switchTrack(TrackType.TEXT,-1);
+            getTrackManager().switchTrack(TrackType.TEXT,-1);
             return;
         }
-        for (int index = 0 ; index < getTracks().getTracksList(TrackType.TEXT).size() ; index++) {
-            Log.d(TAG, "<" + getTracks().getTracksList(TrackType.TEXT).get(index) + ">/<" + languageId + ">");
-            if ((getTracks().getTracksList(TrackType.TEXT).get(index)).equals(languageId)){
-                getTracks().switchTrack(TrackType.TEXT,index);
+        for (int index = 0 ; index < getTrackManager().getTextTrackList().size() ; index++) {
+            Log.d(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + languageId + ">");
+            if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(languageId)){
+                getTrackManager().switchTrack(TrackType.TEXT,index);
                 return;
             }
         }
@@ -933,8 +929,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             Log.e(TAG, "switchTrack " + trackType.name() + " failed parsing index, ignoring request" + index);
             return;
         }
+        getTrackManager().switchTrack(trackType, trackIndex);
+    }
 
-        getTracks().switchTrack(trackType, trackIndex);
+    public void setTracksEventListener(KTrackActions.EventListener tracksEventListener){
+        playerController.setTracksEventListener(tracksEventListener);
     }
 
     private void notifyJsReady() {
@@ -1031,12 +1030,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
 
     private String buildSupportedMediaFormats() {
-        Set<MediaFormat> supportedFormats = KPlayerController.supportedFormats(getContext());
+        Set<KMediaFormat> supportedFormats = KPlayerController.supportedFormats(getContext());
 
         Set<String> drmTypes = new HashSet<>();
         Set<String> allTypes = new HashSet<>();
 
-        for (MediaFormat format : supportedFormats) {
+        for (KMediaFormat format : supportedFormats) {
             if (format.drm != null) {
                 drmTypes.add(format.shortName);
             }
