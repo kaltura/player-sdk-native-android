@@ -152,6 +152,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
             if (!isCasting) {
                 player.play();
+                if (isBackgrounded) {
+                    player.pause();
+                    isPlaying = true;
+                }
             } else {
                 castPlayer.play();
             }
