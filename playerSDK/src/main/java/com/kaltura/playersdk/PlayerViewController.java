@@ -677,17 +677,17 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
             KPlayerState kState = KPlayerState.getStateForEventName(eventName);
+            if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
+                isMediaChanged = false;
+                play();
+            }
             for (KPEventListener listener : eventListeners) {
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
-                    if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
-                        isMediaChanged = false;
-                        play();
-                    }
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
                 } else if (event.isEnded()) {
-                    contentCompleted(player);
+                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
                 }
             }
         }
@@ -696,17 +696,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
-        Log.d("EventWithJSON", "Name: " + eventName + " Value: " + jsonValue);
         this.mWebView.triggerEventWithJSON(eventName, jsonValue);
-    }
-
-    @Override
-    public void contentCompleted(KPlayer currentPlayer) {
-        if (eventListeners != null) {
-            for (KPEventListener listener: eventListeners) {
-                listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-            }
-        }
     }
 
     private void play() {
@@ -851,9 +841,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
-//                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
-                    Log.d(TAG, "chromecast.initialize:" +  attributeValue);
                     break;
                 case playerError:
                     if (eventListeners != null) {
