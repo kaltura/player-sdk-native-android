@@ -374,9 +374,7 @@ public class KWVCPlayer
                 String errMsg = "VideoView:onError";
                 Log.e(TAG, errMsg);
                 mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
-
-                // TODO
-                return false;
+                return true; // prevents the VideoView error popups
             }
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -384,7 +382,6 @@ public class KWVCPlayer
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
                     Log.i(TAG, "onInfo(" + what + "," + extra + ")");
-                    // TODO
                     return false;
                 }
             });
