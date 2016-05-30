@@ -15,3 +15,6 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+-keep public class com.kaltura.playersdk.KControlsView { *; }
+-keep public class com.kaltura.playersdk.PlayerViewController { *; }
+-keep interface com.kaltura.playersdk.** { *; }
