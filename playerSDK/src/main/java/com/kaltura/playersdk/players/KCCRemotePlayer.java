@@ -222,6 +222,16 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
+    public PlayerStatus getSavedState() {
+        return null;
+    }
+
+    @Override
+    public void setSavedState(PlayerStatus savedState) {
+
+    }
+
+    @Override
     public void changeSubtitleLanguage(String languageCode) {
 
     }

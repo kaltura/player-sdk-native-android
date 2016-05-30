@@ -38,7 +38,7 @@ public class KWVCPlayer
     private boolean mShouldPlayWhenReady;
     @Nullable private PlayheadTracker mPlayheadTracker;
     private PrepareState mPrepareState;
-    @NonNull private PlayerState mSavedState;
+    @NonNull private PlayerStatus mSavedState;
     
     public static Set<MediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
@@ -56,7 +56,7 @@ public class KWVCPlayer
         super(context);
         mDrmClient = new WidevineDrmClient(context);
         
-        mSavedState = new PlayerState();
+        mSavedState = new PlayerStatus();
         
         // Set no-op listeners so we don't have to check for null on use
         setPlayerListener(null);
@@ -184,6 +184,16 @@ public class KWVCPlayer
         }
     }
 
+    @Override
+    public PlayerStatus getSavedState() {
+        return mSavedState;
+    }
+
+    @Override
+    public void setSavedState(PlayerStatus savedState) {
+        mSavedState.set(savedState.isPlaying(), savedState.getPosition());
+    }
+
     private void changePlayPauseState(final String state) {
         if (mPlayer == null || state == null) {
             return;
@@ -248,9 +258,11 @@ public class KWVCPlayer
     }
 
     private void recoverPlayerState() {
-        mPlayer.seekTo(mSavedState.position);
-        if (mSavedState.playing) {
-            play();
+        if (mPlayer != null) {
+            mPlayer.seekTo((int)mSavedState.getPosition());
+            if (mSavedState.isPlaying()) {
+                play();
+            }
         }
     }
 
@@ -368,9 +380,9 @@ public class KWVCPlayer
                     }
                 });
 
-                if (mSavedState.playing) {
+                if (mSavedState.isPlaying()) {
                     // we were already playing, so just resume playback from the saved position
-                    mPlayer.seekTo(mSavedState.position);
+                    mPlayer.seekTo((int)mSavedState.getPosition());
                     play();
                 } else {
                     mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
@@ -389,22 +401,8 @@ public class KWVCPlayer
         mDrmClient.acquireRights(widevineUri, mLicenseUri);
     }
 
-    private enum PrepareState {
-        NotPrepared,
-        Preparing,
-        Prepared
-    }
-    
-    private class PlayerState {
-        boolean playing;
-        int position;
-        
-        void set(boolean playing, int position) {
-            this.playing = playing;
-            this.position = position;
-        }
-    }
-    
+
+
     class PlayheadTracker {
         Handler mHandler;
         Runnable mRunnable = new Runnable() {

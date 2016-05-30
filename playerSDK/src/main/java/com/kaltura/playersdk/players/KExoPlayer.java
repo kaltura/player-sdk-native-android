@@ -39,7 +39,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
     @NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
     @NonNull private KPlayerCallback mPlayerCallback = noopEventListener();
-    @NonNull private PlayerState mSavedState = new PlayerState();
+    @NonNull private PlayerStatus mSavedState = new PlayerStatus();
     @NonNull private Handler mPlaybackTimeReporter = new Handler(Looper.getMainLooper());
     private String mSourceURL;
     private boolean mShouldCancelPlay;
@@ -131,6 +131,16 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
 
+    @NonNull
+    @Override
+    public PlayerStatus getSavedState() {
+        return mSavedState;
+    }
+
+    @Override
+    public void setSavedState(@NonNull PlayerStatus savedState) {
+        this.mSavedState = savedState;
+    }
 
     private void prepare() {
         
@@ -259,9 +269,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         mPassedPlay = true;
         setPlayWhenReady(true);
         
-        if (mSavedState.position != 0) {
-            setCurrentPlaybackTime(mSavedState.position);
-            mSavedState.position = 0;
+        if (mSavedState.getPosition() != 0) {
+            setCurrentPlaybackTime(mSavedState.getPosition());
+            mSavedState.setPosition(0);
         }
 
         startPlaybackTimeReporter();
@@ -359,8 +369,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
     private void recoverPlayerState() {
-        setCurrentPlaybackTime(mSavedState.position);
-        if (mSavedState.playing) {
+        setCurrentPlaybackTime(mSavedState.getPosition());
+        if (mSavedState.isPlaying()) {
             play();
         }
     }
@@ -456,16 +466,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         Idle,
         Preparing,
         Ready
-    }
-
-    private class PlayerState {
-        boolean playing;
-        long position;
-
-        void set(boolean playing, long position) {
-            this.playing = playing;
-            this.position = position;
-        }
     }
 }
 

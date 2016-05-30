@@ -116,14 +116,23 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             imaManager.resume();
             return;
         }
+
         if (isIMAActive) {
             return;
         }
+
+        if (player.getSavedState().getPreviousState() == PlayerStates.BACKGROUND && !player.getSavedState().isPlaying()) {
+            player.getSavedState().setPlaying(isPlaying);
+            player.getSavedState().setPreviousState((isPlaying) ? PlayerStates.PLAY : PlayerStates.PAUSE);
+            return;
+        }
+
         if (!isCasting) {
             player.play();
             if (isBackgrounded){
                 player.pause();
                 isPlaying = true;
+                getPlayer().getSavedState().setPlaying(isPlaying);
             }
         } else {
             castPlayer.play();
@@ -194,6 +203,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void savePlayerState() {
         if (player != null) {
             isPlaying = player.isPlaying();
+            getPlayer().getSavedState().setPlaying(isPlaying);
+            player.getSavedState().setPreviousState((isPlaying) ? PlayerStates.PLAY : PlayerStates.PAUSE);
+            player.getSavedState().setCurrentState(PlayerStates.BACKGROUND);
             pause();
         } else {
             isPlaying = false;
@@ -201,6 +213,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void recoverPlayerState() {
+        player.getSavedState().setCurrentState((isPlaying) ? PlayerStates.PLAY : PlayerStates.PAUSE);
+        player.getSavedState().setPreviousState(PlayerStates.BACKGROUND);
         if (isPlaying) {
             if (isIMAActive && imaManager != null) {
                 imaManager.resume();
@@ -217,6 +231,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 savePlayerState();
             }
             pause();
+            player.getSavedState().setPreviousState((isPlaying) ? PlayerStates.PLAY : PlayerStates.PAUSE);
+            player.getSavedState().setCurrentState(PlayerStates.BACKGROUND);
             player.freezePlayer();
         }
     }
@@ -227,6 +243,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             imaManager.resume();
         }
         if (player != null) {
+            player.getSavedState().setCurrentState((isPlaying) ? PlayerStates.PLAY : PlayerStates.PAUSE);
+            player.getSavedState().setPreviousState(PlayerStates.BACKGROUND);
             player.recoverPlayer();
             recoverPlayerState();
         }

@@ -21,6 +21,10 @@ public interface KPlayer {
 
     void pause();
 
+    PlayerStatus getSavedState();
+
+    void setSavedState(PlayerStatus savedState);
+
     void changeSubtitleLanguage(String languageCode);
 
     void freezePlayer();
