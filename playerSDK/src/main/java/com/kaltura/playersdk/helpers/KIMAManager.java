@@ -19,7 +19,6 @@ import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
-import com.kaltura.playersdk.players.KPlayerListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -91,14 +90,18 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 //        if (mIMAPlayer != null) {
 //            mIMAPlayer.pause();
 //        }
-        mAdsManager.pause();
+        if (mAdsManager != null) {
+            mAdsManager.pause();
+        }
     }
 
     public void resume() {
 //        if (mIMAPlayer != null) {
 //            mIMAPlayer.resume();
 //        }
-        mAdsManager.resume();
+        if (mAdsManager != null) {
+            mAdsManager.resume();
+        }
     }
 
     /**
