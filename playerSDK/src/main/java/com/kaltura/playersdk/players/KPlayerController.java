@@ -98,6 +98,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         removeAdPlayer();
         ((View)player).setVisibility(View.VISIBLE);
         isIMAActive = false;
+        player.setShouldCancelPlay(false);
         player.play();
     }
 
