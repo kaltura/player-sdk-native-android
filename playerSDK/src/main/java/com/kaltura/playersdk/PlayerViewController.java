@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -16,6 +17,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -25,7 +27,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.cast.KRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
@@ -75,6 +81,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
+
+    private KPErrorEventListener               mOnKPErrorEventListener;
+    private KPFullScreenToggeledEventListener  mOnKPFullScreenToggeledEventListener;
+    private KPStateChangedEventListener        mOnKPStateChangedEventListener;
+    private KPPlayheadUpdateEventListener      mOnKPPlayheadUpdateEventListener;
+
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
     private boolean isMediaChanged = false;
@@ -210,11 +222,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                         listener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
                     }
                 }
+                if (mOnKPStateChangedEventListener != null) {
+                         mOnKPStateChangedEventListener.onKPlayerStateChanged(PlayerViewController.this, KPlayerState.LOADED);
+                }
             }
         });
         mActivity = activity;
     }
 
+    @Deprecated
     public void addEventListener(KPEventListener listener) {
         if (listener != null) {
             if (eventListeners == null) {
@@ -222,6 +238,22 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
             eventListeners.add(listener);
         }
+    }
+
+    public void setOnKPErrorEventListener(KPErrorEventListener kpErrorEventListener) {
+          mOnKPErrorEventListener = kpErrorEventListener;
+    }
+
+    public void setOnKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
+          mOnKPFullScreenToggeledEventListener = kpFullScreenToggeledEventListener;
+    }
+
+    public void setOnKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
+          mOnKPStateChangedEventListener = kpStateChangedEventListener;
+    }
+
+    public void setOnKPPlayheadUpdateEventListener(KPPlayheadUpdateEventListener kpPlayheadUpdateEventListener) {
+          mOnKPPlayheadUpdateEventListener = kpPlayheadUpdateEventListener;
     }
 
     public KPPlayerConfig getConfig() {
@@ -260,6 +292,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    @Deprecated
     public void removeEventListener(KPEventListener listener) {
         if (listener != null && eventListeners != null && eventListeners.contains(listener)) {
             eventListeners.remove(listener);
@@ -675,22 +708,50 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void eventWithValue(KPlayer player, String eventName, String eventValue) {
         Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
+        KPlayerState kState = KPlayerState.getStateForEventName(eventName);
+        if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
+            isMediaChanged = false;
+            play();
+        }
+        if (kState == KPlayerState.SEEKED && shouldReplay) {
+            shouldReplay = false;
+            play();
+        }
         if (eventListeners != null) {
-            KPlayerState kState = KPlayerState.getStateForEventName(eventName);
-            if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
-                isMediaChanged = false;
-                play();
-            }
+//<<<<<<< HEAD
+//            KPlayerState kState = KPlayerState.getStateForEventName(eventName);
+//            if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
+//                isMediaChanged = false;
+//                play();
+//            }
+//=======
+//>>>>>>> FEM-471-New
             for (KPEventListener listener : eventListeners) {
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
-                } else if (event.isEnded()) {
-                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
+//<<<<<<< HEAD
+//                } else if (event.isEnded()) {
+//                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
+//=======
+//>>>>>>> FEM-471-New
                 }
             }
         }
+
+        if (mOnKPStateChangedEventListener != null) {
+          if (!KPlayerState.UNKNOWN.equals(kState)) {
+                    mOnKPStateChangedEventListener.onKPlayerStateChanged(this, kState);
+          }
+        }
+
+        if (mOnKPPlayheadUpdateEventListener != null) {
+            if (event.isTimeUpdate()) {
+                mOnKPPlayheadUpdateEventListener.onKPlayerPlayheadUpdate(this, (long) (Float.parseFloat(eventValue) * 1000));
+            }
+        }
+
         this.mWebView.triggerEvent(eventName, eventValue);
     }
 
@@ -806,14 +867,17 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
                     this.playerController.setSrc(attributeValue);
                     if (mConfig.getMediaPlayFrom() > 0) {
-                        playerController.setCurrentPlaybackTime((float)mConfig.getMediaPlayFrom());
+                        playerController.setCurrentPlaybackTime((float) mConfig.getMediaPlayFrom());
                     }
                     break;
                 case currentTime:
                     if (eventListeners != null) {
-                        for (KPEventListener listener: eventListeners) {
+                        for (KPEventListener listener : eventListeners) {
                             listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                         }
+                    }
+                    if (mOnKPStateChangedEventListener != null) {
+                             mOnKPStateChangedEventListener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                     }
                     float time = Float.parseFloat(attributeValue);
                     this.playerController.setCurrentPlaybackTime(time);
@@ -842,20 +906,28 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     break;
                 case chromecastAppId:
                     getRouterManager().initialize(attributeValue);
+//<<<<<<< HEAD
+//=======
+                    Log.d(TAG, "chromecast.initialize:" + attributeValue);
+//>>>>>>> FEM-471-New
                     break;
                 case playerError:
-                    if (eventListeners != null) {
-                        sendOnKPlayerError(attributeValue);
-                    }
+                    sendOnKPlayerError(attributeValue);
                     break;
             }
         }
     }
 
+
     private void sendOnKPlayerError(String attributeValue) {
-        for (KPEventListener listener: eventListeners) {
-            Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
-            listener.onKPlayerError(this, new KPError(attributeValue));
+        if (eventListeners != null) {
+            for (KPEventListener listener : eventListeners) {
+                Log.d(TAG, "sendOnKPlayerError:" + attributeValue);
+                listener.onKPlayerError(this, new KPError(attributeValue));
+            }
+        }
+        if (mOnKPErrorEventListener != null){
+                mOnKPErrorEventListener.onKPlayerError(this, new KPError(attributeValue));
         }
     }
 
@@ -925,7 +997,51 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 listener.onKPlayerFullScreenToggeled(this, isFullScreen);
             }
         }
+        if (mOnKPFullScreenToggeledEventListener != null) {
+            mOnKPFullScreenToggeledEventListener.onKPlayerFullScreenToggeled(this, isFullScreen);
+        }
+
+        if (eventListeners == null && mOnKPFullScreenToggeledEventListener == null) {
+            defaultFullscreenToggle();
+        }
     }
+
+
+    private void defaultFullscreenToggle() {
+
+        int uiOptions = mActivity.getWindow().getDecorView().getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+        if (isFullScreen) {
+            Log.d(TAG,"Set to onOpenFullScreen");
+            sendNotification("onOpenFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+            }else{
+                mActivity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            ((AppCompatActivity) mActivity).getSupportActionBar().hide();
+        } else {
+            Log.d(TAG,"Set to onCloseFullScreen");
+            sendNotification("onCloseFullScreen", null);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }else{
+                mActivity.getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            ((AppCompatActivity) mActivity).getSupportActionBar().show();
+        }
+        // set landscape
+        // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        // else activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+    }
+
 
     private void showChromecastDeviceList() {
         if(!mActivity.isFinishing() && getRouterManager().getAppListener() != null) {

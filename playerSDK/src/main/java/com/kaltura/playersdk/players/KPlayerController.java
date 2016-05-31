@@ -212,7 +212,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public boolean isPlaying() {
-        return player != null &&  player.isPlaying();
+//<<<<<<< HEAD
+//        return player != null &&  player.isPlaying();
+//=======
+        return player != null && player.isPlaying();
+//>>>>>>> FEM-471-New
     }
 
     @Override

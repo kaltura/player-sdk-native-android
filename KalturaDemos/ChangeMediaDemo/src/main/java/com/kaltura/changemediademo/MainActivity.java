@@ -82,11 +82,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.e(TAG, "Error Received:" + error.getErrorMsg());
-    }
-
-    @Override
     public void postMediaId(String mediaId) {
         getSupportFragmentManager().popBackStack();
         chooseMediaButton.setVisibility(View.INVISIBLE);
@@ -247,5 +242,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
 
+    }
+
+    @Override
+    public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
+        Log.e(TAG, "Error Received:" + error.getErrorMsg());
     }
 }
