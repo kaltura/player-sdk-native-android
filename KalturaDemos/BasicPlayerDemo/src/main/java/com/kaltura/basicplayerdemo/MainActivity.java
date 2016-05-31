@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button ccButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
-    private boolean onCreate = false;
+    private boolean onCreate = true;
     private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
     private boolean isCCActive = false;
     @Override
@@ -168,11 +168,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onResume() {
+
+        if (!onCreate && mPlayer != null) {
+            mPlayer.resumePlayer();
+        }
         if (onCreate) {
             onCreate = false;
-        }
-        if (mPlayer != null) {
-            mPlayer.resumePlayer();
         }
         super.onResume();
     }

@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
@@ -22,6 +23,7 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
+import com.kaltura.playersdk.Utilities;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -383,7 +385,17 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
                 if (mPassedPlay && playWhenReady) {
                     mPassedPlay = false;
+                    PowerManager powerManager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+                    boolean isScreenOn = powerManager.isScreenOn();
+
                     mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+
+                    //in case we are in buffering and go to background then pause the background flow
+                    boolean isBackgrounded  = Utilities.isApplicationSentToBackground(getContext()) ||
+                                               Utilities.isBackgroundedDueToPowerButton(getContext());
+                    if (isBackgrounded) {
+                        mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
+                    }
                 }
                 break;
 

@@ -150,9 +150,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             if (isIMAActive) {
                 return;
             }
-            if (!isCasting) {
+            if (!isCasting && player != null) {
                 player.play();
-            } else {
+            } else if (castPlayer != null){
                 castPlayer.play();
             }
         }
@@ -455,6 +455,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public float getCurrentPlaybackTime() {
+        if (this.player == null){
+            return 0f;
+        }
         return this.player.getCurrentPlaybackTime() / 1000f;
     }
 
