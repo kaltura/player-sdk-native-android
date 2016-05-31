@@ -3,7 +3,7 @@ package com.kaltura.playersdk.casting;
 /**
  * Created by nissimpardo on 18/11/15.
  */
-public class KRouterInfo {
+public class KCastDevice {
     private String routerName;
     private String routerId;
 

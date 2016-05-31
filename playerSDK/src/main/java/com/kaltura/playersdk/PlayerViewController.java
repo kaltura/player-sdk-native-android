@@ -23,13 +23,16 @@ import android.widget.RelativeLayout;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.cast.KRouterManager;
+import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.casting.KCastRouterManager;
-import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.interfaces.ScanCastDeviceListener;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
@@ -81,9 +84,38 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private boolean shouldReplay = false;
 
     private KRouterManager routerManager;
+    private KCastProvider mCastProvider;
 
 
+    public static KCastProvider createCastProvider() {
+        return new KCastProviderImpl();
+    }
 
+    public void setCastProvider(KCastProvider castProvider) {
+        mCastProvider = castProvider;
+        ((KCastProviderImpl)castProvider).setScanCastDeviceListener(new ScanCastDeviceListener() {
+            @Override
+            public void onDisconnectCastDevice() {
+                mWebView.triggerEvent("chromecastDeviceDisConnected", null);
+                playerController.removeCastPlayer();
+            }
+
+            @Override
+            public void onConnecting() {
+                mWebView.triggerEvent("chromecastShowConnectingMsg", null);
+            }
+
+            @Override
+            public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
+                mWebView.triggerEvent("chromecastDeviceConnected", null);
+            }
+
+            @Override
+            public void onDevicesInRange(boolean foundDevices) {
+                setKDPAttribute("chromecast", "visible", foundDevices ? "true" : "false");
+            }
+        });
+    }
     /// KCastKalturaChannel Listener
     @Override
     public void onDeviceSelected(CastDevice castDeviceSelected) {
@@ -97,7 +129,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     @Override
-    public void onRouteAdded(boolean isAdded, KRouterInfo route) {
+    public void onRouteAdded(boolean isAdded, KCastDevice route) {
         if (getRouterManager().getAppListener() != null) {
             if (isAdded) {
                 getRouterManager().getAppListener().onAddedCastDevice(route);
@@ -841,7 +873,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
-                    getRouterManager().initialize(attributeValue);
+//                    getRouterManager().initialize(attributeValue);
                     break;
                 case playerError:
                     if (eventListeners != null) {

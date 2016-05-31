@@ -1,5 +1,6 @@
 package com.kaltura.basicplayerdemo;
 
+import android.app.ActionBar;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -7,20 +8,24 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.MediaRouteButton;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.casting.KCastRouterManagerListener;
-import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.types.KPError;
 
 import java.util.ArrayList;
@@ -33,9 +38,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
-    private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
+    private ArrayList<KCastDevice> mRouterInfos = new ArrayList<>();
     private boolean isCCActive = false;
     private Button ccButton;
+    private ImageButton mMediaRouteButtonDiscon;
+    private ImageButton mMediaRouteButtonCon;
+    KCastProvider mCastProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +54,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
+
+        android.support.v7.app.ActionBar mActionBar = getSupportActionBar();
+        mActionBar.setDisplayShowHomeEnabled(false);
+        mActionBar.setDisplayShowTitleEnabled(false);
+        LayoutInflater mInflater = LayoutInflater.from(this);
+
+        View mCustomView = mInflater.inflate(R.layout.action_bar, null);
+        mMediaRouteButtonDiscon = (ImageButton) mCustomView.findViewById(R.id.route_button_discon);
+        mMediaRouteButtonDiscon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presentCCDevices();
+            }
+        });
+
+        mMediaRouteButtonCon = (ImageButton)mCustomView.findViewById(R.id.route_button_con);
+        mMediaRouteButtonCon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCastProvider.disconnectFromDevcie();
+            }
+        });
+        mActionBar.setCustomView(mCustomView);
+        mActionBar.setDisplayShowCustomEnabled(true);
 
         mPlayPauseButton = (Button)findViewById(R.id.button);
         mPlayPauseButton.setOnClickListener(this);
@@ -62,11 +94,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ccButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                presentCCDevices();
+//                presentCCDevices();
+                startCC();
             }
         });
         onCreate = true;
-        getPlayer();
+//        getPlayer();
+
+    }
+
+
+    private void startCC() {
+
+        mCastProvider = PlayerViewController.createCastProvider();
+        mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
+            @Override
+            public void onDeviceCameOnline(KCastDevice device) {
+                mRouterInfos.add(device);
+                if (mMediaRouteButtonDiscon.getVisibility() == View.INVISIBLE && mRouterInfos.size() > 0) {
+                    mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onDeviceWentOffline(KCastDevice device) {
+                mRouterInfos.remove(device);
+                if (mRouterInfos.size() == 0) {
+                    mMediaRouteButtonDiscon.setVisibility(View.INVISIBLE);
+                }
+            }
+
+            @Override
+            public void onDeviceConnected() {
+                mMediaRouteButtonDiscon.setVisibility(View.INVISIBLE);
+                mMediaRouteButtonCon.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onDeviceDisconnected() {
+                mRouterInfos.clear();
+                mCastProvider.startScan(getApplicationContext(), "C43947A1");
+                mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
+                mMediaRouteButtonCon.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onDeviceFailedToConnect(KPError error) {
+
+            }
+
+            @Override
+            public void onDeviceFailedToDisconnect(KPError error) {
+
+            }
+        });
+        mCastProvider.startScan(getApplicationContext(), "C43947A1");
     }
 
     private PlayerViewController getPlayer() {
@@ -81,44 +163,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.addConfig("chromecast.applicationID", "5247861F");
             config.addConfig("chromecast.useKalturaPlayer", "true");
             config.addConfig("chromecast.receiverLogo", "true");
-            mPlayer.getKCastRouterManager().enableKalturaCastButton(false);
-            mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "someId", new PlayerViewController.EventListener() {
-                @Override
-                public void handler(String eventName, String params) {
-                    Log.d(TAG, eventName);
-                }
-            });
-            mPlayer.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
-                @Override
-                public void onCastButtonClicked() {
-                    if (!isCCActive) {
-                        presentCCDevices();
-                    } else {
-                        mPlayer.getKCastRouterManager().disconnect();
-                    }
-                }
+//            mPlayer.getKCastRouterManager().enableKalturaCastButton(false);
+//            mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "someId", new PlayerViewController.EventListener() {
+//                @Override
+//                public void handler(String eventName, String params) {
+//                    Log.d(TAG, eventName);
+//                }
+//            });
+//            mPlayer.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
+//                @Override
+//                public void onCastButtonClicked() {
+//                    if (!isCCActive) {
+//                        presentCCDevices();
+//                    } else {
+//                        mPlayer.getKCastRouterManager().disconnect();
+//                    }
+//                }
+//
+//                @Override
+//                public void onApplicationStatusChanged(boolean isConnected) {
+//                    isCCActive = isConnected;
+//                }
+//
+//                @Override
+//                public void shouldPresentCastIcon(boolean didDetect) {
+//                    ccButton.setVisibility(View.VISIBLE);
+//                }
+//
+//                @Override
+//                public void onAddedCastDevice(KCastDevice info) {
+//                    mRouterInfos.add(info);
+//                }
+//
+//                @Override
+//                public void onRemovedCastDevice(KCastDevice info) {
+//                    mRouterInfos.remove(info);
+//                }
+//            });
 
-                @Override
-                public void onApplicationStatusChanged(boolean isConnected) {
-                    isCCActive = isConnected;
-                }
 
-                @Override
-                public void shouldPresentCastIcon(boolean didDetect) {
-                    ccButton.setVisibility(View.VISIBLE);
-                }
-
-                @Override
-                public void onAddedCastDevice(KRouterInfo info) {
-                    mRouterInfos.add(info);
-                }
-
-                @Override
-                public void onRemovedCastDevice(KRouterInfo info) {
-                    mRouterInfos.remove(info);
-                }
-            });
             mPlayer.initWithConfiguration(config);
+            if (mCastProvider != null) {
+                mPlayer.setCastProvider(mCastProvider);
+            }
             mPlayer.addEventListener(this);
         }
         return mPlayer;
@@ -135,7 +222,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(DialogInterface dialog, int item) {
                 // Do something with the selection
 //                mDoneButton.setText(items[item]);
-                mPlayer.getKCastRouterManager().connectDevice(mRouterInfos.get(item).getRouterId());
+                mCastProvider.connectToDevice(mRouterInfos.get(item));
+                getPlayer();
+//                mPlayer.getKCastRouterManager().connectDevice(mRouterInfos.get(item).getRouterId());
             }
         });
         AlertDialog alert = builder.create();
