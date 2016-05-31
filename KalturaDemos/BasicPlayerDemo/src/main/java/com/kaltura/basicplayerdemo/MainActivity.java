@@ -8,10 +8,13 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
@@ -23,21 +26,40 @@ import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.tracks.KTrackActions;
+import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, /*KPFullScreenToggeledEventListener,*/ KPPlayheadUpdateEventListener,KPErrorEventListener,KPStateChangedEventListener {
+//<<<<<<< HEAD
+//public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, /*KPFullScreenToggeledEventListener,*/ KPPlayheadUpdateEventListener,KPErrorEventListener,KPStateChangedEventListener {
+//=======
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KTrackActions.EventListener, KPErrorEventListener, KPPlayheadUpdateEventListener, KPStateChangedEventListener {
+//>>>>>>> FEM-385_Tracks
     private static final String TAG = "BasicPlayerDemo";
+
+    private static final int MENU_GROUP_TRACKS = 1;
+    private static final int TRACK_DISABLED = -1;
+    private static final int ID_OFFSET = 2;
+
     private Button mPlayPauseButton;
-    private Button ccButton;
+//    private Button ccButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
     private ArrayList<KRouterInfo> mRouterInfos = new ArrayList<>();
     private boolean isCCActive = false;
+
+    private Button ccButton;
+    private boolean enableBackgroundAudio;
+    private Button videoButton;
+    private Button audioButton;
+    private Button textButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +70,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
+        videoButton = (Button) findViewById(R.id.video_controls);
+        audioButton = (Button) findViewById(R.id.audio_controls);
+        textButton = (Button) findViewById(R.id.text_controls);
         mPlayPauseButton = (Button)findViewById(R.id.button);
         mPlayPauseButton.setOnClickListener(this);
         mPlayPauseButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -75,20 +100,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
+
             KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-            config.setAutoPlay(true);
+            //KPPlayerConfig config = new KPPlayerConfig("http://192.168.1.10/html5.kaltura/mwEmbed/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
+            //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
+            config.addConfig("autoPlay", "true");
+            
+            config.addConfig("closedCaptions.plugin", "true");
+            config.addConfig("sourceSelector.plugin", "true");
+            config.addConfig("sourceSelector.displayMode", "bitrate");
+            config.addConfig("audioSelector.plugin", "true");
+            config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
+
+            
+           // config.setAutoPlay(true);
             mPlayPauseButton.setText("Pause");
+
             config.addConfig("chromecast.plugin", "true");
             config.addConfig("chromecast.applicationID", "5247861F");
             config.addConfig("chromecast.useKalturaPlayer", "true");
             config.addConfig("chromecast.receiverLogo", "true");
             mPlayer.getKCastRouterManager().enableKalturaCastButton(false);
+
             mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "someId", new PlayerViewController.EventListener() {
                 @Override
                 public void handler(String eventName, String params) {
                     Log.d(TAG, eventName);
                 }
             });
+
             mPlayer.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
                 @Override
                 public void onCastButtonClicked() {
@@ -120,11 +160,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
             mPlayer.initWithConfiguration(config);
+//<<<<<<< HEAD
             //mPlayer.addEventListener(this);
             mPlayer.setOnKPErrorEventListener(this);
             mPlayer.setOnKPPlayheadUpdateEventListener(this);
             //mPlayer.setOnKPFullScreenToggeledEventListener(this);
             mPlayer.setOnKPStateChangedEventListener(this);
+//=======
+//            mPlayer.addEventListener(this);
+
+            //// Tracks on Web supported only from 2.44
+            //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
+            ////onTracksUpdate and the mPlayer.getTrackManager() methodes
+
+            //mPlayer.setTracksEventListener(this);
+
+//>>>>>>> FEM-385_Tracks
         }
         return mPlayer;
     }
@@ -251,6 +302,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
             mPlayPauseButton.setText("Pause");
         }
+        else if (state == KPlayerState.READY){
+
+        }
     }
 
     @Override
@@ -268,4 +322,130 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
         Log.d(TAG, "onKPlayerError Error Received:" + error.getErrorMsg());
     }
+
+    private void configurePopupWithTracks(PopupMenu popup,
+                                          final PopupMenu.OnMenuItemClickListener customActionClickListener,
+                                          final TrackType trackType) {
+        int trackCount = 0;
+        if (mPlayer == null || mPlayer.getTrackManager() == null) {
+            return;
+        }
+        if (TrackType.AUDIO.equals(trackType)) {
+            trackCount = mPlayer.getTrackManager().getAudioTrackList().size();
+        }else if (TrackType.TEXT.equals(trackType)) {
+            trackCount = mPlayer.getTrackManager().getTextTrackList().size();
+        } else if (TrackType.VIDEO.equals(trackType)) {
+             trackCount = mPlayer.getTrackManager().getVideoTrackList().size();
+        }
+        if (trackCount <= 0) {
+            return;
+        }
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                return (customActionClickListener != null
+                        && customActionClickListener.onMenuItemClick(item))
+                        || onTrackItemClick(item, trackType);
+            }
+        });
+        Menu menu = popup.getMenu();
+        // ID_OFFSET ensures we avoid clashing with Menu.NONE (which equals 0).
+        menu.add(MENU_GROUP_TRACKS, TRACK_DISABLED + ID_OFFSET, Menu.NONE, R.string.off);
+
+        for (int i = 0; i < trackCount; i++) {
+
+            if (TrackType.AUDIO.equals(trackType)) {
+                menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
+                        mPlayer.getTrackManager().getAudioTrackList().get(i).trackLabel);
+            }else if (TrackType.TEXT.equals(trackType)) {
+                menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
+                        mPlayer.getTrackManager().getTextTrackList().get(i).trackLabel);
+            } else if (TrackType.VIDEO.equals(trackType)) {
+                menu.add(MENU_GROUP_TRACKS, i + ID_OFFSET, Menu.NONE,
+                        mPlayer.getTrackManager().getVideoTrackList().get(i).trackLabel);
+            }
+
+        }
+        menu.setGroupCheckable(MENU_GROUP_TRACKS, true, true);
+        menu.findItem(mPlayer.getTrackManager().getCurrentTrack(trackType).index + ID_OFFSET).setChecked(true);
+    }
+
+    private boolean onTrackItemClick(MenuItem item, TrackType type) {
+        if (mPlayer == null || item.getGroupId() != MENU_GROUP_TRACKS) {
+            return false;
+        }
+
+        int switchTrackIndex = item.getItemId() - ID_OFFSET;
+        Log.d(TAG, "onTrackItemClick switchTrackIndex: " + switchTrackIndex);
+        mPlayer.getTrackManager().switchTrack(type, switchTrackIndex);
+
+        return true;
+    }
+
+    public void showVideoPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        configurePopupWithTracks(popup, null,TrackType.VIDEO);
+        popup.show();
+    }
+
+    public void showAudioPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        Menu menu = popup.getMenu();
+        menu.add(Menu.NONE, Menu.NONE, Menu.NONE, R.string.enable_background_audio);
+        final MenuItem backgroundAudioItem = menu.findItem(0);
+        backgroundAudioItem.setCheckable(true);
+        backgroundAudioItem.setChecked(enableBackgroundAudio);
+        PopupMenu.OnMenuItemClickListener clickListener = new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item == backgroundAudioItem) {
+                    enableBackgroundAudio = !item.isChecked();
+                    return true;
+                }
+                return false;
+            }
+        };
+        configurePopupWithTracks(popup, clickListener, TrackType.AUDIO);
+        popup.show();
+    }
+
+    public void showTextPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        configurePopupWithTracks(popup, null, TrackType.TEXT);
+        popup.show();
+    }
+
+
+
+    @Override
+    public void onTracksUpdate(KTrackActions tracksManager) {
+        if (mPlayer != null) {
+            updateButtonVisibilities();
+            Log.e(TAG, "----------------");
+            for (TrackFormat track : mPlayer.getTrackManager().getAudioTrackList()) {
+                Log.d(TAG, track.toString());
+            }
+            Log.e(TAG, "----------------");
+            for (TrackFormat track : mPlayer.getTrackManager().getVideoTrackList()) {
+                Log.e(TAG, track.toString());
+            }
+            Log.e(TAG, "----------------");
+            for (TrackFormat track : mPlayer.getTrackManager().getTextTrackList()) {
+                Log.d(TAG, track.toString());
+            }
+            Log.e(TAG, "----------------");
+        }
+    }
+
+    private void updateButtonVisibilities() {
+        if (mPlayer != null) {
+            if (mPlayer.getTrackManager() != null) {
+                videoButton.setVisibility((mPlayer.getTrackManager().getVideoTrackList().size() > 0) ? View.VISIBLE : View.GONE);
+                audioButton.setVisibility((mPlayer.getTrackManager().getAudioTrackList().size() > 0) ? View.VISIBLE : View.GONE);
+                textButton.setVisibility((mPlayer.getTrackManager().getTextTrackList().size() > 0) ? View.VISIBLE : View.GONE);
+            }
+        }
+    }
+
 }

@@ -16,6 +16,8 @@ import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import java.util.Collections;
@@ -46,9 +48,9 @@ public class KWVCPlayer
     private int mCurrentPosition;
     private boolean mWasDestroyed;
 
-    public static Set<MediaFormat> supportedFormats(Context context) {
+    public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
-            return Collections.singleton(MediaFormat.wvm_widevine);
+            return Collections.singleton(KMediaFormat.wvm_widevine);
         }
         return Collections.emptySet();
     }
@@ -264,8 +266,23 @@ public class KWVCPlayer
     }
 
     @Override
-    public void changeSubtitleLanguage(String languageCode) {
-        // TODO: forward to player
+    public TrackFormat getTrackFormat(TrackType trackType, int index) {
+        return null;
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+
     }
 
     public void savePosition() {

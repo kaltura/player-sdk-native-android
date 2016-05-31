@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.kaltura.nativeControlls.MainActivity"
+    tools:context="com.kaltura.basicplayerdemo.MainActivity"
     android:weightSum="10"
     android:orientation="vertical">
     <RelativeLayout
@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:layout_weight="8">
 
-    <Button
+        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Replay"
@@ -32,7 +32,48 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true">
 
+
         </com.kaltura.playersdk.PlayerViewController>
+
+
+
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/video"
+            android:id="@+id/video_controls"
+            style="@style/DemoButton"
+            android:visibility="visible"
+            android:onClick="showVideoPopup"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/audio"
+            android:id="@+id/audio_controls"
+            style="@style/DemoButton"
+            android:visibility="visible"
+            android:onClick="showAudioPopup"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/video_controls"
+            android:layout_toEndOf="@+id/video_controls" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text"
+            android:id="@+id/text_controls"
+            style="@style/DemoButton"
+            android:visibility="visible"
+            android:onClick="showTextPopup"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/audio_controls"
+            android:layout_toEndOf="@+id/audio_controls" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -71,5 +112,6 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:visibility="invisible"/>
+
     </RelativeLayout>
 </LinearLayout>

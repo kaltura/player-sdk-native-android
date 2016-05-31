@@ -258,18 +258,6 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   /**
-   * A listener for receiving notifications of timed text.
-   */
-  public interface TextListener {
-
-    /**
-     * Respond to text arriving (ex subtitles, captions).
-     * @param text The received text.
-     */
-    public abstract void onText(String text);
-  }
-
-  /**
    * A listener for receiving ID3 metadata parsed from the media stream.
    */
   public interface Id3MetadataListener {
@@ -423,7 +411,6 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   /**
    * Respond to text (ex subtitle or closed captioning) events.
    */
-  private TextListener textListener;
   private CaptionListener captionListener;
   private Id3MetadataListener id3MetadataListener;
 
@@ -506,15 +493,6 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
 
   public void setCaptionListener(CaptionListener listener) {
     captionListener = listener;
-  }
-
-  /**
-   * Set the listener which responds to incoming text (ex subtitles or captions).
-   *
-   * @param listener The listener which can respond to text like subtitles and captions.
-   */
-  public void setTextListener(TextListener listener) {
-    textListener = listener;
   }
 
   public void setMetadataListener(Id3MetadataListener listener) {
@@ -916,7 +894,6 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     }
   }
 
-
   @Override
   public void onAvailableRangeChanged(int sourceId, TimeRange availableRange) {
     if (infoListener != null) {
@@ -981,13 +958,4 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
           videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
     }
   }
-
-  /* package */ void processText(String text) {
-    if (textListener == null || selectedTracks[TYPE_TEXT] == DISABLED_TRACK) {
-      return;
-    }
-    textListener.onText(text);
-  }
-
-
 }

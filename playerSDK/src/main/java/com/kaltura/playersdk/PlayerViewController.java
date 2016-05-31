@@ -36,10 +36,12 @@ import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.players.KMediaFormat;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
 import com.kaltura.playersdk.players.KPlayerListener;
-import com.kaltura.playersdk.players.MediaFormat;
+import com.kaltura.playersdk.tracks.KTrackActions;
+import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.types.KPError;
 
 import org.json.JSONException;
@@ -189,10 +191,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         super(context);
     }
 
-
-
-
-
     public PlayerViewController(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -204,6 +202,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public KMediaControl getMediaControl() {
         return playerController;
+    }
+
+    public KTrackActions getTrackManager(){
+        return playerController.getTracksManager();
     }
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
@@ -425,7 +427,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
         return new Point(realWidth,realHeight);
     }
-
 
     /**
      * Sets the player's dimensions. Should be called for any player redraw
@@ -718,24 +719,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             play();
         }
         if (eventListeners != null) {
-//<<<<<<< HEAD
-//            KPlayerState kState = KPlayerState.getStateForEventName(eventName);
-//            if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
-//                isMediaChanged = false;
-//                play();
-//            }
-//=======
-//>>>>>>> FEM-471-New
             for (KPEventListener listener : eventListeners) {
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
-//<<<<<<< HEAD
-//                } else if (event.isEnded()) {
-//                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-//=======
-//>>>>>>> FEM-471-New
+                } else if (event.isEnded()) {
+                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
                 }
             }
         }
@@ -861,6 +851,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             if (attribute == null) {
                 return;
             }
+            Log.d(TAG, "setAttribute Attribute: " + attribute + " " + attributeValue);
             switch (attribute) {
                 case src:
                     // attributeValue is the selected source -- allow override.
@@ -906,13 +897,31 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     break;
                 case chromecastAppId:
                     getRouterManager().initialize(attributeValue);
-//<<<<<<< HEAD
-//=======
                     Log.d(TAG, "chromecast.initialize:" + attributeValue);
-//>>>>>>> FEM-471-New
                     break;
                 case playerError:
                     sendOnKPlayerError(attributeValue);
+                    break;
+                case textTrackSelected:
+                    Log.d(TAG, "textTrackSelected");
+                    if (attributeValue == null){
+                        return;
+                    }
+                    if ("Off".equalsIgnoreCase(attributeValue)){
+                        getTrackManager().switchTrack(TrackType.TEXT,-1);
+                        return;
+                    }
+                    for (int index = 0 ; index < getTrackManager().getTextTrackList().size() ; index++) {
+                        //Log.d(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
+                        if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)){
+                            getTrackManager().switchTrack(TrackType.TEXT,index);
+                            return;
+                        }
+                    }
+                    break;
+                case audioTrackSelected:
+                    Log.d(TAG, "audioTrackSelected");
+                    switchAudioTrack(attributeValue);
                     break;
             }
         }
@@ -932,21 +941,41 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void switchFlavor(String index) {
-        int flavorIndex = -1;
         try {
-            flavorIndex = Integer.parseInt(index);
-        } catch (NumberFormatException e) {
-            Log.e(TAG, "switchFlavor failed parsing index, ignoring request" + index);
+            index = URLDecoder.decode(index, "UTF-8").replaceAll("\"", ""); // neend to unescape
+
+        } catch (UnsupportedEncodingException e) {
             return;
         }
-
-        KPlayer player = playerController.getPlayer();
-        if (player instanceof QualityTracksInterface) {
-            QualityTracksInterface adaptivePlayer = (QualityTracksInterface) player;
-            adaptivePlayer.switchQualityTrack(flavorIndex);
-        }
+        switchTrack(TrackType.VIDEO,index);
     }
-    
+
+    private void switchAudioTrack(String index) {
+
+        switchTrack(TrackType.AUDIO,index);
+    }
+
+    private void selectClosedCaptions(String index) {
+        switchTrack(TrackType.TEXT,index);
+    }
+
+
+    private void switchTrack(TrackType trackType, String index) {
+        int trackIndex = -1;
+
+        try {
+            trackIndex = Integer.parseInt(index);
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "switchTrack " + trackType.name() + " failed parsing index, ignoring request" + index);
+            return;
+        }
+        getTrackManager().switchTrack(trackType, trackIndex);
+    }
+
+    public void setTracksEventListener(KTrackActions.EventListener tracksEventListener){
+        playerController.setTracksEventListener(tracksEventListener);
+    }
+
     private void notifyJsReady() {
         mIsJsCallReadyRegistration = true;
         if (mCallBackReadyRegistrations != null) {
@@ -1085,12 +1114,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
 
     private String buildSupportedMediaFormats() {
-        Set<MediaFormat> supportedFormats = KPlayerController.supportedFormats(getContext());
+        Set<KMediaFormat> supportedFormats = KPlayerController.supportedFormats(getContext());
 
         Set<String> drmTypes = new HashSet<>();
         Set<String> allTypes = new HashSet<>();
 
-        for (MediaFormat format : supportedFormats) {
+        for (KMediaFormat format : supportedFormats) {
             if (format.drm != null) {
                 drmTypes.add(format.shortName);
             }
