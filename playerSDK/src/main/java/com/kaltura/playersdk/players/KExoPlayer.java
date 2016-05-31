@@ -16,6 +16,7 @@ import android.view.SurfaceHolder;
 import android.view.accessibility.CaptioningManager;
 import android.widget.FrameLayout;
 
+import com.google.android.exoplayer.BehindLiveWindowException;
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
@@ -436,6 +437,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             errorString = (Util.SDK_INT < 18) ? "error_drm_not_supported"
                     : unsupportedDrmException.reason == UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME
                     ? "error_drm_unsupported_scheme" : "error_drm_unknown";
+        } else if (e instanceof ExoPlaybackException && e.getCause() instanceof BehindLiveWindowException) {
+            Log.e(TAG, "Recovering BehindLiveWindowException"); // happens if network is bad and no more chunk in hte buffer
+            mExoPlayer.prepare();
+            return;
+        } else if (e instanceof ExoPlaybackException && e.getCause() instanceof android.media.MediaCodec.CryptoException) {
+            errorString = "DRM Error"; // probably license issue
         } else if (e instanceof ExoPlaybackException
                 && e.getCause() instanceof MediaCodecTrackRenderer.DecoderInitializationException) {
             // Special case for decoder initialization failures.
