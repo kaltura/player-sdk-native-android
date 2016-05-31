@@ -17,10 +17,8 @@ import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
 import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
+import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
-import com.kaltura.playersdk.players.KPlayerCallback;
-import com.kaltura.playersdk.players.KPlayerController;
-import com.kaltura.playersdk.players.KPlayerListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,15 +48,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     // Default VAST ad tag; more complex apps might select ad tag based on content video criteria.
     private String mDefaultAdTagUrl;
-
-    private KPlayerListener mPlayerListener;
-
-    private KPlayerCallback mPLayerCallback;
-
-    private boolean mContentCompleted;
-
-
-    private JSONObject jsonValue = new JSONObject();
+    private KIMAManagerListener mListener;
 
     private String DurationKey = "duration";
     private String TimeKey = "time";
@@ -67,22 +57,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String AdIDKey = "adID";
     private String AdSystemKey = "adSystem";
     private String AdPositionKey = "adPosition";
-    private String ContextKey = "context";
-
-    private String AdRemainingTimeChangeKey = "adRemainingTimeChange";
-    private String AdLoadedEventKey = "adLoadedEvent";
-    private String AdLoadedKey = "adLoaded";
-    private String AdStartKey = "adStart";
-    private String AdCompletedKey = "adCompleted";
-    static public String AllAdsCompletedKey = "allAdsCompleted";
-    static public String ContentPauseRequestedKey = "contentPauseRequested";
-    static public String ContentResumeRequestedKey = "contentResumeRequested";
-    private String FirstQuartileKey = "firstQuartile";
-    private String MidPointKey = "midpoint";
-    private String ThirdQuartileKey = "thirdQuartile";
-    private String AdClickedKey = "adClicked";
-    private String AdsLoadErrorKey = "adsLoadError";
-    private String AdSkippeddKey = "adSkipped";
 
 
     public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL) {
@@ -90,7 +64,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
         mIMAPlayer.setKIMAAdEventListener(this);
         mDefaultAdTagUrl = adTagURL;
-        mContentCompleted = false;
 
         // Create an AdsLoader.
         mSdkFactory = ImaSdkFactory.getInstance();
@@ -107,21 +80,25 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         requestAds(mDefaultAdTagUrl, contentProgressProvider);
     }
 
-    public void setPlayerListener(KPlayerListener listener) {
-        mPlayerListener = listener;
+    public void setListener(KIMAManagerListener listener) {
+        mListener = listener;
     }
 
-    public void setPlayerCallback(KPlayerCallback callback) {
-        mPLayerCallback = callback;
-    }
+
 
     public void pause() {
+//        if (mIMAPlayer != null) {
+//            mIMAPlayer.pause();
+//        }
         if (mAdsManager != null) {
             mAdsManager.pause();
         }
     }
 
     public void resume() {
+//        if (mIMAPlayer != null) {
+//            mIMAPlayer.resume();
+//        }
         if (mAdsManager != null) {
             mAdsManager.resume();
         }
@@ -166,80 +143,14 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     /**
      * Responds to AdEvents.
      */
+
     @Override
     public void onAdEvent(AdEvent adEvent) {
-        Log.i("IMA onAdEvent", "Event: " + adEvent.getType());
-
-        // These are the suggested event types to handle. For full list of all ad event types,
-        // see the documentation for AdEvent.AdEventType.
-        Ad ad = adEvent.getAd();
-        try {
-        switch (adEvent.getType()) {
-            case LOADED:
-                // AdEventType.LOADED will be fired when ads are ready to be played.
-                // AdsManager.start() begins ad playback. This method is ignored for VMAP or ad
-                // rules playlists, as the SDK will automatically start executing the playlist.
-
-                fireIMAEvent(ContentPauseRequestedKey);
-
-                mAdsManager.start();
-                jsonValue.put(IsLinearKey, ad.isLinear());
-                jsonValue.put(AdIDKey, ad.getAdId());
-                jsonValue.put(AdSystemKey, "null");
-                jsonValue.put(AdPositionKey, ad.getAdPodInfo().getAdPosition());
-                fireIMAEvent(AdLoadedKey);
-                break;
-            case STARTED:
-                jsonValue.put(DurationKey, ad.getDuration());
-                fireIMAEvent(AdStartKey);
-                break;
-            case COMPLETED:
-                jsonValue.put(AdIDKey, ad.getAdId());
-                fireIMAEvent(AdCompletedKey);
-                break;
-            case FIRST_QUARTILE:
-                fireIMAEvent(FirstQuartileKey);
-                break;
-            case MIDPOINT:
-                fireIMAEvent(MidPointKey);
-                break;
-            case THIRD_QUARTILE:
-                fireIMAEvent(ThirdQuartileKey);
-                break;
-            case CLICKED:
-                jsonValue.put(IsLinearKey, ad.isLinear());
-                fireIMAEvent(AdClickedKey);
-                break;
-            case CONTENT_PAUSE_REQUESTED:
-                if (mPLayerCallback != null) {
-                    mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PAUSE);
-                }
-                break;
-            case CONTENT_RESUME_REQUESTED:
-                fireIMAEvent(ContentResumeRequestedKey);
-                if (!mContentCompleted && mPLayerCallback != null) {
-                    mPLayerCallback.playerStateChanged(KPlayerController.SHOULD_PLAY);
-                }
-//                mIMAPlayer.removeAd();
-                break;
-            case ALL_ADS_COMPLETED:
-                fireIMAEvent(AllAdsCompletedKey);
-                if (mContentCompleted && mPlayerListener != null) {
-                    mPlayerListener.contentCompleted(null);
-                }
-                break;
-            case SKIPPED:
-                jsonValue.put(IsLinearKey, ad.isLinear());
-                fireIMAEvent(AdSkippeddKey);
-                mIMAPlayer.removeAd();
-                break;
-            default:
-                break;
-        }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (mListener != null) {
+            mListener.onAdEvent(adEvent.getType(), adJSONValue(adEvent));
         }
     }
+
 
     /**
      * An event raised when there is an error loading or playing ads.
@@ -248,40 +159,65 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     public void onAdError(AdErrorEvent adErrorEvent) {
         String errMsg = "Ad Error: " + adErrorEvent.getError().getMessage();
         Log.e("IMA onAdError", errMsg);
-        mPlayerListener.eventWithValue(null, KPlayerListener.ErrorKey, errMsg);
-        //imaAdapter.resumeContentAfterAdPlayback();
-        //mPlayerListener.contentCompleted(null);
+        mListener.onAdError(errMsg);
+    }
+
+    private String adJSONValue(AdEvent adEvent) {
+        if (adEvent == null) {
+            return "(null)";
+        }
+        Ad ad = adEvent.getAd();
+        JSONObject jsonValue = null;
+        try {
+            jsonValue = new JSONObject();
+            switch (adEvent.getType()) {
+                case LOADED:
+                    mAdsManager.start();
+                    jsonValue.put(IsLinearKey, ad.isLinear());
+                    jsonValue.put(AdIDKey, ad.getAdId());
+                    jsonValue.put(AdSystemKey, "null");
+                    jsonValue.put(AdPositionKey, ad.getAdPodInfo().getAdPosition());
+                    break;
+                case STARTED:
+                    jsonValue.put(DurationKey, ad.getDuration());
+                    break;
+                case COMPLETED:
+                    jsonValue.put(AdIDKey, ad.getAdId());
+                    break;
+                case CLICKED:
+                    jsonValue.put(IsLinearKey, ad.isLinear());
+                    break;
+                case SKIPPED:
+                    jsonValue.put(IsLinearKey, ad.isLinear());
+                    break;
+            }
+        } catch (Exception e) {
+
+        }
+        return jsonValue.toString();
     }
 
     /**
      * Event raised by VideoPlayerWithAdPlayback when the content video is complete.
      */
     public void contentComplete() {
-        mContentCompleted = true;
         mAdsLoader.contentComplete();
     }
 
     @Override
     public void adDidProgress(float toTime, float totalTime) {
-        try {
-            jsonValue.put(TimeKey, toTime);
-            jsonValue.put(DurationKey, totalTime);
-            jsonValue.put(RemainKey, (totalTime - toTime));
-            fireIMAEvent(AdRemainingTimeChangeKey);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (mListener != null) {
+            JSONObject jsonValue = null;
+            try {
+                jsonValue = new JSONObject();
+                jsonValue.put(TimeKey, toTime);
+                jsonValue.put(DurationKey, totalTime);
+                jsonValue.put(RemainKey, (totalTime - toTime));
+                mListener.onAdUpdateProgress(jsonValue.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
-    }
-
-    private void fireIMAEvent(String eventName) {
-        if (mPlayerListener != null && jsonValue.length() == 0) {
-            mPlayerListener.eventWithJSON(null, eventName, "(null)");
-            return;
-        }
-        if (mPlayerListener != null) {
-            mPlayerListener.eventWithJSON(null, eventName, jsonValue.toString());
-        }
-        jsonValue = new JSONObject();
     }
 
     public void destroy() {
@@ -292,8 +228,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                 mAdsManager.removeAdEventListener(this);
                 mAdsManager.destroy();
             }
-            mPlayerListener = null;
-            mPLayerCallback = null;
+            mListener = null;
         }
     }
 }
