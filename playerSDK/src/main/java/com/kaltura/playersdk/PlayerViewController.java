@@ -36,10 +36,10 @@ import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.players.MediaFormat;
 import com.kaltura.playersdk.types.KPError;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -77,6 +77,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private Set<KPEventListener> eventListeners;
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
+    private boolean isMediaChanged = false;
+    private boolean shouldReplay = false;
 
     private KRouterManager routerManager;
 
@@ -89,8 +91,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mWebView.triggerEvent("chromecastDeviceDisConnected", null);
             playerController.removeCastPlayer();
         } else {
-//            playerController.startCasting(mActivity);
-            mWebView.triggerEvent("onNativeRequestSessionSuccess", null);
+            mWebView.triggerEvent("chromecastDeviceConnected", null);
         }
 
     }
@@ -99,9 +100,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void onRouteAdded(boolean isAdded, KRouterInfo route) {
         if (getRouterManager().getAppListener() != null) {
             if (isAdded) {
-                getRouterManager().getAppListener().addedCastDevice(route);
+                getRouterManager().getAppListener().onAddedCastDevice(route);
             } else {
-                getRouterManager().getAppListener().removedCastDevice(route);
+                getRouterManager().getAppListener().onRemovedCastDevice(route);
             }
         }
     }
@@ -112,7 +113,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             setKDPAttribute("chromecast", "visible", didFound ? "true" : "false");
         }
         if (getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().didDetectCastDevices(didFound);
+            getRouterManager().getAppListener().shouldPresentCastIcon(didFound);
         }
     }
 
@@ -121,26 +122,37 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         playerController.stopCasting();
         mWebView.triggerEvent("chromecastDeviceDisConnected", null);
         if (getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().castDeviceConnectionState(false);
+            getRouterManager().getAppListener().onApplicationStatusChanged(false);
         }
     }
 
     @Override
     public void onConnecting() {
-        mWebView.triggerEvent("showConnectingMessage", null);
+        mWebView.triggerEvent("chromecastShowConnectingMsg", null);
     }
     
     @Override
     public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
         if (getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().castDeviceConnectionState(true);
+            getRouterManager().getAppListener().onApplicationStatusChanged(true);
         }
         playerController.startCasting(apiClient);
+    }
+
+    private KRouterManager getRouterManager() {
+        return (KRouterManager)getKCastRouterManager();
     }
 
     @Override
     public void setOnTouchListener(OnTouchListener l) {
         mWebView.setOnTouchListener(l);
+    }
+
+    public KCastRouterManager getKCastRouterManager() {
+        if (routerManager == null) {
+            routerManager = new KRouterManager(mActivity, this);
+        }
+        return routerManager;
     }
 
     // trigger timeupdate events
@@ -165,16 +177,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         super(context);
     }
 
-    public KCastRouterManager getKCastRouterManager() {
-        if (routerManager == null) {
-            routerManager = new KRouterManager(mActivity, this);
-        }
-        return routerManager;
-    }
 
-    private KRouterManager getRouterManager() {
-        return (KRouterManager)getKCastRouterManager();
-    }
+
+
 
     public PlayerViewController(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -186,7 +191,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public KMediaControl getMediaControl() {
-        return mWebView;
+        return playerController;
     }
 
     public void initWithConfiguration(KPPlayerConfig configuration) {
@@ -227,6 +232,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (entryId != null && entryId.length() > 0) {
             JSONObject entryJson = new JSONObject();
             try {
+                isMediaChanged = true;
                 entryJson.put("entryId", entryId);
                 sendNotification("changeMedia", entryJson.toString());
             } catch (JSONException e) {
@@ -274,7 +280,17 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         return currentURL;
     }
 
+    public void freeze(){
+        if(playerController != null) {
+            playerController.pause();
+        }
+    }
+
     public void saveState() {
+        saveState(false);
+    }
+
+    public void saveState(boolean isOnBackground) {
         playerController.savePlayerState();
     }
 
@@ -287,12 +303,19 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * This method should be called when the main activity is paused.
      */
     public void releaseAndSavePosition() {
-        if (playerController != null)
-         playerController.removePlayer();
+        releaseAndSavePosition(false);
+    }
+
+    public void releaseAndSavePosition(boolean shouldResumeState) {
+        if (playerController != null) {
+            playerController.removePlayer(shouldResumeState);
+        }
     }
 
     public void resetPlayer() {
-        playerController.reset();
+        if (playerController != null) {
+            playerController.reset();
+        }
     }
 
     /**
@@ -543,7 +566,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public double getDurationSec() {
         double duration = 0;
         if (playerController != null) {
-            duration = playerController.getDuration();
+            duration = playerController.getDuration() / 1000;
         }
         return duration;
     }
@@ -616,6 +639,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void handleHtml5LibCall(String functionName, int callbackId, String args) {
+        Log.d(TAG + " handleHtml5LibCall", functionName + " " + args);
         Method bridgeMethod = KStringUtilities.isMethodImplemented(this, functionName);
         Object object = this;
         if (bridgeMethod == null) {
@@ -652,14 +676,18 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         Log.d("EventWithValue", "Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
         if (eventListeners != null) {
+            KPlayerState kState = KPlayerState.getStateForEventName(eventName);
+            if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
+                isMediaChanged = false;
+                play();
+            }
             for (KPEventListener listener : eventListeners) {
-                KPlayerState kState = KPlayerState.getStateForEventName(eventName);
                 if (!KPlayerState.UNKNOWN.equals(kState)) {
                     listener.onKPlayerStateChanged(this, kState);
                 } else if (event.isTimeUpdate()) {
                     listener.onKPlayerPlayheadUpdate(this, Float.parseFloat(eventValue));
                 } else if (event.isEnded()) {
-                    contentCompleted(player);
+                    listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
                 }
             }
         }
@@ -668,17 +696,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {
-        Log.d("EventWithJSON", "Name: " + eventName + " Value: " + jsonValue);
         this.mWebView.triggerEventWithJSON(eventName, jsonValue);
-    }
-
-    @Override
-    public void contentCompleted(KPlayer currentPlayer) {
-        if (eventListeners != null) {
-            for (KPEventListener listener: eventListeners) {
-                listener.onKPlayerStateChanged(this, KPlayerState.ENDED);
-            }
-        }
     }
 
     private void play() {
@@ -797,7 +815,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                             listener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                         }
                     }
-                    this.playerController.setCurrentPlaybackTime(Float.parseFloat(attributeValue));
+                    float time = Float.parseFloat(attributeValue);
+                    this.playerController.setCurrentPlaybackTime(time);
                     break;
                 case visible:
                     this.triggerEvent("visible", attributeValue);
@@ -819,12 +838,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     playerController.initIMA(attributeValue, mActivity);
                     break;
                 case goLive:
-                    ((LiveStreamInterface)playerController.getPlayer()).switchToLive();
+                    (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
-//                    getRouterManager().initialize(attributeValue, mActivity);
                     getRouterManager().initialize(attributeValue);
-                    Log.d(TAG, "chromecast.initialize:" +  attributeValue);
                     break;
                 case playerError:
                     if (eventListeners != null) {
@@ -912,21 +929,22 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private void showChromecastDeviceList() {
         if(!mActivity.isFinishing() && getRouterManager().getAppListener() != null) {
-            getRouterManager().getAppListener().castButtonClicked();
+            getRouterManager().getAppListener().onCastButtonClicked();
         }
     }
 
     private void sendCCRecieverMessage(String args) {
         String decodeArgs = null;
-        JSONArray jsonArgs = null;
+
         try {
             decodeArgs = URLDecoder.decode(args, "UTF-8");
-            Log.d(getClass().getSimpleName(), "sendCCRecieverMessage : " + decodeArgs);
-            jsonArgs = new JSONArray(decodeArgs);
-            getRouterManager().sendMessage(jsonArgs.getString(0), jsonArgs.getString(1));
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        getRouterManager().sendMessage(decodeArgs);
+        Log.d(getClass().getSimpleName(), "sendCCRecieverMessage : " + decodeArgs);
+        getRouterManager().sendMessage(decodeArgs);
+
     }
 
     private void loadCCMedia() {

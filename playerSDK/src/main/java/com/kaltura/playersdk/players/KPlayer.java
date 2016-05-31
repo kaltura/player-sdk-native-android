@@ -27,13 +27,13 @@ public interface KPlayer {
 
     void removePlayer();
 
-    void recoverPlayer();
+    void recoverPlayer(boolean isPlaying);
 
     void setShouldCancelPlay(boolean shouldCancelPlay);
 
     void setLicenseUri(String licenseUri);
 
-    void savePlayerState();
+    boolean isPlaying();
 
-    void recoverPlayerState();
+    void switchToLive();
 }

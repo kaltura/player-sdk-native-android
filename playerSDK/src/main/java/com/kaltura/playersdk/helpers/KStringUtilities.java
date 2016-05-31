@@ -53,17 +53,7 @@ public class KStringUtilities {
     public boolean isError() {
         return this.string.equals("error");
     }
-    public boolean isContentPauseRequested() {
-        return string.equals(KIMAManager.ContentPauseRequestedKey);
-    }
 
-    public boolean isContentResumeRequested() {
-        return string.equals(KIMAManager.ContentResumeRequestedKey);
-    }
-
-    public boolean isAllAdsCompleted() {
-        return string.equals(KIMAManager.AllAdsCompletedKey);
-    }
 
     public boolean canPlay() {
         return this.string.equals("canplay");

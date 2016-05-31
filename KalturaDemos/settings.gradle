@@ -1,6 +1,10 @@
 include ':BasicPlayerDemo'
+include ':BasicPlayerTest'
 include ':MultiPlayerDemo'
 include ':ChangeMediaDemo'
+include ':LocalAssetsDemo'
+include ':PlayerFragmentDemo'
+
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir=new File('../googlemediaframework')
 

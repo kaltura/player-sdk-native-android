@@ -1,0 +1,45 @@
+@startuml
+
+abstract class AbstractList
+abstract AbstractCollection
+interface KCastRouterManagerListener {
+    onCastButtonClicked
+    onApplicationStatusChanged: boolean isConnected
+    shouldPresentCastIcon:boolean didDetect
+    onAddedCastDevice:KRouterInfo info
+    onRemovedCastDevice:KRouterInfo info
+}
+
+interface KCastRouterManager {
+    disconnect
+    connectDevice: String deviceId
+    setCastRouterManagerListener: KCastRouterManagerListener listener
+    enableKalturaCastButton: boolean enabled
+}
+
+interface KRouterManagerListener {
+}
+
+class KRouterManager {
+
+}
+
+KCastRouterManager -* KCastRouterManagerListener
+KRouterManager -* KRouterManagerListener
+
+Collection <|- List
+AbstractCollection <|- AbstractList
+AbstractList <|-- ArrayList
+
+class ArrayList {
+Object[] elementData
+size()
+}
+
+enum TimeUnit {
+DAYS
+HOURS
+MINUTES
+}
+
+@enduml
