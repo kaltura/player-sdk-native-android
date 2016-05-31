@@ -646,7 +646,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (bridgeMethod == null) {
             KPlayer player = this.playerController.getPlayer();
             bridgeMethod = KStringUtilities.isMethodImplemented(player, functionName);
-            Log.d("handleHtml5LibCall", "bridgeMethod: " + bridgeMethod);
             object = player;
         }
         if (bridgeMethod != null) {
@@ -865,7 +864,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     break;
                 case textTrackSelected:
                     Log.d(TAG, "textTrackSelected");
-                    switchTextTrack(attributeValue);
+                    if (attributeValue == null){
+                        return;
+                    }
+                    if ("Off".equalsIgnoreCase(attributeValue)){
+                        getTrackManager().switchTrack(TrackType.TEXT,-1);
+                        return;
+                    }
+                    for (int index = 0 ; index < getTrackManager().getTextTrackList().size() ; index++) {
+                        //Log.d(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
+                        if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)){
+                            getTrackManager().switchTrack(TrackType.TEXT,index);
+                            return;
+                        }
+                    }
                     break;
                 case audioTrackSelected:
                     Log.d(TAG, "audioTrackSelected");
@@ -889,37 +901,36 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         } catch (UnsupportedEncodingException e) {
             return;
         }
-        Log.d(TAG, "switchFlavor index = " + index);
         switchTrack(TrackType.VIDEO,index);
     }
 
     private void switchAudioTrack(String index) {
-        Log.d(TAG, "switchAudioTrack index = " + index);
+
         switchTrack(TrackType.AUDIO,index);
     }
 
     private void selectClosedCaptions(String index) {
-        Log.d(TAG, "selectClosedCaptions index = " + index);
         switchTrack(TrackType.TEXT,index);
     }
 
-    private void switchTextTrack(String languageId){
-        Log.d(TAG, "switchTextTrack languageId = " + languageId);
-        if (languageId == null){
-            return;
-        }
-        if ("Off".equalsIgnoreCase(languageId)){
-            getTrackManager().switchTrack(TrackType.TEXT,-1);
-            return;
-        }
-        for (int index = 0 ; index < getTrackManager().getTextTrackList().size() ; index++) {
-            Log.d(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + languageId + ">");
-            if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(languageId)){
-                getTrackManager().switchTrack(TrackType.TEXT,index);
-                return;
-            }
-        }
-    }
+//    private void switchTextTrack(String languageId){
+//        Log.d(TAG, "switchTextTrack languageId = " + languageId);
+//        if (languageId == null){
+//            return;
+//        }
+//        if ("Off".equalsIgnoreCase(languageId)){
+//            getTrackManager().switchTrack(TrackType.TEXT,-1);
+//            return;
+//        }
+//        for (int index = 0 ; index < getTrackManager().getTextTrackList().size() ; index++) {
+//            Log.d(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + languageId + ">");
+//            if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(languageId)){
+//                getTrackManager().switchTrack(TrackType.TEXT,index);
+//                return;
+//            }
+//        }
+//    }
+
     private void switchTrack(TrackType trackType, String index) {
         int trackIndex = -1;
 

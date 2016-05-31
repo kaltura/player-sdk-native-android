@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.tracks;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.util.MimeTypes;
@@ -62,23 +61,17 @@ public class TrackFormat {
         if (MimeTypes.isVideo(mimeType)) {
             trackName = joinWithSeparator(joinWithSeparator(buildResolutionString(),
                     buildBitrateString()), buildTrackIdString());
-            Log.d(TAG, "Full VIDEO Track name = " + trackName);
 
         } else if (MimeTypes.isAudio(mimeType)) {
             trackName = buildTrackIdString();
             if (!"".equals(buildLanguageString())){
                 trackName = buildLanguageString() + "-" + trackName;
             }
-            Log.d(TAG, "Full AUDIO Track name = " +joinWithSeparator(joinWithSeparator(joinWithSeparator(buildLanguageString(),
-                    buildAudioPropertyString()), buildBitrateString()),
-                    buildTrackIdString()));
         } else {
             trackName = buildTrackIdString();
             if (!"".equals(buildLanguageString())){
                 trackName = buildLanguageString() + "-" + trackName;
             }
-            Log.d(TAG, "Full TEXT CC name = " + joinWithSeparator(joinWithSeparator(buildLanguageString(),
-                    buildBitrateString()), buildTrackIdString()));
         }
         return trackName.length() == 0 ? "unknown" : trackName;
     }

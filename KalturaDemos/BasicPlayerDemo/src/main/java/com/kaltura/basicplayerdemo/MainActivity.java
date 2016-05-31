@@ -114,14 +114,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.addConfig("chromecast.receiverLogo", "true");
             mPlayer.getKCastRouterManager().enableKalturaCastButton(false);
 
-//            mPlayer.addKPlayerEventListener("firstPlay", "firstPlay", new PlayerViewController.EventListener() {
-//                @Override
-//                public void handler(String eventName, String params) {
-//                    Log.d(TAG, eventName);
-//
-//                }
-//            });
-
             mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "someId", new PlayerViewController.EventListener() {
                 @Override
                 public void handler(String eventName, String params) {
@@ -162,8 +154,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer.initWithConfiguration(config);
             mPlayer.addEventListener(this);
 
-            // if this listener is removed the tracks will be pushed to the web layer
-            mPlayer.setTracksEventListener(this);
+            //// Tracks on Web supported only from 2.44
+            //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
+            ////onTracksUpdate and the mPlayer.getTrackManager() methodes
+
+            //mPlayer.setTracksEventListener(this);
 
         }
         return mPlayer;
@@ -409,9 +404,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onTracksUpdate(KTrackActions tracksManager) {
         if (mPlayer != null) {
             updateButtonVisibilities();
-            Log.d(TAG, "aud tracks num = " + mPlayer.getTrackManager().getAudioTrackList().size());
-            Log.d(TAG, "vid tracks num = " + mPlayer.getTrackManager().getVideoTrackList().size());
-            Log.d(TAG, "text tracks num = " + mPlayer.getTrackManager().getTextTrackList().size());
+            Log.e(TAG, "----------------");
             for (TrackFormat track : mPlayer.getTrackManager().getAudioTrackList()) {
                 Log.d(TAG, track.toString());
             }
@@ -424,15 +417,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.d(TAG, track.toString());
             }
             Log.e(TAG, "----------------");
-            Log.d(TAG, "curr audindex = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.AUDIO).index);
-            //mPlayer.getTrackManager().switchTrack(TrackType.AUDIO,2);
-            Log.d(TAG, "curr aud index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.AUDIO).index);
-            Log.d(TAG, "curr vid index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.VIDEO).index);
-            //mPlayer.getTrackManager().switchTrack(TrackType.VIDEO,2);
-            Log.d(TAG, "curr vid index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.VIDEO).index);
-            Log.d(TAG, "curr text index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.TEXT).index);
-            //mPlayer.getTrackManager().switchTrack(TrackType.TEXT,1);
-            Log.d(TAG, "curr text index = " + mPlayer.getTrackManager().getCurrentTrack(TrackType.TEXT).index);
         }
     }
 

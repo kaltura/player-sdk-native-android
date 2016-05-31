@@ -105,34 +105,6 @@ public class KTracksManager implements  KTrackActions {
             tracksJsonArray.put(tf.toJSONObject());
         }
 
-//        //SORT THE LIST
-//        if (TrackType.VIDEO.equals(trackType)) {
-//            Collections.sort(videoTrackList, new Comparator<TrackFormat>() {
-//                        @Override
-//                        public int compare(TrackFormat lhs, TrackFormat rhs) {
-//                            return rhs.bitrate - lhs.bitrate;
-//                        }
-//                    }
-//            );
-//        } else if (TrackType.TEXT.equals(trackType)) {
-//            Collections.sort(textTrackList, new Comparator<TrackFormat>() {
-//                        @Override
-//                        public int compare(TrackFormat lhs, TrackFormat rhs) {
-//                            return lhs.trackLabel.compareTo(rhs.trackLabel);
-//                        }
-//                    }
-//            );
-//        }
-//        else if (TrackType.AUDIO.equals(trackType)) {
-//            Collections.sort(audioTrackList, new Comparator<TrackFormat>() {
-//                        @Override
-//                        public int compare(TrackFormat lhs, TrackFormat rhs) {
-//                            return lhs.trackLabel.compareTo(rhs.trackLabel);
-//                        }
-//                    }
-//            );
-//        }
-
         try {
             resultJsonObj.put(resultJsonKey, tracksJsonArray);
         } catch (JSONException e) {
@@ -164,11 +136,9 @@ public class KTracksManager implements  KTrackActions {
 
     private boolean isAvailableTracksRelevant(TrackType trackType) {
         int tracksCount = getTracksCount(trackType);
-        Log.d(TAG, "isAvailableTracksRelevant trackType = " + trackType + ", tracksCount = " + tracksCount);
         if (tracksCount > 1) {
             return true;
         } else if (tracksCount == 1) {
-            Log.d(TAG, "Single Track is " + getTracksList(trackType).get(0).trackLabel);
             if (!getTracksList(trackType).get(0).trackLabel.contains("auto") && !getTracksList(trackType).get(0).trackLabel.contains("Auto")) {
                 return true;
             }
