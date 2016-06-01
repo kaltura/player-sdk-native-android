@@ -35,11 +35,10 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-//<<<<<<< HEAD
-//public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, /*KPFullScreenToggeledEventListener,*/ KPPlayheadUpdateEventListener,KPErrorEventListener,KPStateChangedEventListener {
-//=======
+
+// we can also add  implements for - KPFullScreenToggeledEventListener
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KTrackActions.EventListener, KPErrorEventListener, KPPlayheadUpdateEventListener, KPStateChangedEventListener {
-//>>>>>>> FEM-385_Tracks
+
     private static final String TAG = "BasicPlayerDemo";
 
     private static final int MENU_GROUP_TRACKS = 1;
@@ -160,22 +159,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
             mPlayer.initWithConfiguration(config);
-//<<<<<<< HEAD
-            //mPlayer.addEventListener(this);
+
+            //mPlayer.addEventListener(this); // if non separated listeners approach is used if not the below listeners are needed
             mPlayer.setOnKPErrorEventListener(this);
             mPlayer.setOnKPPlayheadUpdateEventListener(this);
             //mPlayer.setOnKPFullScreenToggeledEventListener(this);
             mPlayer.setOnKPStateChangedEventListener(this);
-//=======
-//            mPlayer.addEventListener(this);
 
+
+            ///  FOR TRACKS   ///
             //// Tracks on Web supported only from 2.44
             //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
             ////onTracksUpdate and the mPlayer.getTrackManager() methodes
 
             //mPlayer.setTracksEventListener(this);
 
-//>>>>>>> FEM-385_Tracks
+
         }
         return mPlayer;
     }

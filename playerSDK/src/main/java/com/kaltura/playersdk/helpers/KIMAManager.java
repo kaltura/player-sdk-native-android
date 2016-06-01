@@ -157,9 +157,14 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
      */
     @Override
     public void onAdError(AdErrorEvent adErrorEvent) {
-        String errMsg = "Ad Error: " + adErrorEvent.getError().getMessage();
+        String errMsg = "UNKNOWN ERROR";
+        if (adErrorEvent != null) {
+            errMsg = "Ad Error: " + adErrorEvent.getError().getErrorCode().name() + " - " + adErrorEvent.getError().getMessage();
+        }
         Log.e("IMA onAdError", errMsg);
-        mListener.onAdError(errMsg);
+        if (mListener != null) {
+            mListener.onAdError(errMsg);
+        }
     }
 
     private String adJSONValue(AdEvent adEvent) {
