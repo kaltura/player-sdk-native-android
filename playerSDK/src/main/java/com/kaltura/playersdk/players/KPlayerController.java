@@ -89,12 +89,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     @Override
     public void onAdUpdateProgress(String jsonValue) {
         if (playerListener != null) {
-            playerListener.eventWithJSON(player, "adRemainingTimeChange", jsonValue);
+            playerListener.eventWithJSON(player, KPlayerListener.AdRemainingTimeChangeKey, jsonValue);
         }
     }
 
     @Override
     public void onAdError(String errorMsg) {
+        playerListener.eventWithValue(player, KPlayerListener.AdsLoadErrorKey, null); // update web that we have AD Loading error
         removeAdPlayer();
         ((View)player).setVisibility(View.VISIBLE);
         player.setShouldCancelPlay(false);
