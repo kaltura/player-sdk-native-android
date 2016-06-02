@@ -144,7 +144,6 @@ public class KPPlayerConfig implements Serializable{
 
 	public void setWebDialogEnabled(boolean isEnabled) {
 		isWebDialogEnabled = isEnabled;
-		addConfig("webDialogEnabled", isWebDialogEnabled ? "true" : "false");
 	}
 
 	public boolean isWebDialogEnabled() {
