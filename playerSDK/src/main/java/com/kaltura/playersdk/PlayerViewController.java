@@ -742,6 +742,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
         }
 
+        if(KPlayerListener.ErrorKey.equals(eventName) && !getConfig().isWebDialogEnabled()) {
+            Log.e(TAG, "blocking Dialog for: " + eventValue);
+            return;
+        }
         this.mWebView.triggerEvent(eventName, eventValue);
     }
 
