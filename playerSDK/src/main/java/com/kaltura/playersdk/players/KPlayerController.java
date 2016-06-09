@@ -167,14 +167,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 return;
             }
             if (!isCasting) {
-                player.play();
-                if (isBackgrounded) {
-                    //if go to background on buffering and playback starting need to pause and change to playing
-                    player.pause();
-                    isPlaying = true;
+                if (player != null) {
+                    player.play();
+                    if (isBackgrounded) {
+                        //if go to background on buffering and playback starting need to pause and change to playing
+                        player.pause();
+                        isPlaying = true;
+                    }
                 }
             } else {
-                castPlayer.play();
+                if (castPlayer != null) {
+                    castPlayer.play();
+                }
             }
         }
     }
@@ -346,7 +350,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             if (!isIMAActive) {
                 player.freezePlayer();
             } else {
-                imaManager.pause();
+                if (imaManager != null) {
+                    imaManager.pause();
+                }
             }
         }
     }
