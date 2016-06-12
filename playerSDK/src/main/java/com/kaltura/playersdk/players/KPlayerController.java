@@ -57,6 +57,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private UIState currentState = UIState.Idle;
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
+    private boolean prepareWithConfigurationMode = false;
+
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -428,6 +430,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             player = new KWVCPlayer(context);
         } else {
             player = new com.kaltura.playersdk.players.KExoPlayer(context);
+            if(prepareWithConfigurationMode) {
+                player.setPrepareWithConfigurationMode();
+            }
         }
         if (shouldReplacePlayer) {
             replacePlayer();
@@ -603,5 +608,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 playerListener.eventWithJSON(getPlayer(), KPlayerListener.FlavorsListChangedKey,  tracksManager.getTrackListAsJson(TrackType.VIDEO, false).toString());
                 break;
         }
+    }
+
+    public void attachView() {
+        if (player != null) {
+            player.attachSurfaceViewToPlayer();
+        }
+    }
+
+    public void detachView() {
+        if (player != null) {
+            player.detachSurfaceViewFromPlayer();
+        }
+    }
+
+    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
+        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
     }
 }

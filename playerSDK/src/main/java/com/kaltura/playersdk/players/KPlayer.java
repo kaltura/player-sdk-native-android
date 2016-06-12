@@ -45,4 +45,11 @@ public interface KPlayer {
     int getCurrentTrackIndex(TrackType trackType);
 
     void switchTrack(TrackType trackType, int newIndex);
+
+    void attachSurfaceViewToPlayer();
+
+    void detachSurfaceViewFromPlayer();
+
+    void setPrepareWithConfigurationMode();
+
 }

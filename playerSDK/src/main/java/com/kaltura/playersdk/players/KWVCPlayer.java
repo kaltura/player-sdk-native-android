@@ -285,6 +285,23 @@ public class KWVCPlayer
 
     }
 
+    @Override
+    public void attachSurfaceViewToPlayer() {
+        // not required in case of multiplayer and WV classic
+
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+        // not required in case of multiplayer and WV classic
+
+    }
+
+    @Override
+    public void setPrepareWithConfigurationMode() {
+
+    }
+
     public void savePosition() {
         if(mPlayer != null) {
             mSavedState.position = mPlayer.getCurrentPosition();
@@ -514,6 +531,12 @@ public class KWVCPlayer
             @Override
             public void run() {
                 try {
+                    if (mPlayer.getCurrentPosition() == mPlayer.getDuration()){
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.ENDED);
+
+                    }
+
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));

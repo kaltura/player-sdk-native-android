@@ -68,6 +68,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private boolean mSeeking;
     private boolean mBuffering = false;
     private boolean mPassedPlay = false;
+    private boolean prepareWithConfigurationMode = false;
+
+
 
     private SurfaceHolder.Callback mSurfaceCallback;
 
@@ -207,10 +210,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         };
 
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
-        this.addView(mSurfaceView, layoutParams);
-        mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
-        this.addView(mSubtView, layoutParams);
-
+        Log.d(TAG, "KExoPlaer prepareWithConfigurationMode " + prepareWithConfigurationMode);
+        if(!prepareWithConfigurationMode) {
+            this.addView(mSurfaceView, layoutParams);
+            mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
+            this.addView(mSubtView, layoutParams);
+        }
     }
 
     @Override
@@ -344,6 +349,32 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void setLicenseUri(final String licenseUri) {
         mDrmCallback.setLicenseUri(licenseUri);
     }
+
+    @Override
+    public void attachSurfaceViewToPlayer() {
+        if (prepareWithConfigurationMode) {
+            Log.d(TAG, "KExoPlayer attachSurfaceViewToPlayer " + prepareWithConfigurationMode);
+            LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
+            this.addView(mSurfaceView, layoutParams);
+            mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
+            this.addView(mSubtView, layoutParams);
+        }
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+        if (prepareWithConfigurationMode) {
+            this.removeView(mSubtView);
+            this.removeView(mSurfaceView);
+        }
+    }
+
+    @Override
+    public void setPrepareWithConfigurationMode() {
+        prepareWithConfigurationMode = true;
+    }
+
+
 
 //    private void savePlayerState() {
 //        saveState();

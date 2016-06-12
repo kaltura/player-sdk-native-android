@@ -100,9 +100,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer.loadPlayerIntoActivity(this);
 
 
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44.rc8/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
             //KPPlayerConfig config = new KPPlayerConfig("http://192.168.1.10/html5.kaltura/mwEmbed/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
-            //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44.rc8/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.addConfig("autoPlay", "true");
             
             config.addConfig("closedCaptions.plugin", "true");
