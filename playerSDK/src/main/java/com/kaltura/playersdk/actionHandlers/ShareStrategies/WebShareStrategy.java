@@ -35,6 +35,6 @@ public class WebShareStrategy implements ShareManager.KPShareStrategy {
         shareIntent.putExtra("BarColor", barColor);
 
         activity.startActivity(shareIntent);
-        activity.overridePendingTransition(R.anim.trans_left_in, R.anim.trans_left_out);
+        activity.overridePendingTransition(R.animator.trans_left_in, R.animator.trans_left_out);
     }
 }
