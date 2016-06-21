@@ -362,6 +362,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
         Log.d(TAG, "PlayerStateChanged: " + playbackState);
+
         switch (playbackState) {
             case ExoPlayer.STATE_IDLE:
                 if (mSeeking) {
@@ -371,39 +372,44 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             case ExoPlayer.STATE_PREPARING:
                 break;
             case ExoPlayer.STATE_BUFFERING:
-                mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "true");
-                mBuffering = true;
+                if (mPlayerListener != null) {
+                   mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "true");
+                   mBuffering = true;
+                 }
                 break;
             case ExoPlayer.STATE_READY:
-                if (mBuffering) {
-                    mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
-                    mBuffering = false;
-                }
-                if (mReadiness == Readiness.Ready && !playWhenReady) {
-                    mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
-                }
-                // ExoPlayer is ready.
-                if (mReadiness != Readiness.Ready) {
-                    mReadiness = Readiness.Ready;
+                if (mPlayerListener != null && mPlayerCallback != null) {
+                    if (mBuffering) {
+                        mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
+                        mBuffering = false;
+                    }
+                    if (mReadiness == Readiness.Ready && !playWhenReady) {
+                        mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
+                    }
 
-                    // TODO what about mShouldResumePlayback?
-                    mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
-                    mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
-                    mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
-                    mPlayerCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
-                }
-                if (mSeeking) {
-                    // ready after seeking
-                    mReadiness = Readiness.Ready;
-                    mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
-                    mPlayerCallback.playerStateChanged(KPlayerCallback.SEEKED);
-                    mSeeking = false;
-                    startPlaybackTimeReporter();
-                }
+                    // ExoPlayer is ready.
+                    if (mReadiness != Readiness.Ready) {
+                        mReadiness = Readiness.Ready;
 
-                if (mPassedPlay && playWhenReady) {
-                    mPassedPlay = false;
-                    mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+                        // TODO what about mShouldResumePlayback?
+                        mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
+                        mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
+                        mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
+                        mPlayerCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
+                    }
+                    if (mSeeking) {
+                        // ready after seeking
+                        mReadiness = Readiness.Ready;
+                        mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                        mPlayerCallback.playerStateChanged(KPlayerCallback.SEEKED);
+                        mSeeking = false;
+                        startPlaybackTimeReporter();
+                    }
+
+                    if (mPassedPlay && playWhenReady) {
+                        mPassedPlay = false;
+                        mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
+                    }
                 }
                 break;
 
