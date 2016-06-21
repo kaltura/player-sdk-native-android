@@ -745,9 +745,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if(KPlayerListener.ErrorKey.equals(eventName) && !getConfig().isWebDialogEnabled()) {
             Log.e(TAG, "blocking Dialog for: " + eventValue);
 
-            if(mOnKPErrorEventListener != null){ // this listener should still get error events
-                mOnKPErrorEventListener.onKPlayerError(this, new KPError(eventValue));
-            }
+            sendOnKPlayerError(eventValue);
             return;
         }
         this.mWebView.triggerEvent(eventName, eventValue);
@@ -944,7 +942,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
         }
         if (mOnKPErrorEventListener != null){
-                mOnKPErrorEventListener.onKPlayerError(this, new KPError(attributeValue));
+            mOnKPErrorEventListener.onKPlayerError(this, new KPError(attributeValue));
         }
     }
 
