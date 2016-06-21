@@ -10,8 +10,6 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.kaltura.playersdk.R;
-
 public class BrowserActivity extends Activity {
 
     @Override
@@ -54,7 +52,7 @@ public class BrowserActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         finish();
-        overridePendingTransition(R.anim.trans_right_in, R.anim.trans_right_out);
+        overridePendingTransition(R.animator.trans_right_in, R.animator.trans_right_out);
         return super.onOptionsItemSelected(item);
     }
 

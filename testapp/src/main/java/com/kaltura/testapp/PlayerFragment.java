@@ -107,7 +107,7 @@ public class PlayerFragment extends Fragment {
 //            });
             KPPlayerConfig config = null;
             if (mConfig == null) {
-                config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.39.rc8/mwEmbedFrame.php", "32855491", "1424501");
+                config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44.rc5/mwEmbedFrame.php", "32855491", "1424501");
                 config.setEntryId("1_32865911");
 //            config.addConfig("proxyData", "{\"MediaID\":\"296461\",\"iMediaID\":\"296461\",\"initObj\":{\"ApiPass\":\"11111\",\"ApiUser\":\"tvpapi_225\",\"DomainID\":\"282672\",\"Locale\":{\"LocaleCountry\":\"\",\"LocaleDevice\":\"\",\"LocaleLanguage\":\"\",\"LocaleUserState\":\"Unknown\"},\"Platform\":\"Cellular\",\"SiteGuid\":\"6142289\",\"UDID\":\"123456\"},\"mediaType\":\"0\",\"picSize\":\"640x360\",\"withDynamic\":\"false\"}");
 //            config.addConfig("tvpapiGetLicensedLinks.plugin", "true");

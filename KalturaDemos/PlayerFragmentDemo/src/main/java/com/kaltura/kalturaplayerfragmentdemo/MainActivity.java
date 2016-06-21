@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                     mPlayerFragment = new PlayerFragment();
                     isPlayer = true;
                 }
-                FragmentTransaction transaction = getFragmentManager().beginTransaction().setCustomAnimations(R.anim.slide_up, R.anim.slide_down);
+                FragmentTransaction transaction = getFragmentManager().beginTransaction().setCustomAnimations(R.animator.slide_up, R.animator.slide_down);
 //        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left);
                 transaction.add(R.id.fragment_container, mPlayerFragment);
                 transaction.addToBackStack(mPlayerFragment.getClass().getName());
