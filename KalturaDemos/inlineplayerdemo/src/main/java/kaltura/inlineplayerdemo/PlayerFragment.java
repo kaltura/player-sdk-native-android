@@ -76,13 +76,6 @@ public class PlayerFragment extends Fragment {
 
         KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
         config.setAutoPlay(true);
-        config.addConfig("chromecast.plugin", "true");
-        config.addConfig("chromecast.applicationID", "C43947A1");
-        config.addConfig("chromecast.useKalturaPlayer", "true");
-        config.addConfig("chromecast.receiverLogo", "true");
-
-
-
         mPlayer.initWithConfiguration(config);
         return view;
     }

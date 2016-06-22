@@ -5,7 +5,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ed0a0a"
     android:id="@+id/container"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="kaltura.inlineplayerdemo.MainActivity"
@@ -39,7 +38,6 @@
         android:layout_marginTop="20dp"
         android:id="@+id/videoContainer"
         android:visibility="visible"
-        android:background="#0a96ed"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
      >

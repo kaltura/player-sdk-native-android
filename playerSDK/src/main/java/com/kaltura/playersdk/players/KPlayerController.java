@@ -2,7 +2,6 @@ package com.kaltura.playersdk.players;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +11,7 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
