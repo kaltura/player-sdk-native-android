@@ -20,6 +20,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.net.Uri;
+import android.util.Log;
 
 import com.google.android.exoplayer.DecoderInfo;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
@@ -37,6 +38,7 @@ import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper.RendererBuilder;
+import com.google.android.libraries.mediaframework.layeredvideo.Util;
 
 /**
  * A {@link RendererBuilder} for streams that can be read using an {@link Extractor}.
@@ -60,14 +62,13 @@ public class ExtractorRendererBuilder implements RendererBuilder {
     private MediaCodecSelector preferSoftwareMediaCodecSelector = new MediaCodecSelector() {
         @Override
         public DecoderInfo getDecoderInfo(String mimeType, boolean requiresSecureDecoder) throws MediaCodecUtil.DecoderQueryException {
-
-           if (!requiresSecureDecoder) {
-               if ("video/avc".equals(mimeType)) {
-                   return new DecoderInfo("OMX.google.h264.decoder", false);
-               } else if (mimeType.startsWith("audio/mp4a")) {
-                   return new DecoderInfo("OMX.google.aac.decoder", false);
-               }
-           }
+            Log.d("Kaltura", "DeviceInfo: " + Util.getDeviceInfo() + ", mimeType:" + mimeType);
+            if (!requiresSecureDecoder && !isVendorSupportDefaultDecoder()) {
+                DecoderInfo decoderInfo = MediaCodecUtil.getDecoderInfo(mimeType, requiresSecureDecoder);
+                Log.d("Kaltura", "Using Decoder = " + decoderInfo.name);
+                return  decoderInfo;
+            }
+           Log.d("Kaltura", "Using Default Decoder");
            return MediaCodecSelector.DEFAULT.getDecoderInfo(mimeType,requiresSecureDecoder);
         }
 
@@ -76,6 +77,15 @@ public class ExtractorRendererBuilder implements RendererBuilder {
             return MediaCodecSelector.DEFAULT.getPassthroughDecoderName();
         }
     };
+
+    private boolean isVendorSupportDefaultDecoder(){
+        if (android.os.Build.MANUFACTURER.equals("LGE")){
+            return true;
+        }else {
+            return false;
+        }
+    }
+
 
     @Override
     public void buildRenderers(ExoplayerWrapper player) {

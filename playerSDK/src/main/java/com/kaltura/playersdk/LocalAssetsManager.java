@@ -155,6 +155,11 @@ public class LocalAssetsManager {
 
     private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DrmAdapter.DRMScheme drmScheme) throws IOException, JSONException {
 
+        String overrideUrl = config.getConfigValueString("Kaltura.overrideDrmServerURL");
+        if (overrideUrl != null) {
+            return Uri.parse(overrideUrl);
+        }
+        
         if (drmScheme == DrmAdapter.DRMScheme.Null) {
             return null;
         }

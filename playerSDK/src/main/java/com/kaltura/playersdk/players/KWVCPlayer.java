@@ -1,6 +1,8 @@
 package com.kaltura.playersdk.players;
 
 import android.content.Context;
+import android.drm.DrmErrorEvent;
+import android.drm.DrmEvent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -10,10 +12,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
 import com.kaltura.playersdk.drm.WidevineDrmClient;
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.util.Collections;
 import java.util.Set;
@@ -39,10 +44,13 @@ public class KWVCPlayer
     @Nullable private PlayheadTracker mPlayheadTracker;
     private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
-    
-    public static Set<MediaFormat> supportedFormats(Context context) {
+    private boolean isFirstPreparation = true;
+    private int mCurrentPosition;
+    private boolean mWasDestroyed;
+
+    public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
-            return Collections.singleton(MediaFormat.wvm_widevine);
+            return Collections.singleton(KMediaFormat.wvm_widevine);
         }
         return Collections.emptySet();
     }
@@ -55,7 +63,24 @@ public class KWVCPlayer
     public KWVCPlayer(Context context) {
         super(context);
         mDrmClient = new WidevineDrmClient(context);
-        
+        mDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
+            @Override
+            public void onError(final DrmErrorEvent event) {
+                mShouldCancelPlay = true;
+                KWVCPlayer.this.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, "DRM error");
+                    }
+                });
+            }
+
+            @Override
+            public void onEvent(DrmEvent event) {
+
+            }
+        });
+
         mSavedState = new PlayerState();
         
         // Set no-op listeners so we don't have to check for null on use
@@ -66,7 +91,7 @@ public class KWVCPlayer
     // Convert file:///local/path/a.wvm to /local/path/a.wvm
     // Convert http://example.com/path/a.wvm to widevine://example.com/path/a.wvm
     // Every else remains the same.
-    public static String getWidevineURI(String assetUri) {
+    public static String getWidevineAssetPlaybackUri(String assetUri) {
         if (assetUri.startsWith("file:")) {
             assetUri = Uri.parse(assetUri).getPath();
         } else if (assetUri.startsWith("http:")) {
@@ -74,6 +99,19 @@ public class KWVCPlayer
         }
         return assetUri;
     }
+
+    // Convert file:///local/path/a.wvm to /local/path/a.wvm
+    // Convert widevine://example.com/path/a.wvm to http://example.com/path/a.wvm
+    // Everything else remains the same.
+    public static String getWidevineAssetAcquireUri(String assetUri) {
+        if (assetUri.startsWith("file:")) {
+            assetUri = Uri.parse(assetUri).getPath();
+        } else if (assetUri.startsWith("widevine:")) {
+            assetUri = assetUri.replaceFirst("widevine", "http");
+        }
+        return assetUri;
+    }
+
 
     @Override
     public void setPlayerListener(KPlayerListener listener) {
@@ -105,6 +143,7 @@ public class KWVCPlayer
         mAssetUri = source;
 
         if (mLicenseUri != null) {
+            isFirstPreparation = true;
             preparePlayer();
         } else {
             Log.d(TAG, "setPlayerSource: waiting for licenseUri.");
@@ -143,7 +182,7 @@ public class KWVCPlayer
     public void play() {
 
         // If already playing, don't do anything.
-        if (mPlayer != null && mPlayer.isPlaying()) {
+        if (mPlayer == null || mPlayer.isPlaying()) {
             return;
         }
 
@@ -160,7 +199,12 @@ public class KWVCPlayer
             return;
         }
 
-        assert mPlayer != null;
+        if (mSavedState.position != 0) {
+            mShouldPlayWhenReady = true;
+            setCurrentPlaybackTime(mSavedState.position); // will start playing after seek complete
+            return;
+            //mSavedState.position = 0;
+        }
         mPlayer.start();
 
         if (mPlayheadTracker == null) {
@@ -178,10 +222,7 @@ public class KWVCPlayer
                 changePlayPauseState("pause");
             }
         }
-        saveState();
-        if (mPlayheadTracker != null) {
-            mPlayheadTracker.stop();
-        }
+        stopPlayheadTracker();
     }
 
     private void changePlayPauseState(final String state) {
@@ -220,35 +261,62 @@ public class KWVCPlayer
     }
 
     @Override
-    public void changeSubtitleLanguage(String languageCode) {
-        // TODO: forward to player
+    public void switchToLive() {
+        Log.w(TAG, "switchToLive is not implemented for Widevine Classic player");
+    }
+
+    @Override
+    public TrackFormat getTrackFormat(TrackType trackType, int index) {
+        return null;
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+
+    }
+
+    public void savePosition() {
+        if(mPlayer != null) {
+            mSavedState.position = mPlayer.getCurrentPosition();
+        }
     }
 
     private void savePlayerState() {
         saveState();
-        if (mPlayheadTracker != null) {
-            mPlayheadTracker.stop();
-            mPlayheadTracker = null;
-        }
+        pause();
     }
 
     private void recoverPlayerState() {
-        mPlayer.seekTo(mSavedState.position);
-        if (mSavedState.playing) {
+        if(getCurrentPlaybackTime() != mSavedState.position) {
+            mPlayer.seekTo(mSavedState.position);
+            mShouldPlayWhenReady = mSavedState.playing;
+
+        } else if (mSavedState.playing){
             play();
         }
     }
 
     @Override
     public void freezePlayer() {
-        if (mPlayer != null) {
-            mPlayer.suspend();
-        }
+//        if (mPlayer != null) {
+//            savePosition();
+//            mPlayer.suspend();
+//        }
     }
 
     private void saveState() {
         if (mPlayer != null) {
-            mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
+            mSavedState.set(mPlayer.isPlaying(), mCurrentPosition);
         } else {
             mSavedState.set(false, 0);
         }
@@ -256,22 +324,31 @@ public class KWVCPlayer
 
     @Override
     public void removePlayer() {
+        saveState();
+        pause();
         if (mPlayer != null) {
             mPlayer.stopPlayback();
             removeView(mPlayer);
             mPlayer = null;
         }
-        if (mPlayheadTracker != null) {
-            mPlayheadTracker.stop();
-            mPlayheadTracker = null;
-        }
+        stopPlayheadTracker();
         mPrepareState = PrepareState.NotPrepared;
     }
 
+    private void stopPlayheadTracker() {
+        if (mPlayheadTracker != null) {
+            mCurrentPosition = (int) mPlayheadTracker.getPlaybackTime() * 1000;
+            mPlayheadTracker.stop();
+            mPlayheadTracker = null;
+        }
+    }
+    
     @Override
-    public void recoverPlayer() {
-        if (mPlayer != null) {
+    public void recoverPlayer(boolean isPlaying) {
+        if (mWasDestroyed && mPlayer != null) {
+            mSavedState.set(false, mSavedState.position);
             mPlayer.resume();
+            mWasDestroyed = false;
         }
     }
 
@@ -294,7 +371,7 @@ public class KWVCPlayer
             return;
         }
 
-        String widevineUri = getWidevineURI(mAssetUri);
+        String widevineUri = getWidevineAssetPlaybackUri(mAssetUri);
 
         // Start preparing.
         mPrepareState = PrepareState.Preparing;
@@ -314,9 +391,7 @@ public class KWVCPlayer
                 String errMsg = "VideoView:onError";
                 Log.e(TAG, errMsg);
                 mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
-
-                // TODO
-                return false;
+                return true; // prevents the VideoView error popups
             }
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -324,7 +399,6 @@ public class KWVCPlayer
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
                     Log.i(TAG, "onInfo(" + what + "," + extra + ")");
-                    // TODO
                     return false;
                 }
             });
@@ -340,8 +414,15 @@ public class KWVCPlayer
                 mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mp) {
-                        saveState();
+                        if(mShouldPlayWhenReady){
+                            mShouldPlayWhenReady = false;
+                            mSavedState.set(true, 0);
+                            play();
+                        } else {
+                            saveState();
+                        }
                         mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 });
 
@@ -354,25 +435,59 @@ public class KWVCPlayer
 
                 if (mSavedState.playing) {
                     // we were already playing, so just resume playback from the saved position
-                    mPlayer.seekTo(mSavedState.position);
-                    play();
-                } else {
-                    mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
-                    mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
-                    mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
-                    mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
-
-                    if (mShouldPlayWhenReady) {
+                    mShouldPlayWhenReady = true;
+                    if(getCurrentPlaybackTime() != mSavedState.position) { //if we need seek first - play will be activate on seek complete
+                        mPlayer.seekTo(mSavedState.position);
+                    } else {
                         play();
-                        mShouldPlayWhenReady = false;
+                    }
+
+                } else {
+                    if(!mShouldCancelPlay) {
+                        if (isFirstPreparation) {
+                            isFirstPreparation = false;
+                            mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
+                            mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
+                            mListener.eventWithValue(kplayer, KPlayerListener.CanPlayKey, null);
+                            mCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
+                        }
+                        if (mShouldPlayWhenReady) {
+                            mShouldPlayWhenReady = false;
+                            play();
+                        }
                     }
                 }
             }
         });
+        mPlayer.getHolder().addCallback(new SurfaceHolder.Callback2() {
+            @Override
+            public void surfaceRedrawNeeded(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceRedrawNeeded");
+            }
+
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceCreated");
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                Log.d(TAG, "surfaceChanged");
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                Log.d(TAG, "surfaceDestroyed");
+                mWasDestroyed = true;
+                savePlayerState();
+            }
+        });
         mPlayer.setVideoURI(Uri.parse(widevineUri));
 
-        if(mDrmClient.needToAcquireRights(mAssetUri)) {
-            mDrmClient.acquireRights(mAssetUri, mLicenseUri);
+        String assetAcquireUri = getWidevineAssetAcquireUri(mAssetUri);
+
+        if(mDrmClient.needToAcquireRights(assetAcquireUri)) {
+            mDrmClient.acquireRights(assetAcquireUri, mLicenseUri);
         }
     }
 
@@ -394,11 +509,11 @@ public class KWVCPlayer
     
     class PlayheadTracker {
         Handler mHandler;
+        float playbackTime;
         Runnable mRunnable = new Runnable() {
             @Override
             public void run() {
                 try {
-                    float playbackTime;
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
@@ -415,6 +530,10 @@ public class KWVCPlayer
                 }
             }
         };
+
+        float getPlaybackTime() {
+            return playbackTime;
+        }
 
         void start() {
             if (mHandler == null) {

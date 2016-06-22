@@ -4,7 +4,7 @@ apply from: "../kalturaCommon.gradle"
 
 android {
     compileSdkVersion kaltura.compileSdkVersion
-    buildToolsVersion kaltura.buildToolsVersion
+    buildToolsVersion '23.0.3'
 
     defaultConfig {
         applicationId "com.kaltura.testapp"

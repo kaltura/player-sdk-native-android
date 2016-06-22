@@ -1,6 +1,5 @@
 package com.kaltura.playersdk.players;
 
-import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -14,6 +13,8 @@ import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.io.IOException;
 
@@ -33,6 +34,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     private KCCRemotePlayerListener mListener;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
+
 
     public interface KCCRemotePlayerListener {
         void remoteMediaPlayerReady();
@@ -222,11 +224,6 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public void changeSubtitleLanguage(String languageCode) {
-
-    }
-
-    @Override
     public void freezePlayer() {
 
     }
@@ -242,7 +239,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public void recoverPlayer() {
+    public void recoverPlayer(boolean isPlaying) {
 
     }
 
@@ -261,6 +258,32 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
         return false;
     }
 
+    @Override
+    public void switchToLive() {
+        Log.w(TAG, "switchToLive - Feature is not implemented yet");
+        //TODO
+        //loadMedia();
+    }
+
+    @Override
+    public TrackFormat getTrackFormat(TrackType trackType, int index) {
+        return null;
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+
+    }
 
     @Override
     public void onStatusUpdated() {

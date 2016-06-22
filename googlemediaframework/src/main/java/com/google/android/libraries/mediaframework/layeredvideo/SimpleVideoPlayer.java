@@ -43,7 +43,7 @@ public class SimpleVideoPlayer {
   /**
    * The underlying {@link LayerManager} which is used to assemble the player.
    */
-  private final LayerManager layerManager;
+  private LayerManager layerManager;
 
   /**
    * The customizable view for playback control. It handles pause/play, fullscreen, seeking,
@@ -116,7 +116,7 @@ public class SimpleVideoPlayer {
         preferedSoftwareDecoder,
         layers);
 
-    layerManager.getExoplayerWrapper().setTextListener(subtitleLayer);
+    layerManager.getExoplayerWrapper().setCaptionListener(subtitleLayer);
 
     if (startPostitionMs > 0) {
       layerManager.getExoplayerWrapper().seekTo(startPostitionMs);
@@ -265,6 +265,26 @@ public class SimpleVideoPlayer {
 
     layerManager.getControl().start();
   }
+
+  public void changedMedia(FrameLayout container, Video v, boolean doPlay){
+    boolean preferedSoftwareDecoder = checkIfSoftwareDecoderPrefered();
+    List<Layer> layers = new ArrayList<Layer>();
+    layers.add(videoSurfaceLayer);
+    layers.add(playbackControlLayer);
+    layers.add(subtitleLayer);
+
+    layerManager = new LayerManager(activity,
+            container,
+            v,
+            preferedSoftwareDecoder,
+            layers);
+    layerManager.getExoplayerWrapper().setCaptionListener(subtitleLayer);
+    if (doPlay) {
+      play();
+    }
+
+  }
+
 
   /**
    * Sets the color of the top chrome, bottom chrome, and background.

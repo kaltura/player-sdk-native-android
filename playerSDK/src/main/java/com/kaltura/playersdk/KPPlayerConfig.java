@@ -28,6 +28,8 @@ public class KPPlayerConfig implements Serializable{
 	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
+	private boolean mAutoPlay = false;
+	private boolean isWebDialogEnabled = false;
 
 	static {
 		// Use System.out to print even when Log.X() are disabled.
@@ -130,7 +132,24 @@ public class KPPlayerConfig implements Serializable{
 		}
 		return this;
 	}
-	
+
+	public boolean isAutoPlay() {
+		return mAutoPlay;
+	}
+
+	public void setAutoPlay(boolean autoPlay) {
+		mAutoPlay = autoPlay;
+		addConfig("autoPlay", autoPlay ? "true" : "false");
+	}
+
+	public void setWebDialogEnabled(boolean isEnabled) {
+		isWebDialogEnabled = isEnabled;
+	}
+
+	public boolean isWebDialogEnabled() {
+		return isWebDialogEnabled;
+	}
+
 	public String getQueryString() {
 
 		Uri.Builder builder = new Uri.Builder();
@@ -219,5 +238,9 @@ public class KPPlayerConfig implements Serializable{
 
 	public double getMediaPlayFrom() {
 		return mMediaPlayFrom;
+	}
+	
+	public String getConfigValueString(String key) {
+		return mExtraConfig.get(key);
 	}
 }
