@@ -102,6 +102,12 @@
                 android:id="@+id/btn_refresh"
                 android:padding="5dp"/>
 
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Play"
+                android:id="@+id/btn_play"/>
+
         </LinearLayout>
     </HorizontalScrollView>
 

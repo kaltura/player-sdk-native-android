@@ -24,13 +24,13 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity implements KPEventListener {
 
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
                 }
             }
         });
-        
+
         setButtonAction(R.id.btn_status, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -260,11 +260,15 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
         try {
             JSONObject content = new JSONObject(itemsString);
             JSONObject baseConfig = content.getJSONObject("baseConfig");
-            JSONArray items = content.getJSONArray("items");
+            JSONObject items = content.getJSONObject("items");
 
-            for (int i=0; i<items.length(); i++) {
-                JSONObject jsonItem = items.getJSONObject(i);
+
+            for (Iterator<String> it = items.keys(); it.hasNext(); ) {
+                String key = it.next();
+
                 KPPlayerConfig config = KPPlayerConfig.fromJSONObject(baseConfig);
+                JSONObject jsonItem = items.getJSONObject(key);
+
                 String entryId = getString(jsonItem, "entryId");
                 if (entryId == null) {
                     continue;
@@ -273,12 +277,13 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
                 String localPath = getString(jsonItem, "localPath");
                 String remoteUrl = getString(jsonItem, "remoteUrl");
                 String flavorId = getString(jsonItem, "flavorId");
-                String name = getString(jsonItem, "name");
-                config.setLocalContentId(name);
-                Item item = new Item(config, flavorId, remoteUrl, localPath, name);
                 
+                config.setLocalContentId(key);
+
+                Item item = new Item(config, flavorId, remoteUrl, localPath, key);
+
                 mContentItems.add(item);
-                mContentMap.put(entryId, i);
+                mContentMap.put(entryId, mContentItems.size()-1);
             }
             
         } catch (JSONException e) {
