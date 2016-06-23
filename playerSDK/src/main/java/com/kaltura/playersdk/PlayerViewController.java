@@ -31,7 +31,7 @@ import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
-import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
@@ -89,7 +89,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private Set<KPEventListener> eventListeners;
 
     private KPErrorEventListener               mOnKPErrorEventListener;
-    private KPFullScreenToggeledEventListener  mOnKPFullScreenToggeledEventListener;
+    private KPFullScreenToggledEventListener   mOnKPFullScreenToggledEventListener;
     private KPStateChangedEventListener        mOnKPStateChangedEventListener;
     private KPPlayheadUpdateEventListener      mOnKPPlayheadUpdateEventListener;
 
@@ -279,8 +279,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
           mOnKPErrorEventListener = kpErrorEventListener;
     }
 
-    public void setOnKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
-          mOnKPFullScreenToggeledEventListener = kpFullScreenToggeledEventListener;
+    public void setOnKPFullScreenToggledEventListener(KPFullScreenToggledEventListener kpFullScreenToggledEventListener) {
+          mOnKPFullScreenToggledEventListener = kpFullScreenToggledEventListener;
     }
 
     public void setOnKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
@@ -1071,11 +1071,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 listener.onKPlayerFullScreenToggeled(this, isFullScreen);
             }
         }
-        if (mOnKPFullScreenToggeledEventListener != null) {
-            mOnKPFullScreenToggeledEventListener.onKPlayerFullScreenToggeled(this, isFullScreen);
+        if (mOnKPFullScreenToggledEventListener != null) {
+            mOnKPFullScreenToggledEventListener.onKPlayerFullScreenToggled(this, isFullScreen);
         }
 
-        if (eventListeners == null && mOnKPFullScreenToggeledEventListener == null) {
+        if (eventListeners == null && mOnKPFullScreenToggledEventListener == null) {
             defaultFullscreenToggle();
         }
     }
