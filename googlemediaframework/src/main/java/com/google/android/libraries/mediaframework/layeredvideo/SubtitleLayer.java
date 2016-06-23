@@ -20,13 +20,16 @@ import android.view.LayoutInflater;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.google.android.exoplayer.text.Cue;
 import com.google.android.libraries.mediaframework.R;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
+
+import java.util.List;
 
 /**
  * Creates a view which displays subtitles.
  */
-public class SubtitleLayer implements Layer, ExoplayerWrapper.TextListener {
+public class SubtitleLayer implements Layer , ExoplayerWrapper.CaptionListener{
 
   /**
    * The text view that displays the subtitles.
@@ -44,8 +47,8 @@ public class SubtitleLayer implements Layer, ExoplayerWrapper.TextListener {
 
     view = (FrameLayout) inflater.inflate(R.layout.subtitle_layer, null);
     subtitles = (TextView) view.findViewById(R.id.subtitles);
+    layerManager.getExoplayerWrapper().setCaptionListener(this);
 
-    layerManager.getExoplayerWrapper().setTextListener(this);
     return view;
   }
 
@@ -56,12 +59,18 @@ public class SubtitleLayer implements Layer, ExoplayerWrapper.TextListener {
 
   /**
    * When subtitles arrive, display them in the text view.
-   * @param text The subtitles that must be displayed.
+   * @param cues The subtitles that must be displayed.
    */
+
   @Override
-  public void onText(String text) {
-    this.subtitles.setText(text);
+  public void onCues(List<Cue> cues) {
+      StringBuilder sb = new StringBuilder();
+      for (Cue cue : cues){
+        sb.append(cue.text);
+      }
+      this.subtitles.setText(sb.toString());
   }
+
 
   /**
    * Show or hide the subtitles.
@@ -71,4 +80,6 @@ public class SubtitleLayer implements Layer, ExoplayerWrapper.TextListener {
   public void setVisibility(int visibility) {
     view.setVisibility(visibility);
   }
+
+
 }

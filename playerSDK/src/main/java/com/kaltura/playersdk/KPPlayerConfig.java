@@ -29,6 +29,7 @@ public class KPPlayerConfig implements Serializable{
 	private String mKS;
 	private Map<String, String> mExtraConfig = new HashMap<>();
 	private boolean mAutoPlay = false;
+	private boolean isWebDialogEnabled = false;
 
 	static {
 		// Use System.out to print even when Log.X() are disabled.
@@ -139,6 +140,14 @@ public class KPPlayerConfig implements Serializable{
 	public void setAutoPlay(boolean autoPlay) {
 		mAutoPlay = autoPlay;
 		addConfig("autoPlay", autoPlay ? "true" : "false");
+	}
+
+	public void setWebDialogEnabled(boolean isEnabled) {
+		isWebDialogEnabled = isEnabled;
+	}
+
+	public boolean isWebDialogEnabled() {
+		return isWebDialogEnabled;
 	}
 
 	public String getQueryString() {

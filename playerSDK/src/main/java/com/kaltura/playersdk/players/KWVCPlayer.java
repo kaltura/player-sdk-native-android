@@ -16,6 +16,8 @@ import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import java.util.Collections;
@@ -46,9 +48,9 @@ public class KWVCPlayer
     private int mCurrentPosition;
     private boolean mWasDestroyed;
 
-    public static Set<MediaFormat> supportedFormats(Context context) {
+    public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
-            return Collections.singleton(MediaFormat.wvm_widevine);
+            return Collections.singleton(KMediaFormat.wvm_widevine);
         }
         return Collections.emptySet();
     }
@@ -264,8 +266,23 @@ public class KWVCPlayer
     }
 
     @Override
-    public void changeSubtitleLanguage(String languageCode) {
-        // TODO: forward to player
+    public TrackFormat getTrackFormat(TrackType trackType, int index) {
+        return null;
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
+
     }
 
     public void savePosition() {
@@ -374,9 +391,7 @@ public class KWVCPlayer
                 String errMsg = "VideoView:onError";
                 Log.e(TAG, errMsg);
                 mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
-
-                // TODO
-                return false;
+                return true; // prevents the VideoView error popups
             }
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -384,7 +399,6 @@ public class KWVCPlayer
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
                     Log.i(TAG, "onInfo(" + what + "," + extra + ")");
-                    // TODO
                     return false;
                 }
             });
