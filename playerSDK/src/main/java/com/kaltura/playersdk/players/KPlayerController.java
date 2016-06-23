@@ -131,16 +131,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void addPlayerToController() {
-//        this.parentViewController = playerViewController;
-        ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
-
-        // Add background view
-        RelativeLayout mBackgroundRL = new RelativeLayout(this.parentViewController.getContext());
-        mBackgroundRL.setBackgroundColor(Color.BLACK);
-        this.parentViewController.addView(mBackgroundRL, parentViewController.getChildCount() - 1, currLP);
-
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        this.parentViewController.addView((View)player, parentViewController.getChildCount() - 1, lp);
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
     }
 
     public void replacePlayer() {

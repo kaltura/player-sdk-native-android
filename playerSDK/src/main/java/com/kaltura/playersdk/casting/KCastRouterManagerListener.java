@@ -7,6 +7,6 @@ public interface KCastRouterManagerListener {
     void onCastButtonClicked();
     void onApplicationStatusChanged(boolean isConnected);
     void shouldPresentCastIcon(boolean shouldPresentOrDismiss);
-    void onAddedCastDevice(KRouterInfo info);
-    void onRemovedCastDevice(KRouterInfo info);
+    void onAddedCastDevice(KCastDevice info);
+    void onRemovedCastDevice(KCastDevice info);
 }

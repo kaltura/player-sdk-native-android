@@ -21,7 +21,7 @@ import android.widget.RelativeLayout;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
-import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
@@ -108,12 +108,12 @@ public class FullscreenFragment extends Fragment{
               }
 
               @Override
-              public void onAddedCastDevice(KRouterInfo info) {
+              public void onAddedCastDevice(KCastDevice info) {
                   getDevicesDialog().addCastDevice(info);
               }
 
               @Override
-              public void onRemovedCastDevice(KRouterInfo info) {
+              public void onRemovedCastDevice(KCastDevice info) {
                   getDevicesDialog().removeCastDevice(info);
               }
           });

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -25,17 +26,20 @@ import android.widget.RelativeLayout;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.cast.KRouterManager;
+import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.casting.KCastRouterManager;
-import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
-import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.interfaces.ScanCastDeviceListener;
 import com.kaltura.playersdk.players.KMediaFormat;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
@@ -85,7 +89,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private Set<KPEventListener> eventListeners;
 
     private KPErrorEventListener               mOnKPErrorEventListener;
-    private KPFullScreenToggeledEventListener  mOnKPFullScreenToggeledEventListener;
+    private KPFullScreenToggledEventListener   mOnKPFullScreenToggledEventListener;
     private KPStateChangedEventListener        mOnKPStateChangedEventListener;
     private KPPlayheadUpdateEventListener      mOnKPPlayheadUpdateEventListener;
 
@@ -95,9 +99,38 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private boolean shouldReplay = false;
 
     private KRouterManager routerManager;
+    private KCastProvider mCastProvider;
 
 
+    public static KCastProvider createCastProvider() {
+        return new KCastProviderImpl();
+    }
 
+    public void setCastProvider(KCastProvider castProvider) {
+        mCastProvider = castProvider;
+        ((KCastProviderImpl)castProvider).setScanCastDeviceListener(new ScanCastDeviceListener() {
+            @Override
+            public void onDisconnectCastDevice() {
+                mWebView.triggerEvent("chromecastDeviceDisConnected", null);
+                playerController.removeCastPlayer();
+            }
+
+            @Override
+            public void onConnecting() {
+                mWebView.triggerEvent("chromecastShowConnectingMsg", null);
+            }
+
+            @Override
+            public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
+                mWebView.triggerEvent("chromecastDeviceConnected", null);
+            }
+
+            @Override
+            public void onDevicesInRange(boolean foundDevices) {
+                setKDPAttribute("chromecast", "visible", foundDevices ? "true" : "false");
+            }
+        });
+    }
     /// KCastKalturaChannel Listener
     @Override
     public void onDeviceSelected(CastDevice castDeviceSelected) {
@@ -111,7 +144,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     @Override
-    public void onRouteAdded(boolean isAdded, KRouterInfo route) {
+    public void onRouteAdded(boolean isAdded, KCastDevice route) {
         if (getRouterManager().getAppListener() != null) {
             if (isAdded) {
                 getRouterManager().getAppListener().onAddedCastDevice(route);
@@ -246,8 +279,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
           mOnKPErrorEventListener = kpErrorEventListener;
     }
 
-    public void setOnKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
-          mOnKPFullScreenToggeledEventListener = kpFullScreenToggeledEventListener;
+    public void setOnKPFullScreenToggledEventListener(KPFullScreenToggledEventListener kpFullScreenToggledEventListener) {
+          mOnKPFullScreenToggledEventListener = kpFullScreenToggledEventListener;
     }
 
     public void setOnKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
@@ -435,7 +468,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * @param height player's height
      * @param xPadding player's X position
      * @param yPadding player's Y position
+     * @deprecated Use {@link #setLayoutParams(ViewGroup.LayoutParams)} instead.
      */
+    @Deprecated
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
         setPadding(xPadding, yPadding, 0, 0);
         newWidth = width + xPadding;
@@ -507,8 +542,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * Player's X and Y position will be 0
      * @param width player's width
      * @param height player's height
+     * @deprecated Use {@link #setLayoutParams(ViewGroup.LayoutParams)} instead.
      */
+    @Deprecated
     public void setPlayerViewDimensions(int width, int height) {
+        //noinspection deprecation
         setPlayerViewDimensions(width, height, 0, 0);
     }
 
@@ -531,11 +569,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
-            ViewGroup.LayoutParams currLP = getLayoutParams();
-            LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
-
+            LayoutParams wvLp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            mWebView.setLayoutParams(wvLp);
+            setBackgroundColor(Color.BLACK);
             this.playerController = new KPlayerController(this);
-            this.addView(mWebView, wvLp);
+            this.addView(mWebView);
             
         }
 
@@ -899,6 +937,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
+//                    getRouterManager().initialize(attributeValue);
                     getRouterManager().initialize(attributeValue);
                     Log.d(TAG, "chromecast.initialize:" + attributeValue);
                     break;
@@ -1029,11 +1068,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 listener.onKPlayerFullScreenToggeled(this, isFullScreen);
             }
         }
-        if (mOnKPFullScreenToggeledEventListener != null) {
-            mOnKPFullScreenToggeledEventListener.onKPlayerFullScreenToggeled(this, isFullScreen);
+        if (mOnKPFullScreenToggledEventListener != null) {
+            mOnKPFullScreenToggledEventListener.onKPlayerFullScreenToggled(this, isFullScreen);
         }
 
-        if (eventListeners == null && mOnKPFullScreenToggeledEventListener == null) {
+        if (eventListeners == null && mOnKPFullScreenToggledEventListener == null) {
             defaultFullscreenToggle();
         }
     }
