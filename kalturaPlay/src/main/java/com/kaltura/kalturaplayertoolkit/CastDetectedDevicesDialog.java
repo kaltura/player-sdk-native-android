@@ -8,8 +8,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-//import com.example.kplayersdk.R;
-import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.casting.KCastDevice;
 
 import java.util.ArrayList;
 
@@ -17,8 +16,8 @@ import java.util.ArrayList;
  * Created by nissimpardo on 10/11/15.
  */
 public class CastDetectedDevicesDialog extends Dialog {
-    private ArrayList<KRouterInfo> mRouteNames;
-    private ArrayAdapter<KRouterInfo> mAdapter;
+    private ArrayList<KCastDevice> mRouteNames;
+    private ArrayAdapter<KCastDevice> mAdapter;
 
     public interface CastDetectedDevicesDialogListener {
         public void disconnect();
@@ -29,9 +28,9 @@ public class CastDetectedDevicesDialog extends Dialog {
         super(context);
         setContentView(R.layout.media_routers);
         setTitle(Html.fromHtml("<font color='#0db6d1'>Connect to Device</font>"));
-        mRouteNames = new ArrayList<KRouterInfo>();
+        mRouteNames = new ArrayList<KCastDevice>();
         final ListView routeListView = (ListView)findViewById(R.id.listview);
-        mAdapter = new ArrayAdapter<KRouterInfo>(context, android.R.layout.simple_list_item_1, mRouteNames);
+        mAdapter = new ArrayAdapter<KCastDevice>(context, android.R.layout.simple_list_item_1, mRouteNames);
         routeListView.setAdapter(mAdapter);
         routeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -48,11 +47,11 @@ public class CastDetectedDevicesDialog extends Dialog {
     }
 
     public void deviceConnectionStateDidChange(boolean isConnected) {
-        ArrayList<KRouterInfo> temp = new ArrayList<>(mRouteNames);
+        ArrayList<KCastDevice> temp = new ArrayList<>(mRouteNames);
         mAdapter.clear();
         mRouteNames = new ArrayList<>(temp);
         if (isConnected) {
-            KRouterInfo disconnect = new KRouterInfo();
+            KCastDevice disconnect = new KCastDevice();
             disconnect.setRouterName("Disconnect");
             mAdapter.add(disconnect);
         } else {
@@ -68,14 +67,14 @@ public class CastDetectedDevicesDialog extends Dialog {
         mAdapter.notifyDataSetChanged();
     }
 
-    public void addCastDevice(KRouterInfo info) {
+    public void addCastDevice(KCastDevice info) {
         mRouteNames.add(info);
         if (isShowing()) {
             mAdapter.notifyDataSetChanged();
         }
     }
 
-    public void removeCastDevice(KRouterInfo info) {
+    public void removeCastDevice(KCastDevice info) {
         mRouteNames.remove(info);
         if (isShowing()) {
             mAdapter.notifyDataSetChanged();
