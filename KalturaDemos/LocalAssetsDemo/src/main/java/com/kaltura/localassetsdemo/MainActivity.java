@@ -20,7 +20,8 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.Utilities;
-import com.kaltura.playersdk.events.KPEventListener;
+import com.kaltura.playersdk.events.KPErrorEventListener;
+import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class MainActivity extends AppCompatActivity implements KPEventListener {
+public class MainActivity extends AppCompatActivity implements KPErrorEventListener, KPStateChangedEventListener {
 
     private static final String TAG = "MainActivity";
     
@@ -163,8 +164,11 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
             mPlayer.initWithConfiguration(config);
             
             mPlayer.setCustomSourceURLProvider(mSourceURLProvider);
-
-            mPlayer.addEventListener(this);
+            
+            mPlayer.setOnKPErrorEventListener(this);
+            mPlayer.setOnKPStateChangedEventListener(this);
+            
+            
         } else {
             if (mPlayerDetached) {
                 mPlayerContainer.addView(mPlayer, new ViewGroup.LayoutParams(mPlayerContainer.getLayoutParams()));
@@ -211,14 +215,6 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
         uiLog("onKPlayerError", error.getException());
     }
 
-    @Override
-    public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-    }
-
-    @Override
-    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscrenn) {
-    }
-    
     class Item {
         KPPlayerConfig config;
         String flavorId;
