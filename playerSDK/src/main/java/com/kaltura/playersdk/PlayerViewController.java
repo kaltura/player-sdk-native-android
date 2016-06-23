@@ -468,7 +468,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * @param height player's height
      * @param xPadding player's X position
      * @param yPadding player's Y position
-     * @deprecated Use {@link ViewGroup#setLayoutParams(ViewGroup.LayoutParams)} instead.
+     * @deprecated Use {@link #setLayoutParams(ViewGroup.LayoutParams)} instead.
      */
     @Deprecated
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
@@ -542,7 +542,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * Player's X and Y position will be 0
      * @param width player's width
      * @param height player's height
-     * @deprecated Use {@link ViewGroup#setLayoutParams(ViewGroup.LayoutParams)} instead.
+     * @deprecated Use {@link #setLayoutParams(ViewGroup.LayoutParams)} instead.
      */
     @Deprecated
     public void setPlayerViewDimensions(int width, int height) {
