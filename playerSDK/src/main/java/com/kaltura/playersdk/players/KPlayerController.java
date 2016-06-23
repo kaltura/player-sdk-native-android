@@ -2,7 +2,9 @@ package com.kaltura.playersdk.players;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -11,13 +13,15 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.google.android.exoplayer.MediaFormat;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
 import com.kaltura.playersdk.helpers.KIMAManagerEvents;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.tracks.KTrackActions;
+import com.kaltura.playersdk.tracks.KTracksManager;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -30,6 +34,8 @@ import java.util.Set;
 public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KMediaControl, KIMAManagerListener {
     private static final String TAG = "KPlayerController";
     private KPlayer player;
+    private KTracksManager tracksManager;
+    private KTrackActions.EventListener tracksEventListener = null;
     private String src;
     private String adTagURL;
     private int adPlayerHeight;
@@ -83,18 +89,24 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     @Override
     public void onAdUpdateProgress(String jsonValue) {
         if (playerListener != null) {
-            playerListener.eventWithJSON(player, "adRemainingTimeChange", jsonValue);
+            playerListener.eventWithJSON(player, KPlayerListener.AdRemainingTimeChangeKey, jsonValue);
         }
     }
 
     @Override
     public void onAdError(String errorMsg) {
+        playerListener.eventWithValue(player, KPlayerListener.AdsLoadErrorKey, null); // update web that we have AD Loading error
         removeAdPlayer();
         ((View)player).setVisibility(View.VISIBLE);
-        isIMAActive = false;
-        player.play();
+        player.setShouldCancelPlay(false);
+        play();
+
     }
 
+
+    public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
+        this.tracksEventListener = tracksEventListener;
+    }
 
     private enum UIState {
         Idle,
@@ -104,10 +116,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         Replay
     }
 
-    public static Set<MediaFormat> supportedFormats(Context context) {
+    public static Set<KMediaFormat> supportedFormats(Context context) {
         // TODO: dynamically determine available players, use reflection.
 
-        Set<MediaFormat> formats = new HashSet<>();
+        Set<KMediaFormat> formats = new HashSet<>();
 
         // All known players
         formats.addAll(KExoPlayer.supportedFormats(context));
@@ -122,14 +134,26 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void addPlayerToController() {
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
+//        this.parentViewController = playerViewController;
+        ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
+
+        // Add background view
+        RelativeLayout mBackgroundRL = new RelativeLayout(this.parentViewController.getContext());
+        mBackgroundRL.setBackgroundColor(Color.BLACK);
+        this.parentViewController.addView(mBackgroundRL, parentViewController.getChildCount() - 1, currLP);
+
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
+        this.parentViewController.addView((View)player, parentViewController.getChildCount() - 1, lp);
     }
 
     public void replacePlayer() {
         ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        this.parentViewController.addView((View)this.player, 1, lp);
+        this.parentViewController.addView((View)player, 1, lp);
+    }
+
+    public KTracksManager getTracksManager() {
+        return tracksManager;
     }
 
     public void play() {
@@ -143,9 +167,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 return;
             }
             if (!isCasting) {
-                player.play();
+                if (player != null) {
+                    player.play();
+                    if (isBackgrounded) {
+                        //if go to background on buffering and playback starting need to pause and change to playing
+                        player.pause();
+                        isPlaying = true;
+                    }
+                }
             } else {
-                castPlayer.play();
+                if (castPlayer != null) {
+                    castPlayer.play();
+                }
             }
         }
     }
@@ -165,10 +198,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         imaManager.pause();
                     }
                 } else {
-                    player.pause();
+                    if (player != null) {
+                        player.pause();
+                    }
                 }
             } else {
-                castPlayer.pause();
+                if (castPlayer != null) {
+                    castPlayer.pause();
+                }
             }
         }
     }
@@ -186,12 +223,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public boolean canPause() {
-        return player.isPlaying();
+        if (player != null) {
+            return player.isPlaying();
+        }
+        return false;
     }
 
     @Override
     public int getCurrentPosition() {
-        return (int) player.getCurrentPlaybackTime();
+        if (player != null) {
+            return (int) player.getCurrentPlaybackTime();
+        }
+        return 0;
     }
 
     @Override
@@ -204,7 +247,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public boolean isPlaying() {
-        return player != null &&  player.isPlaying();
+        return player != null && player.isPlaying();
     }
 
     @Override
@@ -230,6 +273,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
     public void startCasting(GoogleApiClient apiClient) {
+        if (player == null) {
+            return;
+        }
         player.pause();
         isCasting = true;
         if (castPlayer == null) {
@@ -253,23 +299,23 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void stopCasting() {
         isCasting = false;
         switchingBackFromCasting = true;
-        ((View) player).setVisibility(View.VISIBLE);
-        player.setPlayerCallback(this);
-        player.setPlayerListener(playerListener);
-        player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
-        player.play();
+        if (player != null) {
+            ((View) player).setVisibility(View.VISIBLE);
+            player.setPlayerCallback(this);
+            player.setPlayerListener(playerListener);
+            player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
+            player.play();
+        }
         removeCastPlayer();
     }
 
     public void removeCastPlayer() {
-        castPlayer.removePlayer();
-        castPlayer.setPlayerCallback(null);
-        castPlayer.setPlayerListener(null);
-        castPlayer = null;
-    }
-
-    public void changeSubtitleLanguage(String isoCode) {
-
+        if (castPlayer != null) {
+            castPlayer.removePlayer();
+            castPlayer.setPlayerCallback(null);
+            castPlayer.setPlayerListener(null);
+            castPlayer = null;
+        }
     }
 
     public void savePlayerState() {
@@ -304,7 +350,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             if (!isIMAActive) {
                 player.freezePlayer();
             } else {
-                imaManager.pause();
+                if (imaManager != null) {
+                    imaManager.pause();
+                }
             }
         }
     }
@@ -347,7 +395,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public KPlayer getPlayer() {
-        return this.player;
+        return player;
     }
 
     public String getSrc() {
@@ -363,13 +411,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
         Context context = parentViewController.getContext();
         boolean shouldReplacePlayer = false;
-        if (this.player != null) {
+        if (player != null) {
             if (imaManager != null) {
                 mActivity = null;
                 removeAdPlayer();
             }
-            parentViewController.removeView((View) this.player);
-            this.player.removePlayer();
+            parentViewController.removeView((View) player);
+            player.removePlayer();
             shouldReplacePlayer = true;
         }
 
@@ -377,30 +425,32 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         String path = Uri.parse(src).getPath();
         if (path.endsWith(".wvm")) {
             // Widevine Classic
-            this.player = new KWVCPlayer(context);
+            player = new KWVCPlayer(context);
         } else {
-            this.player = new com.kaltura.playersdk.players.KExoPlayer(context);
+            player = new com.kaltura.playersdk.players.KExoPlayer(context);
         }
         if (shouldReplacePlayer) {
             replacePlayer();
         } else {
             addPlayerToController();
         }
-        this.player.setPlayerListener(playerListener);
-        this.player.setPlayerCallback(this);
+        player.setPlayerListener(playerListener);
+        player.setPlayerCallback(this);
         this.src = src;
-        this.player.setPlayerSource(src);
+        player.setPlayerSource(src);
     }
 
     public void setLicenseUri(String uri) {
-        this.player.setLicenseUri(uri);
+        player.setLicenseUri(uri);
     }
 
 
     public void initIMA(String adTagURL, Activity activity) {
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
-        player.setShouldCancelPlay(true);
+        if (player != null) {
+            player.setShouldCancelPlay(true);
+        }
         this.adTagURL = adTagURL;
         mActivity = new WeakReference<>(activity);
         if (isPlayerCanPlay) {
@@ -443,13 +493,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public float getCurrentPlaybackTime() {
-        return this.player.getCurrentPlaybackTime() / 1000f;
+        if (player != null) {
+            return player.getCurrentPlaybackTime() / 1000f;
+        }
+        return 0f;
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
         if (!isCasting) {
             if (isPlayerCanPlay) {
-                this.player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
+                if (player != null) {
+                    player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
+                }
                 if (currentPlaybackTime == 0.01f) {
                     currentState = UIState.Replay;
                 }
@@ -457,7 +512,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 mCurrentPlaybackTime = currentPlaybackTime;
             }
         } else {
-            castPlayer.setCurrentPlaybackTime((long)currentPlaybackTime * 1000);
+            if (castPlayer != null) {
+                castPlayer.setCurrentPlaybackTime((long) currentPlaybackTime * 1000);
+            }
         }
     }
 
@@ -492,6 +549,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void playerStateChanged(int state) {
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
+                tracksManager = new KTracksManager(player);
+                if (tracksEventListener != null){
+                    //send tracks to app
+                    tracksEventListener.onTracksUpdate(tracksManager);
+                } else {
+                    //Send tracks to webView
+                    sendTracksList(TrackType.TEXT);
+                    sendTracksList(TrackType.AUDIO);
+                    sendTracksList(TrackType.VIDEO);
+                }
+
                 isPlayerCanPlay = true;
                 if (mActivity != null && !isIMAActive) {
                     addAdPlayer();
@@ -518,6 +586,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
                     mSeekCallback = null;
                 }
+                break;
+        }
+    }
+
+    private void sendTracksList(TrackType trackType) {
+        Log.d(TAG, "sendTracksList: " + trackType);
+        switch(trackType) {
+            case AUDIO:
+                playerListener.eventWithJSON(getPlayer(), KPlayerListener.AudioTracksReceivedKey, tracksManager.getTrackListAsJson(TrackType.AUDIO, false).toString());
+                break;
+            case TEXT:
+                playerListener.eventWithJSON(getPlayer(), KPlayerListener.TextTracksReceivedKey,  tracksManager.getTrackListAsJson(TrackType.TEXT, false).toString());
+                break;
+            case VIDEO:
+                playerListener.eventWithJSON(getPlayer(), KPlayerListener.FlavorsListChangedKey,  tracksManager.getTrackListAsJson(TrackType.VIDEO, false).toString());
                 break;
         }
     }

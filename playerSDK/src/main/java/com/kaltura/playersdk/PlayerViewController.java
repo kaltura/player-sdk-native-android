@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -437,69 +436,69 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * @param xPadding player's X position
      * @param yPadding player's Y position
      */
-//    public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
-//        setPadding(xPadding, yPadding, 0, 0);
-//        newWidth = width + xPadding;
-//        newHeight = height + yPadding;
-//
-//        ViewGroup.LayoutParams lp = getLayoutParams();
-//        if ( lp == null ) {
-//            lp = new ViewGroup.LayoutParams( newWidth, newHeight );
-//        } else {
-//            lp.width = newWidth;
-//            lp.height = newHeight;
-//        }
-//
-//        this.setLayoutParams(lp);
-//        for ( int i = 0; i < this.getChildCount(); i++ ) {
-//
-//            View v = getChildAt(i);
-//            if( v == playerController.getPlayer() )
-//            {
-//                continue;
-//            }
-//            ViewGroup.LayoutParams vlp = v.getLayoutParams();
-//            vlp.width = newWidth;
-//            if ( (!mWvMinimized || !v.equals( mWebView)) ) {//
-//                vlp.height = newHeight;
-//            }
-//            updateViewLayout(v, vlp);
-//        }
-//
-//
-//        if(mWebView != null) {
-////            mWebView.loadUrl("javascript:android.onData(NativeBridge.videoPlayer.getControlBarHeight())");
-//            mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
-//                @Override
-//                public void fetchHeight(int controlBarHeight) {
-//                    if ( playerController.getPlayer() != null && playerController.getPlayer() instanceof FrameLayout && ((FrameLayout)playerController.getPlayer()).getParent() == PlayerViewController.this ) {
-//                        LayoutParams wvLp = (LayoutParams) ((View) playerController.getPlayer()).getLayoutParams();
-//
-//                        if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
-//                            wvLp.addRule(CENTER_IN_PARENT);
-//                        } else {
-//                            wvLp.addRule(CENTER_IN_PARENT, 0);
-//                        }
-//                        float scale = mActivity.getResources().getDisplayMetrics().density;
-//                        controlBarHeight = (int) (controlBarHeight * scale + 0.5f);
-//                        wvLp.height = newHeight - controlBarHeight;
-//                        wvLp.width = newWidth;
-//                        wvLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-//                        final LayoutParams lp = wvLp;
-//                        mActivity.runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                updateViewLayout((View) playerController.getPlayer(), lp);
-//                                invalidate();
-//                            }
-//                        });
-//
-//                    }
-//                }
-//            });
-//        }
-//        invalidate();
-//    }
+    public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
+        setPadding(xPadding, yPadding, 0, 0);
+        newWidth = width + xPadding;
+        newHeight = height + yPadding;
+
+        ViewGroup.LayoutParams lp = getLayoutParams();
+        if ( lp == null ) {
+            lp = new ViewGroup.LayoutParams( newWidth, newHeight );
+        } else {
+            lp.width = newWidth;
+            lp.height = newHeight;
+        }
+
+        this.setLayoutParams(lp);
+        for ( int i = 0; i < this.getChildCount(); i++ ) {
+
+            View v = getChildAt(i);
+            if( v == playerController.getPlayer() )
+            {
+                continue;
+            }
+            ViewGroup.LayoutParams vlp = v.getLayoutParams();
+            vlp.width = newWidth;
+            if ( (!mWvMinimized || !v.equals( mWebView)) ) {//
+                vlp.height = newHeight;
+            }
+            updateViewLayout(v, vlp);
+        }
+
+
+        if(mWebView != null) {
+//            mWebView.loadUrl("javascript:android.onData(NativeBridge.videoPlayer.getControlBarHeight())");
+            mWebView.fetchControlsBarHeight(new KControlsView.ControlsBarHeightFetcher() {
+                @Override
+                public void fetchHeight(int controlBarHeight) {
+                    if ( playerController.getPlayer() != null && playerController.getPlayer() instanceof FrameLayout && ((FrameLayout)playerController.getPlayer()).getParent() == PlayerViewController.this ) {
+                        LayoutParams wvLp = (LayoutParams) ((View) playerController.getPlayer()).getLayoutParams();
+
+                        if (getPaddingLeft() == 0 && getPaddingTop() == 0) {
+                            wvLp.addRule(CENTER_IN_PARENT);
+                        } else {
+                            wvLp.addRule(CENTER_IN_PARENT, 0);
+                        }
+                        float scale = mActivity.getResources().getDisplayMetrics().density;
+                        controlBarHeight = (int) (controlBarHeight * scale + 0.5f);
+                        wvLp.height = newHeight - controlBarHeight;
+                        wvLp.width = newWidth;
+                        wvLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                        final LayoutParams lp = wvLp;
+                        mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateViewLayout((View) playerController.getPlayer(), lp);
+                                invalidate();
+                            }
+                        });
+
+                    }
+                }
+            });
+        }
+        invalidate();
+    }
 
 
     /**
@@ -510,7 +509,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * @param height player's height
      */
     public void setPlayerViewDimensions(int width, int height) {
-//        setPlayerViewDimensions(width, height, 0, 0);
+        setPlayerViewDimensions(width, height, 0, 0);
     }
 
     private void setChromecastVisiblity() {
@@ -532,11 +531,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
-            LayoutParams wvLp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            mWebView.setLayoutParams(wvLp);
-            setBackgroundColor(Color.BLACK);
+            ViewGroup.LayoutParams currLP = getLayoutParams();
+            LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
+
             this.playerController = new KPlayerController(this);
-            this.addView(mWebView);
+            this.addView(mWebView, wvLp);
             
         }
 
