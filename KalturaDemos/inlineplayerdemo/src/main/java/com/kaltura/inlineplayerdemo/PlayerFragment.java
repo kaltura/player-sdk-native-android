@@ -1,4 +1,4 @@
-package kaltura.inlineplayerdemo;
+package com.kaltura.inlineplayerdemo;
 
 import android.content.Context;
 import android.net.Uri;
@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.events.KPEventListener;
 
 
 /**
@@ -27,6 +26,7 @@ public class PlayerFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private PlayerViewController mPlayer;
+    private boolean onCreate = false;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -62,6 +62,7 @@ public class PlayerFragment extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            onCreate = true;
         }
     }
 
@@ -102,6 +103,38 @@ public class PlayerFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onPause() {
+        if (mPlayer != null) {
+            mPlayer.releaseAndSavePosition(true);
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onResume() {
+        if (onCreate) {
+            onCreate = false;
+        }
+        if (mPlayer != null) {
+            mPlayer.resumePlayer();
+        }
+        super.onResume();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mPlayer != null) {
+            mPlayer.removePlayer();
+        }
+        super.onDestroy();
     }
 
     /**
