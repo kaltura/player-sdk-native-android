@@ -38,8 +38,9 @@ class KPlayerExoDrmCallback implements ExtendedMediaDrmCallback {
     }
 
     @Override
-    public byte[] executeProvisionRequest(UUID uuid, MediaDrm.ProvisionRequest request) {
-               throw new UnsupportedOperationException("We don't have a provisioning service");
+    public byte[] executeProvisionRequest(UUID uuid, MediaDrm.ProvisionRequest request) throws IOException {
+        String url = request.getDefaultUrl() + "&signedRequest=" + new String(request.getData());
+        return ExoplayerUtil.executePost(url, null, null);
     }
 
     @Override
