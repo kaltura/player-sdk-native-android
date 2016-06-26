@@ -99,14 +99,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    public PlayerViewController getMPlayer() {
-        return mPlayer;
-    }
-
-    public void setMPlayer(PlayerViewController mPlayer) {
-        this.mPlayer = mPlayer;
-    }
-
     @Override
     protected void onPause() {
         if (mPlayer != null) {
