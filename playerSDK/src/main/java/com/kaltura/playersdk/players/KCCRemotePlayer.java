@@ -1,6 +1,5 @@
 package com.kaltura.playersdk.players;
 
-import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -14,6 +13,8 @@ import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.kaltura.playersdk.tracks.TrackFormat;
+import com.kaltura.playersdk.tracks.TrackType;
 
 import java.io.IOException;
 
@@ -33,6 +34,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     private KCCRemotePlayerListener mListener;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     public static int PLAYHEAD_UPDATE_INTERVAL = 200;
+
 
     public interface KCCRemotePlayerListener {
         void remoteMediaPlayerReady();
@@ -127,7 +129,6 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                                 if (isConnecting) {
                                     isConnecting = false;
                                     mPlayerListener.eventWithValue(KCCRemotePlayer.this, "hideConnectingMessage", null);
-                                    mPlayerListener.eventWithValue(KCCRemotePlayer.this, "chromecastDeviceConnected", null);
                                 }
 
                                 mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
@@ -154,7 +155,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
         if (currentPlaybackTime > 0) {
             mCurrentPlaybackTime = currentPlaybackTime;
             stopTimer();
-            mRemoteMediaPlayer.seek(mApiClient, (long) (currentPlaybackTime)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            mRemoteMediaPlayer.seek(mApiClient, (currentPlaybackTime)).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                 @Override
                 public void onResult(@NonNull RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                     Status status = mediaChannelResult.getStatus();
@@ -223,22 +224,22 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public void changeSubtitleLanguage(String languageCode) {
-
-    }
-
-    @Override
     public void freezePlayer() {
 
     }
 
     @Override
     public void removePlayer() {
-
+        mRemoteMediaPlayer.stop(mApiClient);
+        mRemoteMediaPlayer.setOnStatusUpdatedListener(null);
+        mRemoteMediaPlayer.setOnMetadataUpdatedListener(null);
+        mRemoteMediaPlayer.setOnPreloadStatusUpdatedListener(null);
+        mRemoteMediaPlayer = null;
+        stopTimer();
     }
 
     @Override
-    public void recoverPlayer() {
+    public void recoverPlayer(boolean isPlaying) {
 
     }
 
@@ -253,12 +254,34 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
     }
 
     @Override
-    public void savePlayerState() {
-        
+    public boolean isPlaying() {
+        return false;
     }
 
     @Override
-    public void recoverPlayerState() {
+    public void switchToLive() {
+        Log.w(TAG, "switchToLive - Feature is not implemented yet");
+        //TODO
+        //loadMedia();
+    }
+
+    @Override
+    public TrackFormat getTrackFormat(TrackType trackType, int index) {
+        return null;
+    }
+
+    @Override
+    public int getTrackCount(TrackType trackType) {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentTrackIndex(TrackType trackType) {
+        return -1;
+    }
+
+    @Override
+    public void switchTrack(TrackType trackType, int newIndex) {
 
     }
 

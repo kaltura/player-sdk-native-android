@@ -10,13 +10,13 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -107,4 +107,30 @@ public class Utilities {
         return !(netInfo == null || !netInfo.isConnected() || !netInfo.isAvailable());
     }
 
+    public static void quietClose(Closeable... closeables) {
+        for (Closeable c : closeables) {
+            try {
+                if (c != null) {
+                    c.close();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Failed closing " + c);
+            }
+        }
+    }
+
+    public static void copyStream(InputStream inputStream, OutputStream outputStream) throws IOException {
+        byte data[] = new byte[1024];
+        int count;
+
+        while ((count = inputStream.read(data)) != -1) {
+            if (count > 0) {
+                outputStream.write(data, 0, count);
+            }
+        }
+    }
+    
+    public static String optString(JSONObject jsonObject, String key) {
+        return jsonObject.isNull(key) ? null : jsonObject.optString(key);
+    }
 }

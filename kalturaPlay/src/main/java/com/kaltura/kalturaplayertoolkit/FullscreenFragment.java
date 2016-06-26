@@ -21,7 +21,7 @@ import android.widget.RelativeLayout;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
-import com.kaltura.playersdk.casting.KRouterInfo;
+import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
@@ -92,31 +92,32 @@ public class FullscreenFragment extends Fragment{
         mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
         mPlayerView.loadPlayerIntoActivity(getActivity());
         mPlayerView.getKCastRouterManager().setCastRouterManagerListener(new KCastRouterManagerListener() {
-            @Override
-            public void castButtonClicked() {
-                getDevicesDialog().show();
-            }
+              @Override
+              public void onCastButtonClicked() {
+                 getDevicesDialog().show();
+              }
 
-            @Override
-            public void castDeviceConnectionState(boolean isConnected) {
-                getDevicesDialog().deviceConnectionStateDidChange(isConnected);
-            }
+              @Override
+              public void onApplicationStatusChanged(boolean isConnected) {
+                  getDevicesDialog().deviceConnectionStateDidChange(isConnected);
+              }
 
-            @Override
-            public void didDetectCastDevices(boolean didDetect) {
+              @Override
+              public void shouldPresentCastIcon(boolean shouldPresentOrDismiss) {
 
-            }
+              }
 
-            @Override
-            public void addedCastDevice(KRouterInfo info) {
-                getDevicesDialog().addCastDevice(info);
-            }
+              @Override
+              public void onAddedCastDevice(KCastDevice info) {
+                  getDevicesDialog().addCastDevice(info);
+              }
 
-            @Override
-            public void removedCastDevice(KRouterInfo info) {
-                getDevicesDialog().removeCastDevice(info);
-            }
-        });
+              @Override
+              public void onRemovedCastDevice(KCastDevice info) {
+                  getDevicesDialog().removeCastDevice(info);
+              }
+          });
+
         mPlayerView.getKCastRouterManager().enableKalturaCastButton(true);
         mPlayerView.addEventListener(new KPEventListener() {
             @Override

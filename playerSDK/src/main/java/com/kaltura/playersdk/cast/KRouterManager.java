@@ -10,6 +10,7 @@ import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
+import com.google.android.gms.cast.LaunchOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -17,10 +18,7 @@ import com.google.android.gms.common.api.Status;
 import com.kaltura.playersdk.casting.KCastKalturaChannel;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
-import com.kaltura.playersdk.casting.KRouterInfo;
-
-import org.json.JSONArray;
-import org.json.JSONException;
+import com.kaltura.playersdk.casting.KCastDevice;
 
 import java.io.IOException;
 
@@ -46,6 +44,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     private boolean mWaitingForReconnect = false;
     private boolean mApplicationStarted = false;
     private boolean mEnableKalturaCastButton = true;
+    private String nameSpace = "urn:x-cast:com.kaltura.cast.player";
 
 
     public interface KRouterManagerListener extends KRouterCallback.KRouterCallbackListener{
@@ -59,30 +58,17 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
         mListener = listener;
     }
 
-    public void initialize(String castAppIdsInJSON) {
-        JSONArray ids = null;
-        String nameSpace = null;
-
-        try {
-             ids = new JSONArray(castAppIdsInJSON);
-             if (ids.length() == 2) {
-                 mCastAppID = (String) ids.get(0);
-                 nameSpace = (String) ids.get(1);
-                 mListener.onConnecting();
-             }
-        } catch (JSONException e) {
-             mCastAppID = castAppIdsInJSON;
-        }
-        Log.d(TAG, "mCastAppID = " + mCastAppID);
-        if (nameSpace != null && nameSpace.length() > 0) {
+    public void initialize(String castAppId) {
+        mCastAppID = castAppId;
+        mListener.onConnecting();
             mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
 
                 @Override
                 public void readyForMedia() {
+                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
                     mListener.onStartCasting(mApiClient, mSelectedDevice);
                 }
             });
-        }
         mRouter = MediaRouter.getInstance(mContext);
         mCallback = new KRouterCallback();
         mCallback.setListener(this);
@@ -94,7 +80,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
         return mSelector;
     }
 
-    public void sendMessage(final String nameSpace, final String message) {
+    public void sendMessage(final String message) {
         if (mApiClient != null && mChannel != null) {
             try {
                 Log.d("chromecast.sendMessage", "namespace: " + nameSpace + " message: " + message);
@@ -227,7 +213,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     }
 
     @Override
-    public void onRouteAdded(boolean isAdded, KRouterInfo route) {
+    public void onRouteAdded(boolean isAdded, KCastDevice route) {
         mListener.onRouteAdded(isAdded, route);
     }
 
@@ -271,7 +257,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                 // In case of kaltura receiver is loaded, open channel for sneding messages
             } else if (mChannel != null){
                 try {
-                    Cast.CastApi.launchApplication(mApiClient, mCastAppID, false)
+                    Cast.CastApi.launchApplication(mApiClient, mCastAppID, new LaunchOptions())
                             .setResultCallback(
                                     new ResultCallback<Cast.ApplicationConnectionResult>() {
                                         @Override
@@ -302,7 +288,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                     Log.d(TAG, "Failed to launch application", e);
                 }
             } else {
-                mListener.onStartCasting(mApiClient, mSelectedDevice);
+//                mListener.onStartCasting(mApiClient, mSelectedDevice);
             }
         }
 

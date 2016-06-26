@@ -16,6 +16,7 @@
 
 package com.google.android.libraries.mediaframework.layeredvideo;
 
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -67,5 +68,10 @@ public class Util {
 
     // If the parent is not one of the supported types, throw our exception.
     throw exception;
+  }
+
+  /** Returns the consumer friendly device name */
+  public static String getDeviceInfo() {
+    return Build.MANUFACTURER + " " + Build.MODEL + " " + android.os.Build.VERSION.RELEASE;
   }
 }

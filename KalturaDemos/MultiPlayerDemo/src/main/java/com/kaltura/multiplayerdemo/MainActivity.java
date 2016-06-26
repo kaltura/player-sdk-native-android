@@ -41,6 +41,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     SimpleVideoPlayer mAdPlayer;
     boolean adPlayerIsPlaying;
     boolean adIsDone;
+    boolean kPlayerReady;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,9 +189,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.READY){
-
+            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
+            kPlayerReady = true;
         }
         if (state == KPlayerState.ENDED && adIsDone){
+            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
             addAdPlayer();
         }
     }
@@ -225,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState) {
                     case ExoPlayer.STATE_READY:
-                        Log.e("GILAD", "STATE_READY");
+                        Log.e(TAG, "SimpleVideoPlayer STATE_READY");
                         //if (playWhenReady) {
                         if (!adPlayerIsPlaying && adPlayerContainer != null && mAdPlayer != null) {
                             Log.e(TAG, "START PLAY AD ");
@@ -234,16 +238,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                         break;
                     case ExoPlayer.STATE_ENDED:
-                        Log.e(TAG, "AD ENDED");
+                        Log.e(TAG, "SimpleVideoPlayer AD ENDED");
                         adPlayerIsPlaying = false;
                         adIsDone = true;
                         removeAdPlayer();
-                        mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
-                            @Override
-                            public void handler() {
-                                mPlayer.getMediaControl().start();
-                            }
-                        });
+                        if (kPlayerReady){
+                            Log.e(TAG, "KPLAY FROM NORMAL PATH");
+                            mPlayer.getMediaControl().start();
+                        }else {
+                            mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
+                                @Override
+                                public void handler() {
+                                    Log.e(TAG, "KPLAY FROM HANDLER");
+                                    mPlayer.getMediaControl().start();
+                                }
+                            });
+                        }
+
                         break;
                 }
             }
