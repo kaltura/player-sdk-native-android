@@ -15,3 +15,17 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# Keep Kaltura classes that may be referenced by reflection 
+-keep,includedescriptorclasses class com.kaltura.playersdk.KControlsView { *; }
+-keep,includedescriptorclasses class com.kaltura.playersdk.PlayerViewController { *; }
+-keep,includedescriptorclasses class com.kaltura.playersdk.players.KPlayerController { *; }
+-keepattributes Signature
+
+
+# Google IMA
+-dontwarn com.google.ads.**
+-keep class com.google.** { *; }
+-keep interface com.google.** { *; }
+-keep class com.google.ads.interactivemedia.** { *; }
+-keep interface com.google.ads.interactivemedia.** { *; }
