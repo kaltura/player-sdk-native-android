@@ -1,4 +1,4 @@
-package kaltura.inlineplayerdemo;
+package com.kaltura.inlineplayerdemo;
 
 import android.content.Context;
 import android.net.Uri;
@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.events.KPEventListener;
 
 
 /**
@@ -77,6 +76,7 @@ public class PlayerFragment extends Fragment {
         KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
         config.setAutoPlay(true);
         mPlayer.initWithConfiguration(config);
+        ((MainActivity)getActivity()).setMPlayer(mPlayer);
         return view;
     }
 

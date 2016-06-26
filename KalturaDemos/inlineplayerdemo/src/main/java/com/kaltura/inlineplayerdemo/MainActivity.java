@@ -1,32 +1,24 @@
-package kaltura.inlineplayerdemo;
+package com.kaltura.inlineplayerdemo;
 
-import android.app.FragmentTransaction;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
+import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.events.KPEventListener;
-import com.kaltura.playersdk.events.KPlayerState;
-import com.kaltura.playersdk.types.KPError;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, PlayerFragment.OnFragmentInteractionListener {
     private PlayerViewController mPlayer;
     private static final String TAG = "MainActivity";
     private PlayerFragment mPlayerFragment;
     private Button inlineViewButton;
+    private boolean onCreate = false;
     private Button inlineFragmentButton;
 
     @Override
@@ -85,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+        onCreate = true;
         switch (v.getId()) {
             case R.id.inlineView:
                 getPlayer().setVisibility(View.VISIBLE);
@@ -104,5 +97,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    public PlayerViewController getMPlayer() {
+        return mPlayer;
+    }
+
+    public void setMPlayer(PlayerViewController mPlayer) {
+        this.mPlayer = mPlayer;
+    }
+
+    @Override
+    protected void onPause() {
+        if (mPlayer != null) {
+            mPlayer.releaseAndSavePosition(true);
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        if (onCreate) {
+            onCreate = false;
+        }
+        if (mPlayer != null) {
+            mPlayer.resumePlayer();
+        }
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mPlayer != null) {
+            mPlayer.removePlayer();
+        }
+        super.onDestroy();
     }
 }
