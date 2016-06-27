@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:id="@+id/container"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="kaltura.inlineplayerdemo.MainActivity"
+    tools:context="com.kaltura.inlineplayerdemo.MainActivity"
     tools:showIn="@layout/activity_main">
     <RelativeLayout
         android:layout_width="match_parent"
