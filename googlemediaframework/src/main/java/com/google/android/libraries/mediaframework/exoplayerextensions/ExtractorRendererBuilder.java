@@ -67,7 +67,11 @@ public class ExtractorRendererBuilder implements RendererBuilder {
             Log.d("Kaltura", "getDecoderInfo mimeType/requiresSecureDecoder =" + mimeType + "/" + requiresSecureDecoder);
             Log.d("Kaltura", "DeviceInfo: " + Util.getDeviceInfo() + ", mimeType:" + mimeType);
             if (!requiresSecureDecoder && "video/x-vnd.on2.vp8".equals(mimeType)) {
-                //force software vp8 decoder and not OMX.SEC.vp8.dec this happens since the ad is not secured but by the mimetype it is
+                /*
+                   force software vp8 decoder and not OMX.SEC.vp8.dec
+                   this happens since the ad is not secured but the mimetype implies it is
+                */
+                
                 int numCodecs = MediaCodecList.getCodecCount();
                 for (int i = 0; i < numCodecs; i++) {
                     MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
