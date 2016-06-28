@@ -19,6 +19,8 @@ package com.google.android.libraries.mediaframework.exoplayerextensions;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.net.Uri;
 import android.util.Log;
 
@@ -62,14 +64,32 @@ public class ExtractorRendererBuilder implements RendererBuilder {
     private MediaCodecSelector preferSoftwareMediaCodecSelector = new MediaCodecSelector() {
         @Override
         public DecoderInfo getDecoderInfo(String mimeType, boolean requiresSecureDecoder) throws MediaCodecUtil.DecoderQueryException {
+            Log.d("Kaltura", "getDecoderInfo mimeType/requiresSecureDecoder =" + mimeType + "/" + requiresSecureDecoder);
             Log.d("Kaltura", "DeviceInfo: " + Util.getDeviceInfo() + ", mimeType:" + mimeType);
+            if (!requiresSecureDecoder && "video/x-vnd.on2.vp8".equals(mimeType)) {
+                //force software vp8 decoder and not OMX.SEC.vp8.dec this happens since the ad is not secured but by the mimetype it is
+                int numCodecs = MediaCodecList.getCodecCount();
+                for (int i = 0; i < numCodecs; i++) {
+                    MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+                    String[] types = codecInfo.getSupportedTypes();
+                    //Log.d("NAME", "name = " + codecInfo.getName());
+                    //for (String type : types) {
+                    //    Log.d("TYPE", type);
+                    //}
+                    if ("OMX.google.vp8.decoder".equals(codecInfo.getName())){
+                        Log.d("Kaltura", "Using Decoder vp8 = " + codecInfo.getName());
+                        return new DecoderInfo(codecInfo.getName(),codecInfo.getCapabilitiesForType(mimeType));
+                    }
+                }
+            }
+
             if (!requiresSecureDecoder && !isVendorSupportDefaultDecoder()) {
                 DecoderInfo decoderInfo = MediaCodecUtil.getDecoderInfo(mimeType, requiresSecureDecoder);
                 Log.d("Kaltura", "Using Decoder = " + decoderInfo.name);
                 return  decoderInfo;
             }
-           Log.d("Kaltura", "Using Default Decoder");
-           return MediaCodecSelector.DEFAULT.getDecoderInfo(mimeType,requiresSecureDecoder);
+            Log.d("Kaltura", "Using Default Decoder");
+            return MediaCodecSelector.DEFAULT.getDecoderInfo(mimeType,requiresSecureDecoder);
         }
 
         @Override
@@ -85,8 +105,7 @@ public class ExtractorRendererBuilder implements RendererBuilder {
             return false;
         }
     }
-
-
+    
     @Override
     public void buildRenderers(ExoplayerWrapper player) {
         Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
