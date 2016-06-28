@@ -3,6 +3,7 @@ package com.kaltura.playersdk;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -26,9 +27,9 @@ import android.widget.RelativeLayout;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.kaltura.playersdk.cast.KRouterManager;
+import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.casting.KCastRouterManager;
-import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
@@ -47,6 +48,7 @@ import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.types.NativeActionType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -722,7 +724,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (bridgeMethod != null) {
             try {
                 if (args == null) {
-                    bridgeMethod.invoke(object);
+                    Class<?>[] params = bridgeMethod.getParameterTypes(); // protect case for params mismatch
+                    if (params.length != 1){
+                        bridgeMethod.invoke(object);
+                    }
+                    else {
+                        Log.e("handleHtml5LibCall", "Error, Parameters mismatch for method: " + functionName + " number of params = " + params.length);
+                    }
                 } else {
                     bridgeMethod.invoke(object, args);
                 }
@@ -734,7 +742,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void openURL(String url) {
-
+        final Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
+        mActivity.startActivity(intent);
     }
 
     @Override
@@ -924,11 +933,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setLicenseUri(attributeValue);
                     break;
                 case nativeAction:
-                    try {
-                        this.nativeActionParams = new JSONObject(attributeValue);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    doNativeAction(attributeValue);
                     break;
                 case language:
                     this.playerController.setLocale(attributeValue);
@@ -1146,17 +1151,34 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void doNativeAction(String params) {
-        Log.d("NativeAction", params);
         try {
-            JSONObject actionObj = new JSONObject(params);
-            if (actionObj.get("actionType").equals("share")) {
-                share(actionObj);
+            nativeActionParams = new JSONObject(params);
+            Log.d(TAG, "doNativeAction: " + nativeActionParams.toString());
+            String actionTypeJSONValue = null;
+            actionTypeJSONValue = nativeActionParams.getString("actionType");
+            if (actionTypeJSONValue.equals(NativeActionType.OPEN_URL.toString())) {
+                String urlJSONValue = nativeActionParams.getString("url");
+                openURL(urlJSONValue);
+            } else {
+                Log.e(TAG, "Error, action type: " + nativeActionParams.getString("actionType") + " is not supported");
             }
+
+//          if (actionTypeJSONValue.equals(NativeActionType.SHARE.toString())) {
+//                if (nativeActionParams.has(NativeActionType.SHARE_NETWORK.toString())) {
+//                    // if (!mShareListener.onShare(videoUrl, type, videoName)){
+//                    ShareManager.share(nativeActionParams, mActivity);
+//                    //}
+//                }
+//                else{
+//                    share(nativeActionParams);
+//                }
+//                return;
+//          }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
-
 
     private String buildSupportedMediaFormats() {
         Set<KMediaFormat> supportedFormats = KPlayerController.supportedFormats(getContext());
