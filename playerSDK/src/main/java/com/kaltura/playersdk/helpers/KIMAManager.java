@@ -23,7 +23,9 @@ import com.kaltura.playersdk.players.KIMAAdPlayer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by nissopa on 6/30/15.
@@ -136,6 +138,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         mAdsManager.addAdErrorListener(this);
         mAdsManager.addAdEventListener(this);
         AdsRenderingSettings renderingSettings = ImaSdkFactory.getInstance().createAdsRenderingSettings();
+        List<String> mimeTypes = new ArrayList<>();
+        mimeTypes.add("video/mp4");
+        mimeTypes.add("application/x-mpegURL");
+        renderingSettings.setMimeTypes(mimeTypes);
         renderingSettings.setUiElements(Collections.<UiElement>emptySet());
         mAdsManager.init(renderingSettings);
     }
