@@ -1,19 +1,26 @@
 package com.kaltura.inlineplayerdemo;
 
+import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, PlayerFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, PlayerFragment.OnFragmentInteractionListener, KPFullScreenToggledEventListener {
     private PlayerViewController mPlayer;
     private static final String TAG = "MainActivity";
     private PlayerFragment mPlayerFragment;
@@ -52,10 +59,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mPlayer.loadPlayerIntoActivity(this);
                 KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
                 config.setAutoPlay(true);
+                mPlayer.setOnKPFullScreenToggledEventListener(this);
                 mPlayer.initWithConfiguration(config);
             }
-
-
         }
         return mPlayer;
     }
@@ -129,5 +135,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer.removePlayer();
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onKPlayerFullScreenToggled(PlayerViewController playerViewController, boolean isFullscreen) {
+        fullscreenToggle(isFullscreen);
+    }
+
+    private void fullscreenToggle(boolean isFullScreen) {
+
+        int uiOptions = getWindow().getDecorView().getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
+        if (isFullScreen) {
+            Log.d(TAG,"Set to onOpenFullScreen");
+            mPlayer.sendNotification("onOpenFullScreen", null);
+            if(getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                DisplayMetrics metrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                ViewGroup.LayoutParams params = mPlayer.getLayoutParams();
+                params.width = metrics.widthPixels;
+                params.height = metrics.heightPixels;
+                mPlayer.setLayoutParams(params);
+            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+            }else{
+                getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            getSupportActionBar().hide();
+        } else {
+            Log.d(TAG,"Set to onCloseFullScreen");
+            mPlayer.sendNotification("onCloseFullScreen", null);
+            if(getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                DisplayMetrics metrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                ViewGroup.LayoutParams params = mPlayer.getLayoutParams();
+                params.width = (int) (400 * metrics.density);
+                params.height = (int) (300 * metrics.density);
+                mPlayer.setLayoutParams(params);
+            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }else{
+                getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+            }
+            getSupportActionBar().show();
+        }
+        // set landscape
+        // if(fullscreen)  activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        // else activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
     }
 }
