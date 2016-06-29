@@ -18,6 +18,7 @@ package com.google.android.libraries.mediaframework.layeredvideo;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -35,6 +36,7 @@ import java.util.List;
  */
 public class SimpleVideoPlayer {
 
+  private static final String TAG = "SimpleVideoPlayer";
   /**
    * The {@link Activity} that contains this video player.
    */
@@ -98,7 +100,9 @@ public class SimpleVideoPlayer {
                            int startPostitionMs,
                            PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
     this.activity = activity;
-
+    if (video != null) {
+      Log.d(TAG, "source = " + video.getUrl());
+    }
     playbackControlLayer = new PlaybackControlLayer(videoTitle, fullscreenCallback);
     subtitleLayer = new SubtitleLayer();
     videoSurfaceLayer = new VideoSurfaceLayer(autoplay);
