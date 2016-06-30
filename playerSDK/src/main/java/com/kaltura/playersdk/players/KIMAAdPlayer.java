@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -202,7 +203,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     private void setAdPlayerSource(String src) {
         mSrc = src;
-        Video source = new Video(src.toString(), Video.VideoType.MP4);
+        Video source = new Video(src.toString(), getVideoType());
         mAdPlayer = new SimpleVideoPlayer(mActivity, mPlayerContainer, source, "", true);
         mAdPlayer.addPlaybackListener(this);
         mPlayerContainer.setVisibility(View.VISIBLE);
@@ -227,5 +228,20 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         }
 //        mAdUIContainer = null;
 //        mPlayerContainer = null;
+    }
+
+    private Video.VideoType getVideoType() {
+        String videoFileName = Uri.parse(mSrc).getLastPathSegment();
+        switch (videoFileName.substring(videoFileName.lastIndexOf('.')).toLowerCase()) {
+            case ".mpd":
+                return Video.VideoType.DASH;
+            case ".mp4":
+                return Video.VideoType.MP4;
+            case ".m3u8":
+                return Video.VideoType.HLS;
+            default:
+                return Video.VideoType.OTHER;
+        }
+
     }
 }
