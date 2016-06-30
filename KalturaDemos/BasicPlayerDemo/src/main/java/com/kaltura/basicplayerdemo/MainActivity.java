@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.setAutoPlay(true);
             mPlayPauseButton.setText("Pause");
 
-
+            config.addConfig("controlBarContainer.hover", "true");
             config.addConfig("closedCaptions.plugin", "true");
             config.addConfig("sourceSelector.plugin", "true");
             config.addConfig("sourceSelector.displayMode", "bitrate");
