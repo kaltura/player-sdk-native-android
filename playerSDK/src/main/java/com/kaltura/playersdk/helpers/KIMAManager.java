@@ -189,9 +189,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                     jsonValue.put(AdSystemKey, "null");
                     jsonValue.put(AdPositionKey, ad.getAdPodInfo().getAdPosition());
                     break;
-                case STARTED:
-                    jsonValue.put(DurationKey, ad.getDuration());
-                    break;
                 case COMPLETED:
                     jsonValue.put(AdIDKey, ad.getAdId());
                     break;
@@ -228,6 +225,17 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void adDurationUpdate(float totalTime) {
+        JSONObject jsonValue = new JSONObject();
+        try {
+            jsonValue.put(DurationKey, totalTime);
+            mListener.onAdEvent(AdEvent.AdEventType.STARTED, jsonValue.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
