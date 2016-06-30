@@ -26,6 +26,7 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.cast.KRouterManager;
 import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
@@ -1163,17 +1164,17 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 Log.e(TAG, "Error, action type: " + nativeActionParams.getString("actionType") + " is not supported");
             }
 
-//          if (actionTypeJSONValue.equals(NativeActionType.SHARE.toString())) {
-//                if (nativeActionParams.has(NativeActionType.SHARE_NETWORK.toString())) {
-//                    // if (!mShareListener.onShare(videoUrl, type, videoName)){
-//                    ShareManager.share(nativeActionParams, mActivity);
-//                    //}
-//                }
-//                else{
-//                    share(nativeActionParams);
-//                }
-//                return;
-//          }
+          if (actionTypeJSONValue.equals(NativeActionType.SHARE.toString())) {
+                if (nativeActionParams.has(NativeActionType.SHARE_NETWORK.toString())) {
+                    // if (!mShareListener.onShare(videoUrl, type, videoName)){
+                    ShareManager.share(nativeActionParams, mActivity);
+                    //}
+                }
+                else{
+                    share(nativeActionParams);
+                }
+                return;
+          }
 
         } catch (JSONException e) {
             e.printStackTrace();
