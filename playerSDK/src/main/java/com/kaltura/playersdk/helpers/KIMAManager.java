@@ -19,6 +19,7 @@ import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
+import com.kaltura.playersdk.players.KMediaFormat;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,6 +51,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     // Default VAST ad tag; more complex apps might select ad tag based on content video criteria.
     private String mDefaultAdTagUrl;
+    private String mAdMimeType;
+    private int mAdPreferedBitrate;
     private KIMAManagerListener mListener;
 
     private String DurationKey = "duration";
@@ -61,8 +64,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String AdPositionKey = "adPosition";
 
 
-    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL) {
-        mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer);
+    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL, String adMimeType, int adPreferedBitrate) {
+        mAdMimeType = adMimeType;
+        mAdPreferedBitrate = adPreferedBitrate;
+        mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer, mAdMimeType, mAdPreferedBitrate);
 
         mIMAPlayer.setKIMAAdEventListener(this);
         mDefaultAdTagUrl = adTagURL;
@@ -139,9 +144,15 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         mAdsManager.addAdEventListener(this);
         AdsRenderingSettings renderingSettings = ImaSdkFactory.getInstance().createAdsRenderingSettings();
         List<String> mimeTypes = new ArrayList<>();
-        mimeTypes.add("application/x-mpegURL");
+        if (mAdMimeType == null) {
+            mimeTypes.add(KMediaFormat.mp4_clear.mimeType);
+        } else {
+            mimeTypes.add(mAdMimeType);
+        }
+        //mimeTypes.add("application/x-mpegURL");
         //mimeTypes.add("video/mp4");
         //mimeTypes.add("video/3gpp");
+
         renderingSettings.setMimeTypes(mimeTypes);
         renderingSettings.setUiElements(Collections.<UiElement>emptySet());
         mAdsManager.init(renderingSettings);
