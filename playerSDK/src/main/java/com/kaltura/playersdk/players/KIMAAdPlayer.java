@@ -169,13 +169,22 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             int bitrateIndex = -1;
             List<Integer> videoTrackBitrateSortedKeys = new ArrayList(videoTrackBitrateMap.keySet());
             Collections.sort(videoTrackBitrateSortedKeys);
+            int selectTrackStratIndex = 0;
+            if (videoTrackBitrateSortedKeys.get(0) == -1) {
+                selectTrackStratIndex = 1;
+            }
 
             for (int i = 0; i < videoTrackBitrateSortedKeys.size(); i++) {
-                Log.e(TAG, "i = " + videoTrackBitrateSortedKeys.get(i));
-                if (i > 0 && videoTrackBitrateSortedKeys.get(i) > mAdPreferedBitrate) {
+                Log.d(TAG, i +"-"+ videoTrackBitrateSortedKeys.size() + " HLS Bitrate[" + i + "] = " + videoTrackBitrateSortedKeys.get(i));
+                if (i > selectTrackStratIndex && videoTrackBitrateSortedKeys.get(i) > mAdPreferedBitrate) {
                     bitrateIndex = i - 1;
-                    Log.e(TAG, "selected bitrate = " + videoTrackBitrateSortedKeys.get(bitrateIndex));
+                    Log.d(TAG, "HLS selected bitrate = " + videoTrackBitrateSortedKeys.get(bitrateIndex));
                     mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(bitrateIndex)));
+                    break;
+                }
+                if (i > selectTrackStratIndex && i == videoTrackBitrateSortedKeys.size()-1) {
+                    Log.d(TAG, "HLS selected last bitrate = " + videoTrackBitrateSortedKeys.get(i));
+                    mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(i)));
                     break;
                 }
             }
