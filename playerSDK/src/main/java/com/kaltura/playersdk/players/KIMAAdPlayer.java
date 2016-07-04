@@ -134,7 +134,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                     if (mReadiness != KReadinessState.READY) {
                         mReadiness = KReadinessState.READY;
 
-                        updateAdVideoTrarckQuality();
+                        updateAdVideoTrackQuality();
                         mListener.adDurationUpdate((float) mAdPlayer.getDuration() / 1000);
                     }
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
@@ -163,7 +163,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         }
     }
 
-    private void updateAdVideoTrarckQuality() {
+    private void updateAdVideoTrackQuality() {
         if (KMediaFormat.hls_clear.mimeType.equals(mAdMimeType) && mAdPreferedBitrate != -1) {
             Map<Integer,Integer> videoTrackBitrateMap = mAdPlayer.getAvailableBitrateMap();
             int bitrateIndex = -1;
