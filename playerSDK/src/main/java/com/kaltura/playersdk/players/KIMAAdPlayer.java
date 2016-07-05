@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-
 import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.exoplayer.ExoPlayer;
@@ -19,13 +18,17 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by nissopa on 7/2/15.
  */
 public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackListener{
     private ViewGroup mAdUIContainer;
+    private String mAdMimeType;
+    private int mAdPreferedBitrate;
     private FrameLayout mPlayerContainer;
     private Activity mActivity;
     private SimpleVideoPlayer mAdPlayer;
@@ -126,9 +129,12 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void onStateChanged(boolean playWhenReady, int playbackState) {
         switch (playbackState) {
             case ExoPlayer.STATE_READY:
+
                 if (playWhenReady) {
                     if (mReadiness != KReadinessState.READY) {
                         mReadiness = KReadinessState.READY;
+
+                        updateAdVideoTrackQuality();
                         mListener.adDurationUpdate((float) mAdPlayer.getDuration() / 1000);
                     }
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
@@ -157,6 +163,34 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         }
     }
 
+    private void updateAdVideoTrackQuality() {
+        if (KMediaFormat.hls_clear.mimeType.equals(mAdMimeType) && mAdPreferedBitrate != -1) {
+            Map<Integer,Integer> videoTrackBitrateMap = mAdPlayer.getAvailableBitrateMap();
+            int bitrateIndex = -1;
+            List<Integer> videoTrackBitrateSortedKeys = new ArrayList(videoTrackBitrateMap.keySet());
+            Collections.sort(videoTrackBitrateSortedKeys);
+            int selectTrackStratIndex = 0;
+            if (videoTrackBitrateSortedKeys.get(0) == -1) {
+                selectTrackStratIndex = 1;
+            }
+
+            for (int i = 0; i < videoTrackBitrateSortedKeys.size(); i++) {
+                Log.d(TAG, i +"-"+ videoTrackBitrateSortedKeys.size() + " HLS Bitrate[" + i + "] = " + videoTrackBitrateSortedKeys.get(i));
+                if (i > selectTrackStratIndex && videoTrackBitrateSortedKeys.get(i) > mAdPreferedBitrate) {
+                    bitrateIndex = i - 1;
+                    Log.d(TAG, "HLS selected bitrate = " + videoTrackBitrateSortedKeys.get(bitrateIndex));
+                    mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(bitrateIndex)));
+                    break;
+                }
+                if (i > selectTrackStratIndex && i == videoTrackBitrateSortedKeys.size()-1) {
+                    Log.d(TAG, "HLS selected last bitrate = " + videoTrackBitrateSortedKeys.get(i));
+                    mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(i)));
+                    break;
+                }
+            }
+        }
+    }
+
     @Override
     public void onError(Exception e) {
         for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
@@ -176,10 +210,12 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         void adDurationUpdate(float totalTime);
     }
 
-    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer) {
+    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer, String adMimeType, int adPrefaredBitrate) {
         mActivity = activity;
         mPlayerContainer = playerContainer;
         mAdUIContainer = adUIContainer;
+        mAdMimeType = adMimeType;
+        mAdPreferedBitrate = adPrefaredBitrate;
     }
 
     public void resume() {

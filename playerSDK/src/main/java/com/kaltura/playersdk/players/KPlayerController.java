@@ -2,7 +2,6 @@ package com.kaltura.playersdk.players;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
@@ -57,6 +56,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private UIState currentState = UIState.Idle;
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
+    private String mAdMimeType;
+    private int mAdPrefaredBitrate;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -437,9 +438,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
 
-    public void initIMA(String adTagURL, Activity activity) {
+    public void initIMA(String adTagURL, String adMimeType, int adPreferedBitrate, Activity activity) {
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
+        mAdMimeType = adMimeType;
+        mAdPrefaredBitrate = adPreferedBitrate;
         if (player != null) {
             player.setShouldCancelPlay(true);
         }
@@ -466,7 +469,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPrefaredBitrate);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }

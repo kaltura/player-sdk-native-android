@@ -568,7 +568,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      */
     public void setComponents(String iframeUrl) {
         if(mWebView == null) {
-            mWebView = new KControlsView(getContext().getApplicationContext());
+            mWebView = new KControlsView(this.mActivity);
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
@@ -940,7 +940,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     this.playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
-                    playerController.initIMA(attributeValue, mActivity);
+                    playerController.initIMA(attributeValue,mConfig.getAdMimeType(), mConfig.getAdPreferedBitrate(), mActivity);
                     break;
                 case goLive:
                     (playerController.getPlayer()).switchToLive();
