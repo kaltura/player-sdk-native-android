@@ -134,7 +134,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.parentViewController = (RelativeLayout)listener;
     }
 
-    public void addPlayerToController() {
+    public void addPlayerToController(boolean isWVClassic) {
+        Context context = parentViewController.getContext();
+        if (isWVClassic) {
+            player = new KWVCPlayer(context);
+        } else {
+            player = new com.kaltura.playersdk.players.KExoPlayer(context);
+        }
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
         player.setPlayerListener(playerListener);
@@ -391,62 +397,12 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         return src;
     }
 
-//    public void setSrc(String src) {
-//        String path = Uri.parse(src).getPath();
-//        if (this.src != null) {
-//            String prevPath = Uri.parse(this.src).getPath();
-//            String curFileType = path.substring(path.lastIndexOf("."));
-//            String prevFileType = prevPath.substring(prevPath.lastIndexOf("."));
-//            if (!curFileType.equals(prevFileType) && (path.endsWith(".wvm") || prevPath.endsWith(".wvm"))) {
-//            }
-//            isPlayerCanPlay = false;
-//            if (switchingBackFromCasting) {
-//                switchingBackFromCasting = false;
-//                return;
-//            }
-//
-//            Context context = parentViewController.getContext();
-//            boolean shouldReplacePlayer = false;
-//            if (player != null) {
-//                if (imaManager != null) {
-//                    mActivity = null;
-//                    removeAdPlayer();
-//                }
-//                parentViewController.removeView((View) player);
-//                player.removePlayer();
-//                shouldReplacePlayer = true;
-//            }
-//
-//            // Select player
-//            if (path.endsWith(".wvm")) {
-//                // Widevine Classic
-//                player = new KWVCPlayer(context);
-//            } else {
-//                player = new com.kaltura.playersdk.players.KExoPlayer(context);
-//            }
-//            if (shouldReplacePlayer) {
-////                replacePlayer();
-//            } else {
-//                addPlayerToController();
-//            }
-//            player.setPlayerListener(playerListener);
-//            player.setPlayerCallback(this);
-//        }
-//        this.src = src;
-//        player.setPlayerSource(src);
-//    }
 
     public void setSrc(String src) {
-        Context context = parentViewController.getContext();
         String path = Uri.parse(src).getPath();
         boolean isWVClassic = path.endsWith(".wvm");
         if (this.src == null) {
-            if (isWVClassic) {
-                player = new KWVCPlayer(context);
-            } else {
-                player = new com.kaltura.playersdk.players.KExoPlayer(context);
-            }
-            addPlayerToController();
+            addPlayerToController(isWVClassic);
         } else {
             String prevPath = Uri.parse(this.src).getPath();
             String curFileType = path.substring(path.lastIndexOf("."));
@@ -458,7 +414,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 parentViewController.removeView((View) player);
                 player.removePlayer();
-                addPlayerToController();
+                addPlayerToController(isWVClassic);
             }
         }
 
