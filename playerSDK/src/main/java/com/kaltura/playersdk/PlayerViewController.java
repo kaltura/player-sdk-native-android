@@ -568,7 +568,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      */
     public void setComponents(String iframeUrl) {
         if(mWebView == null) {
-            mWebView = new KControlsView(getContext().getApplicationContext());
+            mWebView = new KControlsView(this.mActivity);
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
