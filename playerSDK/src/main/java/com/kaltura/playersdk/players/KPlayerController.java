@@ -58,6 +58,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean isContentCompleted = false;
     private String mAdMimeType;
     private int mAdPrefaredBitrate;
+    private String newSourceDuringBg = null;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -355,6 +356,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
         } else if (player != null) {
+            if (newSourceDuringBg != null){
+                setSrc(newSourceDuringBg);
+                newSourceDuringBg = null;
+            }
             recoverPlayerState();
             player.recoverPlayer(isPlaying);
         }
@@ -396,13 +401,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
+        Context context = parentViewController.getContext();
+        if (isBackgrounded){
+            newSourceDuringBg = src;
+            return;
+        }
         isPlayerCanPlay = false;
         if (switchingBackFromCasting) {
             switchingBackFromCasting = false;
             return;
         }
 
-        Context context = parentViewController.getContext();
         boolean shouldReplacePlayer = false;
         if (player != null) {
             if (imaManager != null) {
