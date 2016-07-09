@@ -65,7 +65,7 @@ Make sure that you cloned the **_player-sdk-native-android_** project to the sam
 API Overview
 =====
 
-###Loading Kaltura player into Fragment:
+###Loading Kaltura player into Fragment - OVP:
 ```
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -100,6 +100,102 @@ API Overview
         return mFragmentView;
     }
 ```
+
+###Loading Kaltura player into Fragment - OTT:
+```
+
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        // Inflate the layout for this fragment
+        if(mFragmentView == null) {
+            mFragmentView = inflater.inflate(R.layout.fragment_fullscreen, container, false);
+        }
+
+        mPlayerView = (PlayerViewController) mFragmentView.findViewById(R.id.player);
+        mPlayerView.loadPlayerIntoActivity(getActivity());
+        KPPlayerConfig config = null;
+        try {
+              config = KPPlayerConfig.fromJSONObject(new JSONObject(getConfigJson("123","456","tvpapi_000")));
+        } catch (JSONException e) {
+              e.printStackTrace();
+        }
+
+        mPlayerView.initWithConfiguration(config);        mPlayerView.addEventListener(new KPEventListener() {
+            @Override
+            public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+                Log.d("KPlayer State Changed", state.toString());
+            }
+
+            @Override
+            public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
+                Log.d("KPlayer State Changed", Float.toString(currentTime));
+            }
+
+            @Override
+            public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
+                Log.d("KPlayer toggeled", Boolean.toString(isFullscreen));
+            }
+        });
+        return mFragmentView;
+    }
+
+    public String getConfigJson(String mediaID, String uiConfID, String tvpApi) {
+     String json = "{\n" +
+             "  \"base\": {\n" +
+             "    \"server\": \"http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
+             "    \"partnerId\": \"\",\n" +
+             "    \"uiConfId\": \"" + uiConfID + "\",\n" +
+             "    \"entryId\": \"" + mediaID + "\"\n" +
+             "  },\n" +
+             "  \"extra\": {\n" +
+             "    \"controlBarContainer.hover\": true,\n" +
+             "    \"controlBarContainer.plugin\": true,\n" +
+             "    \n" +
+             "    \"liveCore.disableLiveCheck\": true,\n" +
+             "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
+             "    \"TVPAPIBaseUrl\": \"http://tvpapi-stg.as.tvinci.com/v3_9/gateways/jsonpostgw.aspx?m=\",\n" +
+             "    \"proxyData\": {\n";
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 /*4.3*/) {
+//            json = json + "\"config\": {\n" +
+//                    "                                    \"flavorassets\": {\n" +
+//                    "                                        \"filters\": {\n" +
+//                    "                                            \"include\": {\n" +
+//                    "                                                \"Format\": [\n" +
+//                    "                                                    \"dash Main\"\n" +
+//                    "                                                ]\n" +
+//                    "                                            }\n" +
+//                    "                                        }\n" +
+//                    "                                    }\n" +
+//                    "                                },";
+//        }
+     json = json + "      \"MediaID\": \"" + mediaID + "\",\n" +
+             "      \"iMediaID\": \"" + mediaID + "\",\n" +
+             "      \"mediaType\": \"0\",\n" +
+             "      \"picSize\": \"640x360\",\n" +
+             "      \"withDynamic\": \"false\",\n" +
+             "      \"initObj\": {\n" +
+             "        \"ApiPass\": \"11111\",\n" +
+             "        \"ApiUser\": \"" + tvpApi + "\",\n" +
+             "        \"DomainID\": 0,\n" +
+             "        \"Locale\": {\n" +
+             "            \"LocaleCountry\": \"null\",\n" +
+             "            \"LocaleDevice\": \"null\",\n" +
+             "            \"LocaleLanguage\": \"null\",\n" +
+             "            \"LocaleUserState\": \"Unknown\"\n" +
+             "        },\n" +
+             "        \"Platform\": \"Cellular\",\n" +
+             "        \"SiteGuid\": \"\",\n" +
+             "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
+             "      }\n" +
+             "    }\n" +
+             "  }\n" +
+             "}\n";
+     return json;
+ }
+```
+
 
 ###Fetching duration:
 For fetching the duration of a video, the player must be in READY state:
