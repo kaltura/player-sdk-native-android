@@ -6,9 +6,8 @@ package com.kaltura.playersdk.players;
  */
 public interface KPlayerCallback {
     int CAN_PLAY = 1;
-    int SHOULD_PAUSE = 2;
-    int SHOULD_PLAY = 3;
     int ENDED = 4;
+    int SEEKED = 6;
 
     void playerStateChanged(int state);
 }

@@ -3,9 +3,7 @@ package com.kaltura.playersdk.cast;
 import android.support.v7.media.MediaRouter;
 
 import com.google.android.gms.cast.CastDevice;
-import com.kaltura.playersdk.casting.KRouterInfo;
-
-import java.util.ArrayList;
+import com.kaltura.playersdk.casting.KCastDevice;
 
 /**
  * Created by nissimpardo on 07/12/15.
@@ -17,7 +15,7 @@ public class KRouterCallback extends MediaRouter.Callback {
 
     public interface KRouterCallbackListener {
         void onDeviceSelected(CastDevice castDeviceSelected);
-        void onRouteAdded(boolean isAdded, KRouterInfo route);
+        void onRouteAdded(boolean isAdded, KCastDevice route);
         void onFoundDevices(boolean didFound);
     }
 
@@ -55,7 +53,7 @@ public class KRouterCallback extends MediaRouter.Callback {
             mListener.onFoundDevices(true);
             didFindDevices = true;
         }
-        KRouterInfo info = new KRouterInfo();
+        KCastDevice info = new KCastDevice();
         info.setRouterName(route.getName());
         info.setRouterId(route.getId());
         mListener.onRouteAdded(true, info);
@@ -67,7 +65,7 @@ public class KRouterCallback extends MediaRouter.Callback {
             didFindDevices = false;
             mListener.onFoundDevices(false);
         }
-        KRouterInfo info = new KRouterInfo();
+        KCastDevice info = new KCastDevice();
         info.setRouterName(route.getName());
         info.setRouterId(route.getId());
         mListener.onRouteAdded(false, info);

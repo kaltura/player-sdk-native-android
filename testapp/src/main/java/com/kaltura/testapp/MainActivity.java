@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                 isPlayer = true;
             }
             getFragmentManager().beginTransaction()
-                    .setCustomAnimations(R.anim.slide_up, R.anim.slide_down)
+                    .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
                     .add(R.id.fragment_container, mPlayerFragment)
                     .addToBackStack(mPlayerFragment.getClass().getName())
                     .commit();
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
                 mPreloadButton.setText("Loading Player..");
                 if (mPlayer == null) {
                     mPlayer = (PlayerViewController) findViewById(R.id.player);
-                    final KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc5/mwEmbedFrame.php", "32855491", "1424501");
+                    final KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44.rc5/mwEmbedFrame.php", "32855491", "1424501");
                     config.setEntryId("1_32865911");
                     mPlayer.loadPlayerIntoActivity(this);
                     mPlayer.initWithConfiguration(config);
@@ -160,9 +160,11 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
         } else {
             KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.40.rc8", "26698911", "1831271");
             config.setEntryId("1_1fncksnw");
-            mPlayer.changeMedia("0_vs3e2h32");
+            if (mPlayer != null) {
+                mPlayer.changeMedia("0_vs3e2h32");
 //            Intent intent = new Intent(this, OfflineActivity.class);
 //            startActivity(intent);
+            }
         }
     }
 }

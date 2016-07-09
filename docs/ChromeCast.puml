@@ -1,0 +1,27 @@
+@startuml
+autonumber "<font color=red><b>(<u>##</u>)"
+App -> KPPlayerConfig: Add ChromeCast plugin
+KPPlayerConfig -> PlayerViewController: Init
+
+App -> PlayerViewController: setCastRouterManagerListener
+PlayerViewController -> KControlsView: Init
+KControlsView --> PlayerViewController: Fetched cast manager id
+PlayerViewController -> KRouterManager: InitializeRouterManager
+KRouterManager --> PlayerViewController: Found the first router device
+alt enableKalturaCastButton
+PlayerViewController -> KControlsView: Present ChromeCast icon
+end
+PlayerViewController --> App: Found first device
+KRouterManager --> PlayerViewController: Update devices list
+PlayerViewController --> App: Update devices list
+
+App -> PlayerViewController: Select router device
+PlayerViewController -> KRouterManager: Connect router device
+KRouterManager --> PlayerViewController: Router device did connect
+PlayerViewController -> KPlayerController: StartCasting
+KPlayerController -> KCCRemotePlayer: Create Player
+KPlayerController <-- KCCRemotePlayer: Player events
+KPlayerController --> PlayerViewController: Player events
+PlayerViewController -> KControlsView: Update CC view
+
+@enduml

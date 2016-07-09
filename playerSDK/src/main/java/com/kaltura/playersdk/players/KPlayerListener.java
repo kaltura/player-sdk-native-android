@@ -13,15 +13,18 @@ public interface KPlayerListener {
     String EndedKey = "ended";
     String SeekedKey = "seeked";
     String CanPlayKey = "canplay";
-    String FlavorsListChangedKey = "flavorsListChanged";
-    String SourceSwitchingStartedKey = "sourceSwitchingStarted";
-    String SourceSwitchingEndKey = "sourceSwitchingEnd";
     String BufferingChangeKey = "bufferchange";
     String ErrorKey = "error";
+    String TextTracksReceivedKey     = "textTracksReceived";
+    String AudioTracksReceivedKey    = "audioTracksReceived";
+    String FlavorsListChangedKey     = "flavorsListChanged";
+    String SourceSwitchingStartedKey = "sourceSwitchingStarted";
+    String SourceSwitchingEndKey     = "sourceSwitchingEnd";
+    String AdRemainingTimeChangeKey  = "adRemainingTimeChange";
+    String AdsLoadErrorKey           = "adsLoadError";
 
     void eventWithValue(KPlayer player, String eventName, String eventValue);
     void eventWithJSON(KPlayer player, String eventName, String jsonValue);
-    void contentCompleted(KPlayer currentPlayer);
 }
 
 

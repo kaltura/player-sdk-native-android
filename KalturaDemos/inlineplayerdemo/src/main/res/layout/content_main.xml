@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/container"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.kaltura.inlineplayerdemo.MainActivity"
+    tools:showIn="@layout/activity_main">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:id="@+id/fragmentContainer"
+        android:layout_centerVertical="true"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:id="@+id/inlineView"
+        android:layout_alignParentTop="true"
+        android:text="Inline View"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:id="@+id/inlineFragment"
+        android:layout_below="@+id/inlineView"
+        android:text="Inline Fragment"
+        android:layout_marginTop="20dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"/>
+    <com.kaltura.playersdk.PlayerViewController
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/videoContainer"
+        android:visibility="visible"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        >
+    </com.kaltura.playersdk.PlayerViewController>
+</RelativeLayout>
