@@ -357,12 +357,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         long currentSeconds = (int) (currentTime / 1000);
         long totalSeconds = (int) (playerViewController.getDurationSec());
 
-        Double percentage = (double) 0;
+        double percentage = 0;
         if (totalSeconds > 0) {
             percentage = (((double) currentSeconds) / totalSeconds) * 100;
         }
-        Log.d(TAG, "onKPlayerPlayheadUpdate " +  currentSeconds + "/" + totalSeconds + " => " + percentage.intValue() + "%");
-        mSeekBar.setProgress(percentage.intValue());
+        Log.d(TAG, "onKPlayerPlayheadUpdate " +  currentSeconds + "/" + totalSeconds + " => " + (int)percentage + "%");
+        mSeekBar.setProgress((int)percentage);
     }
 
     private void configurePopupWithTracks(PopupMenu popup,
