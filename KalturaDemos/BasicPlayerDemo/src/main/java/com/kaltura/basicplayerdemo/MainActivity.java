@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
             //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.setAutoPlay(true);
             mPlayPauseButton.setText("Pause");
@@ -354,8 +354,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, long currentTime) {
-        mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
-        Log.d(TAG, "onKPlayerPlayheadUpdate currentTime " + currentTime);
+        long currentSeconds = (int) (currentTime / 1000);
+        long totalSeconds = (int) (playerViewController.getDurationSec());
+
+        Double percentage = (double) 0;
+        if (totalSeconds > 0) {
+            percentage = (((double) currentSeconds) / totalSeconds) * 100;
+        }
+        Log.d(TAG, "onKPlayerPlayheadUpdate " +  currentSeconds + "/" + totalSeconds + " => " + percentage.intValue() + "%");
+        mSeekBar.setProgress(percentage.intValue());
     }
 
     private void configurePopupWithTracks(PopupMenu popup,
