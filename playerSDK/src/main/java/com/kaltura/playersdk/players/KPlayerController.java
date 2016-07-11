@@ -12,10 +12,13 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.google.android.gms.common.api.GoogleApiClient;
+    import com.google.android.gms.common.api.GoogleApiClient;
+import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
 import com.kaltura.playersdk.helpers.KIMAManagerEvents;
+import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
+import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
@@ -58,6 +61,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private boolean isContentCompleted = false;
     private String mAdMimeType;
     private int mAdPrefaredBitrate;
+
+    private KCastProviderImpl mCastProvider;
+    private KChromeCastPlayer mCastPlayer;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -108,6 +114,64 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
         this.tracksEventListener = tracksEventListener;
     }
+
+    public void setCastProvider(final KCastProvider castProvider) {
+        mCastProvider = (KCastProviderImpl)castProvider;
+        mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
+            @Override
+            public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
+                isCasting = true;
+                remoteMediaPlayer.addListener(this);
+            }
+
+            @Override
+            public void onCastStateChanged(String state) {
+                playerListener.eventWithValue(player, state, "");
+            }
+
+            @Override
+            public void onStopCasting() {
+
+            }
+
+            //<editor-fold desc="KChromeCastPlayerListener">
+            @Override
+            public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
+//        playerListener.eventWithValue(player, state, null);
+                switch (state) {
+                    case Loaded:
+                        playerListener.eventWithValue(player, "hideConnectingMessage", null);
+                        playerListener.eventWithValue(player, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
+                        playerListener.eventWithValue(player, KPlayerListener.LoadedMetaDataKey, "");
+                        playerListener.eventWithValue(player, KPlayerListener.CanPlayKey, null);
+                        break;
+                    case Playing:
+                        playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
+                        break;
+                    case Pause:
+                        playerListener.eventWithValue(player, KPlayerListener.PauseKey, null);
+                        break;
+                    case Seeked:
+                        playerListener.eventWithValue(player, KPlayerListener.SeekedKey, null);
+                        break;
+                    case Ended:
+                        playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
+                        break;
+                }
+            }
+
+            @Override
+            public void onCastMediaProgressUpdate(long currentPosition) {
+                playerListener.eventWithValue(player, KPlayerListener.TimeUpdateKey, Float.toString(currentPosition / 1000f));
+            }
+
+            //</editor-fold>
+        });
+    }
+
+
+
+
 
     private enum UIState {
         Idle,
@@ -171,8 +235,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     }
                 }
             } else {
-                if (castPlayer != null) {
-                    castPlayer.play();
+                if (mCastProvider.getCastMediaRemoteControl() != null) {
+                    mCastProvider.getCastMediaRemoteControl().play();
                 }
             }
         }
@@ -198,8 +262,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     }
                 }
             } else {
-                if (castPlayer != null) {
-                    castPlayer.pause();
+                if (mCastProvider.getCastMediaRemoteControl() != null) {
+                    mCastProvider.getCastMediaRemoteControl().pause();
                 }
             }
         }
@@ -496,8 +560,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 mCurrentPlaybackTime = currentPlaybackTime;
             }
         } else {
-            if (castPlayer != null) {
-                castPlayer.setCurrentPlaybackTime((long) currentPlaybackTime * 1000);
+            if (mCastProvider.getCastMediaRemoteControl() != null) {
+                mCastProvider.getCastMediaRemoteControl().seek((long) currentPlaybackTime * 1000);
             }
         }
     }

@@ -16,7 +16,7 @@ public interface KCastProvider {
     void connectToDevice(KCastDevice device);
     void disconnectFromDevcie();
     void setKCastProviderListener(KCastProviderListener listener);
-
+    KCastMediaRemoteControl getCastMediaRemoteControl();
 
     interface KCastProviderListener {
         void onDeviceCameOnline(KCastDevice device);
