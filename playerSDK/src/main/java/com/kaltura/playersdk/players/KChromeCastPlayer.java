@@ -180,10 +180,16 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
 
     @Override
     public State getCastMediaRemoteControlState() {
-        return null;
+        return mState;
+    }
+
+    @Override
+    public long getCurrentPosition() {
+        return mRemoteMediaPlayer.getApproximateStreamPosition();
     }
 
     private void updateState(State state) {
+        mState = state;
         for (KCastMediaRemoteControlListener listener: mListeners) {
             listener.onCastMediaStateChanged(state);
         }

@@ -10,6 +10,7 @@ public interface KCastMediaRemoteControl {
     void addListener(KCastMediaRemoteControlListener listener);
     void removeListener(KCastMediaRemoteControlListener listener);
     State getCastMediaRemoteControlState();
+    long getCurrentPosition();
 
     interface KCastMediaRemoteControlListener {
         void onCastMediaProgressUpdate(long currentPosition);
