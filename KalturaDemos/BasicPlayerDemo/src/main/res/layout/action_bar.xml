@@ -32,5 +32,14 @@
         android:layout_marginRight="8dp"
         android:background="@drawable/cast_disconnected_black_512"
         android:visibility="invisible"/>
+    <ImageButton
+        android:layout_width="15pt"
+        android:layout_height="15pt"
+        android:id="@+id/stream"
+        android:background="@drawable/stream_icon_normal"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:visibility="invisible"/>
 
 </RelativeLayout>

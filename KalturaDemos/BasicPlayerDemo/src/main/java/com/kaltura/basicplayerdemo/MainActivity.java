@@ -23,6 +23,7 @@ import android.widget.SeekBar;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastDevice;
+import com.kaltura.playersdk.casting.KCastFactory;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
@@ -53,6 +54,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button ccButton;
     private ImageButton mMediaRouteButtonDiscon;
     private ImageButton mMediaRouteButtonCon;
+    private ImageButton mStreamButton;
+    private Button mLoadPlayer;
+    private
     KCastProvider mCastProvider;
 
     private boolean enableBackgroundAudio;
@@ -74,11 +78,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         android.support.v7.app.ActionBar mActionBar = getSupportActionBar();
-        mActionBar.setDisplayShowHomeEnabled(false);
-        mActionBar.setDisplayShowTitleEnabled(false);
         LayoutInflater mInflater = LayoutInflater.from(this);
-
         View mCustomView = mInflater.inflate(R.layout.action_bar, null);
+        if (mActionBar != null) {
+            mActionBar.setDisplayShowHomeEnabled(false);
+            mActionBar.setDisplayShowTitleEnabled(false);
+            mActionBar.setCustomView(mCustomView);
+            mActionBar.setDisplayShowCustomEnabled(true);
+        }
+
+
+
+
         mMediaRouteButtonDiscon = (ImageButton) mCustomView.findViewById(R.id.route_button_discon);
         mMediaRouteButtonDiscon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,23 +105,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mCastProvider.disconnectFromDevcie();
             }
         });
-        mActionBar.setCustomView(mCustomView);
-        mActionBar.setDisplayShowCustomEnabled(true);
+
+        mStreamButton = (ImageButton) mCustomView.findViewById(R.id.stream);
+        mStreamButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.setId(v.getId() != 0 ? 0 : 1);
+                mStreamButton.setBackgroundResource((v.getId() != 0) ? R.drawable.stream_icon_normal : R.drawable.stream_icon);
+                mPlayer.setCastProvider(mCastProvider);
+            }
+        });
+
+        mLoadPlayer = (Button) findViewById(R.id.loadPlayer);
+        mLoadPlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getPlayer();
+            }
+        });
+
 
         videoButton = (Button) findViewById(R.id.video_controls);
         audioButton = (Button) findViewById(R.id.audio_controls);
         textButton = (Button) findViewById(R.id.text_controls);
         mPlayPauseButton = (Button)findViewById(R.id.button);
-        mPlayPauseButton.setOnClickListener(this);
-        mPlayPauseButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                getPlayer().getMediaControl().replay();
-                return true;
-            }
-        });
+        if (mPlayPauseButton != null) {
+            mPlayPauseButton.setOnClickListener(this);
+            mPlayPauseButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    getPlayer().getMediaControl().replay();
+                    return true;
+                }
+            });
+        }
+
         mSeekBar = (SeekBar)findViewById(R.id.seekBar);
-        mSeekBar.setOnSeekBarChangeListener(this);
+        if (mSeekBar != null) {
+            mSeekBar.setOnSeekBarChangeListener(this);
+        }
         ccButton = (Button)findViewById(R.id.ccButto);
         ccButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,14 +153,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
         onCreate = true;
-        getPlayer();
+
 
     }
 
 
     private void startCC() {
 
-        mCastProvider = PlayerViewController.createCastProvider();
+        mCastProvider = KCastFactory.createCastProvider();
         mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
             @Override
             public void onDeviceCameOnline(KCastDevice device) {
@@ -175,42 +208,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private PlayerViewController getPlayer() {
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
-            mPlayer.loadPlayerIntoActivity(this);
+            if (mPlayer != null) {
+                mPlayer.loadPlayerIntoActivity(this);
+                KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
+                config.setAutoPlay(true);
+                mPlayPauseButton.setText("Pause");
 
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-            //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
-            config.setAutoPlay(true);
-            mPlayPauseButton.setText("Pause");
-
-            //config.addConfig("controlBarContainer.hover", "true");
-            config.addConfig("closedCaptions.plugin", "true");
-            config.addConfig("sourceSelector.plugin", "true");
-            config.addConfig("sourceSelector.displayMode", "bitrate");
-            config.addConfig("audioSelector.plugin", "true");
-            config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
+                //config.addConfig("controlBarContainer.hover", "true");
+                config.addConfig("closedCaptions.plugin", "true");
+                config.addConfig("sourceSelector.plugin", "true");
+                config.addConfig("sourceSelector.displayMode", "bitrate");
+                config.addConfig("audioSelector.plugin", "true");
+                config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
 
 
-            config.addConfig("chromecast.plugin", "true");
-            config.addConfig("chromecast.applicationID", "C43947A1");
-            config.addConfig("chromecast.useKalturaPlayer", "true");
-            config.addConfig("chromecast.receiverLogo", "true");
+                config.addConfig("chromecast.plugin", "true");
+                config.addConfig("chromecast.applicationID", "C43947A1");
+                config.addConfig("chromecast.useKalturaPlayer", "true");
+                config.addConfig("chromecast.receiverLogo", "true");
 
-            mPlayer.initWithConfiguration(config);
+                mPlayer.initWithConfiguration(config);
 
-            if (mCastProvider != null) {
-                mPlayer.setCastProvider(mCastProvider);
+                if (mCastProvider != null) {
+                    mPlayer.setCastProvider(mCastProvider);
+                }
+
+                mPlayer.setOnKPErrorEventListener(this);
+                mPlayer.setOnKPPlayheadUpdateEventListener(this);
+                //mPlayer.setOnKPFullScreenToggeledEventListener(this);
+                mPlayer.setOnKPStateChangedEventListener(this);
+
+                /****FOR TRACKS****/
+                //// Tracks on Web supported only from 2.44
+                //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
+                ////onTracksUpdate and the mPlayer.getTrackManager() methodes
+                //mPlayer.setTracksEventListener(this);
             }
 
-            mPlayer.setOnKPErrorEventListener(this);
-            mPlayer.setOnKPPlayheadUpdateEventListener(this);
-            //mPlayer.setOnKPFullScreenToggeledEventListener(this);
-            mPlayer.setOnKPStateChangedEventListener(this);
 
-            /****FOR TRACKS****/
-            //// Tracks on Web supported only from 2.44
-            //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
-            ////onTracksUpdate and the mPlayer.getTrackManager() methodes
-            //mPlayer.setTracksEventListener(this);
         }
         return mPlayer;
     }
@@ -333,10 +369,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
 //            findViewById(R.id.replay).setVisibility(View.VISIBLE);
-            mPlayPauseButton.setText("Play");
+
         } else if (state == KPlayerState.PLAYING) {
 //            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
-            mPlayPauseButton.setText("Pause");
+
+        }
+        switch (state) {
+            case PAUSED:
+                mPlayPauseButton.setText("Play");
+                break;
+            case PLAYING:
+                mPlayPauseButton.setText("Pause");
+                break;
+            case READY:
+                mStreamButton.setVisibility(View.VISIBLE);
+                break;
         }
     }
 
