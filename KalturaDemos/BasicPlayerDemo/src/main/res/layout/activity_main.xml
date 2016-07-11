@@ -109,5 +109,16 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:visibility="visible"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Load Player"
+            android:id="@+id/loadPlayer"
+            android:layout_alignTop="@+id/ccButto"
+            android:layout_toRightOf="@+id/ccButto"
+            android:layout_toEndOf="@+id/ccButto"
+            android:layout_marginLeft="34dp"
+            android:layout_marginStart="34dp"/>
     </RelativeLayout>
 </LinearLayout>
