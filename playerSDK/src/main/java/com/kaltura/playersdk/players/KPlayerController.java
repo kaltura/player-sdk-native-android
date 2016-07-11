@@ -44,7 +44,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private String locale;
     private RelativeLayout parentViewController;
     private KIMAManager imaManager;
-    private KCCRemotePlayer castPlayer;
     private WeakReference<Activity> mActivity;
     private KPlayerListener playerListener;
     private boolean isIMAActive = false;
@@ -328,53 +327,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     @Override
     public KPlayerState state() {
         return null;
-    }
-
-
-    public void startCasting(GoogleApiClient apiClient) {
-        if (player == null) {
-            return;
-        }
-        player.pause();
-        isCasting = true;
-        if (castPlayer == null) {
-            castPlayer = new KCCRemotePlayer(apiClient, new KCCRemotePlayer.KCCRemotePlayerListener() {
-                @Override
-                public void remoteMediaPlayerReady() {
-                    castPlayer.setPlayerCallback(KPlayerController.this);
-                    castPlayer.setPlayerListener(playerListener);
-                    castPlayer.setPlayerSource(src);
-                    ((View)player).setVisibility(View.INVISIBLE);
-                }
-
-                @Override
-                public void mediaLoaded() {
-                    castPlayer.setCurrentPlaybackTime(player.getCurrentPlaybackTime());
-                }
-            });
-        }
-    }
-
-    public void stopCasting() {
-        isCasting = false;
-        switchingBackFromCasting = true;
-        if (player != null) {
-            ((View) player).setVisibility(View.VISIBLE);
-            player.setPlayerCallback(this);
-            player.setPlayerListener(playerListener);
-            player.setCurrentPlaybackTime(castPlayer.getCurrentPlaybackTime());
-            player.play();
-        }
-        removeCastPlayer();
-    }
-
-    public void removeCastPlayer() {
-        if (castPlayer != null) {
-            castPlayer.removePlayer();
-            castPlayer.setPlayerCallback(null);
-            castPlayer.setPlayerListener(null);
-            castPlayer = null;
-        }
     }
 
     public void savePlayerState() {
