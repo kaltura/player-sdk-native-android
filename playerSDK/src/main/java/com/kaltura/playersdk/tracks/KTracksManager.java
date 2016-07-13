@@ -40,6 +40,70 @@ public class KTracksManager implements  KTrackActions {
     }
 
     @Override
+    public void switchTrackByBitrate(TrackType trackType, int prefaredBitrateKBit) {
+        Log.d(TAG, "switchTrackByBitrate : " + trackType.name() + " prefaredBitrateKBit : " + prefaredBitrateKBit);
+        if (TrackType.TEXT.equals(trackType)){
+            return;
+        }
+
+        int prevBitrate = 0;
+
+        List<TrackFormat> tracksList = null;
+        if (TrackType.AUDIO.equals(trackType)){
+            tracksList = getAudioTrackList();
+
+        } else if (TrackType.VIDEO.equals(trackType)){
+           tracksList =  getVideoTrackList();
+        } else {
+            //unsupported track type
+            return;
+        }
+
+        if (tracksList.size() == 1) {
+            Log.d(TAG, "Skip switchTrackByBitrate, tracksList.size() == 1");
+            return;
+        }
+        for (int i = 0 ; i <  tracksList.size() ; i++) {
+            Log.d(TAG, "i : " + i + " (size - 1) = " + (tracksList.size() - 1));
+
+            if (tracksList.get(i).bitrate == -1) {
+                Log.d(TAG, "prefaredBitrateKBit : " + prefaredBitrateKBit + " bitrate : + Auto");
+                if (prefaredBitrateKBit == -1) {
+                    switchTrack(trackType, i);
+                    return;
+                }
+                continue;
+            }
+            int bitrate = tracksList.get(i).bitrate / 1000;
+            Log.d(TAG, i + "-" + bitrate + "/" + prefaredBitrateKBit  + "----" + (tracksList.size() - 1));
+            if (bitrate >= prefaredBitrateKBit && (i-1) > 0){
+                if (Math.abs(bitrate - prefaredBitrateKBit) <= Math.abs(prevBitrate - prefaredBitrateKBit)) {
+                    Log.d(TAG, "switchTrack0 index = " + (i) + " " + tracksList.get(i).bitrate / 1000);
+                    switchTrack(trackType, i);
+                }
+                else {
+                    Log.d(TAG, "switchTrack1 index = " + (i-1)  + " " + tracksList.get(i-1).bitrate / 1000);
+                    switchTrack(trackType, i-1);
+                }
+                return;
+            }
+            else if (bitrate >= prefaredBitrateKBit && (i-1) == 0){
+                Log.d(TAG, "switchTrack2 index = " + (i) + " " + tracksList.get(i).bitrate / 1000);
+                switchTrack(trackType, i);
+                return;
+            }
+            else if (prefaredBitrateKBit >= bitrate && i != (tracksList.size() - 1)) {
+                prevBitrate = bitrate;
+                continue;
+            }
+            else if (prefaredBitrateKBit >= bitrate && i == (tracksList.size() - 1)) {
+                Log.d(TAG, "switchTrack3 : index = " + (i) + " " + tracksList.get(i).bitrate / 1000);
+                switchTrack(trackType, i);
+            }
+        }
+    }
+
+    @Override
     public TrackFormat getCurrentTrack(TrackType trackType) {
         int currnetTrackIndex = player.getCurrentTrackIndex(trackType);
         if (currnetTrackIndex == -1){

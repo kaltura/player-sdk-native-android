@@ -59,6 +59,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private String mAdMimeType;
     private int mAdPrefaredBitrate;
     private String newSourceDuringBg = null;
+    private int mContentPrefferedBitrate = -1;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -109,6 +110,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
         this.tracksEventListener = tracksEventListener;
     }
+
+
 
     private enum UIState {
         Idle,
@@ -443,7 +446,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setLicenseUri(String uri) {
-        player.setLicenseUri(uri);
+        if (player != null) {
+            player.setLicenseUri(uri);
+        }
     }
 
 
@@ -522,6 +527,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    public void setContentPreferedBitrate(int prefferedBR) {
+        mContentPrefferedBitrate = prefferedBR;
+    }
+
     public int getAdPlayerHeight() {
         return adPlayerHeight;
     }
@@ -562,6 +571,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     sendTracksList(TrackType.TEXT);
                     sendTracksList(TrackType.AUDIO);
                     sendTracksList(TrackType.VIDEO);
+                }
+
+                if (mContentPrefferedBitrate != -1) {
+                    if (tracksManager != null) {
+                        pause();
+                        tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPrefferedBitrate);
+                        play();
+                    }
                 }
 
                 isPlayerCanPlay = true;

@@ -31,6 +31,7 @@ public class KPPlayerConfig implements Serializable{
 	private String mKS;
 	private String mAdMimeType;
 	private int mAdPreferedBitrate;
+	private int mContentPreferedBitrate;
 
 	private Map<String, String> mExtraConfig = new HashMap<>();
 	private boolean mAutoPlay = false;
@@ -58,7 +59,8 @@ public class KPPlayerConfig implements Serializable{
 		mUiConfId   = uiConfId;
 		mPartnerId  = partnerId;
 		mAdMimeType = KMediaFormat.mp4_clear.mimeType;
-		mAdPreferedBitrate = -1;
+		mAdPreferedBitrate = -1; // in bits
+		mContentPreferedBitrate = -1; // in KBits
 	}
 	
 	private KPPlayerConfig() {}
@@ -133,6 +135,10 @@ public class KPPlayerConfig implements Serializable{
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
 			if (key.equals("mediaProxy.mediaPlayFrom")) {
 				mMediaPlayFrom = Double.parseDouble(value);
+				return this;
+			}
+			if (key.equals("mediaProxy.preferedFlavorBR")) {
+				mContentPreferedBitrate = Integer.valueOf(value);
 				return this;
 			}
 			mExtraConfig.put(key, value);
@@ -273,5 +279,9 @@ public class KPPlayerConfig implements Serializable{
 
 	public int getAdPreferedBitrate() {
 		return mAdPreferedBitrate;
+	}
+
+	public int getPrefferedBR() {
+		return mContentPreferedBitrate;
 	}
 }
