@@ -85,7 +85,7 @@ public class KTracksManager implements  KTrackActions {
                 return;
             }
             else if (bitrate >= prefaredBitrateKBit && (trackIndex-1) == 0){
-                Log.d(TAG, "switchTrack2 index = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
+                Log.d(TAG, "switchTrack2 trackIndex = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
                 switchTrack(trackType, trackIndex);
                 return;
             }
