@@ -402,7 +402,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void setSrc(String src) {
         Context context = parentViewController.getContext();
-        if (isBackgrounded){
+        if (isBackgrounded && imaManager != null){
             newSourceDuringBg = src;
             return;
         }
