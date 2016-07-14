@@ -63,42 +63,39 @@ public class KTracksManager implements  KTrackActions {
             Log.d(TAG, "Skip switchTrackByBitrate, tracksList.size() == 1");
             return;
         }
-        for (int i = 0 ; i <  tracksList.size() ; i++) {
-            Log.d(TAG, "i : " + i + " (size - 1) = " + (tracksList.size() - 1));
-
-            if (tracksList.get(i).bitrate == -1) {
-                Log.d(TAG, "prefaredBitrateKBit : " + prefaredBitrateKBit + " bitrate : + Auto");
+        for (int trackIndex = 0 ; trackIndex <  tracksList.size() ; trackIndex++) {
+            if (tracksList.get(trackIndex).bitrate == -1) {
                 if (prefaredBitrateKBit == -1) {
-                    switchTrack(trackType, i);
+                    Log.d(TAG, "prefaredBitrateKBit : " + prefaredBitrateKBit + " bitrate : Auto");
+                    switchTrack(trackType, trackIndex);
                     return;
                 }
                 continue;
             }
-            int bitrate = tracksList.get(i).bitrate / 1000;
-            Log.d(TAG, i + "-" + bitrate + "/" + prefaredBitrateKBit  + "----" + (tracksList.size() - 1));
-            if (bitrate >= prefaredBitrateKBit && (i-1) > 0){
+            int bitrate = tracksList.get(trackIndex).bitrate / 1000;
+            if (bitrate >= prefaredBitrateKBit && (trackIndex-1) > 0){
                 if (Math.abs(bitrate - prefaredBitrateKBit) <= Math.abs(prevBitrate - prefaredBitrateKBit)) {
-                    Log.d(TAG, "switchTrack0 index = " + (i) + " " + tracksList.get(i).bitrate / 1000);
-                    switchTrack(trackType, i);
+                    Log.d(TAG, "switchTrack0 trackIndex = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
+                    switchTrack(trackType, trackIndex);
                 }
                 else {
-                    Log.d(TAG, "switchTrack1 index = " + (i-1)  + " " + tracksList.get(i-1).bitrate / 1000);
-                    switchTrack(trackType, i-1);
+                    Log.d(TAG, "switchTrack1 trackIndex = " + (trackIndex-1) + " " + tracksList.get(trackIndex-1).bitrate / 1000);
+                    switchTrack(trackType, trackIndex-1);
                 }
                 return;
             }
-            else if (bitrate >= prefaredBitrateKBit && (i-1) == 0){
-                Log.d(TAG, "switchTrack2 index = " + (i) + " " + tracksList.get(i).bitrate / 1000);
-                switchTrack(trackType, i);
+            else if (bitrate >= prefaredBitrateKBit && (trackIndex-1) == 0){
+                Log.d(TAG, "switchTrack2 index = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
+                switchTrack(trackType, trackIndex);
                 return;
             }
-            else if (prefaredBitrateKBit >= bitrate && i != (tracksList.size() - 1)) {
+            else if (prefaredBitrateKBit >= bitrate && trackIndex != (tracksList.size() - 1)) {
                 prevBitrate = bitrate;
                 continue;
             }
-            else if (prefaredBitrateKBit >= bitrate && i == (tracksList.size() - 1)) {
-                Log.d(TAG, "switchTrack3 : index = " + (i) + " " + tracksList.get(i).bitrate / 1000);
-                switchTrack(trackType, i);
+            else if (prefaredBitrateKBit >= bitrate && trackIndex == (tracksList.size() - 1)) {
+                Log.d(TAG, "switchTrack3 : index = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
+                switchTrack(trackType, trackIndex);
             }
         }
     }
