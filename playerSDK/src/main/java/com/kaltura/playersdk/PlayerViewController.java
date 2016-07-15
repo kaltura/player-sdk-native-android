@@ -3,7 +3,9 @@ package com.kaltura.playersdk;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -24,18 +26,22 @@ import android.widget.RelativeLayout;
 
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.cast.KRouterManager;
+import com.kaltura.playersdk.casting.KCastDevice;
+import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.casting.KCastRouterManager;
-import com.kaltura.playersdk.casting.KRouterInfo;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
-import com.kaltura.playersdk.events.KPFullScreenToggeledEventListener;
+import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
+import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.interfaces.ScanCastDeviceListener;
 import com.kaltura.playersdk.players.KMediaFormat;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
@@ -43,6 +49,7 @@ import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.types.NativeActionType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -85,7 +92,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private Set<KPEventListener> eventListeners;
 
     private KPErrorEventListener               mOnKPErrorEventListener;
-    private KPFullScreenToggeledEventListener  mOnKPFullScreenToggeledEventListener;
+    private KPFullScreenToggledEventListener   mOnKPFullScreenToggledEventListener;
     private KPStateChangedEventListener        mOnKPStateChangedEventListener;
     private KPPlayheadUpdateEventListener      mOnKPPlayheadUpdateEventListener;
 
@@ -93,12 +100,40 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private boolean isFullScreen = false;
     private boolean isMediaChanged = false;
     private boolean shouldReplay = false;
-    private boolean prepareWithConfigurationMode = false;
 
     private KRouterManager routerManager;
+    private KCastProvider mCastProvider;
 
 
+    public static KCastProvider createCastProvider() {
+        return new KCastProviderImpl();
+    }
 
+    public void setCastProvider(KCastProvider castProvider) {
+        mCastProvider = castProvider;
+        ((KCastProviderImpl)castProvider).setScanCastDeviceListener(new ScanCastDeviceListener() {
+            @Override
+            public void onDisconnectCastDevice() {
+                mWebView.triggerEvent("chromecastDeviceDisConnected", null);
+                playerController.removeCastPlayer();
+            }
+
+            @Override
+            public void onConnecting() {
+                mWebView.triggerEvent("chromecastShowConnectingMsg", null);
+            }
+
+            @Override
+            public void onStartCasting(GoogleApiClient apiClient, CastDevice selectedDevice) {
+                mWebView.triggerEvent("chromecastDeviceConnected", null);
+            }
+
+            @Override
+            public void onDevicesInRange(boolean foundDevices) {
+                setKDPAttribute("chromecast", "visible", foundDevices ? "true" : "false");
+            }
+        });
+    }
     /// KCastKalturaChannel Listener
     @Override
     public void onDeviceSelected(CastDevice castDeviceSelected) {
@@ -112,7 +147,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     @Override
-    public void onRouteAdded(boolean isAdded, KRouterInfo route) {
+    public void onRouteAdded(boolean isAdded, KCastDevice route) {
         if (getRouterManager().getAppListener() != null) {
             if (isAdded) {
                 getRouterManager().getAppListener().onAddedCastDevice(route);
@@ -216,11 +251,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
-        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
-
-    }
-
     public void loadPlayerIntoActivity(Activity activity) {
         registerReadyEvent(new ReadyEventListener() {
             @Override
@@ -252,8 +282,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
           mOnKPErrorEventListener = kpErrorEventListener;
     }
 
-    public void setOnKPFullScreenToggeledEventListener(KPFullScreenToggeledEventListener kpFullScreenToggeledEventListener) {
-          mOnKPFullScreenToggeledEventListener = kpFullScreenToggeledEventListener;
+    public void setOnKPFullScreenToggledEventListener(KPFullScreenToggledEventListener kpFullScreenToggledEventListener) {
+          mOnKPFullScreenToggledEventListener = kpFullScreenToggledEventListener;
     }
 
     public void setOnKPStateChangedEventListener(KPStateChangedEventListener kpStateChangedEventListener) {
@@ -441,7 +471,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * @param height player's height
      * @param xPadding player's X position
      * @param yPadding player's Y position
+     * @deprecated Use {@link #setLayoutParams(ViewGroup.LayoutParams)} instead.
      */
+    @Deprecated
     public void setPlayerViewDimensions(int width, int height, int xPadding, int yPadding) {
         setPadding(xPadding, yPadding, 0, 0);
         newWidth = width + xPadding;
@@ -513,8 +545,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      * Player's X and Y position will be 0
      * @param width player's width
      * @param height player's height
+     * @deprecated Use {@link #setLayoutParams(ViewGroup.LayoutParams)} instead.
      */
+    @Deprecated
     public void setPlayerViewDimensions(int width, int height) {
+        //noinspection deprecation
         setPlayerViewDimensions(width, height, 0, 0);
     }
 
@@ -533,21 +568,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
      */
     public void setComponents(String iframeUrl) {
         if(mWebView == null) {
-            mWebView = new KControlsView(getContext().getApplicationContext());
-            mWebView.setId(R.id.webView_1);
+            mWebView = new KControlsView(this.mActivity);
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
-            ViewGroup.LayoutParams currLP = getLayoutParams();
-            LayoutParams wvLp = new LayoutParams(currLP.width, currLP.height);
-
-            playerController = new KPlayerController(this);
-            if (prepareWithConfigurationMode){
-                Log.d(TAG,"setComponents prepareWithConfigurationMode = " + prepareWithConfigurationMode);
-                playerController.setPrepareWithConfigurationMode(true);
-            }
-
-            this.addView(mWebView, wvLp);
+            LayoutParams wvLp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            mWebView.setLayoutParams(wvLp);
+            setBackgroundColor(Color.BLACK);
+            this.playerController = new KPlayerController(this);
+            this.addView(mWebView);
             
         }
 
@@ -689,14 +718,20 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         Method bridgeMethod = KStringUtilities.isMethodImplemented(this, functionName);
         Object object = this;
         if (bridgeMethod == null) {
-            KPlayer player = playerController.getPlayer();
+            KPlayer player = this.playerController.getPlayer();
             bridgeMethod = KStringUtilities.isMethodImplemented(player, functionName);
             object = player;
         }
         if (bridgeMethod != null) {
             try {
                 if (args == null) {
-                    bridgeMethod.invoke(object);
+                    Class<?>[] params = bridgeMethod.getParameterTypes(); // protect case for params mismatch
+                    if (params.length != 1){
+                        bridgeMethod.invoke(object);
+                    }
+                    else {
+                        Log.e("handleHtml5LibCall", "Error, Parameters mismatch for method: " + functionName + " number of params = " + params.length);
+                    }
                 } else {
                     bridgeMethod.invoke(object, args);
                 }
@@ -708,7 +743,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void openURL(String url) {
-
+        final Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
+        mActivity.startActivity(intent);
     }
 
     @Override
@@ -756,6 +792,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
         if(KPlayerListener.ErrorKey.equals(eventName) && !getConfig().isWebDialogEnabled()) {
             Log.e(TAG, "blocking Dialog for: " + eventValue);
+
+            sendOnKPlayerError(eventValue);
             return;
         }
         this.mWebView.triggerEvent(eventName, eventValue);
@@ -872,7 +910,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case src:
                     // attributeValue is the selected source -- allow override.
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
-                    playerController.setSrc(attributeValue);
+                    this.playerController.setSrc(attributeValue);
                     if (mConfig.getMediaPlayFrom() > 0) {
                         playerController.setCurrentPlaybackTime((float) mConfig.getMediaPlayFrom());
                     }
@@ -887,31 +925,28 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                              mOnKPStateChangedEventListener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                     }
                     float time = Float.parseFloat(attributeValue);
-                    playerController.setCurrentPlaybackTime(time);
+                    this.playerController.setCurrentPlaybackTime(time);
                     break;
                 case visible:
                     this.triggerEvent("visible", attributeValue);
                     break;
                 case licenseUri:
-                    playerController.setLicenseUri(attributeValue);
+                    this.playerController.setLicenseUri(attributeValue);
                     break;
                 case nativeAction:
-                    try {
-                        this.nativeActionParams = new JSONObject(attributeValue);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    doNativeAction(attributeValue);
                     break;
                 case language:
-                    playerController.setLocale(attributeValue);
+                    this.playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
-                    playerController.initIMA(attributeValue, mActivity);
+                    playerController.initIMA(attributeValue,mConfig.getAdMimeType(), mConfig.getAdPreferedBitrate(), mActivity);
                     break;
                 case goLive:
                     (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
+//                    getRouterManager().initialize(attributeValue);
                     getRouterManager().initialize(attributeValue);
                     Log.d(TAG, "chromecast.initialize:" + attributeValue);
                     break;
@@ -952,7 +987,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
         }
         if (mOnKPErrorEventListener != null){
-                mOnKPErrorEventListener.onKPlayerError(this, new KPError(attributeValue));
+            mOnKPErrorEventListener.onKPlayerError(this, new KPError(attributeValue));
         }
     }
 
@@ -1042,11 +1077,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 listener.onKPlayerFullScreenToggeled(this, isFullScreen);
             }
         }
-        if (mOnKPFullScreenToggeledEventListener != null) {
-            mOnKPFullScreenToggeledEventListener.onKPlayerFullScreenToggeled(this, isFullScreen);
+        if (mOnKPFullScreenToggledEventListener != null) {
+            mOnKPFullScreenToggledEventListener.onKPlayerFullScreenToggled(this, isFullScreen);
         }
 
-        if (eventListeners == null && mOnKPFullScreenToggeledEventListener == null) {
+        if (eventListeners == null && mOnKPFullScreenToggledEventListener == null) {
             defaultFullscreenToggle();
         }
     }
@@ -1117,17 +1152,34 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void doNativeAction(String params) {
-        Log.d("NativeAction", params);
         try {
-            JSONObject actionObj = new JSONObject(params);
-            if (actionObj.get("actionType").equals("share")) {
-                share(actionObj);
+            nativeActionParams = new JSONObject(params);
+            Log.d(TAG, "doNativeAction: " + nativeActionParams.toString());
+            String actionTypeJSONValue = null;
+            actionTypeJSONValue = nativeActionParams.getString("actionType");
+            if (actionTypeJSONValue.equals(NativeActionType.OPEN_URL.toString())) {
+                String urlJSONValue = nativeActionParams.getString("url");
+                openURL(urlJSONValue);
+            } else {
+                Log.e(TAG, "Error, action type: " + nativeActionParams.getString("actionType") + " is not supported");
             }
+
+          if (actionTypeJSONValue.equals(NativeActionType.SHARE.toString())) {
+                if (nativeActionParams.has(NativeActionType.SHARE_NETWORK.toString())) {
+                    // if (!mShareListener.onShare(videoUrl, type, videoName)){
+                    ShareManager.share(nativeActionParams, mActivity);
+                    //}
+                }
+                else{
+                    share(nativeActionParams);
+                }
+                return;
+          }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
-
 
     private String buildSupportedMediaFormats() {
         Set<KMediaFormat> supportedFormats = KPlayerController.supportedFormats(getContext());
@@ -1164,13 +1216,5 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //        }else {
 //            ShareManager.share(shareParams, mActivity);
 //        }
-    }
-
-    public void attachView() {
-        playerController.attachView();
-    }
-
-    public void detachView() {
-        playerController.detachView();
     }
 }

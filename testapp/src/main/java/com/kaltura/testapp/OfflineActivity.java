@@ -119,7 +119,7 @@ public class OfflineActivity extends Activity implements DemoAdapter.MyClickList
                 findViewById(R.id.recyclerView).setVisibility(View.INVISIBLE);
                 mPlayerFragment.setPlayerConfig(getConfig());
                 getFragmentManager().beginTransaction()
-                        .setCustomAnimations(R.anim.slide_up, R.anim.slide_down)
+                        .setCustomAnimations(R.animator.slide_up, R.animator.slide_down)
                         .add(R.id.fragment_container, mPlayerFragment)
                         .addToBackStack(mPlayerFragment.getClass().getName())
                         .commit();

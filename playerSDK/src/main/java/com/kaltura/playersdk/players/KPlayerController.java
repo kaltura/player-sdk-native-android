@@ -2,7 +2,6 @@ package com.kaltura.playersdk.players;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
@@ -57,8 +56,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private UIState currentState = UIState.Idle;
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
-    private boolean prepareWithConfigurationMode = false;
-
+    private String mAdMimeType;
+    private int mAdPrefaredBitrate;
+    private String newSourceDuringBg = null;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -136,16 +136,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void addPlayerToController() {
-//        this.parentViewController = playerViewController;
-        ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
-
-        // Add background view
-        RelativeLayout mBackgroundRL = new RelativeLayout(this.parentViewController.getContext());
-        mBackgroundRL.setBackgroundColor(Color.BLACK);
-        this.parentViewController.addView(mBackgroundRL, parentViewController.getChildCount() - 1, currLP);
-
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        this.parentViewController.addView((View)player, parentViewController.getChildCount() - 1, lp);
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
     }
 
     public void replacePlayer() {
@@ -364,6 +356,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
         } else if (player != null) {
+            if (newSourceDuringBg != null){
+                setSrc(newSourceDuringBg);
+                newSourceDuringBg = null;
+            }
             recoverPlayerState();
             player.recoverPlayer(isPlaying);
         }
@@ -405,13 +401,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
+        Context context = parentViewController.getContext();
+        if (isBackgrounded && imaManager != null){
+            newSourceDuringBg = src;
+            return;
+        }
         isPlayerCanPlay = false;
         if (switchingBackFromCasting) {
             switchingBackFromCasting = false;
             return;
         }
 
-        Context context = parentViewController.getContext();
         boolean shouldReplacePlayer = false;
         if (player != null) {
             if (imaManager != null) {
@@ -430,9 +430,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             player = new KWVCPlayer(context);
         } else {
             player = new com.kaltura.playersdk.players.KExoPlayer(context);
-            if(prepareWithConfigurationMode) {
-                player.setPrepareWithConfigurationMode();
-            }
         }
         if (shouldReplacePlayer) {
             replacePlayer();
@@ -450,9 +447,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
 
-    public void initIMA(String adTagURL, Activity activity) {
+    public void initIMA(String adTagURL, String adMimeType, int adPreferedBitrate, Activity activity) {
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
+        mAdMimeType = adMimeType;
+        mAdPrefaredBitrate = adPreferedBitrate;
         if (player != null) {
             player.setShouldCancelPlay(true);
         }
@@ -479,7 +478,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPrefaredBitrate);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }
@@ -608,21 +607,5 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 playerListener.eventWithJSON(getPlayer(), KPlayerListener.FlavorsListChangedKey,  tracksManager.getTrackListAsJson(TrackType.VIDEO, false).toString());
                 break;
         }
-    }
-
-    public void attachView() {
-        if (player != null) {
-            player.attachSurfaceViewToPlayer();
-        }
-    }
-
-    public void detachView() {
-        if (player != null) {
-            player.detachSurfaceViewFromPlayer();
-        }
-    }
-
-    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
-        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
     }
 }

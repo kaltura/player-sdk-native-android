@@ -1,4 +1,4 @@
-include ':BasicPlayerDemo'
+include ':BasicPlayerDemo', ':inlineplayerdemo'
 include ':BasicPlayerTest'
 include ':MultiPlayerDemo'
 include ':ChangeMediaDemo'
@@ -7,8 +7,8 @@ include ':PlayerFragmentDemo'
 include ':AdPlayerDemo'
 
 include ':googlemediaframework'
-project(':googlemediaframework').projectDir=new File('../googlemediaframework')
+project(':googlemediaframework').projectDir = new File('../googlemediaframework')
 
 include ':playerSDK'
-project(':playerSDK').projectDir=new File('../playerSDK')
+project(':playerSDK').projectDir = new File('../playerSDK')
 

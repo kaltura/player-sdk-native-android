@@ -4,11 +4,11 @@ apply from: "../kalturaCommon.gradle"
 
 android {
     compileSdkVersion kaltura.compileSdkVersion
-    buildToolsVersion '23.0.3'
+    buildToolsVersion '24.0.0'
 
     defaultConfig {
         applicationId "com.kaltura.testapp"
-        minSdkVersion 21
+        minSdkVersion 16
         targetSdkVersion kaltura.targetSdkVersion
         versionName kaltura.version
         versionCode 1
@@ -24,5 +24,5 @@ android {
 
 dependencies {
     compile project(':playerSDK')
-    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile 'com.android.support:recyclerview-v7:24.0.0'
 }

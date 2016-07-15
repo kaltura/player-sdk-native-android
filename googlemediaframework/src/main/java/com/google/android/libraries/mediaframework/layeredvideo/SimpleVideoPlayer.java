@@ -18,14 +18,18 @@ package com.google.android.libraries.mediaframework.layeredvideo;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A video player which includes subtitle support and a customizable UI for playback control.
@@ -35,6 +39,7 @@ import java.util.List;
  */
 public class SimpleVideoPlayer {
 
+  private static final String TAG = "SimpleVideoPlayer";
   /**
    * The {@link Activity} that contains this video player.
    */
@@ -98,7 +103,9 @@ public class SimpleVideoPlayer {
                            int startPostitionMs,
                            PlaybackControlLayer.FullscreenCallback fullscreenCallback) {
     this.activity = activity;
-
+    if (video != null) {
+      Log.d(TAG, "source = " + video.getUrl());
+    }
     playbackControlLayer = new PlaybackControlLayer(videoTitle, fullscreenCallback);
     subtitleLayer = new SubtitleLayer();
     videoSurfaceLayer = new VideoSurfaceLayer(autoplay);
@@ -264,6 +271,27 @@ public class SimpleVideoPlayer {
     videoSurfaceLayer.setAutoplay(autoplay);
 
     layerManager.getControl().start();
+  }
+
+  //This method holdes map of bitrates and their index in the trackslist exoplayer returns so we can sort it later
+  public Map<Integer,Integer> getAvailableBitrateMap() {
+    Map<Integer,Integer> bitrateTracksMap = new HashMap<Integer, Integer>();
+
+    List<Integer> bitrateArrayList = new ArrayList<>();
+    for (int i = 0 ; i < layerManager.getExoplayerWrapper().getTrackCount(ExoplayerWrapper.TYPE_VIDEO) ; i++){
+      bitrateTracksMap.put(layerManager.getExoplayerWrapper().getTrackFormat(ExoplayerWrapper.TYPE_VIDEO, i).bitrate, i);
+    }
+    return bitrateTracksMap;
+  }
+
+
+  public void changeTrack(int trackType, int index){
+    layerManager.getExoplayerWrapper().setSelectedTrack(trackType, index);
+  }
+
+  public MediaFormat getTrackFormat(int trackType, int index) {
+    MediaFormat mediaFormat = layerManager.getExoplayerWrapper().getTrackFormat(trackType, index);
+    return mediaFormat;
   }
 
   public void changedMedia(FrameLayout container, Video v, boolean doPlay){

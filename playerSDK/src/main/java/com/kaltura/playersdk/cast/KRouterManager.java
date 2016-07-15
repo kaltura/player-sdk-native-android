@@ -18,11 +18,7 @@ import com.google.android.gms.common.api.Status;
 import com.kaltura.playersdk.casting.KCastKalturaChannel;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
-import com.kaltura.playersdk.casting.KRouterInfo;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.kaltura.playersdk.casting.KCastDevice;
 
 import java.io.IOException;
 
@@ -217,7 +213,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     }
 
     @Override
-    public void onRouteAdded(boolean isAdded, KRouterInfo route) {
+    public void onRouteAdded(boolean isAdded, KCastDevice route) {
         mListener.onRouteAdded(isAdded, route);
     }
 

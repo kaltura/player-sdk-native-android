@@ -4,7 +4,7 @@ apply from: "../kalturaCommon.gradle"
 
 android {
     compileSdkVersion kaltura.compileSdkVersion
-    buildToolsVersion '23.0.3'
+    buildToolsVersion '24.0.0'
 
     defaultConfig {
         minSdkVersion kaltura.minSdkVersion
@@ -19,11 +19,10 @@ android {
     }
 }
 
-
 dependencies {
     compile project(':googlemediaframework')
     compile 'com.google.android.gms:play-services-cast:8.4.0'
-    compile 'com.android.support:mediarouter-v7:23.4.0'
-    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:mediarouter-v7:24.0.0'
+    compile 'com.android.support:appcompat-v7:24.0.0'
     compile fileTree(dir: 'libs', include: ['ima-sdk-*.jar'])
 }

@@ -22,25 +22,28 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         Button button = (Button)findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                view.setVisibility(View.INVISIBLE);
-                boolean isPlayer = false;
-                if (mPlayerFragment == null) {
-                    mPlayerFragment = new PlayerFragment();
-                    isPlayer = true;
+        if (button != null) {
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    view.setVisibility(View.INVISIBLE);
+                    boolean isPlayer = false;
+                    if (mPlayerFragment == null) {
+                        mPlayerFragment = new PlayerFragment();
+                        isPlayer = true;
+                    }
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.setCustomAnimations(R.animator.enter_from_right, R.animator.exit_to_left);
+                    transaction.add(R.id.fragment_container, mPlayerFragment);
+                    transaction.addToBackStack(mPlayerFragment.getClass().getName());
+                    transaction.commit();
+                    if (!isPlayer) {
+                        mPlayerFragment.resumePlayer();
+                    }
                 }
-                FragmentTransaction transaction = getFragmentManager().beginTransaction().setCustomAnimations(R.anim.slide_up, R.anim.slide_down);
-//        transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left);
-                transaction.add(R.id.fragment_container, mPlayerFragment);
-                transaction.addToBackStack(mPlayerFragment.getClass().getName());
-                transaction.commit();
-                if (!isPlayer){
-                    mPlayerFragment.resumePlayer();
-                }
-            }
-        });
+            });
+        }
     }
 
 
