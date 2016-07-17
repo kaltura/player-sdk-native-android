@@ -57,8 +57,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
     private String mAdMimeType;
-    private int mAdPrefaredBitrate;
+    private int mAdPreferredBitrate;
     private String newSourceDuringBg = null;
+    private int mContentPreferredBitrate = -1;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -109,6 +110,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
         this.tracksEventListener = tracksEventListener;
     }
+
+
 
     private enum UIState {
         Idle,
@@ -443,15 +446,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setLicenseUri(String uri) {
-        player.setLicenseUri(uri);
+        if (player != null) {
+            player.setLicenseUri(uri);
+        }
     }
 
 
-    public void initIMA(String adTagURL, String adMimeType, int adPreferedBitrate, Activity activity) {
+    public void initIMA(String adTagURL, String adMimeType, int adPreferredBitrate, Activity activity) {
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
         mAdMimeType = adMimeType;
-        mAdPrefaredBitrate = adPreferedBitrate;
+        mAdPreferredBitrate = adPreferredBitrate;
         if (player != null) {
             player.setShouldCancelPlay(true);
         }
@@ -478,7 +483,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPrefaredBitrate);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPreferredBitrate);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }
@@ -522,6 +527,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    public void setContentPreferredBitrate(int PreferredBitrate) {
+        mContentPreferredBitrate = PreferredBitrate;
+    }
+
     public int getAdPlayerHeight() {
         return adPlayerHeight;
     }
@@ -562,6 +571,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     sendTracksList(TrackType.TEXT);
                     sendTracksList(TrackType.AUDIO);
                     sendTracksList(TrackType.VIDEO);
+                }
+
+                if (mContentPreferredBitrate != -1) {
+                    if (tracksManager != null) {
+                        pause();
+                        tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
+                        play();
+                    }
                 }
 
                 isPlayerCanPlay = true;

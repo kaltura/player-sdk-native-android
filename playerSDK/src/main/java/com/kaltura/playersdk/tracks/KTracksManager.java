@@ -9,7 +9,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Created by gilad.nadav on 25/05/2016.
@@ -37,6 +40,54 @@ public class KTracksManager implements  KTrackActions {
         } else {
             Log.d(TAG, "switchTrack " + trackType.name() + "skipped Reason: track count  < 2");
         }
+    }
+
+    @Override
+    public void switchTrackByBitrate(TrackType trackType, final int preferredBitrateKBit) {
+        Log.d(TAG, "switchTrackByBitrate : " + trackType.name() + " preferredBitrateKBit : " + preferredBitrateKBit);
+        if (TrackType.TEXT.equals(trackType)){
+            return;
+        }
+
+        List<TrackFormat> tracksList = null;
+        if (TrackType.AUDIO.equals(trackType)){
+            tracksList = getAudioTrackList();
+
+        } else if (TrackType.VIDEO.equals(trackType)){
+            tracksList =  getVideoTrackList();
+        } else {
+            //unsupported track type
+            return;
+        }
+
+        if (tracksList == null) {
+            return;
+        }
+
+        if (tracksList.size() <= 2) {
+            Log.d(TAG, "Skip switchTrackByBitrate, tracksList.size() <= 2");
+            return;
+        }
+
+        if (tracksList.get(0).bitrate == -1) {
+            tracksList.remove(0);
+        }
+
+        Comparator <TrackFormat> tracksComperator = new Comparator<TrackFormat>() {
+            @Override
+            public int compare(TrackFormat track1, TrackFormat track2) {
+                if (Math.abs(track1.bitrate - preferredBitrateKBit*1000) > Math.abs(track2.bitrate - preferredBitrateKBit*1000)) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            }
+        };
+
+        SortedSet<TrackFormat> bitrateSet = new TreeSet<TrackFormat>(tracksComperator);
+        bitrateSet.addAll(tracksList);
+        Log.d(TAG, "preferred bitrate selected = " +  bitrateSet.first());
+        switchTrack(trackType, bitrateSet.first().index);
     }
 
     @Override

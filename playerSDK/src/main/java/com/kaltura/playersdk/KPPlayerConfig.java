@@ -32,7 +32,8 @@ public class KPPlayerConfig implements Serializable{
 	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
 	private String mAdMimeType;
-	private int mAdPreferedBitrate;
+	private int mAdPreferredBitrate;
+	private int mContentPreferredBitrate;
 
 	private Map<String, String> mExtraConfig = new HashMap<>();
 	private boolean mAutoPlay = false;
@@ -60,7 +61,8 @@ public class KPPlayerConfig implements Serializable{
 		mUiConfId   = uiConfId;
 		mPartnerId  = partnerId;
 		mAdMimeType = KMediaFormat.mp4_clear.mimeType;
-		mAdPreferedBitrate = -1;
+		mAdPreferredBitrate = -1; // in bits
+		mContentPreferredBitrate = -1; // in KBits
 	}
 	
 	private KPPlayerConfig() {}
@@ -136,6 +138,10 @@ public class KPPlayerConfig implements Serializable{
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
 			if (key.equals("mediaProxy.mediaPlayFrom")) {
 				mMediaPlayFrom = Double.parseDouble(value);
+				return this;
+			}
+			if (key.equals("mediaProxy.preferedFlavorBR") || key.equals("mediaProxy.preferredFlavorBR")) { // in web it is preferedFlavorBR if it is fixed will keep working
+				mContentPreferredBitrate = Integer.valueOf(value);
 				return this;
 			}
 			mExtraConfig.put(key, value);
@@ -267,14 +273,18 @@ public class KPPlayerConfig implements Serializable{
 
 
 	/*
-		This method defines the prefered bitrate threshold in bits 1Mbit = 1000000bit
+		This method defines the preferred bitrate threshold in bits 1Mbit = 1000000bit
 		the IMAAdPlayer will taske bitratethat match this threshold and is <= from it
  	*/
-	public void setAdPreferedBitrate(int adPreferedBitrate) {
-		mAdPreferedBitrate = adPreferedBitrate;
+	public void setAdPreferredBitrate(int adPreferredBitrate) {
+		mAdPreferredBitrate = adPreferredBitrate;
 	}
 
-	public int getAdPreferedBitrate() {
-		return mAdPreferedBitrate;
+	public int getAdPreferredBitrate() {
+		return mAdPreferredBitrate;
+	}
+
+	public int getContentPreferredBitrate() {
+		return mContentPreferredBitrate;
 	}
 }
