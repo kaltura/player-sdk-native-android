@@ -2,6 +2,8 @@ package com.kaltura.playersdk;
 
 import android.net.Uri;
 
+import com.kaltura.playersdk.players.KMediaFormat;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,6 +14,8 @@ import java.util.Map;
 
 
 public class KPPlayerConfig implements Serializable{
+
+	public static String TAG = "KPPlayerConfig";
 
 	/// Key names of the video request
 	private static final String sKsKey = "ks";
@@ -27,6 +31,10 @@ public class KPPlayerConfig implements Serializable{
 	private String mLocalContentId = "";
 	private float mCacheSize = 100f;	// 100mb is a sane default.
 	private String mKS;
+	private String mAdMimeType;
+	private int mAdPreferredBitrate;
+	private int mContentPreferredBitrate;
+
 	private Map<String, String> mExtraConfig = new HashMap<>();
 	private boolean mAutoPlay = false;
 	private boolean isWebDialogEnabled = false;
@@ -49,9 +57,12 @@ public class KPPlayerConfig implements Serializable{
 	}
 
 	public KPPlayerConfig(String serverURL, String uiConfId, String partnerId) {
-		mServerURL = serverURL;
-		mUiConfId = uiConfId;
-		mPartnerId = partnerId;
+		mServerURL  = serverURL;
+		mUiConfId   = uiConfId;
+		mPartnerId  = partnerId;
+		mAdMimeType = KMediaFormat.mp4_clear.mimeType;
+		mAdPreferredBitrate = -1; // in bits
+		mContentPreferredBitrate = -1; // in KBits
 	}
 	
 	private KPPlayerConfig() {}
@@ -70,7 +81,8 @@ public class KPPlayerConfig implements Serializable{
 			@Override
 			public String getVideoURL() {
 				// just return the input embedFrameURL, don't build it.
-				return embedFrameURL;
+				//adding # so in native callout will have the hash of supported mimetypes
+				return embedFrameURL + "#";
 			}
 
 			// Block the setters that would change the url.
@@ -126,6 +138,10 @@ public class KPPlayerConfig implements Serializable{
 		if (key != null && key.length() > 0 && value != null && value.length() > 0) {
 			if (key.equals("mediaProxy.mediaPlayFrom")) {
 				mMediaPlayFrom = Double.parseDouble(value);
+				return this;
+			}
+			if (key.equals("mediaProxy.preferedFlavorBR") || key.equals("mediaProxy.preferredFlavorBR")) { // in web it is preferedFlavorBR if it is fixed will keep working
+				mContentPreferredBitrate = Integer.valueOf(value);
 				return this;
 			}
 			mExtraConfig.put(key, value);
@@ -208,7 +224,7 @@ public class KPPlayerConfig implements Serializable{
 		if (mEntryId != null) {
 			builder.appendPath(sEntryIdKey).appendPath(mEntryId);
 		}
-		
+
 		builder.appendQueryParameter("iframeembed", "true");
 
 		return builder.build().toString() + "&" + getQueryString() + "#localContentId=" + mLocalContentId + "&";
@@ -242,5 +258,37 @@ public class KPPlayerConfig implements Serializable{
 	
 	public String getConfigValueString(String key) {
 		return mExtraConfig.get(key);
+	}
+
+	/*
+	This method give the ability to change the default MP4 ad plyback to
+	some other mimetypes:
+	       //mimeTypes.add("application/x-mpegURL");
+           //mimeTypes.add("video/mp4");
+           //mimeTypes.add("video/3gpp");
+	*/
+	public void setAdMimeType(String adMimeType) {
+		mAdMimeType = adMimeType;
+	}
+
+	public String getAdMimeType() {
+		return mAdMimeType;
+	}
+
+
+	/*
+		This method defines the preferred bitrate threshold in bits 1Mbit = 1000000bit
+		the IMAAdPlayer will taske bitratethat match this threshold and is <= from it
+ 	*/
+	public void setAdPreferredBitrate(int adPreferredBitrate) {
+		mAdPreferredBitrate = adPreferredBitrate;
+	}
+
+	public int getAdPreferredBitrate() {
+		return mAdPreferredBitrate;
+	}
+
+	public int getContentPreferredBitrate() {
+		return mContentPreferredBitrate;
 	}
 }

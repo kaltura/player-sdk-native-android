@@ -5,7 +5,7 @@ public enum KMediaFormat {
     dash_clear("dash", "application/dash+xml", ".mpd", null),
     dash_widevine("dash", "application/dash+xml", ".mpd", "widevine"),
     wvm_widevine("wvm", "video/wvm", ".wvm", "widevine"),
-    hls_clear("hls", "application/vnd.apple.mpegurl", ".m3u8", null),
+    hls_clear("hls", "application/x-mpegURL", ".m3u8", null),
     hls_fairplay("hls", "application/vnd.apple.mpegurl", ".m3u8", "fairplay");
 
     public final String shortName;

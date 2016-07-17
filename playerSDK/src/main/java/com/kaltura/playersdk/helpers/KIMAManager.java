@@ -19,11 +19,14 @@ import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
+import com.kaltura.playersdk.players.KMediaFormat;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by nissopa on 6/30/15.
@@ -48,6 +51,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     // Default VAST ad tag; more complex apps might select ad tag based on content video criteria.
     private String mDefaultAdTagUrl;
+    private String mAdMimeType;
+    private int mAdPreferredBitrate;
     private KIMAManagerListener mListener;
 
     private String DurationKey = "duration";
@@ -59,8 +64,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String AdPositionKey = "adPosition";
 
 
-    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL) {
-        mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer);
+    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL, String adMimeType, int adPreferredBitrate) {
+        mAdMimeType = adMimeType;
+        mAdPreferredBitrate = adPreferredBitrate;
+        mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer, mAdMimeType, mAdPreferredBitrate);
 
         mIMAPlayer.setKIMAAdEventListener(this);
         mDefaultAdTagUrl = adTagURL;
@@ -136,6 +143,17 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         mAdsManager.addAdErrorListener(this);
         mAdsManager.addAdEventListener(this);
         AdsRenderingSettings renderingSettings = ImaSdkFactory.getInstance().createAdsRenderingSettings();
+        List<String> mimeTypes = new ArrayList<>();
+        if (mAdMimeType == null) {
+            mimeTypes.add(KMediaFormat.mp4_clear.mimeType);
+        } else {
+            mimeTypes.add(mAdMimeType);
+        }
+        //mimeTypes.add("application/x-mpegURL");
+        //mimeTypes.add("video/mp4");
+        //mimeTypes.add("video/3gpp");
+
+        renderingSettings.setMimeTypes(mimeTypes);
         renderingSettings.setUiElements(Collections.<UiElement>emptySet());
         mAdsManager.init(renderingSettings);
     }
@@ -183,9 +201,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
                     jsonValue.put(AdSystemKey, "null");
                     jsonValue.put(AdPositionKey, ad.getAdPodInfo().getAdPosition());
                     break;
-                case STARTED:
-                    jsonValue.put(DurationKey, ad.getDuration());
-                    break;
                 case COMPLETED:
                     jsonValue.put(AdIDKey, ad.getAdId());
                     break;
@@ -222,6 +237,17 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void adDurationUpdate(float totalTime) {
+        JSONObject jsonValue = new JSONObject();
+        try {
+            jsonValue.put(DurationKey, totalTime);
+            mListener.onAdEvent(AdEvent.AdEventType.STARTED, jsonValue.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 

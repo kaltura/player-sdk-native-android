@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.players;
 
 import android.app.Activity;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -8,7 +9,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-
 
 import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
@@ -18,16 +18,21 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by nissopa on 7/2/15.
  */
 public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackListener{
     private ViewGroup mAdUIContainer;
+    private String mAdMimeType;
+    private int mAdPreferredBitrate;
     private FrameLayout mPlayerContainer;
     private Activity mActivity;
     private SimpleVideoPlayer mAdPlayer;
+    private KReadinessState mReadiness = KReadinessState.IDLE;
     private KIMAAdPlayerEvents mListener;
     private String mSrc;
     private boolean isSeeking;
@@ -124,7 +129,14 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void onStateChanged(boolean playWhenReady, int playbackState) {
         switch (playbackState) {
             case ExoPlayer.STATE_READY:
+
                 if (playWhenReady) {
+                    if (mReadiness != KReadinessState.READY) {
+                        mReadiness = KReadinessState.READY;
+
+                        updateAdVideoTrackQuality();
+                        mListener.adDurationUpdate((float) mAdPlayer.getDuration() / 1000);
+                    }
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
                         callback.onPlay();
                     }
@@ -146,7 +158,36 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                 for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
                     callback.onEnded();
                 }
+                mReadiness = KReadinessState.IDLE;
                 break;
+        }
+    }
+
+    private void updateAdVideoTrackQuality() {
+        if (KMediaFormat.hls_clear.mimeType.equals(mAdMimeType) && mAdPreferredBitrate != -1) {
+            Map<Integer,Integer> videoTrackBitrateMap = mAdPlayer.getAvailableBitrateMap();
+            int bitrateIndex = -1;
+            List<Integer> videoTrackBitrateSortedKeys = new ArrayList(videoTrackBitrateMap.keySet());
+            Collections.sort(videoTrackBitrateSortedKeys);
+            int selectTrackStratIndex = 0;
+            if (videoTrackBitrateSortedKeys.get(0) == -1) {
+                selectTrackStratIndex = 1;
+            }
+
+            for (int i = 0; i < videoTrackBitrateSortedKeys.size(); i++) {
+                Log.d(TAG, i +"-"+ videoTrackBitrateSortedKeys.size() + " HLS Bitrate[" + i + "] = " + videoTrackBitrateSortedKeys.get(i));
+                if (i > selectTrackStratIndex && videoTrackBitrateSortedKeys.get(i) > mAdPreferredBitrate) {
+                    bitrateIndex = i - 1;
+                    Log.d(TAG, "HLS selected bitrate = " + videoTrackBitrateSortedKeys.get(bitrateIndex));
+                    mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(bitrateIndex)));
+                    break;
+                }
+                if (i > selectTrackStratIndex && i == videoTrackBitrateSortedKeys.size()-1) {
+                    Log.d(TAG, "HLS selected last bitrate = " + videoTrackBitrateSortedKeys.get(i));
+                    mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(i)));
+                    break;
+                }
+            }
         }
     }
 
@@ -166,12 +207,15 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     public interface KIMAAdPlayerEvents {
         void adDidProgress(float toTome, float totalTime);
+        void adDurationUpdate(float totalTime);
     }
 
-    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer) {
+    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer, String adMimeType, int adPreferredBitrate) {
         mActivity = activity;
         mPlayerContainer = playerContainer;
         mAdUIContainer = adUIContainer;
+        mAdMimeType = adMimeType;
+        mAdPreferredBitrate = adPreferredBitrate;
     }
 
     public void resume() {
@@ -195,7 +239,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     private void setAdPlayerSource(String src) {
         mSrc = src;
-        Video source = new Video(src.toString(), Video.VideoType.MP4);
+        Video source = new Video(src.toString(), getVideoType());
         mAdPlayer = new SimpleVideoPlayer(mActivity, mPlayerContainer, source, "", true);
         mAdPlayer.addPlaybackListener(this);
         mPlayerContainer.setVisibility(View.VISIBLE);
@@ -220,5 +264,20 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         }
 //        mAdUIContainer = null;
 //        mPlayerContainer = null;
+    }
+
+    private Video.VideoType getVideoType() {
+        String videoFileName = Uri.parse(mSrc).getLastPathSegment();
+        switch (videoFileName.substring(videoFileName.lastIndexOf('.')).toLowerCase()) {
+            case ".mpd":
+                return Video.VideoType.DASH;
+            case ".mp4":
+                return Video.VideoType.MP4;
+            case ".m3u8":
+                return Video.VideoType.HLS;
+            default:
+                return Video.VideoType.OTHER;
+        }
+
     }
 }

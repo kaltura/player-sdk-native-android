@@ -2,7 +2,6 @@ package com.kaltura.playersdk.players;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
@@ -57,6 +56,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private UIState currentState = UIState.Idle;
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
+    private String mAdMimeType;
+    private int mAdPreferredBitrate;
+    private String newSourceDuringBg = null;
+    private int mContentPreferredBitrate = -1;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -106,6 +109,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
         this.tracksEventListener = tracksEventListener;
     }
+
+
 
     private enum UIState {
         Idle,
@@ -351,6 +356,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
         } else if (player != null) {
+            if (newSourceDuringBg != null){
+                setSrc(newSourceDuringBg);
+                newSourceDuringBg = null;
+            }
             recoverPlayerState();
             player.recoverPlayer(isPlaying);
         }
@@ -392,13 +401,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setSrc(String src) {
+        Context context = parentViewController.getContext();
+        if (isBackgrounded && imaManager != null){
+            newSourceDuringBg = src;
+            return;
+        }
         isPlayerCanPlay = false;
         if (switchingBackFromCasting) {
             switchingBackFromCasting = false;
             return;
         }
 
-        Context context = parentViewController.getContext();
         boolean shouldReplacePlayer = false;
         if (player != null) {
             if (imaManager != null) {
@@ -430,13 +443,17 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setLicenseUri(String uri) {
-        player.setLicenseUri(uri);
+        if (player != null) {
+            player.setLicenseUri(uri);
+        }
     }
 
 
-    public void initIMA(String adTagURL, Activity activity) {
+    public void initIMA(String adTagURL, String adMimeType, int adPreferredBitrate, Activity activity) {
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
+        mAdMimeType = adMimeType;
+        mAdPreferredBitrate = adPreferredBitrate;
         if (player != null) {
             player.setShouldCancelPlay(true);
         }
@@ -463,7 +480,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPreferredBitrate);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }
@@ -507,6 +524,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    public void setContentPreferredBitrate(int PreferredBitrate) {
+        mContentPreferredBitrate = PreferredBitrate;
+    }
+
     public int getAdPlayerHeight() {
         return adPlayerHeight;
     }
@@ -547,6 +568,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     sendTracksList(TrackType.TEXT);
                     sendTracksList(TrackType.AUDIO);
                     sendTracksList(TrackType.VIDEO);
+                }
+
+                if (mContentPreferredBitrate != -1) {
+                    if (tracksManager != null) {
+                        pause();
+                        tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
+                        play();
+                    }
                 }
 
                 isPlayerCanPlay = true;
