@@ -22,11 +22,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
-import com.kaltura.playersdk.interfaces.KMediaControl;
-import com.kaltura.playersdk.players.KPlayerListener;
 import com.kaltura.playersdk.types.KPError;
 
 import java.io.ByteArrayInputStream;

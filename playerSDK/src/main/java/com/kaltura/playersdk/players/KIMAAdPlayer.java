@@ -28,7 +28,7 @@ import java.util.Map;
 public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackListener{
     private ViewGroup mAdUIContainer;
     private String mAdMimeType;
-    private int mAdPreferedBitrate;
+    private int mAdPreferredBitrate;
     private FrameLayout mPlayerContainer;
     private Activity mActivity;
     private SimpleVideoPlayer mAdPlayer;
@@ -164,7 +164,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     private void updateAdVideoTrackQuality() {
-        if (KMediaFormat.hls_clear.mimeType.equals(mAdMimeType) && mAdPreferedBitrate != -1) {
+        if (KMediaFormat.hls_clear.mimeType.equals(mAdMimeType) && mAdPreferredBitrate != -1) {
             Map<Integer,Integer> videoTrackBitrateMap = mAdPlayer.getAvailableBitrateMap();
             int bitrateIndex = -1;
             List<Integer> videoTrackBitrateSortedKeys = new ArrayList(videoTrackBitrateMap.keySet());
@@ -176,7 +176,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
             for (int i = 0; i < videoTrackBitrateSortedKeys.size(); i++) {
                 Log.d(TAG, i +"-"+ videoTrackBitrateSortedKeys.size() + " HLS Bitrate[" + i + "] = " + videoTrackBitrateSortedKeys.get(i));
-                if (i > selectTrackStratIndex && videoTrackBitrateSortedKeys.get(i) > mAdPreferedBitrate) {
+                if (i > selectTrackStratIndex && videoTrackBitrateSortedKeys.get(i) > mAdPreferredBitrate) {
                     bitrateIndex = i - 1;
                     Log.d(TAG, "HLS selected bitrate = " + videoTrackBitrateSortedKeys.get(bitrateIndex));
                     mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(bitrateIndex)));
@@ -210,12 +210,12 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         void adDurationUpdate(float totalTime);
     }
 
-    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer, String adMimeType, int adPrefaredBitrate) {
+    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer, String adMimeType, int adPreferredBitrate) {
         mActivity = activity;
         mPlayerContainer = playerContainer;
         mAdUIContainer = adUIContainer;
         mAdMimeType = adMimeType;
-        mAdPreferedBitrate = adPrefaredBitrate;
+        mAdPreferredBitrate = adPreferredBitrate;
     }
 
     public void resume() {
