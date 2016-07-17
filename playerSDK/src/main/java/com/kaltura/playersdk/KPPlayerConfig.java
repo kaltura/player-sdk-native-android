@@ -15,6 +15,8 @@ import java.util.Map;
 
 public class KPPlayerConfig implements Serializable{
 
+	public static String TAG = "KPPlayerConfig";
+
 	/// Key names of the video request
 	private static final String sKsKey = "ks";
 	private static final String sWidKey = "wid";
@@ -77,7 +79,8 @@ public class KPPlayerConfig implements Serializable{
 			@Override
 			public String getVideoURL() {
 				// just return the input embedFrameURL, don't build it.
-				return embedFrameURL;
+				//adding # so in native callout will have the hash of supported mimetypes
+				return embedFrameURL + "#";
 			}
 
 			// Block the setters that would change the url.
@@ -211,7 +214,7 @@ public class KPPlayerConfig implements Serializable{
 		if (mEntryId != null) {
 			builder.appendPath(sEntryIdKey).appendPath(mEntryId);
 		}
-		
+
 		builder.appendQueryParameter("iframeembed", "true");
 
 		return builder.build().toString() + "&" + getQueryString() + "#localContentId=" + mLocalContentId + "&";
