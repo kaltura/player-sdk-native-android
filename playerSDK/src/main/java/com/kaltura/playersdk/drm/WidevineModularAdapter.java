@@ -50,9 +50,7 @@ public class WidevineModularAdapter extends DrmAdapter {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/octet-stream");
 
-        byte[] response = ExoplayerUtil.executePost(licenseUri, data, headers);
-        Log.d(TAG, "response data (b64): " + Base64.encodeToString(response, 0));
-        return response;
+        return ExoplayerUtil.executePost(licenseUri, data, headers);
     }
 
     @Override
@@ -92,7 +90,7 @@ public class WidevineModularAdapter extends DrmAdapter {
             throw new RegisterException("Can't parse local dash", e);
         }
 
-        return dashParser;        
+        return dashParser;
     }
     
     private boolean registerAsset(@NonNull String localPath, String licenseUri) throws RegisterException {
@@ -112,11 +110,16 @@ public class WidevineModularAdapter extends DrmAdapter {
 
         // Get keyRequest
         MediaDrm.KeyRequest keyRequest = session.getOfflineKeyRequest(initData, mimeType);
+        Log.d(TAG, "registerAsset: init data (b64): " + Base64.encodeToString(initData, Base64.NO_WRAP));
 
+        byte[] data = keyRequest.getData();
+        
         // Send request to server
         byte[] keyResponse;
         try {
-            keyResponse = httpPost(licenseUri, keyRequest.getData());
+            Log.d(TAG, "registerAsset: request data (b64): " + Base64.encodeToString(data, Base64.NO_WRAP));
+            keyResponse = httpPost(licenseUri, data);
+            Log.d(TAG, "registerAsset: response data (b64): " + Base64.encodeToString(keyResponse, Base64.NO_WRAP));
         } catch (IOException e) {
             throw new RegisterException("Can't send key request for registration", e);
         }
