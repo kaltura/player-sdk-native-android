@@ -210,12 +210,12 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         void adDurationUpdate(float totalTime);
     }
 
-    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer, String adMimeType, int adPrefaredBitrate) {
+    public KIMAAdPlayer(Activity activity, FrameLayout playerContainer, ViewGroup adUIContainer, String adMimeType, int adPreferredBitrate) {
         mActivity = activity;
         mPlayerContainer = playerContainer;
         mAdUIContainer = adUIContainer;
         mAdMimeType = adMimeType;
-        mAdPreferredBitrate = adPrefaredBitrate;
+        mAdPreferredBitrate = adPreferredBitrate;
     }
 
     public void resume() {

@@ -57,9 +57,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
     private String mAdMimeType;
-    private int mAdPrefarredBitrate;
+    private int mAdPreferredBitrate;
     private String newSourceDuringBg = null;
-    private int mContentPrefferedBitrate = -1;
+    private int mContentPreferredBitrate = -1;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -456,7 +456,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
         mAdMimeType = adMimeType;
-        mAdPrefarredBitrate = adPreferredBitrate;
+        mAdPreferredBitrate = adPreferredBitrate;
         if (player != null) {
             player.setShouldCancelPlay(true);
         }
@@ -483,7 +483,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPrefarredBitrate);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPreferredBitrate);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }
@@ -528,7 +528,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setContentPreferredBitrate(int PreferredBitrate) {
-        mContentPrefferedBitrate = PreferredBitrate;
+        mContentPreferredBitrate = PreferredBitrate;
     }
 
     public int getAdPlayerHeight() {
@@ -573,10 +573,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     sendTracksList(TrackType.VIDEO);
                 }
 
-                if (mContentPrefferedBitrate != -1) {
+                if (mContentPreferredBitrate != -1) {
                     if (tracksManager != null) {
                         pause();
-                        tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPrefferedBitrate);
+                        tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
                         play();
                     }
                 }

@@ -137,7 +137,7 @@ public class KPPlayerConfig implements Serializable{
 				mMediaPlayFrom = Double.parseDouble(value);
 				return this;
 			}
-			if (key.equals("mediaProxy.preferedFlavorBR")) {
+			if (key.equals("mediaProxy.preferedFlavorBR") || key.equals("mediaProxy.preferredFlavorBR")) { // in web it is preferedFlavorBR if it is fixed will keep working
 				mContentPreferredBitrate = Integer.valueOf(value);
 				return this;
 			}

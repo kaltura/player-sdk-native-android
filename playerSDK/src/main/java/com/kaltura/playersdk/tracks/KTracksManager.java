@@ -43,8 +43,8 @@ public class KTracksManager implements  KTrackActions {
     }
 
     @Override
-    public void switchTrackByBitrate(TrackType trackType, final int prefarredBitrateKBit) {
-        Log.d(TAG, "switchTrackByBitrate : " + trackType.name() + " prefarredBitrateKBit : " + prefarredBitrateKBit);
+    public void switchTrackByBitrate(TrackType trackType, final int preferredBitrateKBit) {
+        Log.d(TAG, "switchTrackByBitrate : " + trackType.name() + " preferredBitrateKBit : " + preferredBitrateKBit);
         if (TrackType.TEXT.equals(trackType)){
             return;
         }
@@ -76,7 +76,7 @@ public class KTracksManager implements  KTrackActions {
         Comparator <TrackFormat> tracksComperator = new Comparator<TrackFormat>() {
             @Override
             public int compare(TrackFormat track1, TrackFormat track2) {
-                if (Integer.valueOf(Math.abs(track1.bitrate - prefarredBitrateKBit*1000)) > (Integer.valueOf(Math.abs(track2.bitrate - prefarredBitrateKBit*1000)))) {
+                if (Math.abs(track1.bitrate - preferredBitrateKBit*1000) > Math.abs(track2.bitrate - preferredBitrateKBit*1000)) {
                     return 1;
                 } else {
                     return -1;
@@ -86,7 +86,7 @@ public class KTracksManager implements  KTrackActions {
 
         SortedSet<TrackFormat> bitrateSet = new TreeSet<TrackFormat>(tracksComperator);
         bitrateSet.addAll(tracksList);
-        Log.d(TAG, "bitrateSet selected " +  bitrateSet.first());
+        Log.d(TAG, "preferred bitrate selected = " +  bitrateSet.first());
         switchTrack(trackType, bitrateSet.first().index);
     }
 
