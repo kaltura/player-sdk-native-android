@@ -153,7 +153,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
         mReadiness = Readiness.Preparing;
 
-        boolean offline = mSourceURL.startsWith("/");
+        boolean offline = mSourceURL.startsWith("file://");
         mDrmCallback = new KPlayerExoDrmCallback(getContext(), offline);
         Video video = new Video(mSourceURL, getVideoType());
         final ExoplayerWrapper.RendererBuilder rendererBuilder = RendererBuilderFactory
