@@ -123,8 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getPlayer();
 
     }
-
-
+    
     private void startCC() {
 
         mCastProvider = PlayerViewController.createCastProvider();
