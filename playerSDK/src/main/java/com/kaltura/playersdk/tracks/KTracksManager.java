@@ -9,7 +9,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Created by gilad.nadav on 25/05/2016.
@@ -40,64 +43,51 @@ public class KTracksManager implements  KTrackActions {
     }
 
     @Override
-    public void switchTrackByBitrate(TrackType trackType, int prefaredBitrateKBit) {
-        Log.d(TAG, "switchTrackByBitrate : " + trackType.name() + " prefaredBitrateKBit : " + prefaredBitrateKBit);
+    public void switchTrackByBitrate(TrackType trackType, final int prefarredBitrateKBit) {
+        Log.d(TAG, "switchTrackByBitrate : " + trackType.name() + " prefarredBitrateKBit : " + prefarredBitrateKBit);
         if (TrackType.TEXT.equals(trackType)){
             return;
         }
-
-        int prevBitrate = 0;
 
         List<TrackFormat> tracksList = null;
         if (TrackType.AUDIO.equals(trackType)){
             tracksList = getAudioTrackList();
 
         } else if (TrackType.VIDEO.equals(trackType)){
-           tracksList =  getVideoTrackList();
+            tracksList =  getVideoTrackList();
         } else {
             //unsupported track type
             return;
         }
 
-        if (tracksList.size() == 1) {
-            Log.d(TAG, "Skip switchTrackByBitrate, tracksList.size() == 1");
+        if (tracksList == null) {
             return;
         }
-        for (int trackIndex = 0 ; trackIndex <  tracksList.size() ; trackIndex++) {
-            if (tracksList.get(trackIndex).bitrate == -1) {
-                if (prefaredBitrateKBit == -1) {
-                    Log.d(TAG, "prefaredBitrateKBit : " + prefaredBitrateKBit + " bitrate : Auto");
-                    switchTrack(trackType, trackIndex);
-                    return;
-                }
-                continue;
-            }
-            int bitrate = tracksList.get(trackIndex).bitrate / 1000;
-            if (bitrate >= prefaredBitrateKBit && (trackIndex-1) > 0){
-                if (Math.abs(bitrate - prefaredBitrateKBit) <= Math.abs(prevBitrate - prefaredBitrateKBit)) {
-                    Log.d(TAG, "switchTrack0 trackIndex = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
-                    switchTrack(trackType, trackIndex);
-                }
-                else {
-                    Log.d(TAG, "switchTrack1 trackIndex = " + (trackIndex-1) + " " + tracksList.get(trackIndex-1).bitrate / 1000);
-                    switchTrack(trackType, trackIndex-1);
-                }
-                return;
-            }
-            else if (bitrate >= prefaredBitrateKBit && (trackIndex-1) == 0){
-                Log.d(TAG, "switchTrack2 trackIndex = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
-                switchTrack(trackType, trackIndex);
-                return;
-            }
-            else if (prefaredBitrateKBit >= bitrate && trackIndex != (tracksList.size() - 1)) {
-                prevBitrate = bitrate;
-                continue;
-            }
-            else if (prefaredBitrateKBit >= bitrate && trackIndex == (tracksList.size() - 1)) {
-                Log.d(TAG, "switchTrack3 : index = " + (trackIndex) + " " + tracksList.get(trackIndex).bitrate / 1000);
-                switchTrack(trackType, trackIndex);
-            }
+
+        if (tracksList.size() <= 2) {
+            Log.d(TAG, "Skip switchTrackByBitrate, tracksList.size() <= 2");
+            return;
         }
+
+        if (tracksList.get(0).bitrate == -1) {
+            tracksList.remove(0);
+        }
+
+        Comparator <TrackFormat> tracksComperator = new Comparator<TrackFormat>() {
+            @Override
+            public int compare(TrackFormat track1, TrackFormat track2) {
+                if (Integer.valueOf(Math.abs(track1.bitrate - prefarredBitrateKBit*1000)) > (Integer.valueOf(Math.abs(track2.bitrate - prefarredBitrateKBit*1000)))) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            }
+        };
+
+        SortedSet<TrackFormat> bitrateSet = new TreeSet<TrackFormat>(tracksComperator);
+        bitrateSet.addAll(tracksList);
+        Log.d(TAG, "bitrateSet selected " +  bitrateSet.first());
+        switchTrack(trackType, bitrateSet.first().index);
     }
 
     @Override

@@ -57,7 +57,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
     private String mAdMimeType;
-    private int mAdPrefaredBitrate;
+    private int mAdPrefarredBitrate;
     private String newSourceDuringBg = null;
     private int mContentPrefferedBitrate = -1;
 
@@ -452,11 +452,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
 
-    public void initIMA(String adTagURL, String adMimeType, int adPreferedBitrate, Activity activity) {
+    public void initIMA(String adTagURL, String adMimeType, int adPreferredBitrate, Activity activity) {
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
         mAdMimeType = adMimeType;
-        mAdPrefaredBitrate = adPreferedBitrate;
+        mAdPrefarredBitrate = adPreferredBitrate;
         if (player != null) {
             player.setShouldCancelPlay(true);
         }
@@ -483,7 +483,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPrefaredBitrate);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPrefarredBitrate);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }
@@ -527,8 +527,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void setContentPreferedBitrate(int prefferedBR) {
-        mContentPrefferedBitrate = prefferedBR;
+    public void setContentPreferredBitrate(int PreferredBitrate) {
+        mContentPrefferedBitrate = PreferredBitrate;
     }
 
     public int getAdPlayerHeight() {
