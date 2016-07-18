@@ -56,6 +56,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private UIState currentState = UIState.Idle;
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
+    private boolean prepareWithConfigurationMode = false;
     private String mAdMimeType;
     private int mAdPreferredBitrate;
     private String newSourceDuringBg = null;
@@ -432,7 +433,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             // Widevine Classic
             player = new KWVCPlayer(context);
         } else {
-            player = new com.kaltura.playersdk.players.KExoPlayer(context);
+            player = new KExoPlayer(context);
+            if(prepareWithConfigurationMode) {
+                player.setPrepareWithConfigurationMode();
+            }
+
         }
         if (shouldReplacePlayer) {
             replacePlayer();
@@ -625,4 +630,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
         }
     }
+
+    public void attachView() {
+        if (player != null) {
+            player.attachSurfaceViewToPlayer();
+        }
+    }
+
+    public void detachView() {
+        if (player != null) {
+            player.detachSurfaceViewFromPlayer();
+        }
+    }
+
+    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
+        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
+    }
+
 }

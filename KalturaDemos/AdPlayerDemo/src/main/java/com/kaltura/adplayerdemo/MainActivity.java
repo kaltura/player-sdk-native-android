@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity
         skipAd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e(TAG, "GILAD Skip selected");
+                Log.d(TAG, "Skip selected");
                 mAdPlayer.seek(mAdPlayer.getDuration(), true);
             }
         });
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity
         nextContent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e(TAG, "Next selected");
+                Log.d(TAG, "Next selected");
                 if (config != null && !adPlayerIsPlaying) {
                     if (wvClassicRequired(isDRMContent)) {
                         lastGroupIndex += 1;
@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity
         // nextInt is normally exclusive of the top value,
         // so add 1 to make it inclusive
         randomNum = rand.nextInt((2));
-        Log.e(TAG, "GILAD " + randomNum);
+        Log.d(TAG, "randomNum " + randomNum);
         if (randomNum == 1) {
             adList.add(adUrl);
             //adList.add(adUrl1);
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity
 
         if (mPlayer != null) {
             if (!isScreenOn) {
-                Log.e("GILAD", "OFFF");
+                Log.d(TAG, "Screen OFF");
                 // The screen has been locked
                 // do stuff...
                 mPlayer.saveState();
@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity
             if (mPlayer != null)
                 mPlayer.getMediaControl().start();
             mPlayer.resumePlayer();
-            Log.e(TAG, "on Resume called for player");
+            Log.d(TAG, "on Resume called for player");
             if (mAdPlayer != null) {
                 mAdPlayer.moveSurfaceToForeground();
                 mAdPlayer.play();
@@ -415,7 +415,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.READY) {
-            Log.e(TAG, "GILAD onKPlayerStateChanged PLAYER STATE_READY");
+            Log.d(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
             kPlayerReady = true;
             mPlayer.getMediaControl().pause();
             if (randomNum != 1)  { //ad failed
@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity
 
         }
         if (state == KPlayerState.ENDED && adIsDone) {
-            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
+            Log.d(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
             if (!wvClassicRequired(isDRMContent)) {
                 mPlayer.detachView();
             }
@@ -435,14 +435,14 @@ public class MainActivity extends AppCompatActivity
 
 
     private void removeAdPlayer() {
-        Log.e(TAG, "removeAdPlayer");
+        Log.d(TAG, "removeAdPlayer");
         if (wvClassicRequired(isDRMContent)) {
-            Log.e(TAG, "WV Classic mode");
+            Log.d(TAG, "WV Classic mode");
             if (adPlayerContainer != null) {
                 switchLayers(2, true);
             }
         } else {
-            Log.e(TAG, "WV Modular mode/ ExoPlayer");
+            Log.d(TAG, "WV Modular mode/ ExoPlayer");
             switchLayers(1, false);
         }
         mAdPlayer = null;
@@ -521,16 +521,16 @@ public class MainActivity extends AppCompatActivity
                 switch (playbackState) {
                     case ExoPlayer.STATE_READY:
                         if (!playWhenReady && adPlayerIsPlaying) {
-                            Log.e(TAG, "GILAD SimpleVideoPlayer STATE_READY playWhenReady pause " + playWhenReady);
+                            Log.d(TAG, "SimpleVideoPlayer STATE_READY playWhenReady pause " + playWhenReady);
                             adPlayerIsPlaying = false;
                             mAdPlayer.pause();
                             break;
                         }
 
-                        Log.e(TAG, "GILAD SimpleVideoPlayer STATE_READY playWhenReady play " + playWhenReady);
+                        Log.d(TAG, "SimpleVideoPlayer STATE_READY playWhenReady play " + playWhenReady);
                         //if (playWhenReady) {
                         if (!adPlayerIsPlaying && adPlayerContainer != null && mAdPlayer != null) {
-                            Log.e(TAG, "START PLAY AD ");
+                            Log.d(TAG, "START PLAY AD ");
                             adPlayerIsPlaying = true;
                             Handler handler = new Handler();
                             handler.postDelayed(new Runnable() {
@@ -555,7 +555,7 @@ public class MainActivity extends AppCompatActivity
                         }
                         break;
                     case ExoPlayer.STATE_ENDED:
-                        Log.e(TAG, "GILAD changeAdMedia AD ENDED prev index = " + currentAdIndex);
+                        Log.d(TAG, "changeAdMedia AD ENDED prev index = " + currentAdIndex);
                         skipAd.setClickable(true);
                         skipAd.setVisibility(View.INVISIBLE);
                         currentAdIndex++;
@@ -565,7 +565,7 @@ public class MainActivity extends AppCompatActivity
 
                         adPlayerIsPlaying = false;
                         adIsDone = true;
-                        Log.e(TAG, "GILAD isLast " + index + "/" + adList.size());
+                        Log.d(TAG, "isLast " + index + "/" + adList.size());
                         if (index == adList.size() - 1) {
                             currentAdIndex = 0;
                             //changeAdMedia(adUrl1,true);
@@ -591,7 +591,7 @@ public class MainActivity extends AppCompatActivity
         removeAdPlayer();
 
         if (kPlayerReady) {
-            Log.e(TAG, "GILAD KPLAY FROM NORMAL PATH");
+            Log.d(TAG, "KPLAY FROM NORMAL PATH");
             if (!wvClassicRequired(isDRMContent)) {
                 mPlayer.attachView();
             }
@@ -599,24 +599,24 @@ public class MainActivity extends AppCompatActivity
             nextContent.setClickable(true);
             nextContent.setVisibility(View.VISIBLE);
             mPlayer.getMediaControl().start();
-            Log.e(TAG, "GILAD ENDED KPLAY FROM NORMAL PATH");
+            Log.d(TAG, "ENDED KPLAY FROM NORMAL PATH");
 
 
         } else {
             mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
                 @Override
                 public void handler() {
-                    Log.e(TAG, "GILAD KPLAY FROM HANDLER");
+                    Log.d(TAG, "KPLAY FROM HANDLER");
                     if (!wvClassicRequired(isDRMContent)) {
                         mPlayer.attachView();
                     }
 
-                    Log.e(TAG, "BEFORE ENDED GILAD KPLAY FROM HANDLER");
+                    Log.d(TAG, "BEFORE ENDED - KPLAY FROM HANDLER");
                     nextContent.setClickable(true);
                     nextContent.setVisibility(View.VISIBLE);
                     mPlayer.getMediaControl().start();
 
-                    Log.e(TAG, "ENDED GILAD KPLAY FROM HANDLER");
+                    Log.d(TAG, "ENDED - KPLAY FROM HANDLER");
                     kPlayerReady = false;
 
                 }
