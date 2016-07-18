@@ -126,19 +126,15 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode)
-        {
+        switch (requestCode) {
             case REQUEST_WRITE_STORAGE: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
-                    //granted permission
-                } else
-                {
-                    Toast.makeText(this, "The app was not allowed to write to your storage", Toast.LENGTH_LONG).show();
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //if permission granted
+                } else {
+                    Toast.makeText(this, "The app was not allowed to write to your storage.", Toast.LENGTH_LONG).show();
                 }
             }
         }
-
     }
 
     private PlayerViewController getPlayer() {
