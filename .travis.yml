@@ -43,5 +43,6 @@ notifications:
       - itay.kinnrot@kaltura.com
       - nissim.pardo@kaltura.com
       - gilad.nadav@kaltura.com
+      - g.kozlov@synergetica.co
     on_success: change
     on_failure: always
