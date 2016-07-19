@@ -17,13 +17,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    packagingOptions {
+        exclude 'jsr305_annotations/Jsr305_annotations.gwt.xml'
+    }
 }
 
 
 dependencies {
     compile project(':googlemediaframework')
-    compile 'com.google.android.gms:play-services-cast:8.4.0'
-    compile 'com.android.support:mediarouter-v7:23.4.0'
     compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:mediarouter-v7:23.4.0'
+    compile 'com.google.android.gms:play-services-cast-framework:9.2.0'
     compile fileTree(dir: 'libs', include: ['ima-sdk-*.jar'])
+
 }
