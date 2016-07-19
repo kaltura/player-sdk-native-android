@@ -28,7 +28,9 @@ import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 import com.kaltura.playersdk.interfaces.KCastProvider;
+import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
@@ -163,6 +165,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mCastProvider = KCastFactory.createCastProvider();
         mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
             @Override
+            public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
+
+            }
+
+            @Override
             public void onDeviceCameOnline(KCastDevice device) {
                 mRouterInfos.add(device);
                 if (mMediaRouteButtonDiscon.getVisibility() == View.INVISIBLE && mRouterInfos.size() > 0) {
@@ -186,8 +193,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onDeviceDisconnected() {
-                mRouterInfos.clear();
-                mCastProvider.startScan(getApplicationContext(), "C43947A1");
                 mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
                 mMediaRouteButtonCon.setVisibility(View.INVISIBLE);
             }
@@ -229,6 +234,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 config.addConfig("chromecast.receiverLogo", "true");
 
                 mPlayer.initWithConfiguration(config);
+                mPlayer.getMediaControl().seek(100, new KMediaControl.SeekCallback() {
+                    @Override
+                    public void seeked(long milliSeconds) {
+
+                    }
+                });
 
                 if (mCastProvider != null) {
                     mPlayer.setCastProvider(mCastProvider);
@@ -238,6 +249,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mPlayer.setOnKPPlayheadUpdateEventListener(this);
                 //mPlayer.setOnKPFullScreenToggeledEventListener(this);
                 mPlayer.setOnKPStateChangedEventListener(this);
+                mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "eventID", new PlayerViewController.EventListener() {
+                    @Override
+                    public void handler(String eventName, String params) {
+
+                    }
+                });
 
                 /****FOR TRACKS****/
                 //// Tracks on Web supported only from 2.44
@@ -252,9 +269,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void presentCCDevices() {
-        final String[] items = new String[mRouterInfos.size()];
+        final ArrayList<KCastDevice> devices = mCastProvider.getDevices();
+        final String[] items = new String[devices.size()];
         for (int i = 0; i < items.length; i++   ) {
-            items[i] = mRouterInfos.get(i).getRouterName();
+            items[i] = devices.get(i).getRouterName();
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Make your selection");
@@ -262,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(DialogInterface dialog, int item) {
                 // Do something with the selection
 //                mDoneButton.setText(items[item]);
-                mCastProvider.connectToDevice(mRouterInfos.get(item));
+                mCastProvider.connectToDevice(devices.get(item));
 //                getPlayer();
 //                mPlayer.getKCastRouterManager().connectDevice(mRouterInfos.get(item).getRouterId());
             }
