@@ -42,11 +42,11 @@ public class KWVCPlayer
     private boolean mShouldCancelPlay;
     private boolean mShouldPlayWhenReady;
     @Nullable private PlayheadTracker mPlayheadTracker;
-    private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
     private boolean isFirstPreparation = true;
     private int mCurrentPosition;
     private boolean mWasDestroyed;
+    private KState mReadiness = KState.IDLE;
 
     public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
@@ -182,23 +182,27 @@ public class KWVCPlayer
     public void play() {
 
         // If already playing, don't do anything.
-        if (mPlayer == null || mPlayer.isPlaying()) {
+        if (mPlayer == null || mPlayer.isPlaying() || mReadiness == KState.PLAYING) {
             return;
         }
 
         // If play should be canceled, don't even start.
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
+            mReadiness = KState.IDLE;
             return;
         }
+        Log.d(TAG, "action: play called");
 
         // If not prepared, ask player to start when prepared.
-        if (mPrepareState != PrepareState.Prepared) {
+        if (mReadiness != KState.PREPARED) {
             mShouldPlayWhenReady = true;
             preparePlayer();
+            mReadiness = KState.PLAYING;
             return;
         }
 
+        mReadiness = KState.PLAYING;
         if (mSavedState.position != 0) {
             mShouldPlayWhenReady = true;
             setCurrentPlaybackTime(mSavedState.position); // will start playing after seek complete
@@ -216,6 +220,11 @@ public class KWVCPlayer
 
     @Override
     public void pause() {
+        if (mReadiness == KState.PAUSED) {
+            return;
+        }
+        Log.d(TAG, "action: pause called");
+        mReadiness = KState.PAUSED;
         if (mPlayer != null) {
             if (mPlayer.isPlaying()) {
                 mPlayer.pause();
@@ -349,7 +358,7 @@ public class KWVCPlayer
             mPlayer = null;
         }
         stopPlayheadTracker();
-        mPrepareState = PrepareState.NotPrepared;
+        mReadiness = KState.IDLE;
     }
 
     private void stopPlayheadTracker() {
@@ -383,7 +392,7 @@ public class KWVCPlayer
             return;
         }
 
-        if (mPrepareState == PrepareState.Preparing) {
+        if (mReadiness == KState.PREPARING) {
             Log.v(TAG, "Already preparing");
             return;
         }
@@ -391,7 +400,7 @@ public class KWVCPlayer
         String widevineUri = getWidevineAssetPlaybackUri(mAssetUri);
 
         // Start preparing.
-        mPrepareState = PrepareState.Preparing;
+        mReadiness = KState.PREPARING;
         mPlayer = new VideoView(getContext());
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
@@ -423,9 +432,7 @@ public class KWVCPlayer
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-
-                mPrepareState = PrepareState.Prepared;
-
+                mReadiness = KState.PREPARED;
                 final KWVCPlayer kplayer = KWVCPlayer.this;
 
                 mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
@@ -508,12 +515,6 @@ public class KWVCPlayer
         }
     }
 
-    private enum PrepareState {
-        NotPrepared,
-        Preparing,
-        Prepared
-    }
-    
     private class PlayerState {
         boolean playing;
         int position;
