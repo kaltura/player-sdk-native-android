@@ -429,7 +429,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     }
 
                     // ExoPlayer is ready.
-                    if (mReadiness != KState.READY) {
+                    if (mReadiness != KState.READY && mReadiness != KState.PLAYING && mReadiness != KState.PAUSED) {
                         mReadiness = KState.READY;
 
                         // TODO what about mShouldResumePlayback?
