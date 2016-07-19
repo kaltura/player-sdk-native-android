@@ -21,7 +21,6 @@ import java.util.ArrayList;
  * Created by nissimpardo on 07/07/16.
  */
 public class KChromeCastPlayer implements KCastMediaRemoteControl {
-    private long mCurrentPosition;
     private RemoteMediaPlayer mRemoteMediaPlayer;
     private GoogleApiClient mApiClient;
     private Handler mHandler = new Handler(Looper.getMainLooper());

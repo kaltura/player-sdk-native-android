@@ -5,6 +5,8 @@ import android.content.Context;
 import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.types.KPError;
 
+import java.util.ArrayList;
+
 /**
  * Created by nissimpardo on 29/05/16.
  */
@@ -16,9 +18,11 @@ public interface KCastProvider {
     void connectToDevice(KCastDevice device);
     void disconnectFromDevcie();
     void setKCastProviderListener(KCastProviderListener listener);
+    ArrayList<KCastDevice> getDevices();
     KCastMediaRemoteControl getCastMediaRemoteControl();
 
     interface KCastProviderListener {
+        void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl);
         void onDeviceCameOnline(KCastDevice device);
         void onDeviceWentOffline(KCastDevice device);
         void onDeviceConnected();

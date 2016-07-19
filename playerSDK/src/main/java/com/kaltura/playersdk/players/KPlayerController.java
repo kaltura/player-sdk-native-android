@@ -120,6 +120,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             @Override
             public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
                 isCasting = true;
+                mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
                 remoteMediaPlayer.addListener(this);
             }
 

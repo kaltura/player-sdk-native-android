@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.casting;
 
 import android.content.Context;
-import android.media.RemoteControlClient;
 import android.os.Bundle;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
@@ -12,9 +11,6 @@ import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 import com.google.android.gms.cast.LaunchOptions;
-import com.google.android.gms.cast.MediaInfo;
-import com.google.android.gms.cast.MediaMetadata;
-import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -23,9 +19,10 @@ import com.kaltura.playersdk.cast.KRouterCallback;
 import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 import com.kaltura.playersdk.interfaces.ScanCastDeviceListener;
 import com.kaltura.playersdk.players.KChromeCastPlayer;
-import com.kaltura.playersdk.players.KPlayerListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+
 
 
 /**
@@ -79,6 +76,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         mInternalListener = internalListener;
     }
 
+    public KCastProviderListener getProviderListener() {
+        return mProviderListener;
+    }
+
+
 
     public KCastKalturaChannel getChannel() {
         return mChannel;
@@ -96,6 +98,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         mRouter = MediaRouter.getInstance(mContext.getApplicationContext());
         mCallback = new KRouterCallback();
         mCallback.setListener(this);
+        mCallback.setRouter(mRouter);
         mSelector = new MediaRouteSelector.Builder().addControlCategory(CastMediaControlIntent.categoryForCast(mCastAppID)).build();
         mRouter.addCallback(mSelector, mCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
     }
@@ -112,7 +115,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void connectToDevice(KCastDevice device) {
-        mCallback.setRouter(mRouter);
         MediaRouter.RouteInfo selectedRoute = mCallback.routeById(device.getRouterId());
         mRouter.selectRoute(selectedRoute);
 //        if (mScanCastDeviceListener != null) {
@@ -132,6 +134,19 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     @Override
     public void setKCastProviderListener(KCastProviderListener listener) {
         mProviderListener = listener;
+    }
+
+    @Override
+    public ArrayList<KCastDevice> getDevices() {
+        if (mRouter != null && mRouter.getRoutes() != null && mRouter.getRoutes().size() > 0) {
+            ArrayList<KCastDevice> devices = new ArrayList<>();
+            for (MediaRouter.RouteInfo info: mRouter.getRoutes()) {
+                KCastDevice castDevice = new KCastDevice(info);
+                devices.add(castDevice);
+            }
+            return devices;
+        }
+        return null;
     }
 
     @Override
@@ -175,6 +190,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
                 @Override
                 public void onVolumeChanged() {
+
                 }
             };
         }

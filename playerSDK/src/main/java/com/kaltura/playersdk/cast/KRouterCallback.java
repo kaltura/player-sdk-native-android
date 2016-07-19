@@ -53,9 +53,7 @@ public class KRouterCallback extends MediaRouter.Callback {
             mListener.onFoundDevices(true);
             didFindDevices = true;
         }
-        KCastDevice info = new KCastDevice();
-        info.setRouterName(route.getName());
-        info.setRouterId(route.getId());
+        KCastDevice info = new KCastDevice(route);
         mListener.onRouteAdded(true, info);
     }
 
@@ -65,9 +63,7 @@ public class KRouterCallback extends MediaRouter.Callback {
             didFindDevices = false;
             mListener.onFoundDevices(false);
         }
-        KCastDevice info = new KCastDevice();
-        info.setRouterName(route.getName());
-        info.setRouterId(route.getId());
+        KCastDevice info = new KCastDevice(route);
         mListener.onRouteAdded(false, info);
     }
 }
