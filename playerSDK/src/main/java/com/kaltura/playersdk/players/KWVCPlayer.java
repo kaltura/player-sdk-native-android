@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Created by noamt on 10/27/15.
  */
-public class KWVCPlayer 
+public class KWVCPlayer
         extends FrameLayout
         implements KPlayer {
 
@@ -42,11 +42,12 @@ public class KWVCPlayer
     private boolean mShouldCancelPlay;
     private boolean mShouldPlayWhenReady;
     @Nullable private PlayheadTracker mPlayheadTracker;
+    private PrepareState mPrepareState;
     @NonNull private PlayerState mSavedState;
     private boolean isFirstPreparation = true;
     private int mCurrentPosition;
     private boolean mWasDestroyed;
-    private KState mReadiness = KState.IDLE;
+    private String mLastSentEvent = "";
 
     public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
@@ -82,7 +83,7 @@ public class KWVCPlayer
         });
 
         mSavedState = new PlayerState();
-        
+
         // Set no-op listeners so we don't have to check for null on use
         setPlayerListener(null);
         setPlayerCallback(null);
@@ -153,7 +154,7 @@ public class KWVCPlayer
     @Override
     public void setLicenseUri(String licenseUri) {
         mLicenseUri = licenseUri;
-
+        //mLicenseUri = mLicenseUri.replace("https://udrm.kaltura.com","http://udrm2.dev.kaltura.com");
         if (mAssetUri != null) {
             preparePlayer();
         } else {
@@ -165,7 +166,7 @@ public class KWVCPlayer
     public long getCurrentPlaybackTime() {
         return mPlayer != null ? mPlayer.getCurrentPosition() : 0;
     }
-    
+
     @Override
     public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
@@ -182,27 +183,23 @@ public class KWVCPlayer
     public void play() {
 
         // If already playing, don't do anything.
-        if (mPlayer == null || mPlayer.isPlaying() || mReadiness == KState.PLAYING) {
+        if (mPlayer == null || mPlayer.isPlaying()) {
             return;
         }
 
         // If play should be canceled, don't even start.
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
-            mReadiness = KState.IDLE;
             return;
         }
-        Log.d(TAG, "action: play called");
 
         // If not prepared, ask player to start when prepared.
-        if (mReadiness != KState.PREPARED) {
+        if (mPrepareState != PrepareState.Prepared) {
             mShouldPlayWhenReady = true;
             preparePlayer();
-            mReadiness = KState.PLAYING;
             return;
         }
 
-        mReadiness = KState.PLAYING;
         if (mSavedState.position != 0) {
             mShouldPlayWhenReady = true;
             setCurrentPlaybackTime(mSavedState.position); // will start playing after seek complete
@@ -220,11 +217,6 @@ public class KWVCPlayer
 
     @Override
     public void pause() {
-        if (mReadiness == KState.PAUSED) {
-            return;
-        }
-        Log.d(TAG, "action: pause called");
-        mReadiness = KState.PAUSED;
         if (mPlayer != null) {
             if (mPlayer.isPlaying()) {
                 mPlayer.pause();
@@ -238,27 +230,35 @@ public class KWVCPlayer
         if (mPlayer == null || state == null) {
             return;
         }
-         mPlayer.postDelayed(new Runnable() {
-             @Override
-             public void run() {
-                 if (KPlayerListener.PauseKey.equals(state)) {
-                     if (mPlayer != null && !mPlayer.isPlaying()) {
-                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
-                         return;
-                     }
-                 } else if (KPlayerListener.PlayKey.equals(state)) {
-                     if (mPlayer != null && mPlayer.isPlaying()) {
-                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
-                         return;
-                     }
-                 } else {
-                     Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
-                     return;
+        mPlayer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (KPlayerListener.PauseKey.equals(state)) {
+                    if ("pause".equals(mLastSentEvent)){
+                        return;
+                    }
+                    if (mPlayer != null && !mPlayer.isPlaying()) {
+                        mLastSentEvent = "pause";
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                        return;
+                    }
+                } else if (KPlayerListener.PlayKey.equals(state)) {
+                    if ("play".equals(mLastSentEvent)){
+                        return;
+                    }
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+                        mLastSentEvent = "pause";
+                        return;
+                    }
+                } else {
+                    Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
+                    return;
 
-                 }
-                 changePlayPauseState(state);
-             }
-         }, 100);
+                }
+                changePlayPauseState(state);
+            }
+        }, 100);
     }
 
     @Override
@@ -358,7 +358,7 @@ public class KWVCPlayer
             mPlayer = null;
         }
         stopPlayheadTracker();
-        mReadiness = KState.IDLE;
+        mPrepareState = PrepareState.NotPrepared;
     }
 
     private void stopPlayheadTracker() {
@@ -368,7 +368,7 @@ public class KWVCPlayer
             mPlayheadTracker = null;
         }
     }
-    
+
     @Override
     public void recoverPlayer(boolean isPlaying) {
         if (mWasDestroyed && mPlayer != null) {
@@ -392,7 +392,7 @@ public class KWVCPlayer
             return;
         }
 
-        if (mReadiness == KState.PREPARING) {
+        if (mPrepareState == PrepareState.Preparing) {
             Log.v(TAG, "Already preparing");
             return;
         }
@@ -400,7 +400,7 @@ public class KWVCPlayer
         String widevineUri = getWidevineAssetPlaybackUri(mAssetUri);
 
         // Start preparing.
-        mReadiness = KState.PREPARING;
+        mPrepareState = PrepareState.Preparing;
         mPlayer = new VideoView(getContext());
         LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         this.addView(mPlayer, lp);
@@ -432,7 +432,9 @@ public class KWVCPlayer
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                mReadiness = KState.PREPARED;
+
+                mPrepareState = PrepareState.Prepared;
+
                 final KWVCPlayer kplayer = KWVCPlayer.this;
 
                 mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
@@ -515,16 +517,22 @@ public class KWVCPlayer
         }
     }
 
+    private enum PrepareState {
+        NotPrepared,
+        Preparing,
+        Prepared
+    }
+
     private class PlayerState {
         boolean playing;
         int position;
-        
+
         void set(boolean playing, int position) {
             this.playing = playing;
             this.position = position;
         }
     }
-    
+
     class PlayheadTracker {
         Handler mHandler;
         float playbackTime;
@@ -567,7 +575,7 @@ public class KWVCPlayer
                 Log.d(TAG, "Tracker is already started");
             }
         }
-        
+
         void stop() {
             if (mHandler != null) {
                 mHandler.removeCallbacks(mRunnable);
