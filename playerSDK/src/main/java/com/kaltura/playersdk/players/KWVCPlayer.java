@@ -154,7 +154,6 @@ public class KWVCPlayer
     @Override
     public void setLicenseUri(String licenseUri) {
         mLicenseUri = licenseUri;
-        //mLicenseUri = mLicenseUri.replace("https://udrm.kaltura.com","http://udrm2.dev.kaltura.com");
         if (mAssetUri != null) {
             preparePlayer();
         } else {
