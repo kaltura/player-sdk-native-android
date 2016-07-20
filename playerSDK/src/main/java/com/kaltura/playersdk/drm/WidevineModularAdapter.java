@@ -80,11 +80,11 @@ public class WidevineModularAdapter extends DrmAdapter {
         SimpleDashParser dashParser;
         try {
             dashParser = new SimpleDashParser().parse(localPath);
-            if (dashParser.widevineInitData == null) {
-                throw new RegisterException("No Widevine PSSH in media", null);
-            }
             if (dashParser.format == null) {
                 throw new RegisterException("Unknown format", null);
+            }
+            if (dashParser.hasContentProtection && dashParser.widevineInitData == null) {
+                throw new RegisterException("No Widevine PSSH in media", null);
             }
         } catch (IOException e) {
             throw new RegisterException("Can't parse local dash", e);
@@ -96,6 +96,12 @@ public class WidevineModularAdapter extends DrmAdapter {
     private boolean registerAsset(@NonNull String localPath, String licenseUri) throws RegisterException {
 
         SimpleDashParser dash = parseDash(localPath);
+        
+        if (!dash.hasContentProtection) {
+            // Not protected -- nothing to do.
+            return true;
+        }
+        
         String mimeType = dash.format.mimeType;
         byte[] initData = dash.widevineInitData;
         

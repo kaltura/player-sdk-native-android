@@ -31,6 +31,7 @@ import java.util.List;
 class SimpleDashParser {
     private static final String TAG = "SimpleDashParser";
     DrmInitData drmInitData;
+    boolean hasContentProtection;
     Format format;  // format of the first Representation of the video AdaptationSet
     byte[] widevineInitData;
 
@@ -48,7 +49,7 @@ class SimpleDashParser {
         Period period = mpd.getPeriod(0);
         List<AdaptationSet> adaptationSets = period.adaptationSets;
         AdaptationSet videoAdaptation = adaptationSets.get(period.getAdaptationSetIndex(AdaptationSet.TYPE_VIDEO));
-
+        
         List<Representation> representations = videoAdaptation.representations;
 
         if (representations == null || representations.isEmpty()) {
@@ -58,7 +59,10 @@ class SimpleDashParser {
 
         format = representation.format;
 
-        loadDrmInitData(representation);
+        hasContentProtection = videoAdaptation.hasContentProtection();
+        if (hasContentProtection) {
+            loadDrmInitData(representation);
+        }
 
         return this;
     }
