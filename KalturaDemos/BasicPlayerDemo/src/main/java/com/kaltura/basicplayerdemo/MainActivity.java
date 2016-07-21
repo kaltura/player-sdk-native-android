@@ -166,7 +166,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
             @Override
             public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
+                mCastProvider.getCastMediaRemoteControl().addListener(new KCastMediaRemoteControl.KCastMediaRemoteControlListener() {
+                    @Override
+                    public void onCastMediaProgressUpdate(long currentPosition) {
 
+                    }
+
+                    @Override
+                    public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
+
+                    }
+                });
             }
 
             @Override
@@ -216,11 +226,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
                 KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-                //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
-                config.setAutoPlay(true);
-                mPlayPauseButton.setText("Pause");
 
-                //config.addConfig("controlBarContainer.hover", "true");
                 config.addConfig("closedCaptions.plugin", "true");
                 config.addConfig("sourceSelector.plugin", "true");
                 config.addConfig("sourceSelector.displayMode", "bitrate");
@@ -234,6 +240,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 config.addConfig("chromecast.receiverLogo", "true");
 
                 mPlayer.initWithConfiguration(config);
+
+                mPlayPauseButton.setText("Pause");
                 mPlayer.getMediaControl().seek(100, new KMediaControl.SeekCallback() {
                     @Override
                     public void seeked(long milliSeconds) {
@@ -279,10 +287,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setItems(items, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 // Do something with the selection
-//                mDoneButton.setText(items[item]);
                 mCastProvider.connectToDevice(devices.get(item));
-//                getPlayer();
-//                mPlayer.getKCastRouterManager().connectDevice(mRouterInfos.get(item).getRouterId());
             }
         });
         AlertDialog alert = builder.create();

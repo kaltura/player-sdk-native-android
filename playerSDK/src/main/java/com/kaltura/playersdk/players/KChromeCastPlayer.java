@@ -171,6 +171,19 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
     }
 
     @Override
+    public void setStreamVolume(double streamVolume) {
+        mRemoteMediaPlayer.setStreamVolume(mApiClient, streamVolume).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            @Override
+            public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                Status status = mediaChannelResult.getStatus();
+                if (status.isSuccess()) {
+                    updateState(State.VolumeCganged);
+                }
+            }
+        });
+    }
+
+    @Override
     public void removeListener(KCastMediaRemoteControlListener listener) {
         if (mListeners.size() > 0 && mListeners.contains(listener)) {
             mListeners.remove(listener);
