@@ -580,10 +580,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
                 if (mContentPreferredBitrate != -1) {
                     if (tracksManager != null) {
-                        pause();
                         tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
-                        play();
                     }
+
                 }
 
                 isPlayerCanPlay = true;
