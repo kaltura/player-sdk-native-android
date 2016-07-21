@@ -48,7 +48,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private KPlayerListener playerListener;
     private boolean isIMAActive = false;
     private boolean isPlayerCanPlay = false;
-    private boolean isCasting = false;
     private boolean switchingBackFromCasting = false;
     private FrameLayout adPlayerContainer;
     private RelativeLayout mAdControls;
@@ -119,7 +118,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
             public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
-                isCasting = true;
                 mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
                 remoteMediaPlayer.addListener(this);
             }
@@ -225,7 +223,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             if (isIMAActive) {
                 return;
             }
-            if (!isCasting) {
+            if (mCastProvider == null) {
                 if (player != null) {
                     player.play();
                     if (isBackgrounded) {
@@ -251,7 +249,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void pause() {
         if (currentState != UIState.Pause) {
             currentState = UIState.Pause;
-            if (!isCasting) {
+            if (mCastProvider == null) {
                 if (isBackgrounded && isIMAActive) {
                     if (imaManager != null) {
                         imaManager.pause();
@@ -501,7 +499,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
-        if (!isCasting) {
+        if (mCastProvider == null) {
             if (isPlayerCanPlay) {
                 if (player != null) {
                     player.setCurrentPlaybackTime((long) (currentPlaybackTime * 1000));
