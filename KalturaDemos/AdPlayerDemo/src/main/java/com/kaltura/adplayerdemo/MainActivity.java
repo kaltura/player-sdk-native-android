@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity
     private boolean adPlayerIsPlaying;
     private boolean adIsDone;
     private boolean kPlayerReady;
-    private int lastGroupIndex = 0;
     private boolean isDRMContent = true;
     private List<String> adList;
     private int currentAdIndex = 0;
@@ -103,11 +102,6 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 Log.d(TAG, "Next selected");
                 if (config != null && !adPlayerIsPlaying) {
-                    if (wvClassicRequired(isDRMContent)) {
-                        lastGroupIndex += 1;
-                    } else {
-                        lastGroupIndex += 2;
-                    }
 
                     //  mPlayer.changeMedia("384080");
                     mPlayer.getMediaControl().pause();
@@ -439,16 +433,16 @@ public class MainActivity extends AppCompatActivity
         if (wvClassicRequired(isDRMContent)) {
             Log.d(TAG, "WV Classic mode");
             if (adPlayerContainer != null) {
-                switchLayers(2, true);
+                switchLayers(true);
             }
         } else {
             Log.d(TAG, "WV Modular mode/ ExoPlayer");
-            switchLayers(1, false);
+            switchLayers(false);
         }
         mAdPlayer = null;
     }
 
-    public void switchLayers(int groupIndexIncrementBy, boolean removeContainer) {
+    public void switchLayers(boolean removeContainer) {
         if (!removeContainer) {
             mAdPlayer.release();
             mAdPlayer.moveSurfaceToBackground();
@@ -461,16 +455,6 @@ public class MainActivity extends AppCompatActivity
         myViewGroup.bringChildToFront(player);
         myViewGroup.bringChildToFront(findViewById(R.id.webView_1));
 
-
-//        int index = myViewGroup.indexOfChild(adPlayerContainer);
-//
-//        Log.d(TAG, "myViewGroup index =" + index);
-//        for (int i = lastGroupIndex; i < index; i++) {
-//            Log.d(TAG, "myViewGroup i = " + i + " / lastGroupIndex" + lastGroupIndex);
-//            myViewGroup.bringChildToFront(myViewGroup.getChildAt(i));
-//
-//        }
-//        lastGroupIndex += groupIndexIncrementBy;
         if (removeContainer) {
             myViewGroup.removeView(adPlayerContainer);
         }
