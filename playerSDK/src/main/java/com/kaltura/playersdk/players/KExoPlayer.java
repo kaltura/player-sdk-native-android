@@ -424,8 +424,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
                         mBuffering = false;
                     }
-                    if (mReadiness == KState.READY && !playWhenReady) {
+                    if (mReadiness == KState.PAUSED) {
                         mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
+                        return;
                     }
 
                     // ExoPlayer is ready.
