@@ -123,6 +123,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void setPlayerSource(String playerSource) {
         mSourceURL = playerSource;
+        mReadiness = KState.IDLE;
         prepare();
     }
 
@@ -154,7 +155,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
 
     private void prepare() {
-
         if (mReadiness != KState.IDLE) {
             Log.d(TAG, "Already preparing");
             return;
@@ -169,20 +169,19 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
         mSurfaceView = new VideoSurfaceView(getContext());
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
-        if (mExoPlayer == null) {
-            mExoPlayer = new ExoplayerWrapper(rendererBuilder);
-            Surface surface = mSurfaceView.getHolder().getSurface();
-            if (surface != null) {
-                mExoPlayer.setSurface(surface);
-            }
-
-            mExoPlayer.setCaptionListener(this);
-            mExoPlayer.setMetadataListener(this);
-
-            configureSubtitleView();
-            mExoPlayer.addListener(this);
-            mExoPlayer.prepare();
+        mExoPlayer = new ExoplayerWrapper(rendererBuilder);
+        Surface surface = mSurfaceView.getHolder().getSurface();
+        if (surface != null) {
+            mExoPlayer.setSurface(surface);
         }
+
+        mExoPlayer.setCaptionListener(this);
+        mExoPlayer.setMetadataListener(this);
+
+        configureSubtitleView();
+        mExoPlayer.addListener(this);
+        mExoPlayer.prepare();
+
         mSurfaceCallback = new SurfaceHolder.Callback() {
 
             @Override
