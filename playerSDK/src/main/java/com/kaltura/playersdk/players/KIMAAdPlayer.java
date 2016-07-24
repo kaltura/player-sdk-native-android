@@ -32,7 +32,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     private FrameLayout mPlayerContainer;
     private Activity mActivity;
     private SimpleVideoPlayer mAdPlayer;
-    private KReadinessState mReadiness = KReadinessState.IDLE;
+    private KState mReadiness = KState.IDLE;
     private KIMAAdPlayerEvents mListener;
     private String mSrc;
     private boolean isSeeking;
@@ -131,8 +131,8 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             case ExoPlayer.STATE_READY:
 
                 if (playWhenReady) {
-                    if (mReadiness != KReadinessState.READY) {
-                        mReadiness = KReadinessState.READY;
+                    if (mReadiness != KState.READY) {
+                        mReadiness = KState.READY;
 
                         updateAdVideoTrackQuality();
                         mListener.adDurationUpdate((float) mAdPlayer.getDuration() / 1000);
@@ -158,7 +158,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                 for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
                     callback.onEnded();
                 }
-                mReadiness = KReadinessState.IDLE;
+                mReadiness = KState.IDLE;
                 break;
         }
     }
