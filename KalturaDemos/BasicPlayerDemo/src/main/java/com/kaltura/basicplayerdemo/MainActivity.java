@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton mMediaRouteButtonCon;
     private ImageButton mStreamButton;
     private Button mLoadPlayer;
+    private Button mStopCasting;
     private
     KCastProvider mCastProvider;
 
@@ -126,6 +127,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        mStopCasting = (Button) findViewById(R.id.stopCasting);
+        mStopCasting.setVisibility(View.INVISIBLE);
+        mStopCasting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCastProvider.disconnectFromDevcie();
+                mStopCasting.setVisibility(View.INVISIBLE);
+            }
+        });
 
         videoButton = (Button) findViewById(R.id.video_controls);
         audioButton = (Button) findViewById(R.id.audio_controls);
@@ -199,12 +209,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onDeviceConnected() {
                 mMediaRouteButtonDiscon.setVisibility(View.INVISIBLE);
                 mMediaRouteButtonCon.setVisibility(View.VISIBLE);
+                mStopCasting.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onDeviceDisconnected() {
                 mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
                 mMediaRouteButtonCon.setVisibility(View.INVISIBLE);
+                mStopCasting.setVisibility(View.INVISIBLE);
             }
 
             @Override
@@ -225,8 +237,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
-                KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-
+                //KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc6/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
                 config.addConfig("closedCaptions.plugin", "true");
                 config.addConfig("sourceSelector.plugin", "true");
                 config.addConfig("sourceSelector.displayMode", "bitrate");

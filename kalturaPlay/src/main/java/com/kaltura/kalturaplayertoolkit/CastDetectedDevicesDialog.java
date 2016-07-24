@@ -46,18 +46,18 @@ public class CastDetectedDevicesDialog extends Dialog {
 
     }
 
-    public void deviceConnectionStateDidChange(boolean isConnected) {
-        ArrayList<KCastDevice> temp = new ArrayList<>(mRouteNames);
-        mAdapter.clear();
-        mRouteNames = new ArrayList<>(temp);
-        if (isConnected) {
-            KCastDevice disconnect = new KCastDevice();
-            disconnect.setRouterName("Disconnect");
-            mAdapter.add(disconnect);
-        } else {
-            mAdapter.addAll(mRouteNames);
-        }
-    }
+//    public void deviceConnectionStateDidChange(boolean isConnected) {
+//        ArrayList<KCastDevice> temp = new ArrayList<>(mRouteNames);
+//        mAdapter.clear();
+//        mRouteNames = new ArrayList<>(temp);
+//        if (isConnected) {
+//            KCastDevice disconnect = new KCastDevice();
+//            disconnect.setRouterName("Disconnect");
+//            mAdapter.add(disconnect);
+//        } else {
+//            mAdapter.addAll(mRouteNames);
+//        }
+//    }
 
 
 
