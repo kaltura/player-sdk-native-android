@@ -100,6 +100,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private boolean isFullScreen = false;
     private boolean isMediaChanged = false;
     private boolean shouldReplay = false;
+    private boolean prepareWithConfigurationMode = false;
 
     private KRouterManager routerManager;
     private KCastProvider mCastProvider;
@@ -249,6 +250,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (mConfig != null) {
             setComponents(mConfig.getVideoURL());
         }
+    }
+
+    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
+        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
     }
 
     public void loadPlayerIntoActivity(Activity activity) {
@@ -569,13 +574,19 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void setComponents(String iframeUrl) {
         if(mWebView == null) {
             mWebView = new KControlsView(this.mActivity);
+            mWebView.setId(R.id.webView_1);
             mWebView.setKControlsViewClient(this);
 
             mCurSec = 0;
             LayoutParams wvLp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             mWebView.setLayoutParams(wvLp);
             setBackgroundColor(Color.BLACK);
-            this.playerController = new KPlayerController(this);
+            playerController = new KPlayerController(this);
+            if (prepareWithConfigurationMode){
+                Log.d(TAG,"setComponents prepareWithConfigurationMode = " + prepareWithConfigurationMode);
+                playerController.setPrepareWithConfigurationMode(true);
+            }
+
             this.addView(mWebView);
             
         }
@@ -718,7 +729,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         Method bridgeMethod = KStringUtilities.isMethodImplemented(this, functionName);
         Object object = this;
         if (bridgeMethod == null) {
-            KPlayer player = this.playerController.getPlayer();
+            KPlayer player = playerController.getPlayer();
             bridgeMethod = KStringUtilities.isMethodImplemented(player, functionName);
             object = player;
         }
@@ -907,7 +918,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 case src:
                     // attributeValue is the selected source -- allow override.
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
-                    this.playerController.setSrc(attributeValue);
+                    playerController.setSrc(attributeValue);
                     if (mConfig.getContentPreferredBitrate() != -1) {
                         playerController.setContentPreferredBitrate(mConfig.getContentPreferredBitrate());
                     }
@@ -925,19 +936,19 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                              mOnKPStateChangedEventListener.onKPlayerStateChanged(this, KPlayerState.SEEKING);
                     }
                     float time = Float.parseFloat(attributeValue);
-                    this.playerController.setCurrentPlaybackTime(time);
+                    playerController.setCurrentPlaybackTime(time);
                     break;
                 case visible:
                     this.triggerEvent("visible", attributeValue);
                     break;
                 case licenseUri:
-                    this.playerController.setLicenseUri(attributeValue);
+                    playerController.setLicenseUri(attributeValue);
                     break;
                 case nativeAction:
                     doNativeAction(attributeValue);
                     break;
                 case language:
-                    this.playerController.setLocale(attributeValue);
+                    playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
                     playerController.initIMA(attributeValue,mConfig.getAdMimeType(), mConfig.getAdPreferredBitrate(), mActivity);
@@ -1217,4 +1228,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 //            ShareManager.share(shareParams, mActivity);
 //        }
     }
+
+    public void attachView() {
+        playerController.attachView();
+    }
+
+    public void detachView() {
+        playerController.detachView();
+    }
+
 }

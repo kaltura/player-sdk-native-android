@@ -56,6 +56,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private UIState currentState = UIState.Idle;
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
+    private boolean prepareWithConfigurationMode = false;
     private String mAdMimeType;
     private int mAdPreferredBitrate;
     private String newSourceDuringBg = null;
@@ -135,15 +136,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.parentViewController = (RelativeLayout)listener;
     }
 
-    public void addPlayerToController() {
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
-    }
-
-    public void replacePlayer() {
-        ViewGroup.LayoutParams currLP = this.parentViewController.getLayoutParams();
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(currLP.width, currLP.height);
-        this.parentViewController.addView((View)player, 1, lp);
+    public void addPlayerToController(boolean isWVClassic) {
+        Context context = parentViewController.getContext();
+        if (isWVClassic) {
+            player = new KWVCPlayer(context);
+        } else {
+            player = new KExoPlayer(context);
+            if (prepareWithConfigurationMode) {
+                player.setPrepareWithConfigurationMode();
+            }
+        }
+        player.setPlayerListener(playerListener);
+        player.setPlayerCallback(this);
     }
 
     public KTracksManager getTracksManager() {
@@ -397,13 +401,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public String getSrc() {
-        return src;
+        return this.src;
     }
 
-    public void setSrc(String src) {
+    public void setSrc(String newSrc) {
         Context context = parentViewController.getContext();
         if (isBackgrounded && imaManager != null){
-            newSourceDuringBg = src;
+            newSourceDuringBg = newSrc;
             return;
         }
         isPlayerCanPlay = false;
@@ -412,34 +416,31 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             return;
         }
 
-        boolean shouldReplacePlayer = false;
-        if (player != null) {
-            if (imaManager != null) {
-                mActivity = null;
-                removeAdPlayer();
-            }
-            parentViewController.removeView((View) player);
-            player.removePlayer();
-            shouldReplacePlayer = true;
-        }
-
         // Select player
-        String path = Uri.parse(src).getPath();
-        if (path.endsWith(".wvm")) {
-            // Widevine Classic
-            player = new KWVCPlayer(context);
+        String path = Uri.parse(newSrc).getPath();
+        boolean isWVClassic = path.endsWith(".wvm");
+        if (this.src == null) {
+            addPlayerToController(isWVClassic);
         } else {
-            player = new com.kaltura.playersdk.players.KExoPlayer(context);
+            String prevPath = Uri.parse(this.src).getPath();
+            String curFileType = path.substring(path.lastIndexOf("."));
+            String prevFileType = prevPath.substring(prevPath.lastIndexOf("."));
+            if (!curFileType.equals(prevFileType) &&
+                    (path.endsWith(".wvm") || prevPath.endsWith(".wvm"))) {
+                if (imaManager != null) {
+                    mActivity = null;
+                    removeAdPlayer();
+                }
+                addPlayerToController(isWVClassic);
+            }
         }
-        if (shouldReplacePlayer) {
-            replacePlayer();
-        } else {
-            addPlayerToController();
-        }
-        player.setPlayerListener(playerListener);
-        player.setPlayerCallback(this);
-        this.src = src;
-        player.setPlayerSource(src);
+        parentViewController.removeView((View) player);
+        player.removePlayer();
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        this.parentViewController.addView((View) this.player, parentViewController.getChildCount() - 1, lp);
+
+        this.src = newSrc;
+        player.setPlayerSource(this.src);
     }
 
     public void setLicenseUri(String uri) {
@@ -572,10 +573,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
                 if (mContentPreferredBitrate != -1) {
                     if (tracksManager != null) {
-                        pause();
                         tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
-                        play();
                     }
+
                 }
 
                 isPlayerCanPlay = true;
@@ -622,4 +622,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
         }
     }
+
+    public void attachView() {
+        if (player != null) {
+            player.attachSurfaceViewToPlayer();
+        }
+    }
+
+    public void detachView() {
+        if (player != null) {
+            player.detachSurfaceViewFromPlayer();
+        }
+    }
+
+    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
+        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
+    }
+
 }
