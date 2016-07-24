@@ -438,8 +438,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, long currentTime) {
-        mSeekBar.setProgress((int) (currentTime / playerViewController.getDurationSec() * 100));
-        Log.d(TAG, "onKPlayerPlayheadUpdate currentTime " + currentTime);
+        long currentSeconds = (int) (currentTime / 1000);
+        long totalSeconds = (int) (playerViewController.getDurationSec());
+
+        double percentage = 0;
+        if (totalSeconds > 0) {
+            percentage = (((double) currentSeconds) / totalSeconds) * 100;
+        }
+        Log.d(TAG, "onKPlayerPlayheadUpdate " +  currentSeconds + "/" + totalSeconds + " => " + (int)percentage + "%");
+        mSeekBar.setProgress((int)percentage);
     }
 
     private void configurePopupWithTracks(PopupMenu popup,
