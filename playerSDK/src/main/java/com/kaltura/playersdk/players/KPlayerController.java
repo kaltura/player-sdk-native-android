@@ -138,10 +138,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 mCastProvider = null;
             }
 
-            //<editor-fold desc="KChromeCastPlayerListener">
             @Override
             public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
-//        playerListener.eventWithValue(player, state, null);
+                if (playerListener == null) {
+                    return;
+                }
                 switch (state) {
                     case Loaded:
                         playerListener.eventWithValue(player, "hideConnectingMessage", null);

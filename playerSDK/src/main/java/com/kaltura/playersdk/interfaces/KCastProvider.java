@@ -16,7 +16,7 @@ public interface KCastProvider {
     void stopScan();
     void setPassiveScan(boolean passiveScan);
     void connectToDevice(KCastDevice device);
-    void disconnectFromDevcie();
+    void disconnectFromDevice();
     void setKCastProviderListener(KCastProviderListener listener);
     ArrayList<KCastDevice> getDevices();
     KCastMediaRemoteControl getCastMediaRemoteControl();
