@@ -61,13 +61,16 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private String mSourceURL;
     private boolean mShouldCancelPlay;
     private ExoplayerWrapper mExoPlayer;
-    private KReadinessState mReadiness = KReadinessState.IDLE;
+    private KState mReadiness = KState.IDLE;
     private KPlayerExoDrmCallback mDrmCallback;
     private VideoSurfaceView mSurfaceView;
     private com.google.android.exoplayer.text.SubtitleLayout mSubtView;
     private boolean mSeeking;
     private boolean mBuffering = false;
     private boolean mPassedPlay = false;
+    private boolean prepareWithConfigurationMode = false;
+
+
 
     private SurfaceHolder.Callback mSurfaceCallback;
 
@@ -120,7 +123,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void setPlayerSource(String playerSource) {
         mSourceURL = playerSource;
-        mReadiness = KReadinessState.IDLE;
+        mReadiness = KState.IDLE;
         prepare();
     }
 
@@ -152,13 +155,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
 
     private void prepare() {
-
-        if (mReadiness != KReadinessState.IDLE) {
+        if (mReadiness != KState.IDLE) {
             Log.d(TAG, "Already preparing");
             return;
         }
 
-        mReadiness = KReadinessState.PREPERING;
+        mReadiness = KState.PREPARING;
 
         mDrmCallback = new KPlayerExoDrmCallback();
         Video video = new Video(mSourceURL, getVideoType());
@@ -179,13 +181,14 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         configureSubtitleView();
         mExoPlayer.addListener(this);
         mExoPlayer.prepare();
+
         mSurfaceCallback = new SurfaceHolder.Callback() {
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                  if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
                      mExoPlayer.setSurface(holder.getSurface());
-                     mReadiness = KReadinessState.READY;
+                     mReadiness = KState.READY;
                      mExoPlayer.addListener(KExoPlayer.this);
                  }
             }
@@ -206,10 +209,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         };
 
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
-        this.addView(mSurfaceView, layoutParams);
-        mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
-        this.addView(mSubtView, layoutParams);
-
+        Log.d(TAG, "KExoPlaer prepareWithConfigurationMode " + prepareWithConfigurationMode);
+        if(!prepareWithConfigurationMode) {
+            this.addView(mSurfaceView, layoutParams);
+            mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
+            this.addView(mSubtView, layoutParams);
+        }
     }
 
     @Override
@@ -240,20 +245,24 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void play() {
 
-        if (isPlaying()) {
+        if (isPlaying() || mReadiness == KState.PLAYING) {
             return;
         }
-
+        Log.d(TAG, "action: play called");
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
+            mReadiness = KState.IDLE;
             return;
         }
 
-        if (mReadiness == KReadinessState.IDLE) {
+        if (mReadiness == KState.IDLE) {
             prepare();
+            mReadiness = KState.PLAYING;
             return;
         }
         mPassedPlay = true;
+        mReadiness = KState.PLAYING;
+
         setPlayWhenReady(true);
 
         if (mSavedState.position != 0) {
@@ -266,6 +275,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void pause() {
+        if (mReadiness == KState.PAUSED) {
+            return;
+        }
+        Log.d(TAG, "action: pause called");
+        mReadiness = KState.PAUSED;
+
         stopPlaybackTimeReporter();
         if (isPlaying()) {
             setPlayWhenReady(false);
@@ -320,7 +335,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             mExoPlayer.release();
             mExoPlayer = null;
         }
-        mReadiness = KReadinessState.IDLE;
+        mReadiness = KState.IDLE;
     }
 
     @Override
@@ -343,6 +358,32 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void setLicenseUri(final String licenseUri) {
         mDrmCallback.setLicenseUri(licenseUri);
     }
+
+    @Override
+    public void attachSurfaceViewToPlayer() {
+        if (prepareWithConfigurationMode) {
+            Log.d(TAG, "KExoPlayer attachSurfaceViewToPlayer " + prepareWithConfigurationMode);
+            LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
+            this.addView(mSurfaceView, layoutParams);
+            mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
+            this.addView(mSubtView, layoutParams);
+        }
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+        if (prepareWithConfigurationMode) {
+            this.removeView(mSubtView);
+            this.removeView(mSurfaceView);
+        }
+    }
+
+    @Override
+    public void setPrepareWithConfigurationMode() {
+        prepareWithConfigurationMode = true;
+    }
+
+
 
 //    private void savePlayerState() {
 //        saveState();
@@ -382,13 +423,14 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
                         mBuffering = false;
                     }
-                    if (mReadiness == KReadinessState.READY && !playWhenReady) {
+                    if (mReadiness == KState.PAUSED) {
                         mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
+                        return;
                     }
 
                     // ExoPlayer is ready.
-                    if (mReadiness != KReadinessState.READY) {
-                        mReadiness = KReadinessState.READY;
+                    if (mReadiness != KState.READY && mReadiness != KState.PLAYING && mReadiness != KState.PAUSED) {
+                        mReadiness = KState.READY;
 
                         // TODO what about mShouldResumePlayback?
                         mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
@@ -398,7 +440,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     }
                     if (mSeeking) {
                         // ready after seeking
-                        mReadiness = KReadinessState.READY;
+                        mReadiness = KState.READY;
                         mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
                         mPlayerCallback.playerStateChanged(KPlayerCallback.SEEKED);
                         mSeeking = false;
@@ -416,7 +458,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 Log.d(TAG, "state ended");
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
-                    mReadiness = KReadinessState.IDLE;
+                    mReadiness = KState.IDLE;
                 }
                 stopPlaybackTimeReporter();
                 break;

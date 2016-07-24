@@ -212,7 +212,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
     public boolean hasMediaSession() {
         return mApiClient != null && mApiClient.isConnected();
     }
-    
+
     private void updateState(State state) {
         mState = state;
         for (KCastMediaRemoteControlListener listener: mListeners) {

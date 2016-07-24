@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Created by noamt on 10/27/15.
  */
-public class KWVCPlayer 
+public class KWVCPlayer
         extends FrameLayout
         implements KPlayer {
 
@@ -47,6 +47,7 @@ public class KWVCPlayer
     private boolean isFirstPreparation = true;
     private int mCurrentPosition;
     private boolean mWasDestroyed;
+    private String mLastSentEvent = "";
 
     public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
@@ -82,7 +83,7 @@ public class KWVCPlayer
         });
 
         mSavedState = new PlayerState();
-        
+
         // Set no-op listeners so we don't have to check for null on use
         setPlayerListener(null);
         setPlayerCallback(null);
@@ -153,7 +154,6 @@ public class KWVCPlayer
     @Override
     public void setLicenseUri(String licenseUri) {
         mLicenseUri = licenseUri;
-
         if (mAssetUri != null) {
             preparePlayer();
         } else {
@@ -165,7 +165,7 @@ public class KWVCPlayer
     public long getCurrentPlaybackTime() {
         return mPlayer != null ? mPlayer.getCurrentPosition() : 0;
     }
-    
+
     @Override
     public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
@@ -229,27 +229,35 @@ public class KWVCPlayer
         if (mPlayer == null || state == null) {
             return;
         }
-         mPlayer.postDelayed(new Runnable() {
-             @Override
-             public void run() {
-                 if (KPlayerListener.PauseKey.equals(state)) {
-                     if (mPlayer != null && !mPlayer.isPlaying()) {
-                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
-                         return;
-                     }
-                 } else if (KPlayerListener.PlayKey.equals(state)) {
-                     if (mPlayer != null && mPlayer.isPlaying()) {
-                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
-                         return;
-                     }
-                 } else {
-                     Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
-                     return;
+        mPlayer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (KPlayerListener.PauseKey.equals(state)) {
+                    if (KPlayerListener.PauseKey.equals(mLastSentEvent)){
+                        return;
+                    }
+                    if (mPlayer != null && !mPlayer.isPlaying()) {
+                        mLastSentEvent = KPlayerListener.PauseKey;
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                        return;
+                    }
+                } else if (KPlayerListener.PlayKey.equals(state)) {
+                    if (KPlayerListener.PlayKey.equals(mLastSentEvent)){
+                        return;
+                    }
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+                        mLastSentEvent = KPlayerListener.PauseKey;
+                        return;
+                    }
+                } else {
+                    Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
+                    return;
 
-                 }
-                 changePlayPauseState(state);
-             }
-         }, 100);
+                }
+                changePlayPauseState(state);
+            }
+        }, 100);
     }
 
     @Override
@@ -282,6 +290,23 @@ public class KWVCPlayer
 
     @Override
     public void switchTrack(TrackType trackType, int newIndex) {
+
+    }
+
+    @Override
+    public void attachSurfaceViewToPlayer() {
+        // not required in case of multiplayer and WV classic
+
+    }
+
+    @Override
+    public void detachSurfaceViewFromPlayer() {
+        // not required in case of multiplayer and WV classic
+
+    }
+
+    @Override
+    public void setPrepareWithConfigurationMode() {
 
     }
 
@@ -342,7 +367,7 @@ public class KWVCPlayer
             mPlayheadTracker = null;
         }
     }
-    
+
     @Override
     public void recoverPlayer(boolean isPlaying) {
         if (mWasDestroyed && mPlayer != null) {
@@ -496,17 +521,17 @@ public class KWVCPlayer
         Preparing,
         Prepared
     }
-    
+
     private class PlayerState {
         boolean playing;
         int position;
-        
+
         void set(boolean playing, int position) {
             this.playing = playing;
             this.position = position;
         }
     }
-    
+
     class PlayheadTracker {
         Handler mHandler;
         float playbackTime;
@@ -514,6 +539,12 @@ public class KWVCPlayer
             @Override
             public void run() {
                 try {
+                    if (mPlayer.getCurrentPosition() == mPlayer.getDuration()){
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.ENDED);
+
+                    }
+
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
@@ -543,7 +574,7 @@ public class KWVCPlayer
                 Log.d(TAG, "Tracker is already started");
             }
         }
-        
+
         void stop() {
             if (mHandler != null) {
                 mHandler.removeCallbacks(mRunnable);

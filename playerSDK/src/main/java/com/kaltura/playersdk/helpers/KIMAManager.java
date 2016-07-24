@@ -52,7 +52,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     // Default VAST ad tag; more complex apps might select ad tag based on content video criteria.
     private String mDefaultAdTagUrl;
     private String mAdMimeType;
-    private int mAdPreferedBitrate;
+    private int mAdPreferredBitrate;
     private KIMAManagerListener mListener;
 
     private String DurationKey = "duration";
@@ -64,10 +64,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String AdPositionKey = "adPosition";
 
 
-    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL, String adMimeType, int adPreferedBitrate) {
+    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL, String adMimeType, int adPreferredBitrate) {
         mAdMimeType = adMimeType;
-        mAdPreferedBitrate = adPreferedBitrate;
-        mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer, mAdMimeType, mAdPreferedBitrate);
+        mAdPreferredBitrate = adPreferredBitrate;
+        mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer, mAdMimeType, mAdPreferredBitrate);
 
         mIMAPlayer.setKIMAAdEventListener(this);
         mDefaultAdTagUrl = adTagURL;

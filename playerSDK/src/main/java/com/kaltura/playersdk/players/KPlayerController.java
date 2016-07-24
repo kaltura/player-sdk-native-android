@@ -56,8 +56,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private UIState currentState = UIState.Idle;
     private SeekCallback mSeekCallback;
     private boolean isContentCompleted = false;
+    private boolean prepareWithConfigurationMode = false;
     private String mAdMimeType;
-    private int mAdPrefaredBitrate;
+    private int mAdPreferredBitrate;
+    private String newSourceDuringBg = null;
+    private int mContentPreferredBitrate = -1;
 
     private KCastProviderImpl mCastProvider;
     private KChromeCastPlayer mCastPlayer;
@@ -172,10 +175,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         });
     }
 
-
-
-
-
     private enum UIState {
         Idle,
         Play,
@@ -206,10 +205,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (isWVClassic) {
             player = new KWVCPlayer(context);
         } else {
-            player = new com.kaltura.playersdk.players.KExoPlayer(context);
+            player = new KExoPlayer(context);
+            if (prepareWithConfigurationMode) {
+                player.setPrepareWithConfigurationMode();
+            }
         }
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        this.parentViewController.addView((View)this.player, parentViewController.getChildCount() - 1, lp);
         player.setPlayerListener(playerListener);
         player.setPlayerCallback(this);
     }
@@ -377,6 +377,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (isIMAActive && imaManager != null) {
             imaManager.resume();
         } else if (player != null) {
+            if (newSourceDuringBg != null){
+                setSrc(newSourceDuringBg);
+                newSourceDuringBg = null;
+            }
             recoverPlayerState();
             player.recoverPlayer(isPlaying);
         }
@@ -414,12 +418,25 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public String getSrc() {
-        return src;
+        return this.src;
     }
 
 
-    public void setSrc(String src) {
-        String path = Uri.parse(src).getPath();
+    public void setSrc(String newSrc) {
+        Context context = parentViewController.getContext();
+        if (isBackgrounded && imaManager != null){
+            newSourceDuringBg = newSrc;
+            return;
+        }
+        isPlayerCanPlay = false;
+        if (switchingBackFromCasting) {
+            switchingBackFromCasting = false;
+            return;
+        }
+
+        // Select player
+        String path = Uri.parse(newSrc).getPath();
+
         boolean isWVClassic = path.endsWith(".wvm");
         if (this.src == null) {
             addPlayerToController(isWVClassic);
@@ -432,26 +449,30 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     mActivity = null;
                     removeAdPlayer();
                 }
-                parentViewController.removeView((View) player);
-                player.removePlayer();
                 addPlayerToController(isWVClassic);
             }
         }
+        parentViewController.removeView((View) player);
+        player.removePlayer();
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        this.parentViewController.addView((View) this.player, parentViewController.getChildCount() - 1, lp);
 
-        this.src = src;
-        player.setPlayerSource(src);
+        this.src = newSrc;
+        player.setPlayerSource(this.src);
     }
 
     public void setLicenseUri(String uri) {
-        player.setLicenseUri(uri);
+        if (player != null) {
+            player.setLicenseUri(uri);
+        }
     }
 
 
-    public void initIMA(String adTagURL, String adMimeType, int adPreferedBitrate, Activity activity) {
+    public void initIMA(String adTagURL, String adMimeType, int adPreferredBitrate, Activity activity) {
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
         mAdMimeType = adMimeType;
-        mAdPrefaredBitrate = adPreferedBitrate;
+        mAdPreferredBitrate = adPreferredBitrate;
         if (player != null) {
             player.setShouldCancelPlay(true);
         }
@@ -478,7 +499,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPrefaredBitrate);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPreferredBitrate);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }
@@ -522,6 +543,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    public void setContentPreferredBitrate(int PreferredBitrate) {
+        mContentPreferredBitrate = PreferredBitrate;
+    }
+
     public int getAdPlayerHeight() {
         return adPlayerHeight;
     }
@@ -562,6 +587,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     sendTracksList(TrackType.TEXT);
                     sendTracksList(TrackType.AUDIO);
                     sendTracksList(TrackType.VIDEO);
+                }
+
+                if (mContentPreferredBitrate != -1) {
+                    if (tracksManager != null) {
+                        tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
+                    }
+
                 }
 
                 isPlayerCanPlay = true;
@@ -608,4 +640,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 break;
         }
     }
+
+    public void attachView() {
+        if (player != null) {
+            player.attachSurfaceViewToPlayer();
+        }
+    }
+
+    public void detachView() {
+        if (player != null) {
+            player.detachSurfaceViewFromPlayer();
+        }
+    }
+
+    public void setPrepareWithConfigurationMode(boolean prepareWithConfigurationMode) {
+        this.prepareWithConfigurationMode = prepareWithConfigurationMode;
+    }
+
 }
