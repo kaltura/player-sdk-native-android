@@ -233,21 +233,21 @@ public class KWVCPlayer
             @Override
             public void run() {
                 if (KPlayerListener.PauseKey.equals(state)) {
-                    if ("pause".equals(mLastSentEvent)){
+                    if (KPlayerListener.PauseKey.equals(mLastSentEvent)){
                         return;
                     }
                     if (mPlayer != null && !mPlayer.isPlaying()) {
-                        mLastSentEvent = "pause";
+                        mLastSentEvent = KPlayerListener.PauseKey;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
                         return;
                     }
                 } else if (KPlayerListener.PlayKey.equals(state)) {
-                    if ("play".equals(mLastSentEvent)){
+                    if (KPlayerListener.PlayKey.equals(mLastSentEvent)){
                         return;
                     }
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
-                        mLastSentEvent = "pause";
+                        mLastSentEvent = KPlayerListener.PauseKey;
                         return;
                     }
                 } else {
