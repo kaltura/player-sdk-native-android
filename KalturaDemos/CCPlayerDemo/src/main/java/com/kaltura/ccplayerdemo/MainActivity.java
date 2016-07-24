@@ -191,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onDeviceCameOnline(KCastDevice device) {
+                Log.d(TAG, "onDeviceCameOnline deviceName = " + device.getRouterName());
                 mRouterInfos.add(device);
                 if (mMediaRouteButtonDiscon.getVisibility() == View.INVISIBLE && mRouterInfos.size() > 0) {
                     mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);

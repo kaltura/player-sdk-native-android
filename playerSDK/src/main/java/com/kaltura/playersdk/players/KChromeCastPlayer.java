@@ -208,12 +208,16 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
         return mRemoteMediaPlayer.getApproximateStreamPosition();
     }
 
+    @Override
+    public boolean hasMediaSession() {
+        return mApiClient != null && mApiClient.isConnected();
+    }
+    
     private void updateState(State state) {
         mState = state;
         for (KCastMediaRemoteControlListener listener: mListeners) {
             listener.onCastMediaStateChanged(state);
         }
     }
-
 }
 

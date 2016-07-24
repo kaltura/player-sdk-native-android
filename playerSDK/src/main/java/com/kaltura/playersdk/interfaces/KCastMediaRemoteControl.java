@@ -13,6 +13,7 @@ public interface KCastMediaRemoteControl {
     void removeListener(KCastMediaRemoteControlListener listener);
     State getCastMediaRemoteControlState();
     long getCurrentPosition();
+    boolean hasMediaSession(); // if there is conncetion esteblished  & working
 
     interface KCastMediaRemoteControlListener {
         void onCastMediaProgressUpdate(long currentPosition);

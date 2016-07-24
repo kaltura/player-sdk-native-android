@@ -17,7 +17,6 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.kaltura.playersdk.cast.KRouterCallback;
 import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
-import com.kaltura.playersdk.interfaces.ScanCastDeviceListener;
 import com.kaltura.playersdk.players.KChromeCastPlayer;
 
 import java.io.IOException;
@@ -364,5 +363,9 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         public void onConnectionFailed(ConnectionResult result) {
             teardown();
         }
+    }
+
+    public boolean hasMediaSession() {
+        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession();
     }
 }
