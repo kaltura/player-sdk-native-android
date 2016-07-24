@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.kaltura.ccplayerdemo.MainActivity"
+    android:weightSum="10"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:layout_weight="8">
+
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Replay"
+            android:id="@+id/replay"
+            android:visibility="invisible"
+            android:onClick="onClick"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true" />
+
+        <com.kaltura.playersdk.PlayerViewController
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/player"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true">
+
+        </com.kaltura.playersdk.PlayerViewController>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/video"
+            android:id="@+id/video_controls"
+            style="@style/DemoButton"
+            android:visibility="visible"
+            android:onClick="showVideoPopup"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/audio"
+            android:id="@+id/audio_controls"
+            style="@style/DemoButton"
+            android:visibility="visible"
+            android:onClick="showAudioPopup"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/video_controls"
+            android:layout_toEndOf="@+id/video_controls" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text"
+            android:id="@+id/text_controls"
+            style="@style/DemoButton"
+            android:visibility="visible"
+            android:onClick="showTextPopup"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/audio_controls"
+            android:layout_toEndOf="@+id/audio_controls" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:orientation="vertical"
+        android:id="@+id/playerContainer">
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play"
+            android:id="@+id/button"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <SeekBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignBottom="@+id/button"
+            android:layout_toRightOf="@+id/button"
+            android:layout_toEndOf="@+id/button" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chromecast"
+            android:id="@+id/ccButto"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:visibility="visible"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Load Player"
+            android:id="@+id/loadPlayer"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Casting"
+            android:id="@+id/stopCasting"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+    </RelativeLayout>
+</LinearLayout>

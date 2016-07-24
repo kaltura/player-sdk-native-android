@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                 >
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#fff"
+        android:textAllCaps="false"
+        android:text="@string/app_name"
+        android:textStyle="bold" />
+
+    <ImageButton
+        android:id="@+id/route_button_discon"
+        android:layout_width="15pt"
+        android:layout_height="15pt"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/cast_connected_black_512"
+        android:visibility="invisible"/>
+    <ImageButton
+        android:id="@+id/route_button_con"
+        android:layout_width="15pt"
+        android:layout_height="15pt"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/cast_disconnected_black_512"
+        android:visibility="invisible"/>
+    <ImageButton
+        android:layout_width="15pt"
+        android:layout_height="15pt"
+        android:id="@+id/stream"
+        android:background="@drawable/stream_icon_normal"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:visibility="invisible"/>
+
+</RelativeLayout>

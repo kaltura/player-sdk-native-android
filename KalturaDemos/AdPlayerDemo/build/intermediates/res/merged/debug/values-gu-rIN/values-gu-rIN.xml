@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string msgid="4600421777120114993" name="abc_action_bar_home_description">"હોમ પર નેવિગેટ કરો"</string>
+    <string msgid="1397052879051804371" name="abc_action_bar_home_description_format">"%1$s, %2$s"</string>
+    <string msgid="6623331958280229229" name="abc_action_bar_home_subtitle_description_format">"%1$s, %2$s, %3$s"</string>
+    <string msgid="1594238315039666878" name="abc_action_bar_up_description">"ઉપર નેવિગેટ કરો"</string>
+    <string msgid="3588849162933574182" name="abc_action_menu_overflow_description">"વધુ વિકલ્પો"</string>
+    <string msgid="4076576682505996667" name="abc_action_mode_done">"થઈ ગયું"</string>
+    <string msgid="7468859129482906941" name="abc_activity_chooser_view_see_all">"બધું જુઓ"</string>
+    <string msgid="2031811694353399454" name="abc_activitychooserview_choose_application">"એક ઍપ્લિકેશન પસંદ કરો"</string>
+    <string msgid="121134116657445385" name="abc_capital_off">"બંધ"</string>
+    <string msgid="3405795526292276155" name="abc_capital_on">"ચાલુ"</string>
+    <string msgid="7723749260725869598" name="abc_search_hint">"શોધો…"</string>
+    <string msgid="3691816814315814921" name="abc_searchview_description_clear">"ક્વેરી સાફ કરો"</string>
+    <string msgid="2550479030709304392" name="abc_searchview_description_query">"શોધ ક્વેરી"</string>
+    <string msgid="8264924765203268293" name="abc_searchview_description_search">"શોધો"</string>
+    <string msgid="8928215447528550784" name="abc_searchview_description_submit">"ક્વેરી સબમિટ કરો"</string>
+    <string msgid="893419373245838918" name="abc_searchview_description_voice">"વૉઇસ શોધ"</string>
+    <string msgid="3421042268587513524" name="abc_shareactionprovider_share_with">"આની સાથે શેર કરો"</string>
+    <string msgid="7165123711973476752" name="abc_shareactionprovider_share_with_application">"%s સાથે શેર કરો"</string>
+    <string msgid="1603543279005712093" name="abc_toolbar_collapse_description">"સંકુચિત કરો"</string>
+    <string msgid="3698378085901466129" name="mr_button_content_description">"કાસ્ટ કરો બટન"</string>
+    <string msgid="6349900579507521956" name="mr_chooser_searching">"ઉપકરણો શોધી રહ્યાં છીએ"</string>
+    <string msgid="414301941546135990" name="mr_chooser_title">"આના પર કાસ્ટ કરો"</string>
+    <string msgid="6422801843540543585" name="mr_controller_album_art">"આલ્બમ કલા"</string>
+    <string msgid="4868457957151124867" name="mr_controller_casting_screen">"સ્ક્રીનને કાસ્ટ કરી રહ્યાં છે"</string>
+    <string msgid="7333862312480583260" name="mr_controller_close_description">"બંધ કરો"</string>
+    <string msgid="7924809056904240926" name="mr_controller_collapse_group">"સંકુચિત કરો"</string>
+    <string msgid="1227264889412989580" name="mr_controller_disconnect">"ડિસ્કનેક્ટ કરો"</string>
+    <string msgid="8062427022744266907" name="mr_controller_expand_group">"વિસ્તૃત કરો"</string>
+    <string msgid="5585418471741142924" name="mr_controller_no_info_available">"કોઈ માહિતી ઉપલબ્ધ નથી"</string>
+    <string msgid="6547130360349182381" name="mr_controller_no_media_selected">"કોઈ મીડિયા પસંદ કરેલ નથી"</string>
+    <string msgid="5451884435510905406" name="mr_controller_pause">"થોભાવો"</string>
+    <string msgid="683634565969987458" name="mr_controller_play">"ચલાવો"</string>
+    <string msgid="4570331844078181931" name="mr_controller_stop">"કાસ્ટ કરવાનું રોકો"</string>
+    <string msgid="5441529851481176817" name="mr_system_route_name">"સિસ્ટમ"</string>
+    <string msgid="7498112907524977311" name="mr_user_route_category_name">"ઉપકરણો"</string>
+    <string msgid="2869576371154716097" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="transparent_black_hex_8">#88000000</color>
+    <string name="fullscreen_button">Fullscreen</string>
+    <string name="logo_image">Logo image</string>
+    <string name="overflow">Overflow</string>
+    <string name="pause">Pause</string>
+    <string name="seekbar">Seekbar</string>
+    <string name="select_an_action">Select an action…</string>
+    <string name="time_current">Current time</string>
+    <string name="time_duration">Duration</string>
+    <style name="DemoButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minWidth">40dp</item>
+    </style>
+    <style name="PlayerTheme" parent="@style/RootTheme">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+    <style name="RootTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+    </style>
+</resources>

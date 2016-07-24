@@ -1,0 +1,653 @@
+[
+    {
+        "outputFile": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/values-is/values-is.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 105,
+                    "endColumn": 133,
+                    "endOffset": 234
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 334,
+                        "endColumn": 133,
+                        "endOffset": 463
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 239,
+                    "endColumn": 132,
+                    "endOffset": 367
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 468,
+                        "endColumn": 132,
+                        "endOffset": 596
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 372,
+                    "endColumn": 97,
+                    "endOffset": 465
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 601,
+                        "endColumn": 97,
+                        "endOffset": 694
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 470,
+                    "endColumn": 262,
+                    "endOffset": 728
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 329,
+                        "endColumn": 262,
+                        "endOffset": 587
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 733,
+                    "endColumn": 127,
+                    "endOffset": 856
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 592,
+                        "endColumn": 127,
+                        "endOffset": 715
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 861,
+                    "endColumn": 185,
+                    "endOffset": 1042
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 720,
+                        "endColumn": 185,
+                        "endOffset": 901
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 1047,
+                    "endColumn": 126,
+                    "endOffset": 1169
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 906,
+                        "endColumn": 126,
+                        "endOffset": 1028
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 1174,
+                    "endColumn": 127,
+                    "endOffset": 1297
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 1033,
+                        "endColumn": 127,
+                        "endOffset": 1156
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 1302,
+                    "endColumn": 206,
+                    "endOffset": 1504
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 1161,
+                        "endColumn": 206,
+                        "endOffset": 1363
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 11,
+                    "startColumn": 4,
+                    "startOffset": 1509,
+                    "endColumn": 214,
+                    "endOffset": 1719
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 1368,
+                        "endColumn": 214,
+                        "endOffset": 1578
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 12,
+                    "startColumn": 4,
+                    "startOffset": 1724,
+                    "endColumn": 126,
+                    "endOffset": 1846
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 1583,
+                        "endColumn": 126,
+                        "endOffset": 1705
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 13,
+                    "startColumn": 4,
+                    "startOffset": 1851,
+                    "endColumn": 183,
+                    "endOffset": 2030
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 1710,
+                        "endColumn": 183,
+                        "endOffset": 1889
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 14,
+                    "startColumn": 4,
+                    "startOffset": 2035,
+                    "endColumn": 126,
+                    "endOffset": 2157
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 1894,
+                        "endColumn": 126,
+                        "endOffset": 2016
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 15,
+                    "startColumn": 4,
+                    "startOffset": 2162,
+                    "endColumn": 168,
+                    "endOffset": 2326
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 2021,
+                        "endColumn": 168,
+                        "endOffset": 2185
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 16,
+                    "startColumn": 4,
+                    "startOffset": 2331,
+                    "endColumn": 114,
+                    "endOffset": 2441
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 2190,
+                        "endColumn": 114,
+                        "endOffset": 2300
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 17,
+                    "startColumn": 4,
+                    "startOffset": 2446,
+                    "endColumn": 133,
+                    "endOffset": 2575
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 2305,
+                        "endColumn": 133,
+                        "endOffset": 2434
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 18,
+                    "startColumn": 4,
+                    "startOffset": 2580,
+                    "endColumn": 181,
+                    "endOffset": 2757
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 2439,
+                        "endColumn": 181,
+                        "endOffset": 2616
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 19,
+                    "startColumn": 4,
+                    "startOffset": 2762,
+                    "endColumn": 148,
+                    "endOffset": 2906
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 2621,
+                        "endColumn": 148,
+                        "endOffset": 2765
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 20,
+                    "startColumn": 4,
+                    "startOffset": 2911,
+                    "endColumn": 174,
+                    "endOffset": 3081
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 2770,
+                        "endColumn": 174,
+                        "endOffset": 2940
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 21,
+                    "startColumn": 4,
+                    "startOffset": 3086,
+                    "endColumn": 125,
+                    "endOffset": 3207
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 20,
+                        "startColumn": 4,
+                        "startOffset": 2945,
+                        "endColumn": 125,
+                        "endOffset": 3066
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 22,
+                    "startColumn": 4,
+                    "startOffset": 3212,
+                    "endColumn": 171,
+                    "endOffset": 3379
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 21,
+                        "startColumn": 4,
+                        "startOffset": 3071,
+                        "endColumn": 171,
+                        "endOffset": 3238
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 23,
+                    "startColumn": 4,
+                    "startOffset": 3384,
+                    "endColumn": 127,
+                    "endOffset": 3507
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 22,
+                        "startColumn": 4,
+                        "startOffset": 3243,
+                        "endColumn": 127,
+                        "endOffset": 3366
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 24,
+                    "startColumn": 4,
+                    "startOffset": 3512,
+                    "endColumn": 257,
+                    "endOffset": 3765
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-basement/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 330,
+                        "endColumn": 257,
+                        "endOffset": 583
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 25,
+                    "startColumn": 4,
+                    "startOffset": 3770,
+                    "endColumn": 255,
+                    "endOffset": 4021
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 23,
+                        "startColumn": 4,
+                        "startOffset": 3371,
+                        "endColumn": 255,
+                        "endOffset": 3622
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 26,
+                    "startColumn": 4,
+                    "startOffset": 4026,
+                    "endColumn": 123,
+                    "endOffset": 4145
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 24,
+                        "startColumn": 4,
+                        "startOffset": 3627,
+                        "endColumn": 123,
+                        "endOffset": 3746
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 27,
+                    "startColumn": 4,
+                    "startOffset": 4150,
+                    "endColumn": 107,
+                    "endOffset": 4253
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 25,
+                        "startColumn": 4,
+                        "startOffset": 3751,
+                        "endColumn": 107,
+                        "endOffset": 3854
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 28,
+                    "startColumn": 4,
+                    "startOffset": 4258,
+                    "endColumn": 187,
+                    "endOffset": 4441
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 26,
+                        "startColumn": 4,
+                        "startOffset": 3859,
+                        "endColumn": 187,
+                        "endOffset": 4042
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 29,
+                    "startColumn": 4,
+                    "startOffset": 4446,
+                    "endColumn": 127,
+                    "endOffset": 4569
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 27,
+                        "startColumn": 4,
+                        "startOffset": 4047,
+                        "endColumn": 127,
+                        "endOffset": 4170
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 30,
+                    "startColumn": 4,
+                    "startOffset": 4574,
+                    "endColumn": 200,
+                    "endOffset": 4770
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 28,
+                        "startColumn": 4,
+                        "startOffset": 4175,
+                        "endColumn": 200,
+                        "endOffset": 4371
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 31,
+                    "startColumn": 4,
+                    "startOffset": 4775,
+                    "endColumn": 141,
+                    "endOffset": 4912
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 29,
+                        "startColumn": 4,
+                        "startOffset": 4376,
+                        "endColumn": 141,
+                        "endOffset": 4513
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 32,
+                    "startColumn": 4,
+                    "startOffset": 4917,
+                    "endColumn": 183,
+                    "endOffset": 5096
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 30,
+                        "startColumn": 4,
+                        "startOffset": 4518,
+                        "endColumn": 183,
+                        "endOffset": 4697
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 33,
+                    "startColumn": 4,
+                    "startOffset": 5101,
+                    "endColumn": 93,
+                    "endOffset": 5190
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 31,
+                        "startColumn": 4,
+                        "startOffset": 4702,
+                        "endColumn": 93,
+                        "endOffset": 4791
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 34,
+                    "startColumn": 4,
+                    "startOffset": 5195,
+                    "endColumn": 92,
+                    "endOffset": 5283
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 32,
+                        "startColumn": 4,
+                        "startOffset": 4796,
+                        "endColumn": 92,
+                        "endOffset": 4884
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 35,
+                    "startColumn": 4,
+                    "startOffset": 5288,
+                    "endColumn": 107,
+                    "endOffset": 5391
+                },
+                "from": {
+                    "file": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-is/values.xml",
+                    "position": {
+                        "startLine": 33,
+                        "startColumn": 4,
+                        "startOffset": 4889,
+                        "endColumn": 107,
+                        "endOffset": 4992
+                    }
+                }
+            }
+        ]
+    }
+]

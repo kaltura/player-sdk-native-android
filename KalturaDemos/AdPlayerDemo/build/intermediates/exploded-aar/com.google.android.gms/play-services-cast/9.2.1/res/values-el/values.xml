@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- From: file:/tmp/tmp-deduplicated4977915863555680014/blaze-out/gcc-4.X.Y-crosstool-v18-hybrid-grtev4-k8-opt/genfiles/java/com/google/android/gmscore/integ/client/cast/res/values-el/cast_strings.xml -->
+    <eat-comment/>
+    <string msgid="5319032370587661362" name="cast_notification_connected_message">"Συνδέθηκε με το <ns1:g id="NAME">%1$s</ns1:g>"</string>
+    <string msgid="2758865089947797888" name="cast_notification_connecting_message">"Γίνεται σύνδεση με το <ns1:g id="NAME">%1$s</ns1:g>"</string>
+    <string msgid="5232008641593292969" name="cast_notification_disconnect">"Αποσύνδεση"</string>
+</resources>
