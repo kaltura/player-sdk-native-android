@@ -129,7 +129,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
             @Override
             public void onStopCasting() {
-
+                if (mCastPlayer != null) {
+                    mCastPlayer.removeListeners();
+                    mCastPlayer = null;
+                }
+                mCastProvider = null;
             }
 
             //<editor-fold desc="KChromeCastPlayerListener">
@@ -160,7 +164,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
             @Override
             public void onCastMediaProgressUpdate(long currentPosition) {
-                playerListener.eventWithValue(player, KPlayerListener.TimeUpdateKey, Float.toString(currentPosition / 1000f));
+                if (playerListener != null) {
+                    playerListener.eventWithValue(player, KPlayerListener.TimeUpdateKey, Float.toString(currentPosition / 1000f));
+                }
             }
 
             //</editor-fold>

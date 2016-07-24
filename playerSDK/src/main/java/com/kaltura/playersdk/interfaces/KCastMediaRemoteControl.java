@@ -8,6 +8,7 @@ public interface KCastMediaRemoteControl {
     void pause();
     void seek(long position);
     void addListener(KCastMediaRemoteControlListener listener);
+    void removeListeners();
     void setStreamVolume(double streamVolume);
     void removeListener(KCastMediaRemoteControlListener listener);
     State getCastMediaRemoteControlState();

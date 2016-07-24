@@ -32,7 +32,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private static final String TAG = "KCastProviderImpl";
     private String nameSpace = "urn:x-cast:com.kaltura.cast.player";
     private String mCastAppID;
-    private ScanCastDeviceListener mScanCastDeviceListener;
     private KCastProviderListener mProviderListener;
     private Context mContext;
 
@@ -57,10 +56,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     private InternalListener mInternalListener;
 
-
-    public void setScanCastDeviceListener(ScanCastDeviceListener listener) {
-        mScanCastDeviceListener = listener;
-    }
 
     public GoogleApiClient getApiClient() {
         return mApiClient;
@@ -124,9 +119,9 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void disconnectFromDevcie() {
-        if (mScanCastDeviceListener != null) {
-            mScanCastDeviceListener.onDisconnectCastDevice();
-        }
+//        if (mScanCastDeviceListener != null) {
+//            mScanCastDeviceListener.onDisconnectCastDevice();
+//        }
         mRouter.unselect(MediaRouter.UNSELECT_REASON_STOPPED);
         mSelectedDevice = null;
     }
@@ -275,8 +270,13 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                     .build();
             mApiClient.connect();
         } else if (mProviderListener != null){
-            teardown();
+            if (mInternalListener != null) {
+                mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
+                mInternalListener.onStopCasting();
+                mInternalListener = null;
+            }
             mProviderListener.onDeviceDisconnected();
+            teardown();
         }
     }
 
