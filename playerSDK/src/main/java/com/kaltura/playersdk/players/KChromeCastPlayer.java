@@ -177,7 +177,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 Status status = mediaChannelResult.getStatus();
                 if (status.isSuccess()) {
-                    updateState(State.VolumeCganged);
+                    updateState(State.VolumeChanged);
                 }
             }
         });

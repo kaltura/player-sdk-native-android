@@ -26,6 +26,6 @@ public interface KCastMediaRemoteControl {
         Seeking,
         Seeked,
         Ended,
-        VolumeCganged
+        VolumeChanged
     }
 }
