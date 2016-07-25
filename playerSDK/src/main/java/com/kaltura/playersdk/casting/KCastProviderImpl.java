@@ -100,7 +100,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void stopScan() {
-
+        mRouter.removeCallback(mCallback);
     }
 
     @Override
