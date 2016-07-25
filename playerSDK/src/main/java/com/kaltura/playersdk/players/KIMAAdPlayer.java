@@ -5,7 +5,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -22,10 +21,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+
 /**
  * Created by nissopa on 7/2/15.
  */
 public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackListener{
+    private static final String TAG = "KIMAAdPlayer";
+
     private ViewGroup mAdUIContainer;
     private String mAdMimeType;
     private int mAdPreferredBitrate;
@@ -40,7 +43,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     private final List<VideoAdPlayerCallback> mAdCallbacks =
             new ArrayList<VideoAdPlayerCallback>(1);
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
-    private static final String TAG = "KIMAAdPlayer";
+
     @NonNull
     private Handler mPlaybackTimeReporter = new Handler(Looper.getMainLooper());
 
@@ -113,7 +116,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     private void stopPlaybackTimeReporter() {
-        Log.d(TAG, "remove handler callbacks");
+        LOGD(TAG, "remove handler callbacks");
         mPlaybackTimeReporter.removeMessages(0);
     }
 
@@ -175,15 +178,15 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             }
 
             for (int i = 0; i < videoTrackBitrateSortedKeys.size(); i++) {
-                Log.d(TAG, i +"-"+ videoTrackBitrateSortedKeys.size() + " HLS Bitrate[" + i + "] = " + videoTrackBitrateSortedKeys.get(i));
+                LOGD(TAG, i +"-"+ videoTrackBitrateSortedKeys.size() + " HLS Bitrate[" + i + "] = " + videoTrackBitrateSortedKeys.get(i));
                 if (i > selectTrackStratIndex && videoTrackBitrateSortedKeys.get(i) > mAdPreferredBitrate) {
                     bitrateIndex = i - 1;
-                    Log.d(TAG, "HLS selected bitrate = " + videoTrackBitrateSortedKeys.get(bitrateIndex));
+                    LOGD(TAG, "HLS selected bitrate = " + videoTrackBitrateSortedKeys.get(bitrateIndex));
                     mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(bitrateIndex)));
                     break;
                 }
                 if (i > selectTrackStratIndex && i == videoTrackBitrateSortedKeys.size()-1) {
-                    Log.d(TAG, "HLS selected last bitrate = " + videoTrackBitrateSortedKeys.get(i));
+                    LOGD(TAG, "HLS selected last bitrate = " + videoTrackBitrateSortedKeys.get(i));
                     mAdPlayer.changeTrack(ExoplayerWrapper.TYPE_VIDEO, videoTrackBitrateMap.get(videoTrackBitrateSortedKeys.get(i)));
                     break;
                 }

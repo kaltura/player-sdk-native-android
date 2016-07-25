@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -17,6 +17,8 @@ import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -103,7 +105,7 @@ public class PlayerFragment extends Fragment implements KPEventListener {
 //            mPlayerView.addKPlayerEventListener("onEnableKeyboardBinding", "someID", new PlayerViewController.EventListener() {
 //                @Override
 //                public void handler(String eventName, String params) {
-//                    Log.d("customplgin", eventName);
+//                    LOGD("customplgin", eventName);
 //                }
 //            });
             KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/branches/master/mwEmbedFrame.php", "20540612", "243342").setEntryId("1_sf5ovm7u");
@@ -126,22 +128,22 @@ public class PlayerFragment extends Fragment implements KPEventListener {
             mPlayerView.addEventListener(new KPEventListener() {
                 @Override
                 public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-                    Log.d(TAG, "KPlayer State Changed " + state.toString());
+                    LOGD(TAG, "KPlayer State Changed " + state.toString());
                 }
 
                 @Override
                 public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-                    Log.d(TAG, "KPlayer onKPlayerPlayheadUpdate " + Float.toString(currentTime));
+                    LOGD(TAG, "KPlayer onKPlayerPlayheadUpdate " + Float.toString(currentTime));
                 }
 
                 @Override
                 public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
-                    Log.d(TAG, "KPlayer onKPlayerFullScreenToggeled " +  Boolean.toString(isFullscreen));
+                    LOGD(TAG, "KPlayer onKPlayerFullScreenToggeled " +  Boolean.toString(isFullscreen));
                 }
 
                 @Override
                 public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-                    Log.e(TAG, "KPlayer onKPlayerError " + error.getErrorMsg());
+                    LOGE(TAG, "KPlayer onKPlayerError " + error.getErrorMsg());
                 }
             });
         }
@@ -176,7 +178,7 @@ public class PlayerFragment extends Fragment implements KPEventListener {
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        Log.d(TAG, "KPlayer State Changed " + state.toString());
+        LOGD(TAG, "KPlayer State Changed " + state.toString());
     }
 
     @Override
@@ -186,7 +188,7 @@ public class PlayerFragment extends Fragment implements KPEventListener {
 
     @Override
     public void onKPlayerPlayheadUpdate(PlayerViewController playerViewController, float currentTime) {
-        Log.d(TAG, "KPlayer onKPlayerPlayheadUpdate " +Float.toString(currentTime));
+        LOGD(TAG, "KPlayer onKPlayerPlayheadUpdate " +Float.toString(currentTime));
     }
 
     @Override

@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.SystemClock;
-import android.util.Log;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -22,6 +22,9 @@ import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.KTracksManager;
 import com.kaltura.playersdk.tracks.TrackType;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -624,7 +627,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void sendTracksList(TrackType trackType) {
-        Log.d(TAG, "sendTracksList: " + trackType);
+        LOGD(TAG, "sendTracksList: " + trackType);
         switch(trackType) {
             case AUDIO:
                 playerListener.eventWithJSON(getPlayer(), KPlayerListener.AudioTracksReceivedKey, tracksManager.getTrackListAsJson(TrackType.AUDIO, false).toString());

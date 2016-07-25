@@ -9,7 +9,7 @@ import android.net.http.SslError;
 import android.os.Build;
 import android.os.Looper;
 import android.util.Base64;
-import android.util.Log;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
  * Created by nissopa on 6/7/15.
@@ -119,7 +121,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     }
 
     public void sendNotification(String notification, String params) {
-        Log.d("JavaSCRIPT", KStringUtilities.sendNotification(notification, params));
+        LOGD(TAG, "JavaSCRIPT " + KStringUtilities.sendNotification(notification, params));
 
         this.loadUrl(KStringUtilities.sendNotification(notification, params));
     }
@@ -146,7 +148,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     private WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) {
         // Only handle http(s)
         if (!requestUrl.getScheme().startsWith("http")) {
-            Log.d(TAG, "Will not handle " + requestUrl);
+            LOGD(TAG, "Will not handle " + requestUrl);
             return null;
         }
         WebResourceResponse response = null;
@@ -157,7 +159,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
                 if (requestUrl.getPath().endsWith("favicon.ico")) {
                     response = getWhiteFaviconResponse();
                 } else {
-                    Log.e(TAG, "getResponse From CacheManager error::", e);
+                    LOGE(TAG, "getResponse From CacheManager error::", e);
                 }
             }
         }
@@ -175,7 +177,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
     @Override
     public void destroy() {
-        Log.d(TAG, "destroy()");
+        LOGD(TAG, "destroy()");
         super.destroy();
     }
 
@@ -183,18 +185,18 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            Log.d(TAG, "onPageStarted:" + url);
+            LOGD(TAG, "onPageStarted:" + url);
             super.onPageStarted(view, url, favicon);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            Log.d(TAG, "onPageFinished:" + url);
+            LOGD(TAG, "onPageFinished:" + url);
             super.onPageFinished(view, url);
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.d(TAG, "shouldOverrideUrlLoading: " + url);
+            LOGD(TAG, "shouldOverrideUrlLoading: " + url);
             if (url == null) {
                 return false;
             }

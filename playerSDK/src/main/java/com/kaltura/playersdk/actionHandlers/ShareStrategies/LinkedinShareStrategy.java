@@ -2,7 +2,7 @@ package com.kaltura.playersdk.actionHandlers.ShareStrategies;
 
 import android.app.Activity;
 
-import com.kaltura.playersdk.Utilities;
+import com.kaltura.playersdk.utils.Utilities;
 
 import org.json.JSONObject;
 

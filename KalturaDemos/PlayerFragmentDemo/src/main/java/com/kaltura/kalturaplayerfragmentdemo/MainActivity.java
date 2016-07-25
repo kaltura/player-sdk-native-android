@@ -5,11 +5,14 @@ import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity implements PlayerFragment.OnFragmentInteractionListener {
 
@@ -83,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements PlayerFragment.On
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-        Log.d(TAG, "URI " + uri.toString());
+        LOGD(TAG, "URI " + uri.toString());
     }
 
     @Override

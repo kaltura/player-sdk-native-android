@@ -3,6 +3,7 @@ package com.kaltura.playersdk;
 import android.net.Uri;
 
 import com.kaltura.playersdk.players.KMediaFormat;
+import com.kaltura.playersdk.utils.Utilities;
 
 import org.json.JSONException;
 import org.json.JSONObject;

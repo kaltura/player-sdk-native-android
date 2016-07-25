@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -19,7 +19,7 @@ import android.widget.Toast;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.Utilities;
+import com.kaltura.playersdk.utils.Utilities;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
@@ -31,6 +31,9 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity implements KPEventListener {
 
@@ -179,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
         final TextView textView = ((TextView) findViewById(R.id.txt_log));
         assert textView != null;
 
-        Log.d(TAG, text, e);
+        LOGD(TAG, text, e);
         
         textView.post(new Runnable() {
             @Override
@@ -265,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements KPEventListener {
             }
             
         } catch (JSONException e) {
-            Log.e(TAG, "Error parsing json", e);
+            LOGE(TAG, "Error parsing json", e);
         }
 
         Spinner spinner = (Spinner) findViewById(R.id.spn_content);

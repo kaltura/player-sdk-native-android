@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
-import android.util.Log;
 
 import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
@@ -15,12 +14,15 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.casting.KCastKalturaChannel;
 import com.kaltura.playersdk.casting.KCastRouterManager;
 import com.kaltura.playersdk.casting.KCastRouterManagerListener;
-import com.kaltura.playersdk.casting.KCastDevice;
 
 import java.io.IOException;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
  * Created by nissimpardo on 07/12/15.
@@ -83,21 +85,21 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     public void sendMessage(final String message) {
         if (mApiClient != null && mChannel != null) {
             try {
-                Log.d("chromecast.sendMessage", "namespace: " + nameSpace + " message: " + message);
+                LOGD(TAG, "chromecast.sendMessage namespace: " + nameSpace + " message: " + message);
                 Cast.CastApi.sendMessage(mApiClient, nameSpace, message)
                         .setResultCallback(
                                 new ResultCallback<Status>() {
                                     @Override
                                     public void onResult(Status result) {
                                         if (result.isSuccess()) {
-                                            Log.d(TAG, "namespace:" + nameSpace + " message:" + message);
+                                            LOGD(TAG, "namespace:" + nameSpace + " message:" + message);
                                         } else {
-                                            Log.e(TAG, "Sending message failed");
+                                            LOGE(TAG, "Sending message failed");
                                         }
                                     }
                                 });
             } catch (Exception e) {
-                Log.e(TAG, "Exception while sending message", e);
+                LOGE(TAG, "Exception while sending message", e);
             }
         }
     }
@@ -138,7 +140,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                 @Override
                 public void onApplicationStatusChanged() {
                     if (mApiClient != null) {
-                        Log.d(TAG, "onApplicationStatusChanged: "
+                        LOGD(TAG, "onApplicationStatusChanged: "
                                 + Cast.CastApi.getApplicationStatus(mApiClient));
                     }
                 }
@@ -169,7 +171,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
     }
 
     private void teardown() {
-        Log.d(TAG, "teardown");
+        LOGD(TAG, "teardown");
         if (mApiClient != null) {
             if (mApplicationStarted) {
                 if (mApiClient.isConnected() || mApiClient.isConnecting()) {
@@ -182,7 +184,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                             mChannel = null;
                         }
                     } catch (IOException e) {
-                        Log.e(TAG, "Exception while removing channel", e);
+                        LOGE(TAG, "Exception while removing channel", e);
                     }
                     mApiClient.disconnect();
                 }
@@ -275,7 +277,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                                                             mChannel.getNamespace(),
                                                             mChannel);
                                                 } catch (IOException e) {
-                                                    Log.e(TAG, "Exception while creating channel", e);
+                                                    LOGE(TAG, "Exception while creating channel", e);
                                                 }
                                                 mListener.onDeviceSelected(mSelectedDevice);
                                             } else {
@@ -285,7 +287,7 @@ public class KRouterManager implements KRouterCallback.KRouterCallbackListener, 
                                     });
 
                 } catch (Exception e) {
-                    Log.d(TAG, "Failed to launch application", e);
+                    LOGD(TAG, "Failed to launch application", e);
                 }
             } else {
 //                mListener.onStartCasting(mApiClient, mSelectedDevice);

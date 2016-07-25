@@ -3,7 +3,6 @@ package com.kaltura.playersdk.players;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
@@ -17,6 +16,10 @@ import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 
 import java.io.IOException;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
  * Created by nissimpardo on 08/12/15.
@@ -58,7 +61,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
                     String errMsg = "Failed to request status";
-                    Log.e(TAG, errMsg);
+                    LOGE(TAG, errMsg);
                     mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
                 } else {
                     mListener.remoteMediaPlayerReady();
@@ -76,13 +79,13 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                     long currentTime = getCurrentPlaybackTime();
                     if (currentTime != 0 && currentTime < getDuration() && mPlayerListener != null) {
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(currentTime / 1000f));
-                        Log.d(TAG, Long.toString(mRemoteMediaPlayer.getApproximateStreamPosition()));
+                        LOGD(TAG, Long.toString(mRemoteMediaPlayer.getApproximateStreamPosition()));
 //                        float percent = currentTime / getDuration();
 //                        mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayer.ProgressKey, Float.toString(percent));
                     }
                 } catch (IllegalStateException e) {
                     String errMsg = "Failed to request status";
-                    Log.e(TAG, errMsg);
+                    LOGE(TAG, errMsg);
                     mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg + "-" + e.getMessage());
                 }
                 mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
@@ -125,7 +128,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         @Override
                         public void onResult(RemoteMediaPlayer.MediaChannelResult result) {
                             if (result.getStatus().isSuccess()) {
-                                Log.d(TAG, "Media loaded successfully");
+                                LOGD(TAG, "Media loaded successfully");
                                 if (isConnecting) {
                                     isConnecting = false;
                                     mPlayerListener.eventWithValue(KCCRemotePlayer.this, "hideConnectingMessage", null);
@@ -140,12 +143,12 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                     });
         } catch (IllegalStateException e){
             String errMsg = "Error occurred with media during loading";
-            Log.e(TAG, errMsg, e);
+            LOGE(TAG, errMsg, e);
             mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
 
         } catch (Exception e) {
             String errMsg = "Error in opening media during loading";
-            Log.e(TAG, errMsg, e);
+            LOGE(TAG, errMsg, e);
             mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.ErrorKey, errMsg);
         }
     }
@@ -165,7 +168,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         }
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.SeekedKey, null);
                     } else {
-                        Log.w(TAG, "Unable to toggle seek: " + status.getStatusCode());
+                        LOGW(TAG, "Unable to toggle seek: " + status.getStatusCode());
                     }
                 }
             });
@@ -195,7 +198,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PlayKey, null);
                     } else {
                         isPlaying = false;
-                        Log.w(TAG, "Unable to toggle play: " + status.getStatusCode());
+                        LOGW(TAG, "Unable to toggle play: " + status.getStatusCode());
                     }
                 }
             });
@@ -216,7 +219,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                         mPlayerListener.eventWithValue(KCCRemotePlayer.this, KPlayerListener.PauseKey, null);
                     } else {
                         isPlaying = true;
-                        Log.w(TAG, "Unable to toggle pause: " + status.getStatusCode());
+                        LOGW(TAG, "Unable to toggle pause: " + status.getStatusCode());
                     }
                 }
             });
@@ -260,7 +263,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
 
     @Override
     public void switchToLive() {
-        Log.w(TAG, "switchToLive - Feature is not implemented yet");
+        LOGW(TAG, "switchToLive - Feature is not implemented yet");
         //TODO
         //loadMedia();
     }
@@ -316,7 +319,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
                 case MediaStatus.PLAYER_STATE_BUFFERING:
                     break;
                 case MediaStatus.PLAYER_STATE_PLAYING:
-                    Log.d(TAG, "PLAYER_STATE_PLAYING");
+                    LOGD(TAG, "PLAYER_STATE_PLAYING");
                     break;
             }
         }
@@ -324,7 +327,7 @@ public class KCCRemotePlayer implements KPlayer, RemoteMediaPlayer.OnStatusUpdat
 
     @Override
     public void onMetadataUpdated() {
-        Log.d("nameSpace", mRemoteMediaPlayer.getNamespace());
+        LOGD(TAG, "nameSpace "+ mRemoteMediaPlayer.getNamespace());
     }
 
     @Override
