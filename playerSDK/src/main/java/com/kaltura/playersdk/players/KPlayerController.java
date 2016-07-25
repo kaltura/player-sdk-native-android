@@ -3,6 +3,7 @@ package com.kaltura.playersdk.players;
 import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,6 +62,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private int mAdPreferredBitrate;
     private String newSourceDuringBg = null;
     private int mContentPreferredBitrate = -1;
+    private long mPlayLastClickTime = 0;
+    private long mPauseLastClickTime = 0;
+
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -158,6 +162,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
+        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000){
+            return;
+        }
+        mPlayLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Play) {
             currentState = UIState.Play;
             if (isBackgrounded && isIMAActive) {
@@ -191,6 +199,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void pause() {
+        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000){
+            return;
+        }
+        mPauseLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Pause) {
             currentState = UIState.Pause;
             if (!isCasting) {
