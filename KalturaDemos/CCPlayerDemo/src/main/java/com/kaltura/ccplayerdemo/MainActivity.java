@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         View mCustomView = mInflater.inflate(R.layout.action_bar, null);
         if (mActionBar != null) {
             mActionBar.setDisplayShowHomeEnabled(false);
-            mActionBar.setDisplayShowTitleEnabled(true);
+            mActionBar.setDisplayShowTitleEnabled(false);
             mActionBar.setCustomView(mCustomView);
             mActionBar.setDisplayShowCustomEnabled(true);
         }
@@ -239,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
                 //KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-                //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.43.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
                 KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc6/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
                 config.addConfig("closedCaptions.plugin", "true");
                 config.addConfig("sourceSelector.plugin", "true");
