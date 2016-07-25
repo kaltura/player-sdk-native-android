@@ -176,6 +176,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
             mListeners.clear();
             mListeners = null;
         }
+        mHandler.removeMessages(0); // remove the timer that is responsible for time update
+        mHandler = null;
     }
 
     @Override
