@@ -91,7 +91,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             @Override
             public boolean onConsoleMessage(ConsoleMessage cm) {
                 if (LogUtils.isDEBUG()) {
-                    Log.d("TAG", cm.message() + " at " + cm.sourceId() + ":" + cm.lineNumber());
+                    Log.d(TAG, cm.message() + " at " + cm.sourceId() + ":" + cm.lineNumber());
                 }
                 return true;
             }
