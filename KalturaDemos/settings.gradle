@@ -1,4 +1,6 @@
-include ':BasicPlayerDemo', ':inlineplayerdemo'
+include ':BasicPlayerDemo'
+include ':CCPlayerDemo'
+include ':inlineplayerdemo'
 include ':BasicPlayerTest'
 include ':MultiPlayerDemo'
 include ':ChangeMediaDemo'
