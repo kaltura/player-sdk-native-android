@@ -41,7 +41,7 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
  */
 public class KControlsView extends WebView implements View.OnTouchListener {
 
-    private static String TAG = LogUtils.class.getSimpleName();
+    private static String TAG = KControlsView.class.getSimpleName();
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
