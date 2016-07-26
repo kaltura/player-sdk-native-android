@@ -9,9 +9,10 @@ import android.net.http.SslError;
 import android.os.Build;
 import android.os.Looper;
 import android.util.Base64;
-
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -25,6 +26,7 @@ import android.webkit.WebViewClient;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.utils.LogUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,7 +41,7 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
  */
 public class KControlsView extends WebView implements View.OnTouchListener {
 
-    private static final String TAG = "KControlsView";
+    private static String TAG = LogUtils.class.getSimpleName();
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -84,7 +86,16 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         getSettings().setAppCacheEnabled(false);
         this.addJavascriptInterface(this, "android");
         this.setWebViewClient(new CustomWebViewClient());
-        this.setWebChromeClient(new WebChromeClient());
+        //this.setWebChromeClient(new WebChromeClient());
+        this.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                if (LogUtils.isDEBUG()) {
+                    Log.d("TAG", cm.message() + " at " + cm.sourceId() + ":" + cm.lineNumber());
+                }
+                return true;
+            }
+        });
         this.getSettings().setUserAgentString(this.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer");
         this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         this.setBackgroundColor(0);

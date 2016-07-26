@@ -1,84 +1,68 @@
 package com.kaltura.playersdk.utils;
 
-
 import android.util.Log;
 
 public class LogUtils {
 
-    private static final String LOG_PREFIX = "KPLAYER_";
-    private static final int LOG_PREFIX_LENGTH = LOG_PREFIX.length();
-    private static final int MAX_LOG_TAG_LENGTH = 23;
+    private static boolean DEBUG = true;
+    private static String TAG = LogUtils.class.getSimpleName();
 
-    private static final boolean DEBUG = false;
-
-    private LogUtils() {
+    public static boolean isDEBUG() {
+        return DEBUG;
     }
 
-    public static String makeLogTag(String str) {
-        if (str.length() > MAX_LOG_TAG_LENGTH - LOG_PREFIX_LENGTH) {
-            return LOG_PREFIX + str.substring(0, MAX_LOG_TAG_LENGTH - LOG_PREFIX_LENGTH - 1);
-        }
-
-        return LOG_PREFIX + str;
+    public static void disableDebugMode() {
+        DEBUG = false;
     }
 
-    /**
-     * WARNING: Don't use this when obfuscating class names with Proguard!
-     */
-    public static String makeLogTag(Class<?> cls) {
-        return makeLogTag(cls.getSimpleName());
+    public static void enableDebugMode() {
+        DEBUG = true;
     }
-
     public static void LOGD(final String tag, String message) {
-        if (DEBUG && Log.isLoggable(tag, Log.DEBUG)) {
-            LOGD(tag, getVersionPrefix() + message);
+        if (DEBUG) {
+            Log.d(tag, message);
         }
     }
 
     public static void LOGD(final String tag, String message, Throwable cause) {
-        if (DEBUG && Log.isLoggable(tag, Log.DEBUG)) {
-            LOGD(tag, getVersionPrefix() + message, cause);
+        if (DEBUG) {
+            Log.d(tag, message, cause);
         }
     }
 
     public static void LOGV(final String tag, String message) {
-        if (DEBUG && Log.isLoggable(tag, Log.VERBOSE)) {
-            Log.v(tag, getVersionPrefix() + message);
+        if (DEBUG) {
+            Log.v(tag, message);
         }
     }
 
     public static void LOGV(final String tag, String message, Throwable cause) {
-        if (DEBUG && Log.isLoggable(tag, Log.VERBOSE)) {
-            Log.v(tag, getVersionPrefix() + message, cause);
+        if (DEBUG) {
+            Log.v(tag, message, cause);
         }
     }
 
     public static void LOGI(final String tag, String message) {
-        LOGI(tag, getVersionPrefix() + message);
+        Log.i(tag, message);
     }
 
     public static void LOGI(final String tag, String message, Throwable cause) {
-        LOGI(tag, message, cause);
+        Log.i(tag, message, cause);
     }
 
     public static void LOGW(final String tag, String message) {
-        LOGW(tag, getVersionPrefix() + message);
+        Log.w(tag, message);
     }
 
     public static void LOGW(final String tag, String message, Throwable cause) {
-        LOGW(tag, getVersionPrefix() + message, cause);
+        Log.w(tag, message, cause);
     }
 
     public static void LOGE(final String tag, String message) {
-        LOGE(tag, getVersionPrefix() + message);
+        Log.e(tag, message);
     }
 
     public static void LOGE(final String tag, String message, Throwable cause) {
-        LOGE(tag, getVersionPrefix() + message, cause);
+        Log.e(tag, message, cause);
     }
-
-    public static String getVersionPrefix() {
-        return "[v" + 2 + "] ";
-    }
-
 }
