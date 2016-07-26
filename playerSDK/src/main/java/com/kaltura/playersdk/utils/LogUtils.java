@@ -2,6 +2,7 @@ package com.kaltura.playersdk.utils;
 
 import android.util.Log;
 
+
 public class LogUtils {
 
     private static boolean DEBUG = true;
