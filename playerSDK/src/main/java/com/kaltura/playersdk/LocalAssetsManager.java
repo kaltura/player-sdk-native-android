@@ -141,7 +141,18 @@ public class LocalAssetsManager {
                 }
 
                 // Remove license
-                WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
+                WidevineDrmClient widevineDrmClient = null;
+                try {
+                    widevineDrmClient = new WidevineDrmClient(context);
+
+                }catch (UnsupportedOperationException ex){
+                    Log.e(TAG, "Widevine classic is not supported!!");
+                    if (listener != null) {
+                        listener.onRemoved(localPath);
+                    }
+                    return;
+                }
+
                 widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
                     @Override
                     public void onError(DrmErrorEvent event) {
@@ -160,7 +171,9 @@ public class LocalAssetsManager {
                         }
                     }
                 });
+
                 widevineDrmClient.removeRights(localPath);
+
             }
         });
         return true;
@@ -168,7 +181,7 @@ public class LocalAssetsManager {
 
     public static boolean checkAssetStatus(@NonNull final Context context, @NonNull final String localPath, 
                                            @Nullable final AssetStatusListener listener) {
-        
+
         if (!isWidevineClassic(localPath)) {
             // end here.
             if (listener != null) {
@@ -180,44 +193,54 @@ public class LocalAssetsManager {
         doInBackground(new Runnable() {
             @Override
             public void run() {
-                WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
-                WidevineDrmClient.RightsInfo info = widevineDrmClient.getRightsInfo(localPath);
-                if (listener != null) {
-                    listener.onStatus(localPath, info.expiryTime, info.availableTime);
+                WidevineDrmClient widevineDrmClient = null;
+                try {
+                    widevineDrmClient = new WidevineDrmClient(context);
+                    WidevineDrmClient.RightsInfo info = widevineDrmClient.getRightsInfo(localPath);
+                    if (listener != null) {
+                        listener.onStatus(localPath, info.expiryTime, info.availableTime);
+                    }
+                } catch (UnsupportedOperationException ex) {
+                    Log.e(TAG, "Widevine classic is not supported on this device!!");
                 }
             }
         });
-        
+
         return true;
     }
 
 
     private static void registerWidevineClassicAsset(@NonNull Context context, @NonNull final String localPath, Uri licenseUri, @Nullable final AssetRegistrationListener listener) {
 
-        WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
-        widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
-            @Override
-            public void onError(DrmErrorEvent event) {
-                Log.d(TAG, event.toString());
+        WidevineDrmClient widevineDrmClient = null;
+        try {
+            widevineDrmClient = new WidevineDrmClient(context);
+            widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
+                @Override
+                public void onError(DrmErrorEvent event) {
+                    Log.d(TAG, event.toString());
 
-                if (listener != null) {
-                    listener.onFailed(localPath, new Exception("License acquisition failed; DRM client error code: " + event.getType()));
+                    if (listener != null) {
+                        listener.onFailed(localPath, new Exception("License acquisition failed; DRM client error code: " + event.getType()));
+                    }
                 }
-            }
 
-            @Override
-            public void onEvent(DrmEvent event) {
-                Log.d(TAG, event.toString());
-                switch (event.getType()) {
-                    case DrmInfoEvent.TYPE_RIGHTS_INSTALLED:
-                        if (listener != null) {
-                            listener.onRegistered(localPath);
-                        }
-                        break;
+                @Override
+                public void onEvent(DrmEvent event) {
+                    Log.d(TAG, event.toString());
+                    switch (event.getType()) {
+                        case DrmInfoEvent.TYPE_RIGHTS_INSTALLED:
+                            if (listener != null) {
+                                listener.onRegistered(localPath);
+                            }
+                            break;
+                    }
                 }
-            }
-        });
-        widevineDrmClient.acquireLocalAssetRights(localPath, licenseUri.toString());
+            });
+            widevineDrmClient.acquireLocalAssetRights(localPath, licenseUri.toString());
+        } catch (UnsupportedOperationException ex) {
+            Log.e(TAG, "Widevine classic is not supported!!");
+        }
     }
 
     private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DRMScheme drmScheme) throws IOException, JSONException {
