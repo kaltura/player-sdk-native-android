@@ -255,16 +255,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mPlayer.initWithConfiguration(config);
 
                 mPlayPauseButton.setText("Pause");
-                mPlayer.getMediaControl().seek(100, new KMediaControl.SeekCallback() {
-                    @Override
-                    public void seeked(long milliSeconds) {
+//                mPlayer.getMediaControl().seek(100, new KMediaControl.SeekCallback() {
+//                    @Override
+//                    public void seeked(long milliSeconds) {
+//
+//                    }
+//                });
 
-                    }
-                });
-
-                if (mCastProvider != null) {
-                    mPlayer.setCastProvider(mCastProvider);
-                }
+//                if (mCastProvider != null) {
+//                    mPlayer.setCastProvider(mCastProvider);
+//                }
 
                 mPlayer.setOnKPErrorEventListener(this);
                 mPlayer.setOnKPPlayheadUpdateEventListener(this);

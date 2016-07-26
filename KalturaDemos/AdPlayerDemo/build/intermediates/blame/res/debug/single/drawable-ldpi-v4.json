@@ -1,5 +1,9 @@
 [
     {
+        "merged": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/drawable-ldpi-v4/common_ic_googleplayservices.png",
+        "source": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/drawable-ldpi-v4/common_ic_googleplayservices.png"
+    },
+    {
         "merged": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/drawable-ldpi-v4/common_ic_googleplayservices.png",
         "source": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/drawable-ldpi-v4/common_ic_googleplayservices.png"
     }

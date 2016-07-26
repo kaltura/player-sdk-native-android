@@ -1333,5 +1333,1340 @@
                 }
             }
         ]
+    },
+    {
+        "outputFile": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/values-uk/values-uk.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 105,
+                    "endColumn": 109,
+                    "endOffset": 210
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 4,
+                        "startOffset": 55,
+                        "endColumn": 109,
+                        "endOffset": 160
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 215,
+                    "endColumn": 107,
+                    "endOffset": 318
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 165,
+                        "endColumn": 107,
+                        "endOffset": 268
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 323,
+                    "endColumn": 122,
+                    "endOffset": 441
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 273,
+                        "endColumn": 122,
+                        "endOffset": 391
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 446,
+                    "endColumn": 101,
+                    "endOffset": 543
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 396,
+                        "endColumn": 101,
+                        "endOffset": 493
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 548,
+                    "endColumn": 105,
+                    "endOffset": 649
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 498,
+                        "endColumn": 105,
+                        "endOffset": 599
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 654,
+                    "endColumn": 85,
+                    "endOffset": 735
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 604,
+                        "endColumn": 85,
+                        "endOffset": 685
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 740,
+                    "endColumn": 107,
+                    "endOffset": 843
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 690,
+                        "endColumn": 107,
+                        "endOffset": 793
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 848,
+                    "endColumn": 117,
+                    "endOffset": 961
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 798,
+                        "endColumn": 117,
+                        "endOffset": 911
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 966,
+                    "endColumn": 78,
+                    "endOffset": 1040
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 916,
+                        "endColumn": 78,
+                        "endOffset": 990
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 11,
+                    "startColumn": 4,
+                    "startOffset": 1045,
+                    "endColumn": 79,
+                    "endOffset": 1120
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 995,
+                        "endColumn": 79,
+                        "endOffset": 1070
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 12,
+                    "startColumn": 4,
+                    "startOffset": 1125,
+                    "endColumn": 80,
+                    "endOffset": 1201
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 1075,
+                        "endColumn": 80,
+                        "endOffset": 1151
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 13,
+                    "startColumn": 4,
+                    "startOffset": 1206,
+                    "endColumn": 105,
+                    "endOffset": 1307
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 1156,
+                        "endColumn": 105,
+                        "endOffset": 1257
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 14,
+                    "startColumn": 4,
+                    "startOffset": 1312,
+                    "endColumn": 106,
+                    "endOffset": 1414
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 1262,
+                        "endColumn": 106,
+                        "endOffset": 1364
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 15,
+                    "startColumn": 4,
+                    "startOffset": 1419,
+                    "endColumn": 97,
+                    "endOffset": 1512
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 1369,
+                        "endColumn": 97,
+                        "endOffset": 1462
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 16,
+                    "startColumn": 4,
+                    "startOffset": 1517,
+                    "endColumn": 107,
+                    "endOffset": 1620
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 1467,
+                        "endColumn": 107,
+                        "endOffset": 1570
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 17,
+                    "startColumn": 4,
+                    "startOffset": 1625,
+                    "endColumn": 105,
+                    "endOffset": 1726
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 1575,
+                        "endColumn": 105,
+                        "endOffset": 1676
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 18,
+                    "startColumn": 4,
+                    "startOffset": 1731,
+                    "endColumn": 108,
+                    "endOffset": 1835
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 1681,
+                        "endColumn": 108,
+                        "endOffset": 1785
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 19,
+                    "startColumn": 4,
+                    "startOffset": 1840,
+                    "endColumn": 123,
+                    "endOffset": 1959
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 1790,
+                        "endColumn": 123,
+                        "endOffset": 1909
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 20,
+                    "startColumn": 4,
+                    "startOffset": 1964,
+                    "endColumn": 99,
+                    "endOffset": 2059
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 20,
+                        "startColumn": 4,
+                        "startOffset": 1914,
+                        "endColumn": 99,
+                        "endOffset": 2009
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 21,
+                    "startColumn": 4,
+                    "startOffset": 2064,
+                    "endColumn": 144,
+                    "endOffset": 2204
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 334,
+                        "endColumn": 144,
+                        "endOffset": 474
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 22,
+                    "startColumn": 4,
+                    "startOffset": 2209,
+                    "endColumn": 146,
+                    "endOffset": 2351
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 479,
+                        "endColumn": 146,
+                        "endOffset": 621
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 23,
+                    "startColumn": 4,
+                    "startOffset": 2356,
+                    "endColumn": 97,
+                    "endOffset": 2449
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 626,
+                        "endColumn": 97,
+                        "endOffset": 719
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 24,
+                    "startColumn": 4,
+                    "startOffset": 2454,
+                    "endColumn": 268,
+                    "endOffset": 2718
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 329,
+                        "endColumn": 268,
+                        "endOffset": 593
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 25,
+                    "startColumn": 4,
+                    "startOffset": 2723,
+                    "endColumn": 129,
+                    "endOffset": 2848
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 598,
+                        "endColumn": 129,
+                        "endOffset": 723
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 26,
+                    "startColumn": 4,
+                    "startOffset": 2853,
+                    "endColumn": 194,
+                    "endOffset": 3043
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 728,
+                        "endColumn": 194,
+                        "endOffset": 918
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 27,
+                    "startColumn": 4,
+                    "startOffset": 3048,
+                    "endColumn": 128,
+                    "endOffset": 3172
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 923,
+                        "endColumn": 128,
+                        "endOffset": 1047
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 28,
+                    "startColumn": 4,
+                    "startOffset": 3177,
+                    "endColumn": 131,
+                    "endOffset": 3304
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 1052,
+                        "endColumn": 131,
+                        "endOffset": 1179
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 29,
+                    "startColumn": 4,
+                    "startOffset": 3309,
+                    "endColumn": 218,
+                    "endOffset": 3523
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 1184,
+                        "endColumn": 218,
+                        "endOffset": 1398
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 30,
+                    "startColumn": 4,
+                    "startOffset": 3528,
+                    "endColumn": 219,
+                    "endOffset": 3743
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 1403,
+                        "endColumn": 219,
+                        "endOffset": 1618
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 31,
+                    "startColumn": 4,
+                    "startOffset": 3748,
+                    "endColumn": 130,
+                    "endOffset": 3874
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 1623,
+                        "endColumn": 130,
+                        "endOffset": 1749
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 32,
+                    "startColumn": 4,
+                    "startOffset": 3879,
+                    "endColumn": 190,
+                    "endOffset": 4065
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 1754,
+                        "endColumn": 190,
+                        "endOffset": 1940
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 33,
+                    "startColumn": 4,
+                    "startOffset": 4070,
+                    "endColumn": 133,
+                    "endOffset": 4199
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 1945,
+                        "endColumn": 133,
+                        "endOffset": 2074
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 34,
+                    "startColumn": 4,
+                    "startOffset": 4204,
+                    "endColumn": 175,
+                    "endOffset": 4375
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 2079,
+                        "endColumn": 175,
+                        "endOffset": 2250
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 35,
+                    "startColumn": 4,
+                    "startOffset": 4380,
+                    "endColumn": 120,
+                    "endOffset": 4496
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 2255,
+                        "endColumn": 120,
+                        "endOffset": 2371
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 36,
+                    "startColumn": 4,
+                    "startOffset": 4501,
+                    "endColumn": 133,
+                    "endOffset": 4630
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 2376,
+                        "endColumn": 133,
+                        "endOffset": 2505
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 37,
+                    "startColumn": 4,
+                    "startOffset": 4635,
+                    "endColumn": 181,
+                    "endOffset": 4812
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 2510,
+                        "endColumn": 181,
+                        "endOffset": 2687
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 38,
+                    "startColumn": 4,
+                    "startOffset": 4817,
+                    "endColumn": 148,
+                    "endOffset": 4961
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 2692,
+                        "endColumn": 148,
+                        "endOffset": 2836
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 39,
+                    "startColumn": 4,
+                    "startOffset": 4966,
+                    "endColumn": 176,
+                    "endOffset": 5138
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 2841,
+                        "endColumn": 176,
+                        "endOffset": 3013
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 40,
+                    "startColumn": 4,
+                    "startOffset": 5143,
+                    "endColumn": 132,
+                    "endOffset": 5271
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 20,
+                        "startColumn": 4,
+                        "startOffset": 3018,
+                        "endColumn": 132,
+                        "endOffset": 3146
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 41,
+                    "startColumn": 4,
+                    "startOffset": 5276,
+                    "endColumn": 167,
+                    "endOffset": 5439
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 21,
+                        "startColumn": 4,
+                        "startOffset": 3151,
+                        "endColumn": 167,
+                        "endOffset": 3314
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 42,
+                    "startColumn": 4,
+                    "startOffset": 5444,
+                    "endColumn": 128,
+                    "endOffset": 5568
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 22,
+                        "startColumn": 4,
+                        "startOffset": 3319,
+                        "endColumn": 128,
+                        "endOffset": 3443
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 43,
+                    "startColumn": 4,
+                    "startOffset": 5573,
+                    "endColumn": 249,
+                    "endOffset": 5818
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-basement/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 330,
+                        "endColumn": 249,
+                        "endOffset": 575
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 44,
+                    "startColumn": 4,
+                    "startOffset": 5823,
+                    "endColumn": 259,
+                    "endOffset": 6078
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 23,
+                        "startColumn": 4,
+                        "startOffset": 3448,
+                        "endColumn": 259,
+                        "endOffset": 3703
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 45,
+                    "startColumn": 4,
+                    "startOffset": 6083,
+                    "endColumn": 122,
+                    "endOffset": 6201
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 24,
+                        "startColumn": 4,
+                        "startOffset": 3708,
+                        "endColumn": 122,
+                        "endOffset": 3826
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 46,
+                    "startColumn": 4,
+                    "startOffset": 6206,
+                    "endColumn": 107,
+                    "endOffset": 6309
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 25,
+                        "startColumn": 4,
+                        "startOffset": 3831,
+                        "endColumn": 107,
+                        "endOffset": 3934
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 47,
+                    "startColumn": 4,
+                    "startOffset": 6314,
+                    "endColumn": 192,
+                    "endOffset": 6502
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 26,
+                        "startColumn": 4,
+                        "startOffset": 3939,
+                        "endColumn": 192,
+                        "endOffset": 4127
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 48,
+                    "startColumn": 4,
+                    "startOffset": 6507,
+                    "endColumn": 126,
+                    "endOffset": 6629
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 27,
+                        "startColumn": 4,
+                        "startOffset": 4132,
+                        "endColumn": 126,
+                        "endOffset": 4254
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 49,
+                    "startColumn": 4,
+                    "startOffset": 6634,
+                    "endColumn": 205,
+                    "endOffset": 6835
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 28,
+                        "startColumn": 4,
+                        "startOffset": 4259,
+                        "endColumn": 205,
+                        "endOffset": 4460
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 50,
+                    "startColumn": 4,
+                    "startOffset": 6840,
+                    "endColumn": 132,
+                    "endOffset": 6968
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 29,
+                        "startColumn": 4,
+                        "startOffset": 4465,
+                        "endColumn": 132,
+                        "endOffset": 4593
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 51,
+                    "startColumn": 4,
+                    "startOffset": 6973,
+                    "endColumn": 171,
+                    "endOffset": 7140
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 30,
+                        "startColumn": 4,
+                        "startOffset": 4598,
+                        "endColumn": 171,
+                        "endOffset": 4765
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 52,
+                    "startColumn": 4,
+                    "startOffset": 7145,
+                    "endColumn": 99,
+                    "endOffset": 7240
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 31,
+                        "startColumn": 4,
+                        "startOffset": 4770,
+                        "endColumn": 99,
+                        "endOffset": 4865
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 53,
+                    "startColumn": 4,
+                    "startOffset": 7245,
+                    "endColumn": 90,
+                    "endOffset": 7331
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 32,
+                        "startColumn": 4,
+                        "startOffset": 4870,
+                        "endColumn": 90,
+                        "endOffset": 4956
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 54,
+                    "startColumn": 4,
+                    "startOffset": 7336,
+                    "endColumn": 116,
+                    "endOffset": 7448
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.2.1/res/values-uk/values.xml",
+                    "position": {
+                        "startLine": 33,
+                        "startColumn": 4,
+                        "startOffset": 4961,
+                        "endColumn": 116,
+                        "endOffset": 5073
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 55,
+                    "startColumn": 4,
+                    "startOffset": 7453,
+                    "endColumn": 105,
+                    "endOffset": 7554
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 4,
+                        "startOffset": 55,
+                        "endColumn": 105,
+                        "endOffset": 156
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 56,
+                    "startColumn": 4,
+                    "startOffset": 7559,
+                    "endColumn": 94,
+                    "endOffset": 7649
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 161,
+                        "endColumn": 94,
+                        "endOffset": 251
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 57,
+                    "startColumn": 4,
+                    "startOffset": 7654,
+                    "endColumn": 88,
+                    "endOffset": 7738
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 256,
+                        "endColumn": 88,
+                        "endOffset": 340
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 58,
+                    "startColumn": 4,
+                    "startOffset": 7743,
+                    "endColumn": 100,
+                    "endOffset": 7839
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 345,
+                        "endColumn": 100,
+                        "endOffset": 441
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 59,
+                    "startColumn": 4,
+                    "startOffset": 7844,
+                    "endColumn": 104,
+                    "endOffset": 7944
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 446,
+                        "endColumn": 104,
+                        "endOffset": 546
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 60,
+                    "startColumn": 4,
+                    "startOffset": 7949,
+                    "endColumn": 97,
+                    "endOffset": 8042
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 551,
+                        "endColumn": 97,
+                        "endOffset": 644
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 61,
+                    "startColumn": 4,
+                    "startOffset": 8047,
+                    "endColumn": 95,
+                    "endOffset": 8138
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 649,
+                        "endColumn": 95,
+                        "endOffset": 740
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 62,
+                    "startColumn": 4,
+                    "startOffset": 8143,
+                    "endColumn": 93,
+                    "endOffset": 8232
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 745,
+                        "endColumn": 93,
+                        "endOffset": 834
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 63,
+                    "startColumn": 4,
+                    "startOffset": 8237,
+                    "endColumn": 95,
+                    "endOffset": 8328
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 839,
+                        "endColumn": 95,
+                        "endOffset": 930
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 64,
+                    "startColumn": 4,
+                    "startOffset": 8333,
+                    "endColumn": 101,
+                    "endOffset": 8430
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 935,
+                        "endColumn": 101,
+                        "endOffset": 1032
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 65,
+                    "startColumn": 4,
+                    "startOffset": 8435,
+                    "endColumn": 111,
+                    "endOffset": 8542
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 1037,
+                        "endColumn": 111,
+                        "endOffset": 1144
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 66,
+                    "startColumn": 4,
+                    "startOffset": 8547,
+                    "endColumn": 89,
+                    "endOffset": 8632
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 1149,
+                        "endColumn": 89,
+                        "endOffset": 1234
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 67,
+                    "startColumn": 4,
+                    "startOffset": 8637,
+                    "endColumn": 86,
+                    "endOffset": 8719
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 1239,
+                        "endColumn": 86,
+                        "endOffset": 1321
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 68,
+                    "startColumn": 4,
+                    "startOffset": 8724,
+                    "endColumn": 97,
+                    "endOffset": 8817
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 1326,
+                        "endColumn": 97,
+                        "endOffset": 1419
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 69,
+                    "startColumn": 4,
+                    "startOffset": 8822,
+                    "endColumn": 86,
+                    "endOffset": 8904
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 1424,
+                        "endColumn": 86,
+                        "endOffset": 1506
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 70,
+                    "startColumn": 4,
+                    "startOffset": 8909,
+                    "endColumn": 94,
+                    "endOffset": 8999
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 1511,
+                        "endColumn": 94,
+                        "endOffset": 1601
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 71,
+                    "startColumn": 4,
+                    "startOffset": 9004,
+                    "endColumn": 100,
+                    "endOffset": 9100
+                },
+                "from": {
+                    "file": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.0.0/res/values-uk/values-uk.xml",
+                    "position": {
+                        "startLine": 21,
+                        "startColumn": 4,
+                        "startOffset": 2014,
+                        "endColumn": 100,
+                        "endOffset": 2110
+                    }
+                }
+            }
+        ]
     }
 ]

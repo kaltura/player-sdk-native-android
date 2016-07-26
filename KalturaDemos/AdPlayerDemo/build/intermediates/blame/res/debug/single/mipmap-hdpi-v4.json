@@ -2,5 +2,9 @@
     {
         "merged": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/mipmap-hdpi-v4/ic_launcher.png",
         "source": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/src/main/res/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/mipmap-hdpi-v4/ic_launcher.png",
+        "source": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/src/main/res/mipmap-hdpi/ic_launcher.png"
     }
 ]

@@ -4,8 +4,24 @@
         "source": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/KalturaDemos/playerSDK/unspecified/res/animator/trans_left_out.xml"
     },
     {
+        "merged": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/animator/trans_right_in.xml",
+        "source": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/KalturaDemos/playerSDK/unspecified/res/animator/trans_right_in.xml"
+    },
+    {
         "merged": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/animator/trans_right_in.xml",
         "source": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/KalturaDemos/playerSDK/unspecified/res/animator/trans_right_in.xml"
+    },
+    {
+        "merged": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/animator/trans_left_out.xml",
+        "source": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/KalturaDemos/playerSDK/unspecified/res/animator/trans_left_out.xml"
+    },
+    {
+        "merged": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/animator/trans_right_out.xml",
+        "source": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/KalturaDemos/playerSDK/unspecified/res/animator/trans_right_out.xml"
+    },
+    {
+        "merged": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/animator/trans_left_in.xml",
+        "source": "/Users/nissimpardo/Repos/KalturaAndroid/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/exploded-aar/KalturaDemos/playerSDK/unspecified/res/animator/trans_left_in.xml"
     },
     {
         "merged": "/Users/gilad.nadav/Dev/android/player-sdk-native-android/KalturaDemos/AdPlayerDemo/build/intermediates/res/merged/debug/animator/trans_left_in.xml",

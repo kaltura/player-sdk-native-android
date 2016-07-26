@@ -2,6 +2,7 @@ package com.kaltura.playersdk.players;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.cast.Cast;
@@ -12,6 +13,7 @@ import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 
 import java.io.IOException;
@@ -20,13 +22,14 @@ import java.util.ArrayList;
 /**
  * Created by nissimpardo on 07/07/16.
  */
-public class KChromeCastPlayer implements KCastMediaRemoteControl {
+public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallback<RemoteMediaPlayer.MediaChannelResult> {
     private RemoteMediaPlayer mRemoteMediaPlayer;
     private GoogleApiClient mApiClient;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private static int PLAYHEAD_UPDATE_INTERVAL = 200;
     private ArrayList<KCastMediaRemoteControlListener> mListeners = new ArrayList<>();
     private State mState;
+    private String[] mMediaInfoParams;
 
     String TAG = "KChromeCastPlayer";
 
@@ -71,6 +74,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
     }
 
     public void setMediaInfoParams(final String[] mediaInfoParams) {
+        mMediaInfoParams = mediaInfoParams;
+    }
+
+    public void load(final long fromPosition) {
         try {
             Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
         } catch (IOException e) {
@@ -88,19 +95,17 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
                     MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
                     mediaMetadata.putString(MediaMetadata.KEY_TITLE, "My video");
                     MediaInfo mediaInfo = new MediaInfo.Builder(
-                            mediaInfoParams[0])
-                            .setContentType(mediaInfoParams[1])
+                            mMediaInfoParams[0])
+                            .setContentType(mMediaInfoParams[1])
                             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
                             .setMetadata(mediaMetadata)
                             .build();
-                    mRemoteMediaPlayer.load(mApiClient, mediaInfo).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
-                        @Override
-                        public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                            if (mediaChannelResult.getStatus().isSuccess()) {
-                                updateState(State.Loaded);
-                            }
-                        }
-                    });
+
+                    if (fromPosition > 0) {
+                        mRemoteMediaPlayer.load(mApiClient, mediaInfo, true, fromPosition).setResultCallback(KChromeCastPlayer.this);
+                    } else {
+                        mRemoteMediaPlayer.load(mApiClient, mediaInfo).setResultCallback(KChromeCastPlayer.this);
+                    }
                 }
             }
         });
@@ -219,6 +224,13 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl {
         mState = state;
         for (KCastMediaRemoteControlListener listener: mListeners) {
             listener.onCastMediaStateChanged(state);
+        }
+    }
+
+    @Override
+    public void onResult(@NonNull RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+        if (mediaChannelResult.getStatus().isSuccess()) {
+            updateState(State.Loaded);
         }
     }
 }

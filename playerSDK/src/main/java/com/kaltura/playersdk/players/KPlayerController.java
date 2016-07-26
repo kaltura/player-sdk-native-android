@@ -116,11 +116,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCastProvider(final KCastProvider castProvider) {
+        player.pause();
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
             public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
                 mCastPlayer = remoteMediaPlayer;
+                mCastPlayer.load(player.getCurrentPlaybackTime());
                 mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
                 remoteMediaPlayer.addListener(this);
             }
@@ -154,9 +156,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         playerListener.eventWithValue(player, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
                         playerListener.eventWithValue(player, KPlayerListener.LoadedMetaDataKey, "");
                         playerListener.eventWithValue(player, KPlayerListener.CanPlayKey, null);
-                        if (player.getCurrentPlaybackTime() > 0.1) {
-                            mCastPlayer.seek(player.getCurrentPlaybackTime() * 1000);
-                        }
                         break;
                     case Playing:
                         playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
