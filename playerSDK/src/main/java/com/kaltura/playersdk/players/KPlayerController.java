@@ -38,6 +38,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private KPlayer player;
     private KTracksManager tracksManager;
     private KTrackActions.EventListener tracksEventListener = null;
+    private KTrackActions.VideoTrackEventListener videoTrackEventListener = null;
+    private KTrackActions.AudioTrackEventListener audioTrackEventListener = null;
+    private KTrackActions.TextTrackEventListener textTrackEventListener = null;
+
     private String src;
     private String adTagURL;
     private int adPlayerHeight;
@@ -117,6 +121,27 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
         this.tracksEventListener = tracksEventListener;
+    }
+
+    public void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener) {
+        this.videoTrackEventListener = videoTrackEventListener;
+        if (videoTrackEventListener == null && tracksManager != null) {
+            tracksManager.removeVideoTrackEventListener();
+        }
+    }
+
+    public void setAudioTrackEventListener(KTrackActions.AudioTrackEventListener audioTrackEventListener) {
+        this.audioTrackEventListener = audioTrackEventListener;
+        if (audioTrackEventListener == null && tracksManager != null) {
+            tracksManager.removeAudioTrackEventListener();
+        }
+    }
+
+    public void setTextTrackEventListener(KTrackActions.TextTrackEventListener textTrackEventListener) {
+        this.textTrackEventListener = textTrackEventListener;
+        if (textTrackEventListener == null && tracksManager != null) {
+            tracksManager.removeTextTrackEventListener();
+        }
     }
 
     public void setCastProvider(final KCastProvider castProvider) {
@@ -599,6 +624,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
                 tracksManager = new KTracksManager(player);
+                if (videoTrackEventListener != null) {
+                    getTracksManager().setVideoTrackEventListener(videoTrackEventListener);
+                }
+                if (audioTrackEventListener != null) {
+                    getTracksManager().setAudioTrackEventListener(audioTrackEventListener);
+                }
+                if (textTrackEventListener != null) {
+                    getTracksManager().setTextTrackEventListener(textTrackEventListener);
+                }
                 if (tracksEventListener != null){
                     //send tracks to app
                     tracksEventListener.onTracksUpdate(tracksManager);
@@ -613,7 +647,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     if (tracksManager != null) {
                         tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
                     }
-
                 }
 
                 isPlayerCanPlay = true;

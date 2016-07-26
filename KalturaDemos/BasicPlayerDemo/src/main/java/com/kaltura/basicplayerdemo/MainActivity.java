@@ -6,7 +6,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPErrorEventListener;
@@ -30,7 +30,7 @@ import com.kaltura.playersdk.types.KPError;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KTrackActions.EventListener, KPErrorEventListener, KPPlayheadUpdateEventListener, KPStateChangedEventListener /*--deprecated, KPEventListener*/ {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener,KTrackActions.VideoTrackEventListener,KTrackActions.AudioTrackEventListener, KTrackActions.TextTrackEventListener,KTrackActions.EventListener, KPErrorEventListener, KPPlayheadUpdateEventListener, KPStateChangedEventListener /*--deprecated, KPEventListener*/ {
     private static final String TAG = "BasicPlayerDemo";
 
     private static final int MENU_GROUP_TRACKS = 1;
@@ -58,13 +58,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-
-        android.support.v7.app.ActionBar mActionBar = getSupportActionBar();
-        mActionBar.setDisplayShowHomeEnabled(false);
-        mActionBar.setDisplayShowTitleEnabled(false);
-        LayoutInflater mInflater = LayoutInflater.from(this);
-
-        mActionBar.setDisplayShowCustomEnabled(true);
 
         videoButton = (Button) findViewById(R.id.video_controls);
         audioButton = (Button) findViewById(R.id.audio_controls);
@@ -116,6 +109,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
             ////onTracksUpdate and the mPlayer.getTrackManager() methodes
             //mPlayer.setTracksEventListener(this);
+            //mPlayer.setVideoTrackEventListener(this);
+            //mPlayer.setTextTrackEventListener(this);
+            //mPlayer.setAudioTrackEventListener(this);
         }
         return mPlayer;
     }
@@ -371,5 +367,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 textButton.setVisibility((mPlayer.getTrackManager().getTextTrackList().size() > 0) ? View.VISIBLE : View.GONE);
             }
         }
+    }
+
+    @Override
+    public void onVideoTrackChanged(int currentTrack) {
+        Log.e(TAG, "** onVideoTrackChanged ** " + currentTrack);
+    }
+
+    @Override
+    public void onTextTrackChanged(int currentTrack) {
+        Log.e(TAG, "** onTextTrackChanged ** " + currentTrack);
+    }
+
+    @Override
+    public void onAudioTrackChanged(int currentTrack) {
+        Log.e(TAG, "** onAudioTrackChanged ** " + currentTrack);
+
     }
 }
