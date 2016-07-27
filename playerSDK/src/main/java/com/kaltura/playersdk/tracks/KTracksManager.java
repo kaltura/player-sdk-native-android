@@ -24,6 +24,9 @@ public class KTracksManager implements  KTrackActions {
 
     private KPlayer player;
     private KTracksContainer tracksContainer;
+    private KTrackActions.VideoTrackEventListener videoTrackEventListener = null;
+    private KTrackActions.AudioTrackEventListener audioTrackEventListener = null;
+    private KTrackActions.TextTrackEventListener  textTrackEventListener = null;
 
 
     public KTracksManager(KPlayer player) {
@@ -31,13 +34,48 @@ public class KTracksManager implements  KTrackActions {
         initTrackManagerLists();
     }
 
+    public void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener) {
+        this.videoTrackEventListener = videoTrackEventListener;
+    }
+    public void setAudioTrackEventListener(KTrackActions.AudioTrackEventListener audioTrackEventListener) {
+        this.audioTrackEventListener = audioTrackEventListener;
+    }
+    public void setTextTrackEventListener(KTrackActions.TextTrackEventListener textTrackEventListener) {
+        this.textTrackEventListener = textTrackEventListener;
+    }
 
+    public void removeVideoTrackEventListener() {
+        this.videoTrackEventListener = null;
+    }
+    public void removeAudioTrackEventListener() {
+        this.audioTrackEventListener = null;
+    }
+    public void removeTextTrackEventListener() {
+        this.textTrackEventListener = null;
+    }
 
     @Override
     public void switchTrack(TrackType trackType, int newIndex) {
         if (isAvailableTracksRelevant(trackType)) {
             LOGD(TAG, "switchTrack for " + trackType.name() + " newIndex = " + newIndex);
             player.switchTrack(trackType, newIndex);
+            switch (trackType) {
+                case VIDEO:
+                    if (videoTrackEventListener != null) {
+                        videoTrackEventListener.onVideoTrackChanged(newIndex);
+                    }
+                    break;
+                case AUDIO:
+                    if (audioTrackEventListener != null) {
+                        audioTrackEventListener.onAudioTrackChanged(newIndex);
+                    }
+                    break;
+                case TEXT:
+                    if (textTrackEventListener != null) {
+                        textTrackEventListener.onTextTrackChanged(newIndex);
+                    }
+                    break;
+            }
         } else {
             LOGD(TAG, "switchTrack " + trackType.name() + "skipped Reason: track count  < 2");
         }
@@ -70,7 +108,9 @@ public class KTracksManager implements  KTrackActions {
             return;
         }
 
+        TrackFormat autoTrackFormat = null;
         if (tracksList.get(0).bitrate == -1) {
+            autoTrackFormat = tracksList.get(0);
             tracksList.remove(0);
         }
 
@@ -89,6 +129,11 @@ public class KTracksManager implements  KTrackActions {
         bitrateSet.addAll(tracksList);
         LOGD(TAG, "preferred bitrate selected = " +  bitrateSet.first());
         switchTrack(trackType, bitrateSet.first().index);
+
+        //adding Auto again after removing it for comperator ignorance
+        if (autoTrackFormat != null) {
+            tracksList.add(0, autoTrackFormat);
+        }
     }
 
     @Override
@@ -141,7 +186,7 @@ public class KTracksManager implements  KTrackActions {
     }
 
 
-    public JSONObject getTrackListAsJson(TrackType trackType, boolean isTracksEventListenerEnabled ) {
+    public JSONObject getTrackListAsJson(TrackType trackType) {
         JSONObject resultJsonObj = new JSONObject();
         JSONArray tracksJsonArray = new JSONArray();
         int trackCount = getTracksCount(trackType);
@@ -149,9 +194,7 @@ public class KTracksManager implements  KTrackActions {
         List<TrackFormat> tracksList = getTracksList(trackType);
         for (TrackFormat tf : tracksList) {
             // for webView we filter the -1 bitrate since it is added automatically in the web layer
-            if (TrackType.VIDEO.equals(trackType) &&
-                tf.bitrate == -1 &&
-                !isTracksEventListenerEnabled) {
+            if (TrackType.VIDEO.equals(trackType) && tf.bitrate == -1) {
                 continue;
             }
             tracksJsonArray.put(tf.toJSONObject());

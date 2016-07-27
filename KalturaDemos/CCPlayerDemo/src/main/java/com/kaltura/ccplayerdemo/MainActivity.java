@@ -1,15 +1,20 @@
-package com.kaltura.basicplayerdemo;
+package com.kaltura.ccplayerdemo;
 
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
@@ -17,24 +22,26 @@ import android.widget.SeekBar;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.casting.KCastDevice;
+import com.kaltura.playersdk.casting.KCastFactory;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
+import com.kaltura.playersdk.interfaces.KCastProvider;
+import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.types.KPError;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.kaltura.playersdk.utils.LogUtils.LOGD;
-import static com.kaltura.playersdk.utils.LogUtils.LOGE;
-
-
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener,KTrackActions.VideoTrackEventListener,KTrackActions.AudioTrackEventListener, KTrackActions.TextTrackEventListener,KTrackActions.EventListener, KPErrorEventListener, KPPlayheadUpdateEventListener, KPStateChangedEventListener /*--deprecated, KPEventListener*/ {
-    private static final String TAG = "BasicPlayerDemo";
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KTrackActions.EventListener, KPErrorEventListener, KPPlayheadUpdateEventListener, KPStateChangedEventListener /*--deprecated, KPEventListener*/ {
+    private static final String TAG = "CCPlayerDemo";
 
     private static final int MENU_GROUP_TRACKS = 1;
     private static final int TRACK_DISABLED = -1;
@@ -44,6 +51,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
     private boolean onCreate = false;
+    private ArrayList<KCastDevice> mRouterInfos = new ArrayList<>();
+    private boolean isCCActive = false;
+    private Button ccButton;
+    private ImageButton mMediaRouteButtonDiscon;
+    private ImageButton mMediaRouteButtonCon;
+    private ImageButton mStreamButton;
+    private Button mLoadPlayer;
+    private Button mStopCasting;
+    private
+    KCastProvider mCastProvider;
+
     private boolean enableBackgroundAudio;
     private Button videoButton;
     private Button audioButton;
@@ -62,62 +80,234 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
+        android.support.v7.app.ActionBar mActionBar = getSupportActionBar();
+        LayoutInflater mInflater = LayoutInflater.from(this);
+        View mCustomView = mInflater.inflate(R.layout.action_bar, null);
+        if (mActionBar != null) {
+            mActionBar.setDisplayShowHomeEnabled(false);
+            mActionBar.setDisplayShowTitleEnabled(false);
+            mActionBar.setCustomView(mCustomView);
+            mActionBar.setDisplayShowCustomEnabled(true);
+        }
+
+
+
+
+        mMediaRouteButtonDiscon = (ImageButton) mCustomView.findViewById(R.id.route_button_discon);
+        mMediaRouteButtonDiscon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presentCCDevices();
+            }
+        });
+
+        mMediaRouteButtonCon = (ImageButton)mCustomView.findViewById(R.id.route_button_con);
+        mMediaRouteButtonCon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCastProvider.disconnectFromDevice();
+            }
+        });
+
+        mStreamButton = (ImageButton) mCustomView.findViewById(R.id.stream);
+        mStreamButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.setId(v.getId() != 0 ? 0 : 1);
+                mStreamButton.setBackgroundResource((v.getId() != 0) ? R.drawable.stream_icon_normal : R.drawable.stream_icon);
+                mPlayer.setCastProvider(mCastProvider);
+            }
+        });
+
+        mLoadPlayer = (Button) findViewById(R.id.loadPlayer);
+        mLoadPlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getPlayer();
+            }
+        });
+
+        mStopCasting = (Button) findViewById(R.id.stopCasting);
+        mStopCasting.setVisibility(View.INVISIBLE);
+        mStopCasting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCastProvider.disconnectFromDevice();
+                mStopCasting.setVisibility(View.INVISIBLE);
+            }
+        });
+
         videoButton = (Button) findViewById(R.id.video_controls);
         audioButton = (Button) findViewById(R.id.audio_controls);
         textButton = (Button) findViewById(R.id.text_controls);
         mPlayPauseButton = (Button)findViewById(R.id.button);
-        mPlayPauseButton.setOnClickListener(this);
-        mPlayPauseButton.setOnLongClickListener(new View.OnLongClickListener() {
+        if (mPlayPauseButton != null) {
+            mPlayPauseButton.setOnClickListener(this);
+            mPlayPauseButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    getPlayer().getMediaControl().replay();
+                    return true;
+                }
+            });
+        }
+
+        mSeekBar = (SeekBar)findViewById(R.id.seekBar);
+        if (mSeekBar != null) {
+            mSeekBar.setOnSeekBarChangeListener(this);
+        }
+        ccButton = (Button)findViewById(R.id.ccButto);
+        ccButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
-                getPlayer().getMediaControl().replay();
-                return true;
+            public void onClick(View v) {
+//                presentCCDevices();
+                startCC();
             }
         });
-        mSeekBar = (SeekBar)findViewById(R.id.seekBar);
-        mSeekBar.setOnSeekBarChangeListener(this);
         onCreate = true;
-        getPlayer();
+
+
     }
 
 
+    private void startCC() {
+
+        mCastProvider = KCastFactory.createCastProvider();
+        mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
+            @Override
+            public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
+                mCastProvider.getCastMediaRemoteControl().addListener(new KCastMediaRemoteControl.KCastMediaRemoteControlListener() {
+                    @Override
+                    public void onCastMediaProgressUpdate(long currentPosition) {
+
+                    }
+
+                    @Override
+                    public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onDeviceCameOnline(KCastDevice device) {
+                LOGD(TAG, "onDeviceCameOnline deviceName = " + device.getRouterName());
+                mRouterInfos.add(device);
+                if (mMediaRouteButtonDiscon.getVisibility() == View.INVISIBLE && mRouterInfos.size() > 0) {
+                    mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onDeviceWentOffline(KCastDevice device) {
+                mRouterInfos.remove(device);
+                if (mRouterInfos.size() == 0) {
+                    mMediaRouteButtonDiscon.setVisibility(View.INVISIBLE);
+                }
+            }
+
+            @Override
+            public void onDeviceConnected() {
+                mMediaRouteButtonDiscon.setVisibility(View.INVISIBLE);
+                mMediaRouteButtonCon.setVisibility(View.VISIBLE);
+                mStopCasting.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onDeviceDisconnected() {
+                mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
+                mMediaRouteButtonCon.setVisibility(View.INVISIBLE);
+                mStopCasting.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onDeviceFailedToConnect(KPError error) {
+
+            }
+
+            @Override
+            public void onDeviceFailedToDisconnect(KPError error) {
+
+            }
+        });
+        mCastProvider.startScan(getApplicationContext(), "C43947A1");
+    }
 
     private PlayerViewController getPlayer() {
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
-            mPlayer.loadPlayerIntoActivity(this);
-
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc6/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-            //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
-            config.setAutoPlay(true);
-            mPlayPauseButton.setText("Pause");
-
-            //config.addConfig("controlBarContainer.hover", "true");
-            config.addConfig("closedCaptions.plugin", "true");
-            config.addConfig("sourceSelector.plugin", "true");
-            config.addConfig("sourceSelector.displayMode", "bitrate");
-            config.addConfig("audioSelector.plugin", "true");
-            config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
+            if (mPlayer != null) {
+                mPlayer.loadPlayerIntoActivity(this);
+                //KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc9/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                config.addConfig("closedCaptions.plugin", "true");
+                config.addConfig("sourceSelector.plugin", "true");
+                config.addConfig("sourceSelector.displayMode", "bitrate");
+                config.addConfig("audioSelector.plugin", "true");
+                config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
 
 
-            mPlayer.initWithConfiguration(config);
+                config.addConfig("chromecast.plugin", "true");
+                config.addConfig("chromecast.applicationID", "C43947A1");
+                config.addConfig("chromecast.useKalturaPlayer", "true");
+                config.addConfig("chromecast.receiverLogo", "true");
 
-            mPlayer.setOnKPErrorEventListener(this);
-            mPlayer.setOnKPPlayheadUpdateEventListener(this);
-            //mPlayer.setOnKPFullScreenToggeledEventListener(this);
-            mPlayer.setOnKPStateChangedEventListener(this);
+                mPlayer.initWithConfiguration(config);
 
-            /****FOR TRACKS****/
-            //// Tracks on Web supported only from 2.44
-            //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
-            ////onTracksUpdate and the mPlayer.getTrackManager() methodes
-            //mPlayer.setTracksEventListener(this);
-            //mPlayer.setVideoTrackEventListener(this);
-            //mPlayer.setTextTrackEventListener(this);
-            //mPlayer.setAudioTrackEventListener(this);
+                mPlayPauseButton.setText("Pause");
+//                mPlayer.getMediaControl().seek(100, new KMediaControl.SeekCallback() {
+//                    @Override
+//                    public void seeked(long milliSeconds) {
+//
+//                    }
+//                });
+
+//                if (mCastProvider != null) {
+//                    mPlayer.setCastProvider(mCastProvider);
+//                }
+
+                mPlayer.setOnKPErrorEventListener(this);
+                mPlayer.setOnKPPlayheadUpdateEventListener(this);
+                //mPlayer.setOnKPFullScreenToggeledEventListener(this);
+                mPlayer.setOnKPStateChangedEventListener(this);
+                mPlayer.addKPlayerEventListener("onEnableKeyboardBinding", "eventID", new PlayerViewController.EventListener() {
+                    @Override
+                    public void handler(String eventName, String params) {
+
+                    }
+                });
+
+                /****FOR TRACKS****/
+                //// Tracks on Web supported only from 2.44
+                //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
+                ////onTracksUpdate and the mPlayer.getTrackManager() methodes
+                //mPlayer.setTracksEventListener(this);
+            }
+
+
         }
         return mPlayer;
     }
+
+    private void presentCCDevices() {
+        final ArrayList<KCastDevice> devices = mCastProvider.getDevices();
+        final String[] items = new String[devices.size()];
+        for (int i = 0; i < items.length; i++   ) {
+            items[i] = devices.get(i).getRouterName();
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Make your selection");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                // Do something with the selection
+                mCastProvider.connectToDevice(devices.get(item));
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+    }
+
 
     private RelativeLayout getPlayerContainer() {
         return (RelativeLayout)findViewById(R.id.playerContainer);
@@ -215,10 +405,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
 //            findViewById(R.id.replay).setVisibility(View.VISIBLE);
-            mPlayPauseButton.setText("Play");
+
         } else if (state == KPlayerState.PLAYING) {
 //            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
-            mPlayPauseButton.setText("Pause");
+
+        }
+        switch (state) {
+            case PAUSED:
+                mPlayPauseButton.setText("Play");
+                break;
+            case PLAYING:
+                mPlayPauseButton.setText("Pause");
+                break;
+            case READY:
+                mStreamButton.setVisibility(View.VISIBLE);
+                break;
         }
     }
 
@@ -370,21 +571,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 textButton.setVisibility((mPlayer.getTrackManager().getTextTrackList().size() > 0) ? View.VISIBLE : View.GONE);
             }
         }
-    }
-
-    @Override
-    public void onVideoTrackChanged(int currentTrack) {
-        LOGD(TAG, "** onVideoTrackChanged ** " + currentTrack);
-    }
-
-    @Override
-    public void onTextTrackChanged(int currentTrack) {
-        LOGD(TAG, "** onTextTrackChanged ** " + currentTrack);
-    }
-
-    @Override
-    public void onAudioTrackChanged(int currentTrack) {
-        LOGD(TAG, "** onAudioTrackChanged ** " + currentTrack);
-
     }
 }

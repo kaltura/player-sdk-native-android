@@ -14,10 +14,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.kaltura.playersdk.cast.KRouterCallback;
-import com.kaltura.playersdk.interfaces.ScanCastDeviceListener;
+import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
+import com.kaltura.playersdk.players.KChromeCastPlayer;
 
 import java.io.IOException;
+import java.util.ArrayList;
+
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
@@ -30,7 +32,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private static final String TAG = "KCastProviderImpl";
     private String nameSpace = "urn:x-cast:com.kaltura.cast.player";
     private String mCastAppID;
-    private ScanCastDeviceListener mScanCastDeviceListener;
     private KCastProviderListener mProviderListener;
     private Context mContext;
 
@@ -49,15 +50,35 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private boolean mApplicationStarted = false;
     private boolean mCastButtonEnabled = false;
 
+    private KCastMediaRemoteControl mCastMediaRemoteControl;
+
     private String mSessionId;
 
+    private InternalListener mInternalListener;
 
-    public void setScanCastDeviceListener(ScanCastDeviceListener listener) {
-        mScanCastDeviceListener = listener;
-    }
 
     public GoogleApiClient getApiClient() {
         return mApiClient;
+    }
+
+    public interface InternalListener extends KCastMediaRemoteControl.KCastMediaRemoteControlListener {
+        void onStartCasting(KChromeCastPlayer remoteMediaPlayer);
+        void onCastStateChanged(String state);
+        void onStopCasting();
+    }
+
+    public void setInternalListener(InternalListener internalListener) {
+        mInternalListener = internalListener;
+    }
+
+    public KCastProviderListener getProviderListener() {
+        return mProviderListener;
+    }
+
+
+
+    public KCastKalturaChannel getChannel() {
+        return mChannel;
     }
 
     @Override
@@ -69,24 +90,19 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     public void startScan(Context context, String appID) {
         mContext = context;
         mCastAppID = appID;
-        mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
-
-            @Override
-            public void readyForMedia() {
-            sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
-                mScanCastDeviceListener.onStartCasting(mApiClient, mSelectedDevice);
-            }
-        });
         mRouter = MediaRouter.getInstance(mContext.getApplicationContext());
         mCallback = new KRouterCallback();
         mCallback.setListener(this);
+        mCallback.setRouter(mRouter);
         mSelector = new MediaRouteSelector.Builder().addControlCategory(CastMediaControlIntent.categoryForCast(mCastAppID)).build();
-        mRouter.addCallback(mSelector, mCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+        if (mRouter != null) {
+            mRouter.addCallback(mSelector, mCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+        }
     }
 
     @Override
     public void stopScan() {
-
+        mRouter.removeCallback(mCallback);
     }
 
     @Override
@@ -96,26 +112,47 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void connectToDevice(KCastDevice device) {
-        mCallback.setRouter(mRouter);
         MediaRouter.RouteInfo selectedRoute = mCallback.routeById(device.getRouterId());
-        mRouter.selectRoute(selectedRoute);
-        if (mScanCastDeviceListener != null) {
-            mScanCastDeviceListener.onConnecting();
+        if (mRouter != null) {
+            mRouter.selectRoute(selectedRoute);
         }
+//        if (mScanCastDeviceListener != null) {
+//            mScanCastDeviceListener.onConnecting();
+//        }
     }
 
     @Override
-    public void disconnectFromDevcie() {
-        if (mScanCastDeviceListener != null) {
-            mScanCastDeviceListener.onDisconnectCastDevice();
+    public void disconnectFromDevice() {
+//        if (mScanCastDeviceListener != null) {
+//            mScanCastDeviceListener.onDisconnectCastDevice();
+//        }
+        if (mRouter != null) {
+            mRouter.unselect(MediaRouter.UNSELECT_REASON_STOPPED);
+            mSelectedDevice = null;
         }
-        mRouter.unselect(MediaRouter.UNSELECT_REASON_STOPPED);
-        mSelectedDevice = null;
     }
 
     @Override
     public void setKCastProviderListener(KCastProviderListener listener) {
         mProviderListener = listener;
+    }
+
+    @Override
+    public ArrayList<KCastDevice> getDevices() {
+        if (mRouter != null && mRouter.getRoutes() != null && mRouter.getRoutes().size() > 0) {
+            ArrayList<KCastDevice> devices = new ArrayList<>();
+            for (MediaRouter.RouteInfo info: mRouter.getRoutes()) {
+                KCastDevice castDevice = new KCastDevice(info);
+                devices.add(castDevice);
+            }
+            return devices;
+        }
+        return null;
+    }
+
+    @Override
+    public KCastMediaRemoteControl getCastMediaRemoteControl() {
+        return mCastMediaRemoteControl;
     }
 
     private Cast.Listener getCastClientListener() {
@@ -126,7 +163,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                     if (mApiClient != null) {
                         LOGD(TAG, "onApplicationStatusChanged: "
                                 + Cast.CastApi.getApplicationStatus(mApiClient));
-                        if (Cast.CastApi.getApplicationStatus(mApiClient) == "Ready to play" && mProviderListener != null) {
+                        if ("Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient)) && mProviderListener != null) {
                             mProviderListener.onDeviceConnected();
                         }
                     }
@@ -154,6 +191,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
                 @Override
                 public void onVolumeChanged() {
+
                 }
             };
         }
@@ -238,13 +276,18 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                     .build();
             mApiClient.connect();
         } else if (mProviderListener != null){
-            teardown();
+            if (mInternalListener != null) {
+                mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
+                mInternalListener.onStopCasting();
+                mInternalListener = null;
+            }
             mProviderListener.onDeviceDisconnected();
+            teardown();
         }
     }
 
     @Override
-    public void onRouteAdded(boolean isAdded, KCastDevice route) {
+    public void onRouteUpdate(boolean isAdded, KCastDevice route) {
         if (isAdded) {
             mProviderListener.onDeviceCameOnline(route);
         } else {
@@ -254,10 +297,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void onFoundDevices(boolean didFound) {
-        if (mCastButtonEnabled) {
-            mScanCastDeviceListener.onDevicesInRange(didFound);
-        }
+//        if (mCastButtonEnabled) {
+//            mScanCastDeviceListener.onDevicesInRange(didFound);
+//        }
     }
+
 
     private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
         @Override
@@ -266,7 +310,8 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 mWaitingForReconnect = false;
 
                 // In case of kaltura receiver is loaded, open channel for sneding messages
-            } else if (mChannel != null){
+            } else {
+
                 try {
                     Cast.CastApi.launchApplication(mApiClient, mCastAppID, new LaunchOptions())
                             .setResultCallback(
@@ -275,11 +320,26 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                         public void onResult(Cast.ApplicationConnectionResult result) {
                                             Status status = result.getStatus();
                                             if (status.isSuccess()) {
-//                                                ApplicationMetadata applicationMetadata =
-//                                                        result.getApplicationMetadata();
                                                 mSessionId = result.getSessionId();
-//                                                String applicationStatus = result.getApplicationStatus();
-//                                                boolean wasLaunched = result.getWasLaunched();
+//                                                mRemoteMediaPlayer = new RemoteMediaPlayer();
+
+                                                // Prepare the custom channel (listens to Kaltura's receiver messages)
+                                                mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
+
+                                                    @Override
+                                                    public void readyForMedia(final String[] params) {
+                                                        sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+                                                        // Receiver send the new content
+                                                        if (params != null) {
+                                                            mCastMediaRemoteControl = new KChromeCastPlayer(mApiClient);
+                                                            ((KChromeCastPlayer)mCastMediaRemoteControl).setMediaInfoParams(params);
+                                                            if (mInternalListener != null) {
+                                                                mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                                sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
                                                 mApplicationStarted = true;
                                                 try {
                                                     Cast.CastApi.setMessageReceivedCallbacks(mApiClient,
@@ -288,7 +348,9 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                                 } catch (IOException e) {
                                                     LOGE(TAG, "Exception while creating channel", e);
                                                 }
-                                                mProviderListener.onDeviceConnected();
+                                                if (mProviderListener != null) {
+                                                    mProviderListener.onDeviceConnected();
+                                                }
                                             } else {
                                                 teardown();
                                             }
@@ -298,8 +360,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 } catch (Exception e) {
                     LOGD(TAG, "Failed to launch application", e);
                 }
-            } else {
-//                mListener.onStartCasting(mApiClient, mSelectedDevice);
             }
         }
 
@@ -314,5 +374,9 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         public void onConnectionFailed(ConnectionResult result) {
             teardown();
         }
+    }
+
+    public boolean hasMediaSession() {
+        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession();
     }
 }

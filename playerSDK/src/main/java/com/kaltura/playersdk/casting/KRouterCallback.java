@@ -1,9 +1,8 @@
-package com.kaltura.playersdk.cast;
+package com.kaltura.playersdk.casting;
 
 import android.support.v7.media.MediaRouter;
 
 import com.google.android.gms.cast.CastDevice;
-import com.kaltura.playersdk.casting.KCastDevice;
 
 /**
  * Created by nissimpardo on 07/12/15.
@@ -15,7 +14,7 @@ public class KRouterCallback extends MediaRouter.Callback {
 
     public interface KRouterCallbackListener {
         void onDeviceSelected(CastDevice castDeviceSelected);
-        void onRouteAdded(boolean isAdded, KCastDevice route);
+        void onRouteUpdate(boolean isAdded, KCastDevice route);
         void onFoundDevices(boolean didFound);
     }
 
@@ -39,35 +38,41 @@ public class KRouterCallback extends MediaRouter.Callback {
 
     @Override
     public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo route) {
-        mListener.onDeviceSelected(CastDevice.getFromBundle(route.getExtras()));
+        if (mListener != null) {
+            mListener.onDeviceSelected(CastDevice.getFromBundle(route.getExtras()));
+        }
     }
 
     @Override
     public void onRouteUnselected(MediaRouter router, MediaRouter.RouteInfo route) {
-        mListener.onDeviceSelected(null);
+        if (mListener != null) {
+            mListener.onDeviceSelected(null);
+        }
     }
 
     @Override
     public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+        if (mListener == null) {
+            return;
+        }
         if (!didFindDevices) {
             mListener.onFoundDevices(true);
             didFindDevices = true;
         }
-        KCastDevice info = new KCastDevice();
-        info.setRouterName(route.getName());
-        info.setRouterId(route.getId());
-        mListener.onRouteAdded(true, info);
+        KCastDevice info = new KCastDevice(route);
+        mListener.onRouteUpdate(true, info);
     }
 
     @Override
     public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
+        if (mListener == null) {
+            return;
+        }
         if (router.getRoutes().size() == 0) {
             didFindDevices = false;
             mListener.onFoundDevices(false);
         }
-        KCastDevice info = new KCastDevice();
-        info.setRouterName(route.getName());
-        info.setRouterId(route.getId());
-        mListener.onRouteAdded(false, info);
+        KCastDevice info = new KCastDevice(route);
+        mListener.onRouteUpdate(false, info);
     }
 }

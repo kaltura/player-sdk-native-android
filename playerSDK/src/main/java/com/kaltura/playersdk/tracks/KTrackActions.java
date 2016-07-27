@@ -13,4 +13,13 @@ public interface KTrackActions {
 	interface EventListener {
 		void onTracksUpdate(KTrackActions tracksManager);
 	}
+	interface VideoTrackEventListener {
+		void onVideoTrackChanged(int currentTrack);
+	}
+	interface AudioTrackEventListener {
+		void onAudioTrackChanged(int currentTrack);
+	}
+	interface TextTrackEventListener {
+		void onTextTrackChanged(int currentTrack);
+	}
 }
