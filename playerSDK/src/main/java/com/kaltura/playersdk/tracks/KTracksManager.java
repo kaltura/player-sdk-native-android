@@ -23,6 +23,9 @@ public class KTracksManager implements  KTrackActions {
 
     private KPlayer player;
     private KTracksContainer tracksContainer;
+    private KTrackActions.VideoTrackEventListener videoTrackEventListener = null;
+    private KTrackActions.AudioTrackEventListener audioTrackEventListener = null;
+    private KTrackActions.TextTrackEventListener  textTrackEventListener = null;
 
 
     public KTracksManager(KPlayer player) {
@@ -30,13 +33,48 @@ public class KTracksManager implements  KTrackActions {
         initTrackManagerLists();
     }
 
+    public void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener) {
+        this.videoTrackEventListener = videoTrackEventListener;
+    }
+    public void setAudioTrackEventListener(KTrackActions.AudioTrackEventListener audioTrackEventListener) {
+        this.audioTrackEventListener = audioTrackEventListener;
+    }
+    public void setTextTrackEventListener(KTrackActions.TextTrackEventListener textTrackEventListener) {
+        this.textTrackEventListener = textTrackEventListener;
+    }
 
+    public void removeVideoTrackEventListener() {
+        this.videoTrackEventListener = null;
+    }
+    public void removeAudioTrackEventListener() {
+        this.audioTrackEventListener = null;
+    }
+    public void removeTextTrackEventListener() {
+        this.textTrackEventListener = null;
+    }
 
     @Override
     public void switchTrack(TrackType trackType, int newIndex) {
         if (isAvailableTracksRelevant(trackType)) {
             Log.d(TAG, "switchTrack for " + trackType.name() + " newIndex = " + newIndex);
             player.switchTrack(trackType, newIndex);
+            switch (trackType) {
+                case VIDEO:
+                    if (videoTrackEventListener != null) {
+                        videoTrackEventListener.onVideoTrackChanged(newIndex);
+                    }
+                    break;
+                case AUDIO:
+                    if (audioTrackEventListener != null) {
+                        audioTrackEventListener.onAudioTrackChanged(newIndex);
+                    }
+                    break;
+                case TEXT:
+                    if (textTrackEventListener != null) {
+                        textTrackEventListener.onTextTrackChanged(newIndex);
+                    }
+                    break;
+            }
         } else {
             Log.d(TAG, "switchTrack " + trackType.name() + "skipped Reason: track count  < 2");
         }

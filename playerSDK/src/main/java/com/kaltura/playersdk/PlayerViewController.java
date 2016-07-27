@@ -944,6 +944,34 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         playerController.setTracksEventListener(tracksEventListener);
     }
 
+    public void removeTracksEventListener(){
+        playerController.setTracksEventListener(null);
+    }
+
+    public void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener){
+        playerController.setVideoTrackEventListener(videoTrackEventListener);
+    }
+
+    public void removeVideoTrackEventListener(){
+        playerController.setVideoTrackEventListener(null);
+    }
+
+    public void setAudioTrackEventListener(KTrackActions.AudioTrackEventListener audioTrackEventListener){
+        playerController.setAudioTrackEventListener(audioTrackEventListener);
+    }
+
+    public void removeAusioTrackEventListener(){
+        playerController.setAudioTrackEventListener(null);
+    }
+
+    public void setTextTrackEventListener(KTrackActions.TextTrackEventListener textTrackEventListener){
+        playerController.setTextTrackEventListener(textTrackEventListener);
+    }
+
+    public void removeTextTrackEventListener(){
+        playerController.setTextTrackEventListener(null);
+    }
+
     private void notifyJsReady() {
         mIsJsCallReadyRegistration = true;
         if (mCallBackReadyRegistrations != null) {
