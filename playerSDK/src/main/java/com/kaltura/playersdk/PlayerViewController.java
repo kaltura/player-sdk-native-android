@@ -108,7 +108,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     @Override
     public void setOnTouchListener(OnTouchListener l) {
-        mWebView.setOnTouchListener(l);
+        if (mWebView != null) {
+            mWebView.setOnTouchListener(l);
+        }
     }
 
 
