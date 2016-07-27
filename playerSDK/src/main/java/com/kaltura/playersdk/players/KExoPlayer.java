@@ -220,6 +220,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void setCurrentPlaybackTime(long time) {
         mSeeking = true;
+        mReadiness = KState.SEEKING;
         stopPlaybackTimeReporter();
         if (mExoPlayer != null) {
             mExoPlayer.seekTo(time);
@@ -429,7 +430,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     }
 
                     // ExoPlayer is ready.
-                    if (mReadiness != KState.READY && mReadiness != KState.PLAYING && mReadiness != KState.PAUSED) {
+                    if (mReadiness != KState.READY && mReadiness != KState.PLAYING && mReadiness != KState.PAUSED && mReadiness != KState.SEEKING) {
                         mReadiness = KState.READY;
 
                         // TODO what about mShouldResumePlayback?
