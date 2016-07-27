@@ -635,15 +635,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 if (textTrackEventListener != null) {
                     getTracksManager().setTextTrackEventListener(textTrackEventListener);
                 }
-                if (tracksEventListener != null){
+
+                if (tracksEventListener != null) {
                     //send tracks to app
                     tracksEventListener.onTracksUpdate(tracksManager);
-                } else {
-                    //Send tracks to webView
-                    sendTracksList(TrackType.TEXT);
-                    sendTracksList(TrackType.AUDIO);
-                    sendTracksList(TrackType.VIDEO);
                 }
+
+                //Send tracks to webView
+                sendTracksList(TrackType.TEXT);
+                sendTracksList(TrackType.AUDIO);
+                sendTracksList(TrackType.VIDEO);
 
                 if (mContentPreferredBitrate != -1) {
                     if (tracksManager != null) {
@@ -685,13 +686,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         Log.d(TAG, "sendTracksList: " + trackType);
         switch(trackType) {
             case AUDIO:
-                playerListener.eventWithJSON(getPlayer(), KPlayerListener.AudioTracksReceivedKey, tracksManager.getTrackListAsJson(TrackType.AUDIO, false).toString());
+                playerListener.eventWithJSON(getPlayer(), KPlayerListener.AudioTracksReceivedKey, tracksManager.getTrackListAsJson(TrackType.AUDIO).toString());
                 break;
             case TEXT:
-                playerListener.eventWithJSON(getPlayer(), KPlayerListener.TextTracksReceivedKey,  tracksManager.getTrackListAsJson(TrackType.TEXT, false).toString());
+                playerListener.eventWithJSON(getPlayer(), KPlayerListener.TextTracksReceivedKey,  tracksManager.getTrackListAsJson(TrackType.TEXT).toString());
                 break;
             case VIDEO:
-                playerListener.eventWithJSON(getPlayer(), KPlayerListener.FlavorsListChangedKey,  tracksManager.getTrackListAsJson(TrackType.VIDEO, false).toString());
+                playerListener.eventWithJSON(getPlayer(), KPlayerListener.FlavorsListChangedKey,  tracksManager.getTrackListAsJson(TrackType.VIDEO).toString());
                 break;
         }
     }

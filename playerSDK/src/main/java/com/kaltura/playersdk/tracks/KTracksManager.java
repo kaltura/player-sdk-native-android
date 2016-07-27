@@ -107,7 +107,9 @@ public class KTracksManager implements  KTrackActions {
             return;
         }
 
+        TrackFormat autoTrackFormat = null;
         if (tracksList.get(0).bitrate == -1) {
+            autoTrackFormat = tracksList.get(0);
             tracksList.remove(0);
         }
 
@@ -126,6 +128,11 @@ public class KTracksManager implements  KTrackActions {
         bitrateSet.addAll(tracksList);
         Log.d(TAG, "preferred bitrate selected = " +  bitrateSet.first());
         switchTrack(trackType, bitrateSet.first().index);
+
+        //adding Auto again after removing it for comperator ignorance
+        if (autoTrackFormat != null) {
+            tracksList.add(0, autoTrackFormat);
+        }
     }
 
     @Override
@@ -178,7 +185,7 @@ public class KTracksManager implements  KTrackActions {
     }
 
 
-    public JSONObject getTrackListAsJson(TrackType trackType, boolean isTracksEventListenerEnabled ) {
+    public JSONObject getTrackListAsJson(TrackType trackType) {
         JSONObject resultJsonObj = new JSONObject();
         JSONArray tracksJsonArray = new JSONArray();
         int trackCount = getTracksCount(trackType);
@@ -186,9 +193,7 @@ public class KTracksManager implements  KTrackActions {
         List<TrackFormat> tracksList = getTracksList(trackType);
         for (TrackFormat tf : tracksList) {
             // for webView we filter the -1 bitrate since it is added automatically in the web layer
-            if (TrackType.VIDEO.equals(trackType) &&
-                tf.bitrate == -1 &&
-                !isTracksEventListenerEnabled) {
+            if (TrackType.VIDEO.equals(trackType) && tf.bitrate == -1) {
                 continue;
             }
             tracksJsonArray.put(tf.toJSONObject());
