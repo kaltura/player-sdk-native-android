@@ -371,17 +371,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onVideoTrackChanged(int currentTrack) {
-        Log.e(TAG, "** onVideoTrackChanged ** " + currentTrack);
+        Log.d(TAG, "** onVideoTrackChanged ** " + currentTrack);
     }
 
     @Override
     public void onTextTrackChanged(int currentTrack) {
-        Log.e(TAG, "** onTextTrackChanged ** " + currentTrack);
+        Log.d(TAG, "** onTextTrackChanged ** " + currentTrack);
     }
 
     @Override
     public void onAudioTrackChanged(int currentTrack) {
-        Log.e(TAG, "** onAudioTrackChanged ** " + currentTrack);
+        Log.d(TAG, "** onAudioTrackChanged ** " + currentTrack);
 
     }
 }
