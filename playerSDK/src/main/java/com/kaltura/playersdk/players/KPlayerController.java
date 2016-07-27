@@ -145,7 +145,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCastProvider(final KCastProvider castProvider) {
-        player.pause();
+        //player.pause(); //commented might cause extra play/pause in cast
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
