@@ -846,6 +846,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public void removeKPlayerEventListener(String event,String eventID) {
+        if (mPlayerEventsHash == null) {
+            return;
+        }
         ArrayList<HashMap<String, EventListener>> listenerArr = mPlayerEventsHash.get(event);
         if (listenerArr == null || listenerArr.size() == 0) {
             return;
