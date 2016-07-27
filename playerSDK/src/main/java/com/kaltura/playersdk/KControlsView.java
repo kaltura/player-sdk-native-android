@@ -90,7 +90,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         this.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onConsoleMessage(ConsoleMessage cm) {
-                if (LogUtils.isDEBUG()) {
+                if (LogUtils.isWebViewDebugModeOn()) {
                     Log.d(TAG, cm.message() + " at " + cm.sourceId() + ":" + cm.lineNumber());
                 }
                 return true;

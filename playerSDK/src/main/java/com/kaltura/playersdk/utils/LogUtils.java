@@ -5,40 +5,54 @@ import android.util.Log;
 
 public class LogUtils {
 
-    private static boolean DEBUG = true;
+    private static boolean DEBUG_MODE_ON = true;
+    private static boolean WEBVIEW_DEBUG_MODE_ON = true;
     private static String TAG = LogUtils.class.getSimpleName();
 
-    public static boolean isDEBUG() {
-        return DEBUG;
+    public static boolean isDebugModeOn() {
+        return DEBUG_MODE_ON;
+    }
+
+    public static boolean isWebViewDebugModeOn() {
+        return WEBVIEW_DEBUG_MODE_ON;
     }
 
     public static void disableDebugMode() {
-        DEBUG = false;
+        DEBUG_MODE_ON = false;
     }
 
     public static void enableDebugMode() {
-        DEBUG = true;
+        DEBUG_MODE_ON = true;
     }
+
+    public static void disableWebViewDebugMode() {
+        WEBVIEW_DEBUG_MODE_ON = false;
+    }
+
+    public static void enableWebViewDebugMode() {
+        WEBVIEW_DEBUG_MODE_ON = true;
+    }
+
     public static void LOGD(final String tag, String message) {
-        if (DEBUG) {
+        if (DEBUG_MODE_ON) {
             Log.d(tag, message);
         }
     }
 
     public static void LOGD(final String tag, String message, Throwable cause) {
-        if (DEBUG) {
+        if (DEBUG_MODE_ON) {
             Log.d(tag, message, cause);
         }
     }
 
     public static void LOGV(final String tag, String message) {
-        if (DEBUG) {
+        if (DEBUG_MODE_ON) {
             Log.v(tag, message);
         }
     }
 
     public static void LOGV(final String tag, String message, Throwable cause) {
-        if (DEBUG) {
+        if (DEBUG_MODE_ON) {
             Log.v(tag, message, cause);
         }
     }
