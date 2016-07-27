@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -38,6 +37,9 @@ import java.util.Observer;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener, Observer {
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity
         skipAd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "Skip selected");
+                LOGD(TAG, "Skip selected");
                 mAdPlayer.seek(mAdPlayer.getDuration(), true);
             }
         });
@@ -100,7 +102,7 @@ public class MainActivity extends AppCompatActivity
         nextContent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "Next selected");
+                LOGD(TAG, "Next selected");
                 if (config != null && !adPlayerIsPlaying) {
 
                     //  mPlayer.changeMedia("384080");
@@ -128,7 +130,7 @@ public class MainActivity extends AppCompatActivity
         // nextInt is normally exclusive of the top value,
         // so add 1 to make it inclusive
         randomNum = rand.nextInt((2));
-        Log.d(TAG, "randomNum " + randomNum);
+        LOGD(TAG, "randomNum " + randomNum);
         if (randomNum == 1) {
             adList.add(adUrl);
             //adList.add(adUrl1);
@@ -282,7 +284,7 @@ public class MainActivity extends AppCompatActivity
 
         if (mPlayer != null) {
             if (!isScreenOn) {
-                Log.d(TAG, "Screen OFF");
+                LOGD(TAG, "Screen OFF");
                 // The screen has been locked
                 // do stuff...
                 mPlayer.saveState();
@@ -310,7 +312,7 @@ public class MainActivity extends AppCompatActivity
             if (mPlayer != null)
                 mPlayer.getMediaControl().start();
             mPlayer.resumePlayer();
-            Log.d(TAG, "on Resume called for player");
+            LOGD(TAG, "on Resume called for player");
             if (mAdPlayer != null) {
                 mAdPlayer.moveSurfaceToForeground();
                 mAdPlayer.play();
@@ -403,13 +405,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.e(TAG, "Error Received:" + error.getErrorMsg());
+        LOGE(TAG, "Error Received:" + error.getErrorMsg());
     }
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.READY) {
-            Log.d(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
+            LOGD(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
             kPlayerReady = true;
             mPlayer.getMediaControl().pause();
             if (randomNum != 1)  { //ad failed
@@ -418,7 +420,7 @@ public class MainActivity extends AppCompatActivity
 
         }
         if (state == KPlayerState.ENDED && adIsDone) {
-            Log.d(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
+            LOGD(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
             if (!wvClassicRequired(isDRMContent)) {
                 mPlayer.detachView();
             }
@@ -429,14 +431,14 @@ public class MainActivity extends AppCompatActivity
 
 
     private void removeAdPlayer() {
-        Log.d(TAG, "removeAdPlayer");
+        LOGD(TAG, "removeAdPlayer");
         if (wvClassicRequired(isDRMContent)) {
-            Log.d(TAG, "WV Classic mode");
+            LOGD(TAG, "WV Classic mode");
             if (adPlayerContainer != null) {
                 switchLayers(true);
             }
         } else {
-            Log.d(TAG, "WV Modular mode/ ExoPlayer");
+            LOGD(TAG, "WV Modular mode/ ExoPlayer");
             switchLayers(false);
         }
         mAdPlayer = null;
@@ -505,16 +507,16 @@ public class MainActivity extends AppCompatActivity
                 switch (playbackState) {
                     case ExoPlayer.STATE_READY:
                         if (!playWhenReady && adPlayerIsPlaying) {
-                            Log.d(TAG, "SimpleVideoPlayer STATE_READY playWhenReady pause " + playWhenReady);
+                            LOGD(TAG, "SimpleVideoPlayer STATE_READY playWhenReady pause " + playWhenReady);
                             adPlayerIsPlaying = false;
                             mAdPlayer.pause();
                             break;
                         }
 
-                        Log.d(TAG, "SimpleVideoPlayer STATE_READY playWhenReady play " + playWhenReady);
+                        LOGD(TAG, "SimpleVideoPlayer STATE_READY playWhenReady play " + playWhenReady);
                         //if (playWhenReady) {
                         if (!adPlayerIsPlaying && adPlayerContainer != null && mAdPlayer != null) {
-                            Log.d(TAG, "START PLAY AD ");
+                            LOGD(TAG, "START PLAY AD ");
                             adPlayerIsPlaying = true;
                             Handler handler = new Handler();
                             handler.postDelayed(new Runnable() {
@@ -539,7 +541,7 @@ public class MainActivity extends AppCompatActivity
                         }
                         break;
                     case ExoPlayer.STATE_ENDED:
-                        Log.d(TAG, "changeAdMedia AD ENDED prev index = " + currentAdIndex);
+                        LOGD(TAG, "changeAdMedia AD ENDED prev index = " + currentAdIndex);
                         skipAd.setClickable(true);
                         skipAd.setVisibility(View.INVISIBLE);
                         currentAdIndex++;
@@ -549,7 +551,7 @@ public class MainActivity extends AppCompatActivity
 
                         adPlayerIsPlaying = false;
                         adIsDone = true;
-                        Log.d(TAG, "isLast " + index + "/" + adList.size());
+                        LOGD(TAG, "isLast " + index + "/" + adList.size());
                         if (index == adList.size() - 1) {
                             currentAdIndex = 0;
                             //changeAdMedia(adUrl1,true);
@@ -575,7 +577,7 @@ public class MainActivity extends AppCompatActivity
         removeAdPlayer();
 
         if (kPlayerReady) {
-            Log.d(TAG, "KPLAY FROM NORMAL PATH");
+            LOGD(TAG, "KPLAY FROM NORMAL PATH");
             if (!wvClassicRequired(isDRMContent)) {
                 mPlayer.attachView();
             }
@@ -583,24 +585,24 @@ public class MainActivity extends AppCompatActivity
             nextContent.setClickable(true);
             nextContent.setVisibility(View.VISIBLE);
             mPlayer.getMediaControl().start();
-            Log.d(TAG, "ENDED KPLAY FROM NORMAL PATH");
+            LOGD(TAG, "ENDED KPLAY FROM NORMAL PATH");
 
 
         } else {
             mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
                 @Override
                 public void handler() {
-                    Log.d(TAG, "KPLAY FROM HANDLER");
+                    LOGD(TAG, "KPLAY FROM HANDLER");
                     if (!wvClassicRequired(isDRMContent)) {
                         mPlayer.attachView();
                     }
 
-                    Log.d(TAG, "BEFORE ENDED - KPLAY FROM HANDLER");
+                    LOGD(TAG, "BEFORE ENDED - KPLAY FROM HANDLER");
                     nextContent.setClickable(true);
                     nextContent.setVisibility(View.VISIBLE);
                     mPlayer.getMediaControl().start();
 
-                    Log.d(TAG, "ENDED - KPLAY FROM HANDLER");
+                    LOGD(TAG, "ENDED - KPLAY FROM HANDLER");
                     kPlayerReady = false;
 
                 }

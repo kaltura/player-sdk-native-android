@@ -12,6 +12,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -25,19 +26,22 @@ import android.webkit.WebViewClient;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.utils.LogUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
  * Created by nissopa on 6/7/15.
  */
 public class KControlsView extends WebView implements View.OnTouchListener {
 
-    private static final String TAG = "KControlsView";
+    private static String TAG = KControlsView.class.getSimpleName();
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -82,7 +86,16 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         getSettings().setAppCacheEnabled(false);
         this.addJavascriptInterface(this, "android");
         this.setWebViewClient(new CustomWebViewClient());
-        this.setWebChromeClient(new WebChromeClient());
+        //this.setWebChromeClient(new WebChromeClient());
+        this.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                if (LogUtils.isWebViewDebugModeOn()) {
+                    LOGD(TAG, cm.message() + " at " + cm.sourceId() + ":" + cm.lineNumber());
+                }
+                return true;
+            }
+        });
         this.getSettings().setUserAgentString(this.getSettings().getUserAgentString() + " kalturaNativeCordovaPlayer");
         this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         this.setBackgroundColor(0);
@@ -119,7 +132,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     }
 
     public void sendNotification(String notification, String params) {
-        Log.d("JavaSCRIPT", KStringUtilities.sendNotification(notification, params));
+        LOGD(TAG, "JavaSCRIPT " + KStringUtilities.sendNotification(notification, params));
 
         this.loadUrl(KStringUtilities.sendNotification(notification, params));
     }
@@ -146,7 +159,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     private WebResourceResponse getResponse(Uri requestUrl, Map<String, String> headers, String method) {
         // Only handle http(s)
         if (!requestUrl.getScheme().startsWith("http")) {
-            Log.d(TAG, "Will not handle " + requestUrl);
+            LOGD(TAG, "Will not handle " + requestUrl);
             return null;
         }
         WebResourceResponse response = null;
@@ -157,7 +170,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
                 if (requestUrl.getPath().endsWith("favicon.ico")) {
                     response = getWhiteFaviconResponse();
                 } else {
-                    Log.e(TAG, "getResponse From CacheManager error::", e);
+                    LOGE(TAG, "getResponse From CacheManager error::", e);
                 }
             }
         }
@@ -175,7 +188,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
     @Override
     public void destroy() {
-        Log.d(TAG, "destroy()");
+        LOGD(TAG, "destroy()");
         super.destroy();
     }
 
@@ -183,18 +196,18 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            Log.d(TAG, "onPageStarted:" + url);
+            LOGD(TAG, "onPageStarted:" + url);
             super.onPageStarted(view, url, favicon);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            Log.d(TAG, "onPageFinished:" + url);
+            LOGD(TAG, "onPageFinished:" + url);
             super.onPageFinished(view, url);
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.d(TAG, "shouldOverrideUrlLoading: " + url);
+            LOGD(TAG, "shouldOverrideUrlLoading: " + url);
             if (url == null) {
                 return false;
             }

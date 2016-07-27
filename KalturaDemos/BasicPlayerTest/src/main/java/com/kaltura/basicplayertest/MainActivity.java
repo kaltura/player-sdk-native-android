@@ -9,7 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -29,6 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
     private static final String TAG = "BasicPlayerTest";
@@ -63,12 +64,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (Intent.ACTION_VIEW.equals( intent.getAction())) {
             paramsMap = new HashMap<>();
             Uri uri = intent.getData();
-            Log.e(TAG,uri.toString());
+            LOGE(TAG,uri.toString());
             String [] input = (uri.toString()).replace("view://", "").split("/"); //view://testId=1/entryId=1_gpzg0ebw/partnerId=1788671/uiConfId=33291342/mwEmbed=v2.41.rc9
             for(String param : input){
                 String [] paramKeyValue = param.split("=");
                 paramsMap.put(paramKeyValue[0],paramKeyValue[1]);
-                Log.e(TAG,param);
+                LOGE(TAG,param);
             }
         }
 
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             getPlayer();
         }else{
             Toast.makeText(this, "Error, intent input params are missing", Toast.LENGTH_LONG).show();
-            Log.e(TAG,"Error, intent input params are missing");
+            LOGE(TAG,"Error, intent input params are missing");
             mPlayPauseButton.setClickable(false);
         }
     }
@@ -210,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        Log.e("GILAD", "state " + state.name());
+        LOGE(TAG, "state " + state.name());
         if (state == KPlayerState.PLAYING) {
             TextView durationTV = (TextView) findViewById(R.id.durationText);
 
@@ -251,6 +252,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.e(TAG, "Error Received:" + error.getErrorMsg());
+        LOGE(TAG, "Error Received:" + error.getErrorMsg());
     }
 }

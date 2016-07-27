@@ -5,7 +5,6 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +28,10 @@ import com.kaltura.playersdk.types.KPError;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener,KTrackActions.VideoTrackEventListener,KTrackActions.AudioTrackEventListener, KTrackActions.TextTrackEventListener,KTrackActions.EventListener, KPErrorEventListener, KPPlayheadUpdateEventListener, KPStateChangedEventListener /*--deprecated, KPEventListener*/ {
     private static final String TAG = "BasicPlayerDemo";
@@ -221,13 +224,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.d(TAG, "onKPlayerError Error Received:" + error.getErrorMsg());
+        LOGD(TAG, "onKPlayerError Error Received:" + error.getErrorMsg());
     }
 
 
 //    @Override
 //    public void onKPlayerFullScreenToggeled(PlayerViewController playerViewController, boolean isFullscreen) {
-//        Log.d(TAG, "onKPlayerFullScreenToggeled isFullscreen " + isFullscreen);
+//        LOGD(TAG, "onKPlayerFullScreenToggeled isFullscreen " + isFullscreen);
 //    }
 
 
@@ -240,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (totalSeconds > 0) {
             percentage = (((double) currentSeconds) / totalSeconds) * 100;
         }
-        Log.d(TAG, "onKPlayerPlayheadUpdate " +  currentSeconds + "/" + totalSeconds + " => " + (int)percentage + "%");
+        LOGD(TAG, "onKPlayerPlayheadUpdate " +  currentSeconds + "/" + totalSeconds + " => " + (int)percentage + "%");
         mSeekBar.setProgress((int)percentage);
     }
 
@@ -298,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         int switchTrackIndex = item.getItemId() - ID_OFFSET;
-        Log.d(TAG, "onTrackItemClick switchTrackIndex: " + switchTrackIndex);
+        LOGD(TAG, "onTrackItemClick switchTrackIndex: " + switchTrackIndex);
         mPlayer.getTrackManager().switchTrack(type, switchTrackIndex);
 
         return true;
@@ -343,19 +346,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onTracksUpdate(KTrackActions tracksManager) {
         if (mPlayer != null) {
             updateButtonVisibilities();
-            Log.e(TAG, "----------------");
+            LOGE(TAG, "----------------");
             for (TrackFormat track : mPlayer.getTrackManager().getAudioTrackList()) {
-                Log.d(TAG, track.toString());
+                LOGD(TAG, track.toString());
             }
-            Log.e(TAG, "----------------");
+            LOGE(TAG, "----------------");
             for (TrackFormat track : mPlayer.getTrackManager().getVideoTrackList()) {
-                Log.e(TAG, track.toString());
+                LOGE(TAG, track.toString());
             }
-            Log.e(TAG, "----------------");
+            LOGE(TAG, "----------------");
             for (TrackFormat track : mPlayer.getTrackManager().getTextTrackList()) {
-                Log.d(TAG, track.toString());
+                LOGD(TAG, track.toString());
             }
-            Log.e(TAG, "----------------");
+            LOGE(TAG, "----------------");
         }
     }
 
@@ -371,17 +374,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onVideoTrackChanged(int currentTrack) {
-        Log.d(TAG, "** onVideoTrackChanged ** " + currentTrack);
+        LOGD(TAG, "** onVideoTrackChanged ** " + currentTrack);
     }
 
     @Override
     public void onTextTrackChanged(int currentTrack) {
-        Log.d(TAG, "** onTextTrackChanged ** " + currentTrack);
+        LOGD(TAG, "** onTextTrackChanged ** " + currentTrack);
     }
 
     @Override
     public void onAudioTrackChanged(int currentTrack) {
-        Log.d(TAG, "** onAudioTrackChanged ** " + currentTrack);
+        LOGD(TAG, "** onAudioTrackChanged ** " + currentTrack);
 
     }
 }

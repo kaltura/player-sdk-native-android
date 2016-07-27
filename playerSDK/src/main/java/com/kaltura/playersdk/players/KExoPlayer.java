@@ -9,7 +9,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Base64;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -46,6 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGI;
 
 /**
  * Created by noamt on 18/01/2016.
@@ -156,7 +159,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     private void prepare() {
         if (mReadiness != KState.IDLE) {
-            Log.d(TAG, "Already preparing");
+            LOGD(TAG, "Already preparing");
             return;
         }
 
@@ -195,12 +198,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                Log.d(TAG, "surfaceChanged(" + format + "," + width + "," + height + ")");
+                LOGD(TAG, "surfaceChanged(" + format + "," + width + "," + height + ")");
             }
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
-                Log.d(TAG, "surfaceDestroyed");
+                LOGD(TAG, "surfaceDestroyed");
                 if (mExoPlayer != null) {
                     mExoPlayer.blockingClearSurface();
                     mExoPlayer.removeListener(KExoPlayer.this);
@@ -209,7 +212,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         };
 
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
-        Log.d(TAG, "KExoPlaer prepareWithConfigurationMode " + prepareWithConfigurationMode);
+        LOGD(TAG, "KExoPlaer prepareWithConfigurationMode " + prepareWithConfigurationMode);
         if(!prepareWithConfigurationMode) {
             this.addView(mSurfaceView, layoutParams);
             mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
@@ -249,7 +252,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (isPlaying() || mReadiness == KState.PLAYING) {
             return;
         }
-        Log.d(TAG, "action: play called");
+        LOGD(TAG, "action: play called");
         if (mShouldCancelPlay) {
             mShouldCancelPlay = false;
             mReadiness = KState.IDLE;
@@ -279,7 +282,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (mReadiness == KState.PAUSED) {
             return;
         }
-        Log.d(TAG, "action: pause called");
+        LOGD(TAG, "action: pause called");
         mReadiness = KState.PAUSED;
 
         stopPlaybackTimeReporter();
@@ -302,7 +305,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     }
 
     private void stopPlaybackTimeReporter() {
-        Log.d(TAG, "remove handler callbacks");
+        LOGD(TAG, "remove handler callbacks");
         mPlaybackTimeReporter.removeMessages(0);
     }
 
@@ -363,7 +366,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void attachSurfaceViewToPlayer() {
         if (prepareWithConfigurationMode) {
-            Log.d(TAG, "KExoPlayer attachSurfaceViewToPlayer " + prepareWithConfigurationMode);
+            LOGD(TAG, "KExoPlayer attachSurfaceViewToPlayer " + prepareWithConfigurationMode);
             LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
             this.addView(mSurfaceView, layoutParams);
             mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
@@ -402,7 +405,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     // PlaybackListener
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
-        Log.d(TAG, "PlayerStateChanged: " + playbackState);
+        LOGD(TAG, "PlayerStateChanged: " + playbackState);
 
         switch (playbackState) {
             case ExoPlayer.STATE_IDLE:
@@ -456,7 +459,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 break;
 
             case ExoPlayer.STATE_ENDED:
-                Log.d(TAG, "state ended");
+                LOGD(TAG, "state ended");
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
                     mReadiness = KState.IDLE;
@@ -477,7 +480,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     @Override
     public void onError(Exception e) {
         String errMsg = "Player Error";
-        Log.e(TAG, errMsg, e);
+        LOGE(TAG, errMsg, e);
         String errorString = "";
         if (e instanceof UnsupportedDrmException) {
             // Special case DRM failures.
@@ -486,7 +489,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     : unsupportedDrmException.reason == UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME
                     ? "error_drm_unsupported_scheme" : "error_drm_unknown";
         } else if (e instanceof ExoPlaybackException && e.getCause() instanceof BehindLiveWindowException) {
-            Log.e(TAG, "Recovering BehindLiveWindowException"); // happens if network is bad and no more chunk in hte buffer
+            LOGE(TAG, "Recovering BehindLiveWindowException"); // happens if network is bad and no more chunk in hte buffer
             mExoPlayer.prepare();
             return;
         } else if (e instanceof ExoPlaybackException && e.getCause() instanceof android.media.MediaCodec.CryptoException) {
@@ -512,7 +515,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             }
         }
         if (!"".equals(errorString)) {
-            Log.e(TAG, errorString);
+            LOGE(TAG, errorString);
             errorString += "-";
         }
 
@@ -536,7 +539,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (mExoPlayer != null) {
             return mExoPlayer.getTrackCount(getExoTrackType(trackType));
         } else {
-            Log.e(TAG, "getTrackCount mExoPlayer = null");
+            LOGE(TAG, "getTrackCount mExoPlayer = null");
             return 0;
         }
 
@@ -547,7 +550,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (mExoPlayer != null) {
             return mExoPlayer.getSelectedTrack(getExoTrackType(trackType));
         } else {
-            Log.e(TAG, "getCurrentTrackIndex mExoPlayer = null");
+            LOGE(TAG, "getCurrentTrackIndex mExoPlayer = null");
             return -1;
         }
     }
@@ -561,7 +564,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (mExoPlayer != null) {
             mExoPlayer.setSelectedTrack(getExoTrackType(trackType), newIndex);
         } else {
-            Log.e(TAG, "switchTrack mExoPlayer = null");
+            LOGE(TAG, "switchTrack mExoPlayer = null");
         }
     }
 
@@ -587,7 +590,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         for (Cue cue : cues){
             sb.append(cue.text);
         }
-        Log.d(TAG, "subTitle = " + sb.toString());
+        LOGD(TAG, "subTitle = " + sb.toString());
         if (mSubtView != null) {
             mSubtView.setCues(cues);
         }
@@ -598,17 +601,17 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         for (Id3Frame id3Frame : id3Frames) {
             if (id3Frame instanceof TxxxFrame) {
                 TxxxFrame txxxFrame = (TxxxFrame) id3Frame;
-                Log.i(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
+                LOGI(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
                         txxxFrame.description, txxxFrame.value));
             } else if (id3Frame instanceof PrivFrame) {
                 PrivFrame privFrame = (PrivFrame) id3Frame;
-                Log.i(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
+                LOGI(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
             } else if (id3Frame instanceof GeobFrame) {
                 GeobFrame geobFrame = (GeobFrame) id3Frame;
-                Log.i(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
+                LOGI(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
                         geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
             } else {
-                Log.i(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
+                LOGI(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
             }
         }
     }
@@ -663,7 +666,7 @@ class KPlayerExoDrmCallback implements MediaDrmCallback {
     private final Object mLicenseLock = new Object();
 
     KPlayerExoDrmCallback() {
-        Log.d(TAG, "KPlayerDrmCallback created");
+        LOGD(TAG, "KPlayerDrmCallback created");
     }
 
     @Override
@@ -686,7 +689,7 @@ class KPlayerExoDrmCallback implements MediaDrmCallback {
                 try {
                     mLicenseLock.wait(MAX_LICENCE_URI_WAIT);
                 } catch (InterruptedException e) {
-                    Log.d(TAG, "Interrupted", e);
+                    LOGD(TAG, "Interrupted", e);
                 }
             }
             // Still no uri? throw.
@@ -695,7 +698,7 @@ class KPlayerExoDrmCallback implements MediaDrmCallback {
             }
             // Execute request.
             byte[] response = ExoplayerUtil.executePost(mLicenseUri, request.getData(), headers);
-            Log.d(TAG, "response data (b64): " + Base64.encodeToString(response, 0));
+            LOGD(TAG, "response data (b64): " + Base64.encodeToString(response, 0));
             return response;
         }
     }

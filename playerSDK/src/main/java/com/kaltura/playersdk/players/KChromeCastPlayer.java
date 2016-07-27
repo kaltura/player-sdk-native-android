@@ -3,7 +3,6 @@ package com.kaltura.playersdk.players;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
@@ -13,11 +12,12 @@ import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
  * Created by nissimpardo on 07/07/16.
@@ -88,7 +88,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
                     String errMsg = "Failed to request status";
-                    Log.e(TAG, errMsg);
+                    LOGE(TAG, errMsg);
 
                 } else {
                     // Prepare the content according to Kaltura's reciever

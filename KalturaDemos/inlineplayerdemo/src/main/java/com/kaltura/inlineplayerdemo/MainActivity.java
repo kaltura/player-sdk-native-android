@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
-import android.util.Log;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +19,8 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, PlayerFragment.OnFragmentInteractionListener, KPFullScreenToggledEventListener {
     private PlayerViewController mPlayer;
@@ -151,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 
         if (isFullScreen) {
-            Log.d(TAG,"Set to onOpenFullScreen");
+            LOGD(TAG,"Set to onOpenFullScreen");
             mPlayer.sendNotification("onOpenFullScreen", null);
             if(getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
                 DisplayMetrics metrics = new DisplayMetrics();
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             getSupportActionBar().hide();
         } else {
-            Log.d(TAG,"Set to onCloseFullScreen");
+            LOGD(TAG,"Set to onCloseFullScreen");
             mPlayer.sendNotification("onCloseFullScreen", null);
             if(getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
                 DisplayMetrics metrics = new DisplayMetrics();

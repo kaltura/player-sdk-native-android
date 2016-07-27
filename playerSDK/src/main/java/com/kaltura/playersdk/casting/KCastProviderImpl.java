@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
-import android.util.Log;
 
 import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
@@ -21,6 +20,9 @@ import com.kaltura.playersdk.players.KChromeCastPlayer;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 
 /**
@@ -159,7 +161,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 @Override
                 public void onApplicationStatusChanged() {
                     if (mApiClient != null) {
-                        Log.d(TAG, "onApplicationStatusChanged: "
+                        LOGD(TAG, "onApplicationStatusChanged: "
                                 + Cast.CastApi.getApplicationStatus(mApiClient));
                         if ("Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient)) && mProviderListener != null) {
                             mProviderListener.onDeviceConnected();
@@ -211,7 +213,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     private void teardown() {
-        Log.d(TAG, "teardown");
+        LOGD(TAG, "teardown");
         if (mApiClient != null) {
             if (mApplicationStarted) {
                 if (mApiClient.isConnected() || mApiClient.isConnecting()) {
@@ -224,7 +226,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                             mChannel = null;
                         }
                     } catch (IOException e) {
-                        Log.e(TAG, "Exception while removing channel", e);
+                        LOGE(TAG, "Exception while removing channel", e);
                     }
                     mApiClient.disconnect();
                 }
@@ -241,21 +243,21 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     public void sendMessage(final String message) {
         if (mApiClient != null && mChannel != null) {
             try {
-                Log.d("chromecast.sendMessage", "namespace: " + nameSpace + " message: " + message);
+                LOGD(TAG, "chromecast.sendMessage  namespace: " + nameSpace + " message: " + message);
                 Cast.CastApi.sendMessage(mApiClient, nameSpace, message)
                         .setResultCallback(
                                 new ResultCallback<Status>() {
                                     @Override
                                     public void onResult(Status result) {
                                         if (result.isSuccess()) {
-                                            Log.d(TAG, "namespace:" + nameSpace + " message:" + message);
+                                            LOGD(TAG, "namespace:" + nameSpace + " message:" + message);
                                         } else {
-                                            Log.e(TAG, "Sending message failed");
+                                            LOGE(TAG, "Sending message failed");
                                         }
                                     }
                                 });
             } catch (Exception e) {
-                Log.e(TAG, "Exception while sending message", e);
+                LOGE(TAG, "Exception while sending message", e);
             }
         }
     }
@@ -344,7 +346,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                                             mChannel.getNamespace(),
                                                             mChannel);
                                                 } catch (IOException e) {
-                                                    Log.e(TAG, "Exception while creating channel", e);
+                                                    LOGE(TAG, "Exception while creating channel", e);
                                                 }
                                                 if (mProviderListener != null) {
                                                     mProviderListener.onDeviceConnected();
@@ -356,7 +358,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                     });
 
                 } catch (Exception e) {
-                    Log.d(TAG, "Failed to launch application", e);
+                    LOGD(TAG, "Failed to launch application", e);
                 }
             }
         }

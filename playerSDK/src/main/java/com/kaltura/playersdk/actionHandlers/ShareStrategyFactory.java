@@ -1,7 +1,5 @@
 package com.kaltura.playersdk.actionHandlers;
 
-import android.util.Log;
-
 import com.kaltura.playersdk.actionHandlers.ShareStrategies.EmailShareStrategy;
 import com.kaltura.playersdk.actionHandlers.ShareStrategies.FacebookShareStrategy;
 import com.kaltura.playersdk.actionHandlers.ShareStrategies.GooglePlusShareStrategy;
@@ -11,6 +9,8 @@ import com.kaltura.playersdk.actionHandlers.ShareStrategies.TwitterShareStrategy
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
  * Created by itayi on 3/5/15.
@@ -47,7 +47,7 @@ public class ShareStrategyFactory {
             }
         }
 
-        Log.w(TAG, "couldn't find a strategy");
+        LOGW(TAG, "couldn't find a strategy");
         return null;
     }
 
@@ -56,7 +56,7 @@ public class ShareStrategyFactory {
         try {
             strategyName = dataSource.getString("id");
         } catch (JSONException e) {
-            Log.w(TAG, "Error parsing Json object");
+            LOGW(TAG, "Error parsing Json object");
             return null;
         }
 

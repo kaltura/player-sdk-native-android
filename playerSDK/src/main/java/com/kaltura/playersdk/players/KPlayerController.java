@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -29,6 +28,8 @@ import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
  * Created by nissopa on 6/14/15.
@@ -207,8 +208,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     playerListener.eventWithValue(player, KPlayerListener.TimeUpdateKey, Float.toString(currentPosition / 1000f));
                 }
             }
-
-            //</editor-fold>
         });
     }
 
@@ -257,7 +256,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void play() {
         if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000){
-            Log.w(TAG, "PLAY REJECTED");
+            LOGW(TAG, "PLAY REJECTED");
             return;
         }
         mPlayLastClickTime = SystemClock.elapsedRealtime();
@@ -295,7 +294,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     @Override
     public void pause() {
         if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
-            Log.w(TAG, "PAUSE REJECTED");
+            LOGW(TAG, "PAUSE REJECTED");
             return;
         }
         mPauseLastClickTime = SystemClock.elapsedRealtime();
@@ -683,7 +682,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void sendTracksList(TrackType trackType) {
-        Log.d(TAG, "sendTracksList: " + trackType);
+        LOGD(TAG, "sendTracksList: " + trackType);
         switch(trackType) {
             case AUDIO:
                 playerListener.eventWithJSON(getPlayer(), KPlayerListener.AudioTracksReceivedKey, tracksManager.getTrackListAsJson(TrackType.AUDIO).toString());
