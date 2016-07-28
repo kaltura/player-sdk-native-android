@@ -255,7 +255,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000){
+        if (player.isPlaying() && SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000){
             LOGW(TAG, "PLAY REJECTED");
             return;
         }
@@ -293,7 +293,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void pause() {
-        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
+        if (!player.isPlaying() && SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
             LOGW(TAG, "PAUSE REJECTED");
             return;
         }
