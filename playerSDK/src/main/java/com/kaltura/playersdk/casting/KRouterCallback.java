@@ -66,7 +66,7 @@ public class KRouterCallback extends MediaRouter.Callback {
         }
         KCastDevice kCastDevice = new KCastDevice(route);
         CastDevice castDevice = CastDevice.getFromBundle(route.getExtras());
-        boolean sendAddEvent =  (castDevice != null && !mGuestModeEnabled && !castDevice.isOnLocalNetwork());
+        boolean sendAddEvent =  (mGuestModeEnabled || (castDevice != null && castDevice.isOnLocalNetwork())) && !route.isDefaultOrBluetooth();
 
         if (sendAddEvent) {
             mListener.onRouteUpdate(true, kCastDevice);

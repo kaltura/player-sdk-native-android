@@ -153,7 +153,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 }
                 KCastDevice castDevice = new KCastDevice(route);
                 CastDevice device = CastDevice.getFromBundle(route.getExtras());
-                if (device != null && !mGuestModeEnabled && !device.isOnLocalNetwork()) {
+                if (!mGuestModeEnabled && device != null && !device.isOnLocalNetwork()) {
                     continue;
                 }
                 devices.add(castDevice);
