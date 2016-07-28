@@ -20,6 +20,7 @@ import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
+import com.google.android.gms.cast.CastDevice;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastDevice;
@@ -108,7 +109,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mMediaRouteButtonCon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCastProvider.disconnectFromDevice();
+                if (mCastProvider != null) {
+                    CastDevice cc = mCastProvider.getSelectedCastDevice();
+                    LOGD(TAG, "CastDevice: " + cc.toString());
+                    mCastProvider.disconnectFromDevice();
+                }
             }
         });
 
@@ -304,6 +309,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(DialogInterface dialog, int item) {
                 // Do something with the selection
                 mCastProvider.connectToDevice(devices.get(item));
+
             }
         });
         AlertDialog alert = builder.create();
