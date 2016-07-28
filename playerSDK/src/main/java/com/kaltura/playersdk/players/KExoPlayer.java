@@ -72,6 +72,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private boolean mBuffering = false;
     private boolean mPassedPlay = false;
     private boolean prepareWithConfigurationMode = false;
+    private boolean isFirstPlayback = true;
 
 
 
@@ -127,6 +128,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void setPlayerSource(String playerSource) {
         mSourceURL = playerSource;
         mReadiness = KState.IDLE;
+        isFirstPlayback = true;
         prepare();
     }
 
@@ -429,6 +431,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                  }
                 break;
             case ExoPlayer.STATE_READY:
+                LOGD(TAG, "EXO is Ready with isFirstPlayback = " + isFirstPlayback + " readiness = " + mReadiness.name() );
                 if (mPlayerListener != null && mPlayerCallback != null) {
                     if (mBuffering) {
                         mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
@@ -440,15 +443,16 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                     }
 
                     // ExoPlayer is ready.
-                    if (mReadiness != KState.READY && mReadiness != KState.PLAYING && mReadiness != KState.PAUSED && mReadiness != KState.SEEKING) {
+                    if (isFirstPlayback) {
                         mReadiness = KState.READY;
-
+                        isFirstPlayback = false;
                         // TODO what about mShouldResumePlayback?
                         mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
                         mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
                         mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
                         mPlayerCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
                     }
+
                     if (mSeeking) {
                         // ready after seeking
                         mReadiness = KState.READY;
@@ -466,7 +470,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 break;
 
             case ExoPlayer.STATE_ENDED:
-                LOGD(TAG, "state ended");
+                LOGD(TAG, "state ended mReadiness = " + mReadiness.name());
                 if (KState.BUFFERING.equals(mReadiness)){
                     mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
                     mBuffering = false;
