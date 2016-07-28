@@ -92,7 +92,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         mCastAppID = appID;
         mGuestModeEnabled = guestModeEnabled;
         mRouter = MediaRouter.getInstance(mContext.getApplicationContext());
-        mCallback = new KRouterCallback();
+        mCallback = new KRouterCallback(guestModeEnabled);
         mCallback.setListener(this);
         mCallback.setRouter(mRouter);
         mSelector = new MediaRouteSelector.Builder().addControlCategory(CastMediaControlIntent.categoryForCast(mCastAppID)).build();
@@ -153,7 +153,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 }
                 KCastDevice castDevice = new KCastDevice(route);
                 CastDevice device = CastDevice.getFromBundle(route.getExtras());
-                if (device != null && !mGuestModeEnabled && device.isOnLocalNetwork()) {
+                if (device != null && !mGuestModeEnabled && !device.isOnLocalNetwork()) {
                     continue;
                 }
                 devices.add(castDevice);

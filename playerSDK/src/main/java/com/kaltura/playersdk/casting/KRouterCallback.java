@@ -11,6 +11,11 @@ public class KRouterCallback extends MediaRouter.Callback {
     private KRouterCallbackListener mListener;
     private MediaRouter mRouter;
     private boolean didFindDevices = false;
+    private boolean mGuestModeEnabled;
+
+    public KRouterCallback(boolean guestModeEnabled) {
+        mGuestModeEnabled = guestModeEnabled;
+    }
 
     public interface KRouterCallbackListener {
         void onDeviceSelected(CastDevice castDeviceSelected);
@@ -59,8 +64,13 @@ public class KRouterCallback extends MediaRouter.Callback {
             mListener.onFoundDevices(true);
             didFindDevices = true;
         }
-        KCastDevice info = new KCastDevice(route);
-        mListener.onRouteUpdate(true, info);
+        KCastDevice kCastDevice = new KCastDevice(route);
+        CastDevice castDevice = CastDevice.getFromBundle(route.getExtras());
+        boolean sendAddEvent =  (castDevice != null && !mGuestModeEnabled && !castDevice.isOnLocalNetwork());
+
+        if (sendAddEvent) {
+            mListener.onRouteUpdate(true, kCastDevice);
+        }
     }
 
     @Override
