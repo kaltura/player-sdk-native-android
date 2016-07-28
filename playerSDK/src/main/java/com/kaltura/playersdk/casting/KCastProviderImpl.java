@@ -139,6 +139,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     @Override
+    public CastDevice getSelectedCastDevice() {
+        return mSelectedDevice;
+    }
+
+    @Override
     public void setKCastProviderListener(KCastProviderListener listener) {
         mProviderListener = listener;
     }
