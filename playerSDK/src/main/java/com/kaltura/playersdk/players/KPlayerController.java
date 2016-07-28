@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
@@ -255,9 +256,12 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (player.isPlaying() && SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000){
-            LOGW(TAG, "PLAY REJECTED");
+        if (player == null) {
             return;
+        }
+        if (player.isPlaying() && SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
+             LOGW(TAG, "PLAY REJECTED");
+             return;
         }
         mPlayLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Play) {
@@ -293,10 +297,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void pause() {
+        if (player == null) {
+            return;
+        }
         if (!player.isPlaying() && SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
             LOGW(TAG, "PAUSE REJECTED");
             return;
         }
+
         mPauseLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Pause) {
             currentState = UIState.Pause;
@@ -571,6 +579,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
+        LOGD(TAG, "setCurrentPlaybackTime " + currentPlaybackTime);
         if (mCastProvider == null) {
             if (isPlayerCanPlay) {
                 if (player != null) {
@@ -622,8 +631,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void playerStateChanged(int state) {
+
+        LOGE(TAG, "XXXX playerStateChanged " + state);
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
+                LOGE(TAG, "XXXX playerStateChanged " + CAN_PLAY);
                 tracksManager = new KTracksManager(player);
                 if (videoTrackEventListener != null) {
                     getTracksManager().setVideoTrackEventListener(videoTrackEventListener);
@@ -661,6 +673,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.ENDED:
+                LOGE(TAG, "XXXX playerStateChanged " + ENDED);
                 if (imaManager != null) {
                     isContentCompleted = true;
                     isIMAActive = true;
