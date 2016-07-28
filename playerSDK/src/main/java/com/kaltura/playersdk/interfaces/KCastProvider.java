@@ -12,6 +12,7 @@ import java.util.ArrayList;
  */
 public interface KCastProvider {
     void setKCastButton(boolean enable);
+    void startScan(Context context, String appID, boolean guestModeEnabled);
     void startScan(Context context, String appID);
     void stopScan();
     void setPassiveScan(boolean passiveScan);

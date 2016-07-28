@@ -49,7 +49,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private boolean mWaitingForReconnect = false;
     private boolean mApplicationStarted = false;
     private boolean mCastButtonEnabled = false;
-
+    private boolean mGuestModeEnabled = false; // do not enable paring the cc from guest network
     private KCastMediaRemoteControl mCastMediaRemoteControl;
 
     private String mSessionId;
@@ -87,9 +87,10 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     @Override
-    public void startScan(Context context, String appID) {
+    public void startScan(Context context, String appID, boolean guestModeEnabled) {
         mContext = context;
         mCastAppID = appID;
+        mGuestModeEnabled = guestModeEnabled;
         mRouter = MediaRouter.getInstance(mContext.getApplicationContext());
         mCallback = new KRouterCallback();
         mCallback.setListener(this);
@@ -98,6 +99,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         if (mRouter != null) {
             mRouter.addCallback(mSelector, mCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
         }
+    }
+
+    @Override
+    public void startScan(Context context, String appID) {
+        startScan(context, appID, false);
     }
 
     @Override
@@ -141,8 +147,15 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     public ArrayList<KCastDevice> getDevices() {
         if (mRouter != null && mRouter.getRoutes() != null && mRouter.getRoutes().size() > 0) {
             ArrayList<KCastDevice> devices = new ArrayList<>();
-            for (MediaRouter.RouteInfo info: mRouter.getRoutes()) {
-                KCastDevice castDevice = new KCastDevice(info);
+            for (MediaRouter.RouteInfo route: mRouter.getRoutes()) {
+                if (route.isDefaultOrBluetooth()) {
+                    continue;
+                }
+                KCastDevice castDevice = new KCastDevice(route);
+                CastDevice device = CastDevice.getFromBundle(route.getExtras());
+                if (device != null && !mGuestModeEnabled && device.isOnLocalNetwork()) {
+                    continue;
+                }
                 devices.add(castDevice);
             }
             return devices;
