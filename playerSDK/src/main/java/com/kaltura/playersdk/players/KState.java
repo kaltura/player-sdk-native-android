@@ -6,5 +6,7 @@ public enum KState {
     READY,
     PLAYING,
     PAUSED,
-    SEEKING
+    SEEKING,
+    BUFFERING,
+    ENDED
 }

@@ -259,7 +259,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             return;
         }
 
-        if (mReadiness == KState.IDLE) {
+        if (KState.IDLE.equals(mReadiness) && !KState.ENDED.equals(mReadiness)) {
             prepare();
             mReadiness = KState.PLAYING;
             return;
@@ -417,8 +417,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 break;
             case ExoPlayer.STATE_BUFFERING:
                 if (mPlayerListener != null) {
-                   mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "true");
-                   mBuffering = true;
+                    mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "true");
+                    mBuffering = true;
+                    mReadiness = KState.BUFFERING;
                  }
                 break;
             case ExoPlayer.STATE_READY:
@@ -460,10 +461,14 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             case ExoPlayer.STATE_ENDED:
                 LOGD(TAG, "state ended");
+                if (KState.BUFFERING.equals(mReadiness)){
+                    mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
+                    mBuffering = false;
+                }
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
-                    mReadiness = KState.IDLE;
                 }
+                mReadiness = KState.ENDED;
                 stopPlaybackTimeReporter();
                 break;
         }
