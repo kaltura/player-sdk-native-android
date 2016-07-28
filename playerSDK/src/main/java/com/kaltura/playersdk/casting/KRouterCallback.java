@@ -44,7 +44,10 @@ public class KRouterCallback extends MediaRouter.Callback {
     @Override
     public void onRouteSelected(MediaRouter router, MediaRouter.RouteInfo route) {
         if (mListener != null) {
-            mListener.onDeviceSelected(CastDevice.getFromBundle(route.getExtras()));
+            CastDevice castDevice = CastDevice.getFromBundle(route.getExtras());
+            if (castDevice != null) {
+                 mListener.onDeviceSelected(castDevice);
+            }
         }
     }
 
