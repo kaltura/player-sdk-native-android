@@ -682,7 +682,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SEEKED:
-                LOGE(TAG, "XXXX " + getCurrentPosition()  + "/" + getDuration());
+                LOGE(TAG, "Seeked time :" +  getCurrentPosition()  + "/" + getDuration());
                 if (getCurrentPosition() == getDuration()) {
                     pause();
                 }
