@@ -631,11 +631,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void playerStateChanged(int state) {
-
-        LOGE(TAG, "XXXX playerStateChanged " + state);
+        LOGD(TAG, "playerStateChanged state: " + state);
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
-                LOGE(TAG, "XXXX playerStateChanged " + CAN_PLAY);
                 tracksManager = new KTracksManager(player);
                 if (videoTrackEventListener != null) {
                     getTracksManager().setVideoTrackEventListener(videoTrackEventListener);

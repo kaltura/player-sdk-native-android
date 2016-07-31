@@ -261,7 +261,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             return;
         }
 
-        if (KState.IDLE.equals(mReadiness) && !KState.ENDED.equals(mReadiness)) {
+        if (mReadiness == KState.IDLE && mReadiness != KState.ENDED) {
             prepare();
             mReadiness = KState.PLAYING;
             return;
@@ -470,7 +470,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             case ExoPlayer.STATE_ENDED:
                 LOGD(TAG, "state ended mReadiness = " + mReadiness.name());
-                if (KState.BUFFERING.equals(mReadiness)){
+                if (mReadiness == KState.BUFFERING){
                     mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
                     mBuffering = false;
                 }

@@ -237,8 +237,8 @@ public class KWVCPlayer
         mPlayer.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (KPlayerListener.PauseKey.equals(state)) {
-                    if (KPlayerListener.PauseKey.equals(mLastSentEvent)){
+                if (state == KPlayerListener.PauseKey) {
+                    if (mLastSentEvent == KPlayerListener.PauseKey){
                         return;
                     }
                     if (mPlayer != null && !mPlayer.isPlaying()) {
@@ -246,8 +246,8 @@ public class KWVCPlayer
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
                         return;
                     }
-                } else if (KPlayerListener.PlayKey.equals(state)) {
-                    if (KPlayerListener.PlayKey.equals(mLastSentEvent)){
+                } else if (state == KPlayerListener.PlayKey) {
+                    if (mLastSentEvent == KPlayerListener.PlayKey){
                         return;
                     }
                     if (mPlayer != null && mPlayer.isPlaying()) {
