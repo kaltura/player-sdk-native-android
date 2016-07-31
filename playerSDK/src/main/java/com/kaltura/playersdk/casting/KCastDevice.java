@@ -2,6 +2,8 @@ package com.kaltura.playersdk.casting;
 
 import android.support.v7.media.MediaRouter;
 
+import com.google.android.gms.cast.CastDevice;
+
 /**
  * Created by nissimpardo on 18/11/15.
  */
@@ -12,6 +14,11 @@ public class KCastDevice {
     public KCastDevice(MediaRouter.RouteInfo info) {
         routerName = info.getName();
         routerId = info.getId();
+    }
+
+    public KCastDevice(CastDevice castDevice) {
+        routerName = castDevice.getFriendlyName();
+        routerId = castDevice.getDeviceId();
     }
 
     public String getRouterName() {
