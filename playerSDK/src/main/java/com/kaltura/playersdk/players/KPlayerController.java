@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
@@ -255,9 +256,12 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000){
-            LOGW(TAG, "PLAY REJECTED");
+        if (player == null) {
             return;
+        }
+        if (player.isPlaying() && SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
+             LOGW(TAG, "PLAY REJECTED");
+             return;
         }
         mPlayLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Play) {
@@ -293,10 +297,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void pause() {
-        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
+        if (player == null) {
+            return;
+        }
+        if (!player.isPlaying() && SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
             LOGW(TAG, "PAUSE REJECTED");
             return;
         }
+
         mPauseLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Pause) {
             currentState = UIState.Pause;
@@ -571,6 +579,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCurrentPlaybackTime(float currentPlaybackTime) {
+        LOGD(TAG, "setCurrentPlaybackTime " + currentPlaybackTime);
         if (mCastProvider == null) {
             if (isPlayerCanPlay) {
                 if (player != null) {
@@ -622,6 +631,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void playerStateChanged(int state) {
+        LOGD(TAG, "playerStateChanged state: " + state);
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
                 tracksManager = new KTracksManager(player);
@@ -667,11 +677,22 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     imaManager.contentComplete();
                 } else {
                     playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
+                    seek(0.1);
+                    pause();
                 }
                 break;
             case KPlayerCallback.SEEKED:
-                if (currentState == UIState.Play || currentState == UIState.Replay) {
-                    play();
+                LOGE(TAG, "Seeked time :" +  getCurrentPosition()  + "/" + getDuration());
+                if (getCurrentPosition() == getDuration()) {
+                    pause();
+                }
+                else if (currentState == UIState.Play || currentState == UIState.Replay) {
+                    if (getPlayer().isPlaying()) {
+                        play();
+                    } else {
+                        pause();
+                    }
+
                 }
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());

@@ -237,8 +237,8 @@ public class KWVCPlayer
         mPlayer.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (KPlayerListener.PauseKey.equals(state)) {
-                    if (KPlayerListener.PauseKey.equals(mLastSentEvent)){
+                if (state == KPlayerListener.PauseKey) {
+                    if (mLastSentEvent == KPlayerListener.PauseKey){
                         return;
                     }
                     if (mPlayer != null && !mPlayer.isPlaying()) {
@@ -246,8 +246,8 @@ public class KWVCPlayer
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
                         return;
                     }
-                } else if (KPlayerListener.PlayKey.equals(state)) {
-                    if (KPlayerListener.PlayKey.equals(mLastSentEvent)){
+                } else if (state == KPlayerListener.PlayKey) {
+                    if (mLastSentEvent == KPlayerListener.PlayKey){
                         return;
                     }
                     if (mPlayer != null && mPlayer.isPlaying()) {
@@ -346,7 +346,7 @@ public class KWVCPlayer
 
     private void saveState() {
         if (mPlayer != null) {
-            mSavedState.set(mPlayer.isPlaying(), mCurrentPosition);
+            mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
         } else {
             mSavedState.set(false, 0);
         }
@@ -444,22 +444,33 @@ public class KWVCPlayer
                 mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mp) {
-                        if(mShouldPlayWhenReady){
+                        LOGD(TAG, "onSeekComplete " + mShouldPlayWhenReady);
+                        if (mp.getCurrentPosition() ==  mp.getDuration()) {
+                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                            mListener.eventWithValue(kplayer,KPlayerListener.EndedKey, null);
+                            mCallback.playerStateChanged(KPlayerCallback.ENDED);
+                            mSavedState.set(true, 0);
+                            pause();
+                        } else if(mShouldPlayWhenReady){
                             mShouldPlayWhenReady = false;
                             mSavedState.set(true, 0);
+                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                            mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                             play();
                         } else {
                             saveState();
+                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                            mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                         }
-                        mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
-                        mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 });
 
                 mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
+                        LOGD(TAG, "percent = " + percent + " " + mp.getCurrentPosition() + "/" + mp.getDuration());
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && mp.getCurrentPosition() < mp.getDuration()) ? "true" : "false");
+
                     }
                 });
 
@@ -551,7 +562,13 @@ public class KWVCPlayer
                     }
 
                     if (mPlayer != null && mPlayer.isPlaying()) {
-                        playbackTime = mPlayer.getCurrentPosition() / 1000f;
+                        LOGE(TAG, mPlayer.getCurrentPosition() + "/" + mPlayer.getDuration());
+                        if (mPlayer.getCurrentPosition() > mPlayer.getDuration()) {
+                            playbackTime = mPlayer.getDuration() / 1000f;
+                        } else {
+                            playbackTime = mPlayer.getCurrentPosition() / 1000f;
+                        }
+
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
                     }
 

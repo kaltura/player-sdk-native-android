@@ -304,6 +304,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(DialogInterface dialog, int item) {
                 // Do something with the selection
                 mCastProvider.connectToDevice(devices.get(item));
+
             }
         });
         AlertDialog alert = builder.create();

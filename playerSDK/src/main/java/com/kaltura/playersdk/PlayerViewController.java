@@ -1078,7 +1078,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private void sendCCRecieverMessage(String args) {
         String decodeArgs = null;
-
         try {
             decodeArgs = URLDecoder.decode(args, "UTF-8");
         } catch (UnsupportedEncodingException e) {
