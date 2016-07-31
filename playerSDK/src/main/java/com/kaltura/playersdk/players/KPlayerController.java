@@ -673,18 +673,28 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.ENDED:
-                LOGE(TAG, "XXXX playerStateChanged " + ENDED);
                 if (imaManager != null) {
                     isContentCompleted = true;
                     isIMAActive = true;
                     imaManager.contentComplete();
                 } else {
                     playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
+                    seek(0.1);
+                    pause();
                 }
                 break;
             case KPlayerCallback.SEEKED:
-                if (currentState == UIState.Play || currentState == UIState.Replay) {
-                    play();
+                LOGE(TAG, "XXXX " + getCurrentPosition()  + "/" + getDuration());
+                if (getCurrentPosition() == getDuration()) {
+                    pause();
+                }
+                else if (currentState == UIState.Play || currentState == UIState.Replay) {
+                    if (getPlayer().isPlaying()) {
+                        play();
+                    } else {
+                        pause();
+                    }
+
                 }
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
