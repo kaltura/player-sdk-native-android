@@ -109,11 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mMediaRouteButtonCon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mCastProvider != null) {
-                    CastDevice cc = mCastProvider.getSelectedCastDevice();
-                    LOGD(TAG, "CastDevice: " + cc.toString());
-                    mCastProvider.disconnectFromDevice();
-                }
+                mCastProvider.disconnectFromDevice();
             }
         });
 

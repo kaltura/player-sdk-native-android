@@ -2,7 +2,6 @@ package com.kaltura.playersdk.interfaces;
 
 import android.content.Context;
 
-import com.google.android.gms.cast.CastDevice;
 import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.types.KPError;
 
@@ -19,7 +18,6 @@ public interface KCastProvider {
     void setPassiveScan(boolean passiveScan);
     void connectToDevice(KCastDevice device);
     void disconnectFromDevice();
-    CastDevice getSelectedCastDevice();
     void setKCastProviderListener(KCastProviderListener listener);
     ArrayList<KCastDevice> getDevices();
     KCastMediaRemoteControl getCastMediaRemoteControl();
