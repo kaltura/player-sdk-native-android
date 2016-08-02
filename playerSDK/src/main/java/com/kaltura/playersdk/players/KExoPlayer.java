@@ -281,20 +281,20 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void pause() {
+        KState prevState = mReadiness;
         if (mReadiness == KState.PAUSED) {
+            if (prevState == KState.ENDED) {
+                setPlayWhenReady(true);
+            }
             return;
         }
-        LOGD(TAG, "action: pause called");
-        KState prevState = mReadiness;
-        mReadiness = KState.PAUSED;
 
+        LOGD(TAG, "action: pause called");
+        mReadiness = KState.PAUSED;
 
         stopPlaybackTimeReporter();
         if (isPlaying()) {
             setPlayWhenReady(false);
-        }
-        if (prevState == KState.ENDED) {
-            setPlayWhenReady(true);
         }
     }
 
@@ -412,7 +412,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     // PlaybackListener
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
-        LOGD(TAG, "PlayerStateChanged: " + playbackState);
+        LOGD(TAG, "PlayerStateChanged: " + playbackState + " playWhenReady: " + playWhenReady + " mReadiness: " + mReadiness);
 
         switch (playbackState) {
             case ExoPlayer.STATE_IDLE:
@@ -426,32 +426,29 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 if (mPlayerListener != null) {
                     mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "true");
                     mBuffering = true;
-                    mReadiness = KState.BUFFERING;
-                 }
+                }
                 break;
             case ExoPlayer.STATE_READY:
-                LOGD(TAG, "EXO is Ready with isFirstPlayback = " + isFirstPlayback + " readiness = " + mReadiness.name() );
                 if (mPlayerListener != null && mPlayerCallback != null) {
                     if (mBuffering) {
                         mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
                         mBuffering = false;
                     }
-                    if (mReadiness == KState.PAUSED) {
+                    if (mReadiness == KState.READY && !playWhenReady) {
                         mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
-                        return;
                     }
 
                     // ExoPlayer is ready.
+
                     if (isFirstPlayback) {
-                        mReadiness = KState.READY;
                         isFirstPlayback = false;
+                        mReadiness = KState.READY;
                         // TODO what about mShouldResumePlayback?
                         mPlayerListener.eventWithValue(this, KPlayerListener.DurationChangedKey, Float.toString(this.getDuration() / 1000f));
                         mPlayerListener.eventWithValue(this, KPlayerListener.LoadedMetaDataKey, "");
                         mPlayerListener.eventWithValue(this, KPlayerListener.CanPlayKey, null);
                         mPlayerCallback.playerStateChanged(KPlayerCallback.CAN_PLAY);
                     }
-
                     if (mSeeking) {
                         // ready after seeking
                         mReadiness = KState.READY;
@@ -469,19 +466,19 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 break;
 
             case ExoPlayer.STATE_ENDED:
-                LOGD(TAG, "state ended mReadiness = " + mReadiness.name());
-                if (mReadiness == KState.BUFFERING){
-                    mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
-                    mBuffering = false;
+                if (mReadiness == KState.IDLE) {
+                    return;
                 }
+                LOGD(TAG, "state ended");
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
+                    mReadiness = KState.IDLE;
                 }
-                mReadiness = KState.ENDED;
                 stopPlaybackTimeReporter();
                 break;
         }
     }
+
 
 
     private void setPlayWhenReady(boolean shouldPlay) {

@@ -676,23 +676,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     isIMAActive = true;
                     imaManager.contentComplete();
                 } else {
+                    playerListener.eventWithValue(player, KPlayerListener.SeekedKey, null);
                     playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
-                    seek(0.1);
-                    pause();
+                    if (mCurrentPlaybackTime > 0) {
+                        player.setCurrentPlaybackTime((long) (mCurrentPlaybackTime * 1000));
+                        mCurrentPlaybackTime = 0;
+                    }
                 }
                 break;
             case KPlayerCallback.SEEKED:
                 LOGE(TAG, "Seeked time :" +  getCurrentPosition()  + "/" + getDuration());
-                if (getCurrentPosition() == getDuration()) {
-                    pause();
-                }
-                else if (currentState == UIState.Play || currentState == UIState.Replay) {
-                    if (getPlayer().isPlaying()) {
-                        play();
-                    } else {
-                        pause();
-                    }
-
+                if (currentState == UIState.Play || currentState == UIState.Replay) {
+                    play();
                 }
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
