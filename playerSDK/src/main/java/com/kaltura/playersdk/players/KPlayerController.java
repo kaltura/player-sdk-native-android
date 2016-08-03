@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
-import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
@@ -686,13 +685,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             case KPlayerCallback.SEEKED:
                 LOGD(TAG, "playerStateChanged CAN_PLAY currentState " + currentState.name());
 
-                if (currentState == UIState.Play) {
+                if (currentState == UIState.Play || currentState == UIState.Replay) {
                     play();
                 }
-                if (currentState == UIState.Replay) {
-                    //playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
-                    play();
-                }
+         
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
                     mSeekCallback = null;
