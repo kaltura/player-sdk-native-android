@@ -283,9 +283,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void pause() {
         KState prevState = mReadiness;
         if (mReadiness == KState.PAUSED) {
-            if (prevState == KState.ENDED) {
-                setPlayWhenReady(true);
-            }
             return;
         }
 
@@ -296,6 +293,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         if (isPlaying()) {
             setPlayWhenReady(false);
         }
+        if (prevState == KState.IDLE) {
+            setPlayWhenReady(true);
+        }
+
     }
 
     private void startPlaybackTimeReporter() {
