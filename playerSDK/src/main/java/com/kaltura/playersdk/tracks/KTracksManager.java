@@ -1,7 +1,5 @@
 package com.kaltura.playersdk.tracks;
 
-import android.util.Log;
-
 import com.kaltura.playersdk.players.KPlayer;
 
 import org.json.JSONArray;
@@ -14,6 +12,9 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+
 /**
  * Created by gilad.nadav on 25/05/2016.
  */
@@ -23,6 +24,9 @@ public class KTracksManager implements  KTrackActions {
 
     private KPlayer player;
     private KTracksContainer tracksContainer;
+    private KTrackActions.VideoTrackEventListener videoTrackEventListener = null;
+    private KTrackActions.AudioTrackEventListener audioTrackEventListener = null;
+    private KTrackActions.TextTrackEventListener  textTrackEventListener = null;
 
 
     public KTracksManager(KPlayer player) {
@@ -30,21 +34,56 @@ public class KTracksManager implements  KTrackActions {
         initTrackManagerLists();
     }
 
+    public void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener) {
+        this.videoTrackEventListener = videoTrackEventListener;
+    }
+    public void setAudioTrackEventListener(KTrackActions.AudioTrackEventListener audioTrackEventListener) {
+        this.audioTrackEventListener = audioTrackEventListener;
+    }
+    public void setTextTrackEventListener(KTrackActions.TextTrackEventListener textTrackEventListener) {
+        this.textTrackEventListener = textTrackEventListener;
+    }
 
+    public void removeVideoTrackEventListener() {
+        this.videoTrackEventListener = null;
+    }
+    public void removeAudioTrackEventListener() {
+        this.audioTrackEventListener = null;
+    }
+    public void removeTextTrackEventListener() {
+        this.textTrackEventListener = null;
+    }
 
     @Override
     public void switchTrack(TrackType trackType, int newIndex) {
         if (isAvailableTracksRelevant(trackType)) {
-            Log.d(TAG, "switchTrack for " + trackType.name() + " newIndex = " + newIndex);
+            LOGD(TAG, "switchTrack for " + trackType.name() + " newIndex = " + newIndex);
             player.switchTrack(trackType, newIndex);
+            switch (trackType) {
+                case VIDEO:
+                    if (videoTrackEventListener != null) {
+                        videoTrackEventListener.onVideoTrackChanged(newIndex);
+                    }
+                    break;
+                case AUDIO:
+                    if (audioTrackEventListener != null) {
+                        audioTrackEventListener.onAudioTrackChanged(newIndex);
+                    }
+                    break;
+                case TEXT:
+                    if (textTrackEventListener != null) {
+                        textTrackEventListener.onTextTrackChanged(newIndex);
+                    }
+                    break;
+            }
         } else {
-            Log.d(TAG, "switchTrack " + trackType.name() + "skipped Reason: track count  < 2");
+            LOGD(TAG, "switchTrack " + trackType.name() + "skipped Reason: track count  < 2");
         }
     }
 
     @Override
     public void switchTrackByBitrate(TrackType trackType, final int preferredBitrateKBit) {
-        Log.d(TAG, "switchTrackByBitrate : " + trackType.name() + " preferredBitrateKBit : " + preferredBitrateKBit);
+        LOGD(TAG, "switchTrackByBitrate : " + trackType.name() + " preferredBitrateKBit : " + preferredBitrateKBit);
         if (TrackType.TEXT.equals(trackType)){
             return;
         }
@@ -65,11 +104,13 @@ public class KTracksManager implements  KTrackActions {
         }
 
         if (tracksList.size() <= 2) {
-            Log.d(TAG, "Skip switchTrackByBitrate, tracksList.size() <= 2");
+            LOGD(TAG, "Skip switchTrackByBitrate, tracksList.size() <= 2");
             return;
         }
 
+        TrackFormat autoTrackFormat = null;
         if (tracksList.get(0).bitrate == -1) {
+            autoTrackFormat = tracksList.get(0);
             tracksList.remove(0);
         }
 
@@ -86,8 +127,13 @@ public class KTracksManager implements  KTrackActions {
 
         SortedSet<TrackFormat> bitrateSet = new TreeSet<TrackFormat>(tracksComperator);
         bitrateSet.addAll(tracksList);
-        Log.d(TAG, "preferred bitrate selected = " +  bitrateSet.first());
+        LOGD(TAG, "preferred bitrate selected = " +  bitrateSet.first());
         switchTrack(trackType, bitrateSet.first().index);
+
+        //adding Auto again after removing it for comperator ignorance
+        if (autoTrackFormat != null) {
+            tracksList.add(0, autoTrackFormat);
+        }
     }
 
     @Override
@@ -97,7 +143,7 @@ public class KTracksManager implements  KTrackActions {
             return TrackFormat.getDefaultTrackFormat(trackType);
         }
         List<TrackFormat> tracksList = getTracksList(trackType);
-        Log.d(TAG, "getCurrentTrack " + trackType.name() + " tracksList size = " + tracksList.size() + " currentIndex = " + currnetTrackIndex);
+        LOGD(TAG, "getCurrentTrack " + trackType.name() + " tracksList size = " + tracksList.size() + " currentIndex = " + currnetTrackIndex);
         if (tracksList != null && currnetTrackIndex <= (tracksList.size() - 1)) {
             return tracksList.get(currnetTrackIndex);
         }
@@ -140,7 +186,7 @@ public class KTracksManager implements  KTrackActions {
     }
 
 
-    public JSONObject getTrackListAsJson(TrackType trackType, boolean isTracksEventListenerEnabled ) {
+    public JSONObject getTrackListAsJson(TrackType trackType) {
         JSONObject resultJsonObj = new JSONObject();
         JSONArray tracksJsonArray = new JSONArray();
         int trackCount = getTracksCount(trackType);
@@ -148,9 +194,7 @@ public class KTracksManager implements  KTrackActions {
         List<TrackFormat> tracksList = getTracksList(trackType);
         for (TrackFormat tf : tracksList) {
             // for webView we filter the -1 bitrate since it is added automatically in the web layer
-            if (TrackType.VIDEO.equals(trackType) &&
-                tf.bitrate == -1 &&
-                !isTracksEventListenerEnabled) {
+            if (TrackType.VIDEO.equals(trackType) && tf.bitrate == -1) {
                 continue;
             }
             tracksJsonArray.put(tf.toJSONObject());
@@ -161,7 +205,7 @@ public class KTracksManager implements  KTrackActions {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Log.d(TAG, "Track/Lang JSON Result  " + resultJsonObj.toString());
+        LOGD(TAG, "Track/Lang JSON Result  " + resultJsonObj.toString());
         return resultJsonObj;
     }
 

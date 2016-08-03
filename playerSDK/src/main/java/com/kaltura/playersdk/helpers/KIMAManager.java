@@ -1,7 +1,6 @@
 package com.kaltura.playersdk.helpers;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -28,12 +27,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+
 /**
  * Created by nissopa on 6/30/15.
  */
 public class KIMAManager implements AdErrorEvent.AdErrorListener,
         AdsLoader.AdsLoadedListener, AdEvent.AdEventListener,
         KIMAAdPlayer.KIMAAdPlayerEvents {
+    private static final String TAG = "KIMAManager";
+
     // Container with references to video player and ad UI ViewGroup.
     private AdDisplayContainer mAdDisplayContainer;
 
@@ -179,7 +182,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         if (adErrorEvent != null) {
             errMsg = "Ad Error: " + adErrorEvent.getError().getErrorCode().name() + " - " + adErrorEvent.getError().getMessage();
         }
-        Log.e("IMA onAdError", errMsg);
+        LOGE(TAG, "IMA onAdError " + errMsg);
         if (mListener != null) {
             mListener.onAdError(errMsg);
         }

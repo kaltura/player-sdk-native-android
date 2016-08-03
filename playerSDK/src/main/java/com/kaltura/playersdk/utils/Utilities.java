@@ -1,4 +1,4 @@
-package com.kaltura.playersdk;
+package com.kaltura.playersdk.utils;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -8,7 +8,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -20,6 +19,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
  * Created by itayi on 3/5/15.
@@ -48,7 +49,7 @@ public class Utilities {
             InputStream assetStream = context.getAssets().open(asset);
             return fullyReadInputStream(assetStream, 1024*1024).toString();
         } catch (IOException e) {
-            Log.e(TAG, "Failed reading asset " + asset, e);
+            LOGE(TAG, "Failed reading asset " + asset, e);
             return null;
         }
     }
@@ -114,7 +115,7 @@ public class Utilities {
                     c.close();
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Failed closing " + c);
+                LOGE(TAG, "Failed closing " + c);
             }
         }
     }

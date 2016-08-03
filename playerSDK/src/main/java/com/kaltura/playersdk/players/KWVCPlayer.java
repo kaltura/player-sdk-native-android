@@ -23,6 +23,11 @@ import com.kaltura.playersdk.tracks.TrackType;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGI;
+import static com.kaltura.playersdk.utils.LogUtils.LOGW;
+
 
 /**
  * Created by noamt on 10/27/15.
@@ -147,7 +152,7 @@ public class KWVCPlayer
             isFirstPreparation = true;
             preparePlayer();
         } else {
-            Log.d(TAG, "setPlayerSource: waiting for licenseUri.");
+            LOGD(TAG, "setPlayerSource: waiting for licenseUri.");
         }
     }
 
@@ -157,7 +162,7 @@ public class KWVCPlayer
         if (mAssetUri != null) {
             preparePlayer();
         } else {
-            Log.d(TAG, "setLicenseUri: Waiting for assetUri.");
+            LOGD(TAG, "setLicenseUri: Waiting for assetUri.");
         }
     }
 
@@ -232,8 +237,8 @@ public class KWVCPlayer
         mPlayer.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (KPlayerListener.PauseKey.equals(state)) {
-                    if (KPlayerListener.PauseKey.equals(mLastSentEvent)){
+                if (state == KPlayerListener.PauseKey) {
+                    if (mLastSentEvent == KPlayerListener.PauseKey){
                         return;
                     }
                     if (mPlayer != null && !mPlayer.isPlaying()) {
@@ -241,8 +246,8 @@ public class KWVCPlayer
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
                         return;
                     }
-                } else if (KPlayerListener.PlayKey.equals(state)) {
-                    if (KPlayerListener.PlayKey.equals(mLastSentEvent)){
+                } else if (state == KPlayerListener.PlayKey) {
+                    if (mLastSentEvent == KPlayerListener.PlayKey){
                         return;
                     }
                     if (mPlayer != null && mPlayer.isPlaying()) {
@@ -251,7 +256,7 @@ public class KWVCPlayer
                         return;
                     }
                 } else {
-                    Log.e(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
+                    LOGE(TAG, "Unsupported state " + state + " was used in changePlayPauseState");
                     return;
 
                 }
@@ -270,7 +275,7 @@ public class KWVCPlayer
 
     @Override
     public void switchToLive() {
-        Log.w(TAG, "switchToLive is not implemented for Widevine Classic player");
+        LOGW(TAG, "switchToLive is not implemented for Widevine Classic player");
     }
 
     @Override
@@ -341,7 +346,7 @@ public class KWVCPlayer
 
     private void saveState() {
         if (mPlayer != null) {
-            mSavedState.set(mPlayer.isPlaying(), mCurrentPosition);
+            mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
         } else {
             mSavedState.set(false, 0);
         }
@@ -386,7 +391,7 @@ public class KWVCPlayer
 
         if (mAssetUri==null || mLicenseUri==null) {
             String errMsg  = "Prepare error: both assetUri and licenseUri must be set";
-            Log.e(TAG, errMsg);
+            LOGE(TAG, errMsg);
             mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, errMsg);
             return;
         }
@@ -414,7 +419,7 @@ public class KWVCPlayer
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 String errMsg = "VideoView:onError";
-                Log.e(TAG, errMsg);
+                LOGE(TAG, errMsg);
                 mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
                 return true; // prevents the VideoView error popups
             }
@@ -423,7 +428,7 @@ public class KWVCPlayer
             mPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                    Log.i(TAG, "onInfo(" + what + "," + extra + ")");
+                    LOGI(TAG, "onInfo(" + what + "," + extra + ")");
                     return false;
                 }
             });
@@ -439,22 +444,33 @@ public class KWVCPlayer
                 mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                     @Override
                     public void onSeekComplete(MediaPlayer mp) {
-                        if(mShouldPlayWhenReady){
+                        LOGD(TAG, "onSeekComplete " + mShouldPlayWhenReady);
+                        if (mp.getCurrentPosition() ==  mp.getDuration()) {
+                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                            mListener.eventWithValue(kplayer,KPlayerListener.EndedKey, null);
+                            mCallback.playerStateChanged(KPlayerCallback.ENDED);
+                            mSavedState.set(true, 0);
+                            pause();
+                        } else if(mShouldPlayWhenReady){
                             mShouldPlayWhenReady = false;
                             mSavedState.set(true, 0);
+                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                            mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                             play();
                         } else {
                             saveState();
+                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                            mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                         }
-                        mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
-                        mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 });
 
                 mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, percent < 100 ? "true" : "false");
+                        LOGD(TAG, "percent = " + percent + " " + mp.getCurrentPosition() + "/" + mp.getDuration());
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && mp.getCurrentPosition() < mp.getDuration()) ? "true" : "false");
+
                     }
                 });
 
@@ -487,22 +503,22 @@ public class KWVCPlayer
         mPlayer.getHolder().addCallback(new SurfaceHolder.Callback2() {
             @Override
             public void surfaceRedrawNeeded(SurfaceHolder holder) {
-                Log.d(TAG, "surfaceRedrawNeeded");
+                LOGD(TAG, "surfaceRedrawNeeded");
             }
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                Log.d(TAG, "surfaceCreated");
+                LOGD(TAG, "surfaceCreated");
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                Log.d(TAG, "surfaceChanged");
+                LOGD(TAG, "surfaceChanged");
             }
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
-                Log.d(TAG, "surfaceDestroyed");
+                LOGD(TAG, "surfaceDestroyed");
                 mWasDestroyed = true;
                 savePlayerState();
             }
@@ -546,13 +562,19 @@ public class KWVCPlayer
                     }
 
                     if (mPlayer != null && mPlayer.isPlaying()) {
-                        playbackTime = mPlayer.getCurrentPosition() / 1000f;
+                        LOGE(TAG, mPlayer.getCurrentPosition() + "/" + mPlayer.getDuration());
+                        if (mPlayer.getCurrentPosition() > mPlayer.getDuration()) {
+                            playbackTime = mPlayer.getDuration() / 1000f;
+                        } else {
+                            playbackTime = mPlayer.getCurrentPosition() / 1000f;
+                        }
+
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
                     }
 
                 } catch (IllegalStateException e) {
                     String errMsg = "Player Error ";
-                    Log.e(TAG, errMsg + e.getMessage());
+                    LOGE(TAG, errMsg + e.getMessage());
                     mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, errMsg + e.getMessage());
 
                 }
@@ -571,7 +593,7 @@ public class KWVCPlayer
                 mHandler = new Handler(Looper.getMainLooper());
                 mHandler.postDelayed(mRunnable, PLAYHEAD_UPDATE_INTERVAL);
             } else {
-                Log.d(TAG, "Tracker is already started");
+                LOGD(TAG, "Tracker is already started");
             }
         }
 
@@ -580,7 +602,7 @@ public class KWVCPlayer
                 mHandler.removeCallbacks(mRunnable);
                 mHandler = null;
             } else {
-                Log.d(TAG, "Tracker is not started, nothing to stop");
+                LOGD(TAG, "Tracker is not started, nothing to stop");
             }
         }
     }

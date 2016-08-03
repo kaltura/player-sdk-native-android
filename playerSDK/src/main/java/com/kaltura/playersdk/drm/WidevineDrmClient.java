@@ -11,12 +11,15 @@ import android.drm.DrmInfoRequest;
 import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
 import android.drm.DrmStore;
-import android.util.Log;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Iterator;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGI;
 
 // Based on Widevine for Android demo app
 
@@ -77,7 +80,7 @@ public class WidevineDrmClient {
                             this.expiryTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_EXPIRY_TIME);
                             this.availableTime = values.getAsInteger(DrmStore.ConstraintsColumns.LICENSE_AVAILABLE_TIME);
                         } catch (NullPointerException e) {
-                            Log.e(TAG, "Invalid constraints: " + values);
+                            LOGE(TAG, "Invalid constraints: " + values);
                         }
                     }
                     break;
@@ -169,7 +172,7 @@ public class WidevineDrmClient {
     private void logEvent(DrmEvent event) {
 //		if (! BuildConfig.DEBUG) {
 //			// Basic log
-//			Log.d(TAG, "DrmEvent(" + event + ")");
+//			LOGD(TAG, "DrmEvent(" + event + ")");
 //			return;
 //		}
         String eventTypeString = null;
@@ -218,7 +221,7 @@ public class WidevineDrmClient {
         DrmInfo drmInfo = (DrmInfo) event.getAttribute(DrmEvent.DRM_INFO_OBJECT);
         logString.append("info=").append(extractDrmInfo(drmInfo));
 
-        Log.d(TAG, logString.toString());
+        LOGD(TAG, logString.toString());
     }
 
     private String extractDrmInfo(DrmInfo drmInfo) {
@@ -265,10 +268,10 @@ public class WidevineDrmClient {
         request.put(WV_PORTAL_KEY, portal);
         DrmInfo response = mDrmManager.acquireDrmInfo(request);
 
-        Log.i(TAG, "Widevine Plugin Info: " + extractDrmInfo(response));
-        
+        LOGI(TAG, "Widevine Plugin Info: " + extractDrmInfo(response));
+
         String drmInfoRequestStatusKey = (String)response.get(WV_DRM_INFO_REQUEST_STATUS_KEY);
-        Log.i(TAG, "Widevine provision status: " + drmInfoRequestStatusKey);
+        LOGI(TAG, "Widevine provision status: " + drmInfoRequestStatusKey);
     }
 
     /**
@@ -324,7 +327,7 @@ public class WidevineDrmClient {
                 rights = mDrmManager.processDrmInfo(drmInfo);
             }
         } catch (java.io.IOException e) {
-            Log.e(TAG, "Error opening local file:", e);
+            LOGE(TAG, "Error opening local file:", e);
             rights = -1;
         } finally {
             safeClose(fis);
@@ -340,7 +343,7 @@ public class WidevineDrmClient {
             try {
                 fis.close();
             } catch (IOException e) {
-                Log.e(TAG, "Failed to close file", e);
+                LOGE(TAG, "Failed to close file", e);
             }
         }
     }
@@ -374,6 +377,6 @@ public class WidevineDrmClient {
     }
     
     private void logMessage(String message) {
-        Log.d(TAG, message);
+        LOGD(TAG, message);
     }
 }

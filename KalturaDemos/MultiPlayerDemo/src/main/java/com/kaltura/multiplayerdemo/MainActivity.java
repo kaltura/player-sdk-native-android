@@ -5,7 +5,6 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -27,6 +26,8 @@ import com.kaltura.playersdk.types.KPError;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener {
 
@@ -189,11 +190,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.READY){
-            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
+            LOGE(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
             kPlayerReady = true;
         }
         if (state == KPlayerState.ENDED && adIsDone){
-            Log.e(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
+            LOGE(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
             addAdPlayer();
         }
     }
@@ -210,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.e(TAG, "Error Received:" + error.getErrorMsg());
+        LOGE(TAG, "Error Received:" + error.getErrorMsg());
     }
 
     ///AD PLAYER METHODS
@@ -229,27 +230,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onStateChanged(boolean playWhenReady, int playbackState) {
                 switch (playbackState) {
                     case ExoPlayer.STATE_READY:
-                        Log.e(TAG, "SimpleVideoPlayer STATE_READY");
+                        LOGE(TAG, "SimpleVideoPlayer STATE_READY");
                         //if (playWhenReady) {
                         if (!adPlayerIsPlaying && adPlayerContainer != null && mAdPlayer != null) {
-                            Log.e(TAG, "START PLAY AD ");
+                            LOGE(TAG, "START PLAY AD ");
                             adPlayerIsPlaying = true;
                             mAdPlayer.play();
                         }
                         break;
                     case ExoPlayer.STATE_ENDED:
-                        Log.e(TAG, "SimpleVideoPlayer AD ENDED");
+                        LOGE(TAG, "SimpleVideoPlayer AD ENDED");
                         adPlayerIsPlaying = false;
                         adIsDone = true;
                         removeAdPlayer();
                         if (kPlayerReady){
-                            Log.e(TAG, "KPLAY FROM NORMAL PATH");
+                            LOGE(TAG, "KPLAY FROM NORMAL PATH");
                             mPlayer.getMediaControl().start();
                         }else {
                             mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
                                 @Override
                                 public void handler() {
-                                    Log.e(TAG, "KPLAY FROM HANDLER");
+                                    LOGE(TAG, "KPLAY FROM HANDLER");
                                     mPlayer.getMediaControl().start();
                                 }
                             });

@@ -4,15 +4,18 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.drm.DrmAdapter;
+import com.kaltura.playersdk.helpers.CacheManager;
+import com.kaltura.playersdk.utils.Utilities;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGI;
 
 
 /**
@@ -103,7 +106,7 @@ public class LocalAssetsManager {
 
 
         if (! Utilities.isOnline(context)) {
-            Log.i(TAG, "Can't register/refresh when offline");
+            LOGI(TAG, "Can't register/refresh when offline");
             return false;
         }
 
@@ -128,7 +131,7 @@ public class LocalAssetsManager {
                     drmAdapter.registerAsset(localPath, String.valueOf(licenseUri), listener);
 
                 } catch (JSONException | IOException e) {
-                    Log.e(TAG, "Error", e);
+                    LOGE(TAG, "Error", e);
                     if (listener != null) {
                         listener.onFailed(localPath, e);
                     }

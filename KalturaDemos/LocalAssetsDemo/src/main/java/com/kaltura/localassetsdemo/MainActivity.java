@@ -1,15 +1,14 @@
 package com.kaltura.localassetsdemo;
 
-import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -25,11 +24,11 @@ import android.widget.Toast;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.Utilities;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.utils.Utilities;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,6 +37,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity implements KPErrorEventListener, KPStateChangedEventListener {
 
@@ -152,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
                 LocalAssetsManager.unregisterAsset(MainActivity.this, mSelectedItem.config, mSelectedItem.localPath, new LocalAssetsManager.AssetRemovalListener() {
                     @Override
                     public void onRemoved(String assetPath) {
-                        Log.d(TAG, "Removed " + assetPath);
+                        LOGD(TAG, "Removed " + assetPath);
                     }
                 });
             }
@@ -227,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         final TextView textView = ((TextView) findViewById(R.id.txt_log));
         assert textView != null;
 
-        Log.d(TAG, text, e);
+        LOGD(TAG, text, e);
         
         textView.post(new Runnable() {
             @Override
@@ -315,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
             }
             
         } catch (JSONException e) {
-            Log.e(TAG, "Error parsing json", e);
+            LOGE(TAG, "Error parsing json", e);
         }
 
         Spinner spinner = (Spinner) findViewById(R.id.spn_content);

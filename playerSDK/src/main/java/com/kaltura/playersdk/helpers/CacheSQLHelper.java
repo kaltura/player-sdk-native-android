@@ -6,10 +6,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
  * Created by nissimpardo on 26/10/15.
@@ -99,7 +101,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 db().insert(TABLE_NAME, null, values);
             }
         } catch (SQLiteException e) {
-            Log.e(TAG, "Error adding file, fileId=" + fileId);
+            LOGE(TAG, "Error adding file, fileId=" + fileId);
         }
     }
 
@@ -134,7 +136,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 size = cursor.getInt(0);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error getting total cache size", e);
+            LOGE(TAG, "Error getting total cache size", e);
         } finally {
             quietClose(cursor);
         }
@@ -148,7 +150,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         try {
             db().update(TABLE_NAME, data, COL_FILEID + "=?", new String[]{fileId});
         } catch (SQLiteException e) {
-            Log.e(TAG, "Error updating entry date", e);
+            LOGE(TAG, "Error updating entry date", e);
         }
     }
 
@@ -159,7 +161,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
         try {
             db().update(TABLE_NAME, data, COL_FILEID + "=?", new String[]{fileId});
         } catch (SQLiteException e) {
-            Log.e(TAG, "Error updating entry size", e);
+            LOGE(TAG, "Error updating entry size", e);
         }
     }
 
@@ -169,7 +171,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 c.close();
             }
         } catch (Exception e) {
-            Log.e(TAG, "Failed closing " + c);
+            LOGE(TAG, "Failed closing " + c);
         }
     }
     
@@ -205,7 +207,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 }
             }
         } catch (SQLiteException e) {
-            Log.e(TAG, "Error getting list of files to delete");
+            LOGE(TAG, "Error getting list of files to delete");
         } finally {
             quietClose(cursor);
         }
@@ -216,7 +218,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 db.delete(TABLE_NAME, COL_FILEID + "=?", new String[]{fileId});
                 listener.fileDeleted(fileId);
             } catch (SQLiteException e) {
-                Log.e(TAG, "Error deleting entry (lessUsed) " + fileId);
+                LOGE(TAG, "Error deleting entry (lessUsed) " + fileId);
             }
         }
     }
@@ -234,7 +236,7 @@ public class CacheSQLHelper extends SQLiteOpenHelper {
                 params.put(COL_MIMETYPE, cursor.getString(2));
             }
         } catch (SQLiteException e) {
-            Log.e(TAG, "Error fetching params for " + fileId);
+            LOGE(TAG, "Error fetching params for " + fileId);
         } finally {
             quietClose(cursor);
         }
