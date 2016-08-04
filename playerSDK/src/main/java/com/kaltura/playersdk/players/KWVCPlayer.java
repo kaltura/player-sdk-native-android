@@ -241,7 +241,7 @@ public class KWVCPlayer
                     if (mLastSentEvent == KPlayerListener.PauseKey){
                         return;
                     }
-                    if (mPlayer != null && !mPlayer.isPlaying()) {
+                    if (mPlayer != null && (!mPlayer.isPlaying()) || mLastSentEvent == KPlayerListener.PlayKey) {
                         mLastSentEvent = KPlayerListener.PauseKey;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
                         return;
@@ -250,9 +250,9 @@ public class KWVCPlayer
                     if (mLastSentEvent == KPlayerListener.PlayKey){
                         return;
                     }
-                    if (mPlayer != null && mPlayer.isPlaying()) {
+                    if (mPlayer != null && (mPlayer.isPlaying() || mLastSentEvent == KPlayerListener.PauseKey)) {
+                        mLastSentEvent = KPlayerListener.PlayKey;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
-                        mLastSentEvent = KPlayerListener.PauseKey;
                         return;
                     }
                 } else {
