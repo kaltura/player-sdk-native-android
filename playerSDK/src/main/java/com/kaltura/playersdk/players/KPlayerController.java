@@ -29,8 +29,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
-import static com.kaltura.playersdk.utils.LogUtils.LOGE;
-import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
  * Created by nissopa on 6/14/15.
@@ -176,7 +174,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
 
 
-                @Override
+            @Override
             public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
                 if (playerListener == null) {
                     return;
@@ -259,9 +257,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null) {
             return;
         }
-        if (player.isPlaying() && SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
-             LOGW(TAG, "PLAY REJECTED");
-             return;
+        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
+            LOGD(TAG, "PLAY REJECTED");
+            return;
         }
         mPlayLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Play) {
@@ -300,8 +298,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null) {
             return;
         }
-        if (!player.isPlaying() && SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
-            LOGW(TAG, "PAUSE REJECTED");
+        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
+            LOGD(TAG, "PAUSE REJECTED");
             return;
         }
 
@@ -631,9 +629,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void playerStateChanged(int state) {
-        LOGD(TAG, "playerStateChanged state: " + state);
+
+        //LOGE(TAG, "XXXX playerStateChanged " + state);
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
+                LOGD(TAG, "playerStateChanged CAN_PLAY");
                 tracksManager = new KTracksManager(player);
                 if (videoTrackEventListener != null) {
                     getTracksManager().setVideoTrackEventListener(videoTrackEventListener);
@@ -671,6 +671,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.ENDED:
+                LOGD(TAG, "playerStateChanged  ENDED");
                 if (imaManager != null) {
                     isContentCompleted = true;
                     isIMAActive = true;
@@ -678,17 +679,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 } else {
                     playerListener.eventWithValue(player, KPlayerListener.SeekedKey, null);
                     playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
-                    if (mCurrentPlaybackTime > 0) {
-                        player.setCurrentPlaybackTime((long) (mCurrentPlaybackTime * 1000));
-                        mCurrentPlaybackTime = 0;
-                    }
                 }
                 break;
             case KPlayerCallback.SEEKED:
-                LOGE(TAG, "Seeked time :" +  getCurrentPosition()  + "/" + getDuration());
+                LOGD(TAG, "playerStateChanged CAN_PLAY currentState " + currentState.name());
+
                 if (currentState == UIState.Play || currentState == UIState.Replay) {
                     play();
                 }
+         
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
                     mSeekCallback = null;

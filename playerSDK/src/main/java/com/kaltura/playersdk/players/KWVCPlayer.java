@@ -445,23 +445,15 @@ public class KWVCPlayer
                     @Override
                     public void onSeekComplete(MediaPlayer mp) {
                         LOGD(TAG, "onSeekComplete " + mShouldPlayWhenReady);
-                        if (mp.getCurrentPosition() ==  mp.getDuration()) {
-                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
-                            mListener.eventWithValue(kplayer,KPlayerListener.EndedKey, null);
-                            mCallback.playerStateChanged(KPlayerCallback.ENDED);
-                            mSavedState.set(true, 0);
-                            pause();
-                        } else if(mShouldPlayWhenReady){
+                        if(mShouldPlayWhenReady){
                             mShouldPlayWhenReady = false;
                             mSavedState.set(true, 0);
-                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
-                            mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                             play();
                         } else {
                             saveState();
-                            mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
-                            mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                         }
+                        mListener.eventWithValue(kplayer, KPlayerListener.SeekedKey, null);
+                        mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 });
 
@@ -556,9 +548,9 @@ public class KWVCPlayer
             public void run() {
                 try {
                     if (mPlayer.getCurrentPosition() == mPlayer.getDuration()){
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.SeekedKey, null);
+                        //mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.SeekedKey, null);
                         mCallback.playerStateChanged(KPlayerCallback.ENDED);
-
+                        stopPlayheadTracker();
                     }
 
                     if (mPlayer != null && mPlayer.isPlaying()) {
