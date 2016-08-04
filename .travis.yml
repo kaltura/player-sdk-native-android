@@ -41,7 +41,7 @@ notifications:
     recipients:
       - noam.tamim@kaltura.com
       - itay.kinnrot@kaltura.com
-      - nissim.pardo@kaltura.com
+      - oren.melamed@kaltura.com
       - gilad.nadav@kaltura.com
       - g.kozlov@synergetica.co
     on_success: change
