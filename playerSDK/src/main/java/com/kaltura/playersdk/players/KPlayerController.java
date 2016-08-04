@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
-import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
  * Created by nissopa on 6/14/15.
@@ -259,7 +258,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             return;
         }
         if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
-            LOGW(TAG, "PLAY REJECTED");
+            LOGD(TAG, "PLAY REJECTED");
             return;
         }
         mPlayLastClickTime = SystemClock.elapsedRealtime();
@@ -300,7 +299,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             return;
         }
         if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
-            LOGW(TAG, "PAUSE REJECTED");
+            LOGD(TAG, "PAUSE REJECTED");
             return;
         }
 
