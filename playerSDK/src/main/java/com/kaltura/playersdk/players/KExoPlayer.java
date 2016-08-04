@@ -472,26 +472,21 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             case ExoPlayer.STATE_ENDED:
                 LOGD(TAG, "STATE_ENDED mReadiness: " + mReadiness + " playWhenReady: " + playWhenReady + " mBuffering: " + mBuffering);
-                if (mReadiness == KState.ENDED) {
-                    LOGD(TAG, "STATE_ENDED REJECTED");
+                if (mReadiness == KState.IDLE) {
                     return;
                 }
-
                 if (playWhenReady) {
-                    LOGD(TAG, "STATE_ENDED SENT");
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
+                    mReadiness = KState.IDLE;
                 }
                 else {
                     if (mBuffering) {
                         mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
                         mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
-                        mPlayerCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     }
                 }
+
                 stopPlaybackTimeReporter();
-                mReadiness = KState.ENDED;
-                mBuffering = false;
-                mSeeking = false;
                 break;
         }
     }
