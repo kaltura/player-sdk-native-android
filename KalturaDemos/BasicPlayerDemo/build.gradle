@@ -18,6 +18,10 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    packagingOptions {
+        exclude 'jsr305_annotations/Jsr305_annotations.gwt.xml'
+    }
 }
 
 dependencies {

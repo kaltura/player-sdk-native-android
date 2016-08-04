@@ -28,5 +28,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-cast:9.2.1'
     compile 'com.android.support:mediarouter-v7:24.0.0'
     compile 'com.android.support:appcompat-v7:24.0.0'
-    compile fileTree(dir: 'libs', include: ['ima-sdk-*.jar'])
+    compile 'com.google.ads.interactivemedia.v3:interactivemedia:3.3.2'
 }

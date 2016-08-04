@@ -97,19 +97,19 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
 
     public void pause() {
-//        if (mIMAPlayer != null) {
-//            mIMAPlayer.pause();
-//        }
         if (mAdsManager != null) {
+            if (mIMAPlayer != null) {
+                mIMAPlayer.pauseAdCallback();
+            }
             mAdsManager.pause();
         }
     }
 
     public void resume() {
-//        if (mIMAPlayer != null) {
-//            mIMAPlayer.resume();
-//        }
         if (mAdsManager != null) {
+            if (mIMAPlayer != null) {
+                mIMAPlayer.resumeAdCallback();
+            }
             mAdsManager.resume();
         }
     }
@@ -122,7 +122,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         mAdDisplayContainer = mSdkFactory.createAdDisplayContainer();
         mAdDisplayContainer.setPlayer(mIMAPlayer);
         mAdDisplayContainer.setAdContainer(mIMAPlayer.getAdUIContainer());
-
         // Create the ads request.
         AdsRequest request = mSdkFactory.createAdsRequest();
         request.setAdTagUrl(adTagUrl);
@@ -158,6 +157,11 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
         renderingSettings.setMimeTypes(mimeTypes);
         renderingSettings.setUiElements(Collections.<UiElement>emptySet());
+        renderingSettings.setEnablePreloading(true);
+        //Set<UiElement> set = new HashSet<UiElement>();
+        //set.add(UiElement.AD_ATTRIBUTION);
+        //set.add(UiElement.COUNTDOWN);
+        //renderingSettings.setUiElements(set);
         mAdsManager.init(renderingSettings);
     }
 

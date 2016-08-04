@@ -17,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'jsr305_annotations/Jsr305_annotations.gwt.xml'
+    }
+
 }
 
 dependencies {
