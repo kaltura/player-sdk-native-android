@@ -229,9 +229,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
+            resetPlayer();
             mConfig = config;
             mWebView.setVisibility(INVISIBLE);
             mWebView.clearCache(true);
+            mWebView.clearHistory();
+            mWebView.loadUrl("about:blank");
             mWebView.loadUrl(config.getVideoURL() + buildSupportedMediaFormats());
             mIsJsCallReadyRegistration = false;
             registerReadyEvent(new ReadyEventListener() {
