@@ -413,7 +413,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     // PlaybackListener
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
-        LOGD(TAG, "PlayerStateChanged: " + playbackState + " playWhenReady: " + playWhenReady + " mReadiness: " + mReadiness);
+        LOGD(TAG, "PlayerStateChanged: " + playbackState + " playWhenReady: " + playWhenReady + " mPassedPlay: " + mPassedPlay + " mReadiness: " + mReadiness + " mSeeking: " + mSeeking);
 
         switch (playbackState) {
             case ExoPlayer.STATE_IDLE:
@@ -424,18 +424,21 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             case ExoPlayer.STATE_PREPARING:
                 break;
             case ExoPlayer.STATE_BUFFERING:
+                LOGD(TAG, "STATE_BUFFERING mReadiness: " + mReadiness + " playWhenReady: " + playWhenReady);
                 if (mPlayerListener != null) {
                     mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "true");
                     mBuffering = true;
                 }
                 break;
             case ExoPlayer.STATE_READY:
+                LOGD(TAG, "STATE_READY mReadiness: " + mReadiness + " mSeeking: " + mSeeking + " mBuffering: " + mBuffering + " playWhenReady: " + playWhenReady);
                 if (mPlayerListener != null && mPlayerCallback != null) {
                     if (mBuffering) {
                         mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
                         mBuffering = false;
                     }
-                    if (mReadiness == KState.READY && !playWhenReady) {
+                    if ((mReadiness == KState.READY || mReadiness == KState.PAUSED) && !playWhenReady) {
+                        LOGD(TAG, "Change to PauseKey");
                         mPlayerListener.eventWithValue(this, KPlayerListener.PauseKey, null);
                     }
 
@@ -461,21 +464,34 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
                     if (mPassedPlay && playWhenReady) {
                         mPassedPlay = false;
+                        LOGD(TAG, "Change to PlayKey");
                         mPlayerListener.eventWithValue(this, KPlayerListener.PlayKey, null);
                     }
                 }
                 break;
 
             case ExoPlayer.STATE_ENDED:
-                if (mReadiness == KState.IDLE) {
+                LOGD(TAG, "STATE_ENDED mReadiness: " + mReadiness + " playWhenReady: " + playWhenReady + " mBuffering: " + mBuffering);
+                if (mReadiness == KState.ENDED) {
+                    LOGD(TAG, "STATE_ENDED REJECTED");
                     return;
                 }
-                LOGD(TAG, "state ended");
+
                 if (playWhenReady) {
+                    LOGD(TAG, "STATE_ENDED SENT");
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
-                    mReadiness = KState.IDLE;
+                }
+                else {
+                    if (mBuffering) {
+                        mPlayerListener.eventWithValue(this, KPlayerListener.BufferingChangeKey, "false");
+                        mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                        mPlayerCallback.playerStateChanged(KPlayerCallback.SEEKED);
+                    }
                 }
                 stopPlaybackTimeReporter();
+                mReadiness = KState.ENDED;
+                mBuffering = false;
+                mSeeking = false;
                 break;
         }
     }
