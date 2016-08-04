@@ -254,7 +254,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void play() {
-        if (player == null) {
+        if (player == null && mCastProvider == null) {
             return;
         }
         if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
@@ -295,7 +295,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void pause() {
-        if (player == null) {
+        if (player == null && mCastProvider == null) {
             return;
         }
         if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
