@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.setAutoPlay(true);
             mPlayPauseButton.setText("Pause");
 
+            //config.addConfig("debugKalturaPlayer", "true");
             //config.addConfig("controlBarContainer.hover", "true");
             config.addConfig("closedCaptions.plugin", "true");
             config.addConfig("sourceSelector.plugin", "true");
@@ -99,7 +100,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.addConfig("audioSelector.plugin", "true");
             config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
 
-
+            //String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x360&iu=/6062/iab_vast_samples/skippable&ciu_szs=300x250,728x90&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+            //config.addConfig("doubleClick.adTagUrl",adTagUrl);
+            //config.addConfig("doubleClick.plugin","true");
             mPlayer.initWithConfiguration(config);
 
             mPlayer.setOnKPErrorEventListener(this);
