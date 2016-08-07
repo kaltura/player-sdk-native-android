@@ -102,6 +102,18 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         return new VideoProgressUpdate(mAdPlayer.getCurrentPosition(), mAdPlayer.getDuration());
     }
 
+    public void pauseAdCallback(){
+        for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
+            callback.onPause();
+        }
+    }
+
+    public void resumeAdCallback(){
+        for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
+            callback.onResume();
+        }
+    }
+
     private void startPlaybackTimeReporter() {
         mPlaybackTimeReporter.removeMessages(0); // Stop reporter if already running
         mPlaybackTimeReporter.post(new Runnable() {

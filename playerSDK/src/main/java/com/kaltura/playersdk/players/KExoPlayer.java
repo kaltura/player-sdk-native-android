@@ -48,7 +48,6 @@ import java.util.UUID;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
-import static com.kaltura.playersdk.utils.LogUtils.LOGI;
 
 /**
  * Created by noamt on 18/01/2016.
@@ -624,17 +623,17 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         for (Id3Frame id3Frame : id3Frames) {
             if (id3Frame instanceof TxxxFrame) {
                 TxxxFrame txxxFrame = (TxxxFrame) id3Frame;
-                LOGI(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
+                LOGD(TAG, String.format("ID3 TimedMetadata %s: description=%s, value=%s", txxxFrame.id,
                         txxxFrame.description, txxxFrame.value));
             } else if (id3Frame instanceof PrivFrame) {
                 PrivFrame privFrame = (PrivFrame) id3Frame;
-                LOGI(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
+                LOGD(TAG, String.format("ID3 TimedMetadata %s: owner=%s", privFrame.id, privFrame.owner));
             } else if (id3Frame instanceof GeobFrame) {
                 GeobFrame geobFrame = (GeobFrame) id3Frame;
-                LOGI(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
+                LOGD(TAG, String.format("ID3 TimedMetadata %s: mimeType=%s, filename=%s, description=%s",
                         geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
             } else {
-                LOGI(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
+                LOGD(TAG, String.format("ID3 TimedMetadata %s", id3Frame.id));
             }
         }
     }
