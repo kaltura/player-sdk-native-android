@@ -682,7 +682,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SEEKED:
-                LOGD(TAG, "playerStateChanged CAN_PLAY currentState " + currentState.name());
+                LOGD(TAG, "playerStateChanged SEEKED currentState " + currentState.name());
 
                 if (currentState == UIState.Play || currentState == UIState.Replay) {
                     play();

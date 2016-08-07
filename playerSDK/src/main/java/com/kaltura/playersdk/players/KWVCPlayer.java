@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
@@ -174,6 +173,7 @@ public class KWVCPlayer
     @Override
     public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
+            LOGD(TAG, "seekTo currentPlaybackTime " + currentPlaybackTime);
             mPlayer.seekTo((int) (currentPlaybackTime));
         }
     }
@@ -187,7 +187,7 @@ public class KWVCPlayer
     public void play() {
 
         // If already playing, don't do anything.
-        if (mPlayer == null || mPlayer.isPlaying()) {
+        if (mWasDestroyed || mPlayer == null || mPlayer.isPlaying()) {
             return;
         }
 
@@ -221,6 +221,9 @@ public class KWVCPlayer
 
     @Override
     public void pause() {
+        if (mWasDestroyed) {
+            return;
+        }
         if (mPlayer != null) {
             if (mPlayer.isPlaying()) {
                 mPlayer.pause();
@@ -317,43 +320,54 @@ public class KWVCPlayer
 
     public void savePosition() {
         if(mPlayer != null) {
-            mSavedState.position = mPlayer.getCurrentPosition();
+            LOGD(TAG, "XXX savePosition  mPlayer.getCurrentPosition() = " + mPlayer.getCurrentPosition() + " but  mCurrentPosition = " + mCurrentPosition);
+            mSavedState.position = mCurrentPosition;//mPlayer.getCurrentPosition();
+
         }
     }
 
     private void savePlayerState() {
+        savePosition();
         saveState();
         pause();
     }
 
     private void recoverPlayerState() {
-        if(getCurrentPlaybackTime() != mSavedState.position) {
-            mPlayer.seekTo(mSavedState.position);
-            mShouldPlayWhenReady = mSavedState.playing;
+            LOGD(TAG, "XXX recoverPlayer mSavedState.position = " + mSavedState.position + " mCurrentPosition: " + mCurrentPosition);
 
-        } else if (mSavedState.playing){
-            play();
-        }
+            if(getCurrentPlaybackTime() != mCurrentPosition) {
+                LOGD(TAG, "XXX recoverPlayer seekTo = " + mCurrentPosition);
+                mPlayer.seekTo(mCurrentPosition);
+                mShouldPlayWhenReady = mSavedState.playing;
+
+            } else if (mSavedState.playing){
+                 play();
+            }
     }
 
     @Override
     public void freezePlayer() {
 //        if (mPlayer != null) {
-//            savePosition();
+//            savePlayerState();
 //            mPlayer.suspend();
 //        }
     }
 
     private void saveState() {
+
         if (mPlayer != null) {
-            mSavedState.set(mPlayer.isPlaying(), mPlayer.getCurrentPosition());
+            LOGD(TAG, "XXX saveState mPlayer.getCurrentPosition() = " + mPlayer.getCurrentPosition() + " mCurrentPosition = " + mCurrentPosition);
+            mSavedState.set(mPlayer.isPlaying(), mCurrentPosition);
         } else {
+            LOGD(TAG, "XXX saveState mPlayer == null, position = 0");
             mSavedState.set(false, 0);
         }
     }
 
     @Override
     public void removePlayer() {
+        LOGD(TAG, "XXX removePlayer");
+        savePosition();
         saveState();
         pause();
         if (mPlayer != null) {
@@ -375,10 +389,17 @@ public class KWVCPlayer
 
     @Override
     public void recoverPlayer(boolean isPlaying) {
+        LOGD(TAG, "XXX recoverPlayer mSavedState.position = " + mSavedState.position + " mSavedState.playing: " + mSavedState.playing + " mCurrentPosition: " + mCurrentPosition);
+
         if (mWasDestroyed && mPlayer != null) {
-            mSavedState.set(false, mSavedState.position);
+            LOGD(TAG, "XXX inside recoverPlayer mCurrentPosition = " + mCurrentPosition + " isPlaying = " + isPlaying);
+            mSavedState.set(mSavedState.playing, mCurrentPosition);
             mPlayer.resume();
             mWasDestroyed = false;
+            mCallback.playerStateChanged(KPlayerCallback.SEEKED);
+            if (isPlaying) {
+                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
+            }
         }
     }
 
@@ -397,7 +418,7 @@ public class KWVCPlayer
         }
 
         if (mPrepareState == PrepareState.Preparing) {
-            Log.v(TAG, "Already preparing");
+            LOGD(TAG, "Already preparing");
             return;
         }
 
@@ -418,8 +439,19 @@ public class KWVCPlayer
         mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                String errMsg = "VideoView:onError";
+                String errMsg = "VideoView:onError what = " + what;
                 LOGE(TAG, errMsg);
+                if (what == -38) {
+                    return true;
+                }
+                if(what == MediaPlayer.MEDIA_ERROR_SERVER_DIED || what == MediaPlayer.MEDIA_ERROR_UNKNOWN || what == MediaPlayer.MEDIA_ERROR_IO) {
+                    //mp.reset();
+                    stopPlayheadTracker();
+                    mWasDestroyed = true;
+                    mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PauseKey, null);
+                    return true;
+                }
+
                 mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "(" + what + "," + extra + ")");
                 return true; // prevents the VideoView error popups
             }
@@ -460,24 +492,31 @@ public class KWVCPlayer
                 mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                        LOGD(TAG, "percent = " + percent + " " + mp.getCurrentPosition() + "/" + mp.getDuration());
+                        LOGD(TAG, "XXX percent = " + percent + " " + mp.getCurrentPosition() + "/" + mp.getDuration());
+                        mCurrentPosition = mp.getCurrentPosition();
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && mp.getCurrentPosition() < mp.getDuration()) ? "true" : "false");
 
                     }
                 });
 
                 if (mSavedState.playing) {
+                    LOGD(TAG, "XXX mSavedState.playing = TRUE");
                     // we were already playing, so just resume playback from the saved position
                     mShouldPlayWhenReady = true;
+
                     if(getCurrentPlaybackTime() != mSavedState.position) { //if we need seek first - play will be activate on seek complete
+                        LOGD(TAG, "XXX seekTo " + mSavedState.position);
                         mPlayer.seekTo(mSavedState.position);
-                    } else {
-                        play();
+                    }
+                    mCallback.playerStateChanged(KPlayerCallback.SEEKED);
+                    if (mSavedState.playing) {
+                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
                     }
 
                 } else {
                     if(!mShouldCancelPlay) {
                         if (isFirstPreparation) {
+                            LOGD(TAG, "STARTING FIRST PLAY");
                             isFirstPreparation = false;
                             mListener.eventWithValue(kplayer, KPlayerListener.DurationChangedKey, Float.toString(kplayer.getDuration() / 1000f));
                             mListener.eventWithValue(kplayer, KPlayerListener.LoadedMetaDataKey, "");
@@ -488,7 +527,10 @@ public class KWVCPlayer
                             mShouldPlayWhenReady = false;
                             play();
                         }
+                      } else {
+                        pause();
                     }
+
                 }
             }
         });
