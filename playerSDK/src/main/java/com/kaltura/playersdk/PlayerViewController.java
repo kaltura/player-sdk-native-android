@@ -241,8 +241,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 @Override
                 public void handler() {
                     mWebView.setVisibility(VISIBLE);
-                    for (String event : mPlayerEventsHash.keySet()) {
-                        mWebView.addEventListener(event);
+                    if (mPlayerEventsHash != null) {
+                        for (String event : mPlayerEventsHash.keySet()) {
+                            mWebView.addEventListener(event);
+                        }
                     }
                 }
             });
