@@ -200,11 +200,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         playerListener.eventWithValue(player, KPlayerListener.SeekedKey, null);
                         break;
                     case Ended:
-                        //playerListener.eventWithValue(player, KPlayerListener.SeekedKey, null);
                         playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
-                        //if (mCastProvider != null) {
-                        //    mCastProvider.disconnectFromDevice();
-                        //}
                         break;
                 }
             }
