@@ -17,6 +17,7 @@ import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
@@ -159,6 +160,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void seek(long currentPosition) {
+        LOGD(TAG, "seek to " + currentPosition);
         updateState(State.Seeking);
         mRemoteMediaPlayer.seek(mApiClient, currentPosition).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
@@ -200,7 +202,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public void removeListener(KCastMediaRemoteControlListener listener) {
-        if (mListeners.size() > 0 && mListeners.contains(listener)) {
+        if (mListeners != null && mListeners.size() > 0 && mListeners.contains(listener)) {
             mListeners.remove(listener);
         }
     }
@@ -222,8 +224,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     private void updateState(State state) {
         mState = state;
-        for (KCastMediaRemoteControlListener listener: mListeners) {
-            listener.onCastMediaStateChanged(state);
+        if (mListeners != null) {
+            for (KCastMediaRemoteControlListener listener : mListeners) {
+                listener.onCastMediaStateChanged(state);
+            }
         }
     }
 
