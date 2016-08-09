@@ -121,6 +121,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
                     long currentTime = mRemoteMediaPlayer.getApproximateStreamPosition();
                     if (currentTime != 0 && currentTime < mRemoteMediaPlayer.getStreamDuration()) {
                         for (KCastMediaRemoteControlListener listener : mListeners) {
+                            LOGD(TAG, "CC SEND TIME UPDATE " + currentTime );
                             listener.onCastMediaProgressUpdate(currentTime);
                         }
                     }

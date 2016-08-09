@@ -309,10 +309,12 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void onRouteUpdate(boolean isAdded, KCastDevice route) {
-        if (isAdded) {
-            mProviderListener.onDeviceCameOnline(route);
-        } else {
-            mProviderListener.onDeviceWentOffline(route);
+        if (mProviderListener != null) {
+            if (isAdded) {
+                mProviderListener.onDeviceCameOnline(route);
+            } else {
+                mProviderListener.onDeviceWentOffline(route);
+            }
         }
     }
 
