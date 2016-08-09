@@ -17,6 +17,7 @@ import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 /**
@@ -159,11 +160,23 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void seek(long currentPosition) {
+        LOGD(TAG, "CC seek to " + currentPosition);
+        LOGD(TAG, "CC SEND SEEKING");
         updateState(State.Seeking);
-        mRemoteMediaPlayer.seek(mApiClient, currentPosition).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+        mRemoteMediaPlayer.seek(mApiClient, currentPosition,RemoteMediaPlayer.RESUME_STATE_UNCHANGED).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                updateState(State.Seeked);
+                if (!mediaChannelResult.getStatus().isSuccess()) {
+                    LOGD(TAG, "FAILED to Seeked");
+                } else {
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            LOGD(TAG, "CC SEND SEEKED");
+                            updateState(State.Seeked);
+                        }
+                    }, 2500);
+                }
             }
         });
     }
@@ -200,7 +213,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public void removeListener(KCastMediaRemoteControlListener listener) {
-        if (mListeners.size() > 0 && mListeners.contains(listener)) {
+        if (mListeners != null && mListeners.size() > 0 && mListeners.contains(listener)) {
             mListeners.remove(listener);
         }
     }
@@ -221,9 +234,13 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     private void updateState(State state) {
-        mState = state;
-        for (KCastMediaRemoteControlListener listener: mListeners) {
-            listener.onCastMediaStateChanged(state);
+        if (state != State.VolumeChanged) {
+            mState = state;
+        }
+        if (mListeners != null) {
+            for (KCastMediaRemoteControlListener listener : mListeners) {
+                listener.onCastMediaStateChanged(state);
+            }
         }
     }
 
