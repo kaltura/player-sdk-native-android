@@ -160,12 +160,23 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void seek(long currentPosition) {
-        LOGD(TAG, "seek to " + currentPosition);
+        LOGD(TAG, "CC seek to " + currentPosition);
+        LOGD(TAG, "CC SEND SEEKING");
         updateState(State.Seeking);
-        mRemoteMediaPlayer.seek(mApiClient, currentPosition).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+        mRemoteMediaPlayer.seek(mApiClient, currentPosition,RemoteMediaPlayer.RESUME_STATE_UNCHANGED).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                updateState(State.Seeked);
+                if (!mediaChannelResult.getStatus().isSuccess()) {
+                    LOGD(TAG, "FAILED to Seeked");
+                } else {
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            LOGD(TAG, "CC SEND SEEKED");
+                            updateState(State.Seeked);
+                        }
+                    }, 2500);
+                }
             }
         });
     }
