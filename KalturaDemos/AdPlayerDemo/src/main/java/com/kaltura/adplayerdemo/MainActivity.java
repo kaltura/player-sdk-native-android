@@ -306,19 +306,21 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
+        super.onResume();
         if (onCreate) {
             onCreate = false;
         } else {
-            if (mPlayer != null)
-                mPlayer.getMediaControl().start();
-            mPlayer.resumePlayer();
+            if (mPlayer != null) {
+                //mPlayer.getMediaControl().start();
+                mPlayer.resumePlayer();
+            }
+
             LOGD(TAG, "on Resume called for player");
             if (mAdPlayer != null) {
                 mAdPlayer.moveSurfaceToForeground();
                 mAdPlayer.play();
             }
         }
-        super.onResume();
         NetworkChangeReceiver.getObservable().addObserver(this);
     }
 
