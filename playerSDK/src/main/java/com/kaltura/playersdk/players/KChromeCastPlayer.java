@@ -223,7 +223,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     private void updateState(State state) {
-        mState = state;
+        if (state != State.VolumeChanged) {
+            mState = state;
+        }
         if (mListeners != null) {
             for (KCastMediaRemoteControlListener listener : mListeners) {
                 listener.onCastMediaStateChanged(state);
