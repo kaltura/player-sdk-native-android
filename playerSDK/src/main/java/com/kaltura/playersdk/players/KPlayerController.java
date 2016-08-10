@@ -187,14 +187,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         playerListener.eventWithValue(player, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
                         playerListener.eventWithValue(player, KPlayerListener.LoadedMetaDataKey, "");
                         playerListener.eventWithValue(player, KPlayerListener.CanPlayKey, null);
-
                         if (isPlayingBeforeCast) {
                             playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
-                        } else {
-                            if (mCastProvider.getCastMediaRemoteControl() != null) {
-                                mCastProvider.getCastMediaRemoteControl().pause();
-                            }
-                            playerListener.eventWithValue(player, KPlayerListener.PauseKey, null);
                         }
                         break;
                     case Playing:

@@ -181,7 +181,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             mCastClientListener = new Cast.Listener() {
                 @Override
                 public void onApplicationStatusChanged() {
-                    if (mApiClient != null) {
+                    if (mApiClient != null && mApiClient.isConnected()) {
                         LOGD(TAG, "onApplicationStatusChanged: "
                                 + Cast.CastApi.getApplicationStatus(mApiClient));
                         if ("Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient)) && mProviderListener != null) {

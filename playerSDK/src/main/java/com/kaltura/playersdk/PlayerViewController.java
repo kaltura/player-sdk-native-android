@@ -1077,6 +1077,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private void sendCCRecieverMessage(String args) {
         if (mCastProvider == null) {
+            LOGD(TAG, "sendCCRecieverMessage rejected mCastProvider == null");
             return;
         }
 
@@ -1086,7 +1087,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        LOGD(TAG, "sendCCRecieverMessage : " + decodeArgs);
+        LOGD(TAG, "sendCCRecieverMessage : decodeArgs = " + decodeArgs);
         ((KCastProviderImpl)mCastProvider).sendMessage(decodeArgs);
     }
 
