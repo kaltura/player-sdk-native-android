@@ -213,6 +213,16 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     @Override
+    public double getCurrentVolume() {
+        return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
+    }
+
+    @Override
+    public boolean isMute() {
+        return mRemoteMediaPlayer.getMediaStatus().isMute();
+    }
+
+    @Override
     public void removeListener(KCastMediaRemoteControlListener listener) {
         if (mListeners != null && mListeners.size() > 0 && mListeners.contains(listener)) {
             mListeners.remove(listener);
@@ -227,6 +237,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     @Override
     public long getCurrentPosition() {
         return mRemoteMediaPlayer.getApproximateStreamPosition();
+    }
+
+    @Override
+    public long getDuration() {
+        return mRemoteMediaPlayer.getStreamDuration();
     }
 
     @Override
