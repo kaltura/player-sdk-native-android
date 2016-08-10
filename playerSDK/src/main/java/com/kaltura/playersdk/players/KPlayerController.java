@@ -404,6 +404,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             if (isIMAActive && imaManager != null) {
                 imaManager.resume();
             } else if (player != null) {
+                LOGD(TAG, "recoverPlayerState send PLAY");
                 play();
             }
         }
@@ -411,6 +412,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void removePlayer(boolean shouldSaveState) {
         isBackgrounded = true;
+        currentState = UIState.Pause;
         if (player != null) {
             if (shouldSaveState) {
                 savePlayerState();
