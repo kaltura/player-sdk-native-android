@@ -212,8 +212,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     @Override
-    public double getVolume() {
-        return return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();;
+    public double getCurrentVolume() {
+        return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
     }
 
     @Override
