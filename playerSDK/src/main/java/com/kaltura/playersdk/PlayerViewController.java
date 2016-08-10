@@ -95,7 +95,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private SourceURLProvider mCustomSourceURLProvider;
     private boolean isFullScreen = false;
-    private boolean isMediaChanged = false;
     private boolean shouldReplay = false;
     private boolean prepareWithConfigurationMode = false;
 
@@ -218,7 +217,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (entryId != null && entryId.length() > 0) {
             JSONObject entryJson = new JSONObject();
             try {
-                isMediaChanged = true;
                 entryJson.put("entryId", entryId);
                 sendNotification("changeMedia", entryJson.toString());
             } catch (JSONException e) {
@@ -682,10 +680,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         LOGD(TAG, "EventWithValue Name: " + eventName + " Value: " + eventValue);
         KStringUtilities event = new KStringUtilities(eventName);
         KPlayerState kState = KPlayerState.getStateForEventName(eventName);
-        if ((isMediaChanged && kState == KPlayerState.READY && getConfig().isAutoPlay())) {
-            isMediaChanged = false;
-            play();
-        }
         if (kState == KPlayerState.SEEKED && shouldReplay) {
             shouldReplay = false;
             play();
