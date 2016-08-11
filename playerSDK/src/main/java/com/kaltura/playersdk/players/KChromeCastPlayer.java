@@ -121,6 +121,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
                     long currentTime = mRemoteMediaPlayer.getApproximateStreamPosition();
                     if (currentTime != 0 && currentTime < mRemoteMediaPlayer.getStreamDuration()) {
                         for (KCastMediaRemoteControlListener listener : mListeners) {
+                            LOGD(TAG, "CC SEND TIME UPDATE " + currentTime );
                             listener.onCastMediaProgressUpdate(currentTime);
                         }
                     }
@@ -212,6 +213,16 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     @Override
+    public double getCurrentVolume() {
+        return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
+    }
+
+    @Override
+    public boolean isMute() {
+        return mRemoteMediaPlayer.getMediaStatus().isMute();
+    }
+
+    @Override
     public void removeListener(KCastMediaRemoteControlListener listener) {
         if (mListeners != null && mListeners.size() > 0 && mListeners.contains(listener)) {
             mListeners.remove(listener);
@@ -226,6 +237,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     @Override
     public long getCurrentPosition() {
         return mRemoteMediaPlayer.getApproximateStreamPosition();
+    }
+
+    @Override
+    public long getDuration() {
+        return mRemoteMediaPlayer.getStreamDuration();
     }
 
     @Override
