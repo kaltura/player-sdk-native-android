@@ -169,14 +169,14 @@ public class KWVCPlayer
     @Override
     public long getCurrentPlaybackTime() {
         int currentPos = (mPlayer != null) ? mPlayer.getCurrentPosition() : 0;
-        LOGD(TAG, "XXX get current position = " + currentPos);
+        LOGD(TAG, "get current position = " + currentPos);
         return currentPos;
     }
 
     @Override
     public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
-            LOGD(TAG, "XXX seekTo currentPlaybackTime " + currentPlaybackTime);
+            LOGD(TAG, "seekTo currentPlaybackTime " + currentPlaybackTime);
             mPlayer.seekTo((int) (currentPlaybackTime));
         }
     }
@@ -337,7 +337,7 @@ public class KWVCPlayer
     }
 
     private void recoverPlayerState() {
-            LOGD(TAG, "XXX recoverPlayer mSavedState.position = " + mSavedState.position + " mCurrentPosition: " + mCurrentPosition + " getCurrentPlaybackTime() = " + getCurrentPlaybackTime());
+            LOGD(TAG, "recoverPlayer mSavedState.position = " + mSavedState.position + " mCurrentPosition: " + mCurrentPosition + " getCurrentPlaybackTime() = " + getCurrentPlaybackTime());
 
             if(getCurrentPlaybackTime() != mCurrentPosition) {
                 LOGD(TAG, "recoverPlayer seekTo mCurrentPosition = " + mCurrentPosition);
@@ -506,9 +506,9 @@ public class KWVCPlayer
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int percent) {
                         if (!mWasDestroyed) {
-                            LOGD(TAG, "percent = " + percent + " " + mp.getCurrentPosition() + "/" + mp.getDuration());
-                            mCurrentPosition = mp.getCurrentPosition();
-                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && mp.getCurrentPosition() < mp.getDuration()) ? "true" : "false");
+                            int currPos = mp.getCurrentPosition();
+                            LOGD(TAG, "percent = " + percent + " " + currPos + "/" + mp.getDuration());
+                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && currPos < mp.getDuration()) ? "true" : "false");
                         }
                     }
                 });
@@ -519,7 +519,7 @@ public class KWVCPlayer
                     mShouldPlayWhenReady = true;
                     long currentPBTime = getCurrentPlaybackTime();
                     if(currentPBTime != mSavedState.position) { //if we need seek first - play will be activate on seek complete
-                        LOGD(TAG, "XXX in setOnPreparedListener seekTo " + mSavedState.position +  " but  getCurrentPlaybackTime() = " + currentPBTime);
+                        LOGD(TAG, "inside setOnPreparedListener seekTo " + mSavedState.position +  " but  getCurrentPlaybackTime() = " + currentPBTime);
                         mCurrentPosition = mSavedState.position;
                         mPlayer.seekTo(mSavedState.position);
                     }
@@ -613,11 +613,13 @@ public class KWVCPlayer
                     }
 
                     if (mPlayer != null && mPlayer.isPlaying()) {
-                        LOGE(TAG, mPlayer.getCurrentPosition() + "/" + mPlayer.getDuration());
-                        if (mPlayer.getCurrentPosition() > mPlayer.getDuration()) {
+                        int currPos = mPlayer.getCurrentPosition();
+                        LOGD(TAG, "progress status = " + currPos + "/" + mPlayer.getDuration());
+                        if (currPos > mPlayer.getDuration()) {
                             playbackTime = mPlayer.getDuration() / 1000f;
                         } else {
-                            playbackTime = mPlayer.getCurrentPosition() / 1000f;
+                            playbackTime = currPos / 1000f;
+                            mCurrentPosition = currPos;
                         }
 
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
