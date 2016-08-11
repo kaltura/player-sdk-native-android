@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int MENU_GROUP_TRACKS = 1;
     private static final int TRACK_DISABLED = -1;
     private static final int ID_OFFSET = 2;
+    private static final String CCApplicationID = "276999A7"; //Old Id C43947A1
+
 
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
@@ -237,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
-        mCastProvider.startScan(getApplicationContext(), "C43947A1");
+        mCastProvider.startScan(getApplicationContext(), CCApplicationID);
     }
 
     private PlayerViewController getPlayer() {
@@ -255,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
                 config.addConfig("chromecast.plugin", "true");
-                config.addConfig("chromecast.applicationID", "C43947A1");
+                config.addConfig("chromecast.applicationID", CCApplicationID);
                 config.addConfig("chromecast.useKalturaPlayer", "true");
                 config.addConfig("chromecast.receiverLogo", "true");
 
