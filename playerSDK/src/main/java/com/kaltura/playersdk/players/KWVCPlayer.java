@@ -168,13 +168,15 @@ public class KWVCPlayer
 
     @Override
     public long getCurrentPlaybackTime() {
-        return mPlayer != null ? mPlayer.getCurrentPosition() : 0;
+        int currentPos = (mPlayer != null) ? mPlayer.getCurrentPosition() : 0;
+        LOGD(TAG, "XXX get current position = " + currentPos);
+        return currentPos;
     }
 
     @Override
     public void setCurrentPlaybackTime(long currentPlaybackTime) {
         if (mPlayer != null) {
-            LOGD(TAG, "seekTo currentPlaybackTime " + currentPlaybackTime);
+            LOGD(TAG, "XXX seekTo currentPlaybackTime " + currentPlaybackTime);
             mPlayer.seekTo((int) (currentPlaybackTime));
         }
     }
@@ -335,10 +337,10 @@ public class KWVCPlayer
     }
 
     private void recoverPlayerState() {
-            LOGD(TAG, "recoverPlayer mSavedState.position = " + mSavedState.position + " mCurrentPosition: " + mCurrentPosition);
+            LOGD(TAG, "XXX recoverPlayer mSavedState.position = " + mSavedState.position + " mCurrentPosition: " + mCurrentPosition + " getCurrentPlaybackTime() = " + getCurrentPlaybackTime());
 
             if(getCurrentPlaybackTime() != mCurrentPosition) {
-                LOGD(TAG, "recoverPlayer seekTo = " + mCurrentPosition);
+                LOGD(TAG, "recoverPlayer seekTo mCurrentPosition = " + mCurrentPosition);
                 mPlayer.seekTo(mCurrentPosition);
                 mShouldPlayWhenReady = mSavedState.playing;
 
@@ -515,11 +517,13 @@ public class KWVCPlayer
                     LOGD(TAG, "mSavedState.playing = TRUE");
                     // we were already playing, so just resume playback from the saved position
                     mShouldPlayWhenReady = true;
-
-                    if(getCurrentPlaybackTime() != mSavedState.position) { //if we need seek first - play will be activate on seek complete
-                        LOGD(TAG, "in setOnPreparedListener seekTo " + mSavedState.position);
+                    long currentPBTime = getCurrentPlaybackTime();
+                    if(currentPBTime != mSavedState.position) { //if we need seek first - play will be activate on seek complete
+                        LOGD(TAG, "XXX in setOnPreparedListener seekTo " + mSavedState.position +  " but  getCurrentPlaybackTime() = " + currentPBTime);
+                        mCurrentPosition = mSavedState.position;
                         mPlayer.seekTo(mSavedState.position);
                     }
+
                     mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     if (mSavedState.playing) {
                         LOGD(TAG, "SENDING PLAY KEY");
