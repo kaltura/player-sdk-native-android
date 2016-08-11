@@ -36,6 +36,7 @@ public class KWVCPlayer
         implements KPlayer {
 
     private static final String TAG = "KWVCPlayer";
+
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
     @Nullable private VideoView mPlayer;
     private String mAssetUri;
@@ -334,7 +335,7 @@ public class KWVCPlayer
     }
 
     private void recoverPlayerState() {
-            LOGD(TAG, "ecoverPlayer mSavedState.position = " + mSavedState.position + " mCurrentPosition: " + mCurrentPosition);
+            LOGD(TAG, "recoverPlayer mSavedState.position = " + mSavedState.position + " mCurrentPosition: " + mCurrentPosition);
 
             if(getCurrentPlaybackTime() != mCurrentPosition) {
                 LOGD(TAG, "recoverPlayer seekTo = " + mCurrentPosition);
@@ -360,7 +361,7 @@ public class KWVCPlayer
             if (!mPlayer.isPlaying()) {
                 mShouldPlayWhenReady = false;
             }
-            LOGD(TAG, "aveState mPlayer.getCurrentPosition() = " + mPlayer.getCurrentPosition() + " mCurrentPosition = " + mCurrentPosition);
+            LOGD(TAG, "saveState mPlayer.getCurrentPosition() = " + mPlayer.getCurrentPosition() + " mCurrentPosition = " + mCurrentPosition);
             mSavedState.set(mPlayer.isPlaying(), mCurrentPosition);
         } else {
             LOGD(TAG, "saveState mPlayer == null, position = 0");
@@ -370,7 +371,7 @@ public class KWVCPlayer
 
     @Override
     public void removePlayer() {
-        LOGD(TAG, "emovePlayer");
+        LOGD(TAG, "removePlayer");
         savePosition();
         saveState();
         pause();
