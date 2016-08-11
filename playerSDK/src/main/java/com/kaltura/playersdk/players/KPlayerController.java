@@ -306,17 +306,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             LOGD(TAG, "PAUSE REJECTED");
             return;
         }
-
+        LOGD(TAG, "pause() BEFORE PAUSE ");
         mPauseLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Pause) {
             currentState = UIState.Pause;
             if (mCastProvider == null) {
+                LOGD(TAG, "mCastProvider is null");
                 if (isBackgrounded && isIMAActive) {
                     if (imaManager != null) {
                         imaManager.pause();
                     }
                 } else {
                     if (player != null) {
+                        LOGD(TAG, "sending player PAUSE");
                         player.pause();
                     }
                 }
@@ -392,7 +394,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void savePlayerState() {
 //        isBackgrounded = isOnBackground;
         if (player != null) {
+
             isPlaying = player.isPlaying() || isIMAActive;
+            LOGD(TAG, "savePlayerState PAUSE isPlaying = " + isPlaying);
             pause();
         } else {
             isPlaying = false;
@@ -412,7 +416,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void removePlayer(boolean shouldSaveState) {
         isBackgrounded = true;
-        currentState = UIState.Pause;
         if (player != null) {
             if (shouldSaveState) {
                 savePlayerState();
@@ -420,6 +423,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 isPlaying = false;
                 pause();
             }
+            currentState = UIState.Pause;
             if (!isIMAActive) {
                 player.freezePlayer();
             } else {

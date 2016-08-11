@@ -254,6 +254,7 @@ public class KWVCPlayer
                         return;
                     }
                     if (mPlayer != null && (mPlayer.isPlaying() || mLastSentEvent == KPlayerListener.PauseKey)) {
+                        LOGD(TAG, "changePlayPauseState SEND PLAYKEY");
                         mLastSentEvent = KPlayerListener.PlayKey;
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
                         return;
@@ -356,6 +357,9 @@ public class KWVCPlayer
     private void saveState() {
 
         if (mPlayer != null) {
+            if (!mPlayer.isPlaying()) {
+                mShouldPlayWhenReady = false;
+            }
             LOGD(TAG, "aveState mPlayer.getCurrentPosition() = " + mPlayer.getCurrentPosition() + " mCurrentPosition = " + mCurrentPosition);
             mSavedState.set(mPlayer.isPlaying(), mCurrentPosition);
         } else {
@@ -517,6 +521,7 @@ public class KWVCPlayer
                     }
                     mCallback.playerStateChanged(KPlayerCallback.SEEKED);
                     if (mSavedState.playing) {
+                        LOGD(TAG, "SENDING PLAY KEY");
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.PlayKey, null);
                     }
 
