@@ -81,35 +81,25 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     public void load(final long fromPosition) {
         try {
             Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mRemoteMediaPlayer.requestStatus(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
-            @Override
-            public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                if (!mediaChannelResult.getStatus().isSuccess()) {
-                    String errMsg = "Failed to request status";
-                    LOGE(TAG, errMsg);
 
-                } else {
-                    // Prepare the content according to Kaltura's reciever
-                    MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-                    mediaMetadata.putString(MediaMetadata.KEY_TITLE, "My video");
-                    MediaInfo mediaInfo = new MediaInfo.Builder(
-                            mMediaInfoParams[0])
-                            .setContentType(mMediaInfoParams[1])
-                            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-                            .setMetadata(mediaMetadata)
-                            .build();
+            // Prepare the content according to Kaltura's reciever
+            MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
+            mediaMetadata.putString(MediaMetadata.KEY_TITLE, "My video");
+            MediaInfo mediaInfo = new MediaInfo.Builder(
+                    mMediaInfoParams[0])
+                    .setContentType(mMediaInfoParams[1])
+                    .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                    .setMetadata(mediaMetadata)
+                    .build();
 
-                    if (fromPosition > 0) {
-                        mRemoteMediaPlayer.load(mApiClient, mediaInfo, true, fromPosition).setResultCallback(KChromeCastPlayer.this);
-                    } else {
-                        mRemoteMediaPlayer.load(mApiClient, mediaInfo).setResultCallback(KChromeCastPlayer.this);
-                    }
-                }
+            if (fromPosition > 0) {
+                mRemoteMediaPlayer.load(mApiClient, mediaInfo, true, fromPosition).setResultCallback(KChromeCastPlayer.this);
+            } else {
+                mRemoteMediaPlayer.load(mApiClient, mediaInfo).setResultCallback(KChromeCastPlayer.this);
             }
-        });
+        } catch (IOException e) {
+            LOGE(TAG, e.getMessage());
+        }
     }
 
     private void startTimer() {
