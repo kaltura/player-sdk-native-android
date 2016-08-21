@@ -3,6 +3,7 @@ package com.kaltura.playersdk.players;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
@@ -31,6 +32,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     private ArrayList<KCastMediaRemoteControlListener> mListeners = new ArrayList<>();
     private State mState;
     private String[] mMediaInfoParams;
+
 
     String TAG = "KChromeCastPlayer";
 
@@ -66,10 +68,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
             }
         });
 
+
         mRemoteMediaPlayer.setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener() {
             @Override
             public void onMetadataUpdated() {
-
             }
         });
     }

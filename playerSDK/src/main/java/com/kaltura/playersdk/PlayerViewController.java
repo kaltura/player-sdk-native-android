@@ -24,6 +24,7 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.actionHandlers.ShareManager;
+import com.kaltura.playersdk.casting.CastMetaDataBundle;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
@@ -102,11 +103,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private KCastProvider mCastProvider;
 
 
+    public void setCastProvider(KCastProvider castProvider, CastMetaDataBundle metaDataBundle) {
+        mCastProvider = castProvider;
+        playerController.setCastProvider(castProvider, metaDataBundle);
+        mWebView.triggerEvent("chromecastDeviceConnected", null);
+    }
+
 
     public void setCastProvider(KCastProvider castProvider) {
-        mCastProvider = castProvider;
-        playerController.setCastProvider(castProvider);
-        mWebView.triggerEvent("chromecastDeviceConnected", null);
+        setCastProvider(castProvider, null);
     }
 
     @Override

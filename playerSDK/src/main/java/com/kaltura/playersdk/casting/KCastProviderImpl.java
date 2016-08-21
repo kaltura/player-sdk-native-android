@@ -2,14 +2,17 @@ package com.kaltura.playersdk.casting;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
+import android.util.Log;
 
 import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 import com.google.android.gms.cast.LaunchOptions;
+import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -87,7 +90,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     @Override
-    public void startScan(Context context, String appID, boolean guestModeEnabled) {
+    public void startScan(Context context, String appID, boolean guestModeEnabled, boolean reconnectSessionIfPossible) {
         mContext = context;
         mCastAppID = appID;
         mGuestModeEnabled = guestModeEnabled;
@@ -99,11 +102,16 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         if (mRouter != null) {
             mRouter.addCallback(mSelector, mCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
         }
+
+        if (reconnectSessionIfPossible) {
+            reconnectSessionIfPossible();
+        }
     }
+
 
     @Override
     public void startScan(Context context, String appID) {
-        startScan(context, appID, false);
+        startScan(context, appID, false, true);
     }
 
     @Override
@@ -129,13 +137,43 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void disconnectFromDevice() {
-//        if (mScanCastDeviceListener != null) {
+        disconnectFromDevice(true);
+    }
+
+
+    /**
+     * This method disconnects the receiver from the current sender.
+     * The receiver will stop playing only when the last connected sender disconnects.
+     * @param disableReconnectOption - if this argument is false - the sender will automatically
+     * try to reconnect to the receiver the next time the app launches.
+     * This is the recommended behaviour when the user explicitly chooses to disconnect.
+     */
+    @Override
+    public void disconnectFromDevice(boolean disableReconnectOption) {
+        //        if (mScanCastDeviceListener != null) {
 //            mScanCastDeviceListener.onDisconnectCastDevice();
 //        }
         if (mRouter != null) {
             mRouter.unselect(MediaRouter.UNSELECT_REASON_STOPPED);
             mSelectedDevice = null;
         }
+
+        if (disableReconnectOption) {
+            disableReconnectOption();
+        }
+    }
+
+
+    /**
+     * This method disables the reconnect option, meaning the app won't try to automatically reconnect
+     * to the receiver when some time in the future the app will launch again.
+     * The recommended behaviour is to call this method only when the user explicitly disconnects from
+     * the receiver. If the user implicitly disconnects (closing the app, network connectivity lost etc...)
+     * the recommended behaviour is not to invoke this method.
+     */
+    @Override
+    public void disableReconnectOption() {
+        // clear session id + rout id data
     }
 
     @Override
@@ -182,10 +220,18 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 @Override
                 public void onApplicationStatusChanged() {
                     if (mApiClient != null) {
-                        LOGD(TAG, "onApplicationStatusChanged: "
-                                + Cast.CastApi.getApplicationStatus(mApiClient));
-                        if ("Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient)) && mProviderListener != null) {
-                            mProviderListener.onDeviceConnected();
+
+                        try {
+                            String status = Cast.CastApi.getApplicationStatus(mApiClient);
+                            LOGD(TAG, "onApplicationStatusChanged: " + status);
+
+
+                            if ("Ready to play".equals(status) && mProviderListener != null) {
+                                mProviderListener.onDeviceConnected();
+                            }
+
+                        } catch (IllegalStateException e) {
+                            LOGE(TAG, e.getMessage());
                         }
                     }
                 }
@@ -326,6 +372,18 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
 
+    @Override
+    public void setCastMetaDataBundle(CastMetaDataBundle metaDataBundle) {
+
+    }
+
+
+    @Override
+    public CastMetaDataBundle getCastMetaDataBundle() {
+        return null;
+    }
+
+
     private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
         @Override
         public void onConnected(Bundle bundle) {
@@ -340,7 +398,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                             .setResultCallback(
                                     new ResultCallback<Cast.ApplicationConnectionResult>() {
                                         @Override
-                                        public void onResult(Cast.ApplicationConnectionResult result) {
+                                        public void onResult(@NonNull Cast.ApplicationConnectionResult result) {
                                             Status status = result.getStatus();
                                             if (status.isSuccess()) {
                                                 mSessionId = result.getSessionId();
@@ -397,6 +455,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         public void onConnectionFailed(ConnectionResult result) {
             teardown();
         }
+    }
+
+
+    private void reconnectSessionIfPossible() {
+
     }
 
     public boolean hasMediaSession() {

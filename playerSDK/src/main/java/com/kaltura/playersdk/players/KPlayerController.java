@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -12,6 +13,7 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.kaltura.playersdk.casting.CastMetaDataBundle;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
@@ -144,8 +146,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    public void setCastProvider(final KCastProvider castProvider) {
+
+    public void setCastProvider(final KCastProvider castProvider, CastMetaDataBundle metaDataBundle) {
+
         mCastProvider = (KCastProviderImpl)castProvider;
+        setCastListener();
+
+        if (metaDataBundle != null) {
+
+        }
+    }
+
+
+    private void setCastListener() {
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
             public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
@@ -213,6 +226,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
         });
     }
+
+
 
     private enum UIState {
         Idle,
