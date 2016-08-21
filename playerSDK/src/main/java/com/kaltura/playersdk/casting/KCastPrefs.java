@@ -13,6 +13,7 @@ public class KCastPrefs {
 
     private static final String PREFS_NAME = "CCPrefs";
 
+    public static final String ROUTER_ID = "router_id";
     public static final String SESSION_ID = "session_id";
     public static final String CHANNEL_PARAMS = "channel_params";
 
