@@ -31,6 +31,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     private ArrayList<KCastMediaRemoteControlListener> mListeners = new ArrayList<>();
     private State mState;
     private String[] mMediaInfoParams;
+    private boolean isEnded = false;
+
 
     String TAG = "KChromeCastPlayer";
 
@@ -48,6 +50,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
                             if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
                                 mHandler.removeMessages(0);
                                 updateState(State.Ended);
+                                isEnded = true;
                             }
                             break;
                         case MediaStatus.PLAYER_STATE_BUFFERING:
@@ -66,10 +69,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
             }
         });
 
+
         mRemoteMediaPlayer.setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener() {
             @Override
             public void onMetadataUpdated() {
-
             }
         });
     }
@@ -91,7 +94,6 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
                     .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
                     .setMetadata(mediaMetadata)
                     .build();
-
             if (fromPosition > 0) {
                 mRemoteMediaPlayer.load(mApiClient, mediaInfo, true, fromPosition).setResultCallback(KChromeCastPlayer.this);
             } else {
@@ -100,6 +102,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
         } catch (IOException e) {
             LOGE(TAG, e.getMessage());
         }
+
     }
 
     private void startTimer() {
@@ -123,12 +126,27 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
         });
     }
 
+    private void stopTimer() {
+        LOGD(TAG, "remove handler callbacks");
+        mHandler.removeMessages(0);
+    }
 
     public void play() {
+        LOGD(TAG, "Start PLAY");
+        if (isEnded) {
+            load(0);
+            isEnded = false;
+            stopTimer();
+            startTimer();
+            updateState(State.Playing);
+            return;
+        }
+
         mRemoteMediaPlayer.play(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 Status status = mediaChannelResult.getStatus();
+                LOGD(TAG, "play status " + status.isSuccess());
                 if (status.isSuccess()) {
                     startTimer();
                     updateState(State.Playing);
@@ -138,6 +156,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void pause() {
+        LOGD(TAG, "Start PAUSE");
         mRemoteMediaPlayer.pause(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
