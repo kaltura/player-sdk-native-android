@@ -286,7 +286,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
-                    mCastProvider.getCastMediaRemoteControl().play();
+                        mCastProvider.getCastMediaRemoteControl().play();
                 }
             }
         }
@@ -322,7 +322,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
-                    mCastProvider.getCastMediaRemoteControl().pause();
+                    if (!isBackgrounded) {
+                        mCastProvider.getCastMediaRemoteControl().pause();
+                    }
                 }
             }
         }

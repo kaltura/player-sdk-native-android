@@ -123,8 +123,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View v) {
                 v.setId(v.getId() != 0 ? 0 : 1);
-                mStreamButton.setBackgroundResource((v.getId() != 0) ? R.drawable.stream_icon_normal : R.drawable.stream_icon);
-                mPlayer.setCastProvider(mCastProvider);
+                if (mCastProvider != null) {
+                    mStreamButton.setBackgroundResource((v.getId() != 0) ? R.drawable.stream_icon_normal : R.drawable.stream_icon);
+                    mPlayer.setCastProvider(mCastProvider);
+                }
             }
         });
 
@@ -248,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
                 //KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc9/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
                 config.addConfig("closedCaptions.plugin", "true");
                 config.addConfig("sourceSelector.plugin", "true");
                 config.addConfig("sourceSelector.displayMode", "bitrate");

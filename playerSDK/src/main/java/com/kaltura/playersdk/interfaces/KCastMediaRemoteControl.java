@@ -7,6 +7,7 @@ public interface KCastMediaRemoteControl {
     void play();
     void pause();
     void seek(long position);
+    boolean isPlaying();
     void addListener(KCastMediaRemoteControlListener listener);
     void removeListeners();
     void setStreamVolume(double streamVolume);

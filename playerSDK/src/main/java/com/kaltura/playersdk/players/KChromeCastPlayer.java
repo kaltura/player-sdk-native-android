@@ -192,6 +192,20 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     @Override
+    public boolean  isPlaying() {
+        if (mApiClient != null) {
+            if (mApiClient.isConnected()) {
+                if (mRemoteMediaPlayer != null) {
+                    if (mRemoteMediaPlayer.getMediaStatus().equals(MediaStatus.PLAYER_STATE_PLAYING)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void addListener(KCastMediaRemoteControlListener listener) {
         if (mListeners.size() == 0 || mListeners.size() > 0 && !mListeners.contains(listener)) {
             mListeners.add(listener);
