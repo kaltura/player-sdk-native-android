@@ -145,6 +145,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCastProvider(final KCastProvider castProvider) {
+        final boolean isPlayingBeforeCast = player.isPlaying();
+
+        player.pause();
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
@@ -180,8 +183,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 switch (state) {
                     case Loaded:
-                        boolean isPlayingBeforeCast = player.isPlaying();
-                        player.pause();
                         playerListener.eventWithValue(player, "hideConnectingMessage", null);
                         playerListener.eventWithValue(player, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
                         playerListener.eventWithValue(player, KPlayerListener.LoadedMetaDataKey, "");
@@ -633,8 +634,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void playerStateChanged(int state) {
-
-        //LOGE(TAG, "XXXX playerStateChanged " + state);
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
                 LOGD(TAG, "playerStateChanged CAN_PLAY");
