@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int MENU_GROUP_TRACKS = 1;
     private static final int TRACK_DISABLED = -1;
     private static final int ID_OFFSET = 2;
-    private static final String CCApplicationID = "276999A7"; //Old Id C43947A1
+    private static final String CCApplicationID = "48A28189"; //"276999A7"; //Old Id C43947A1
 
 
     private Button mPlayPauseButton;
