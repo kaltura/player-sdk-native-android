@@ -212,6 +212,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             }
         });
+        mCastProvider.prepareChannel();
     }
 
     private enum UIState {

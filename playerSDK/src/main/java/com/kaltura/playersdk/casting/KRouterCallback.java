@@ -60,6 +60,58 @@ public class KRouterCallback extends MediaRouter.Callback {
 
     @Override
     public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+        foudRoute(router, route);
+    }
+
+    @Override
+    public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
+        if (mListener == null) {
+            return;
+        }
+        if (router.getRoutes().size() == 0) {
+            didFindDevices = false;
+            mListener.onFoundDevices(false);
+        }
+        KCastDevice info = new KCastDevice(route);
+        mListener.onRouteUpdate(false, info);
+    }
+
+    @Override
+    public void onProviderChanged(MediaRouter router, MediaRouter.ProviderInfo provider) {
+        super.onProviderChanged(router, provider);
+    }
+
+    @Override
+    public void onRouteChanged(MediaRouter router, MediaRouter.RouteInfo route) {
+        foudRoute(router, route);
+    }
+
+    @Override
+    public void onRouteVolumeChanged(MediaRouter router, MediaRouter.RouteInfo route) {
+        super.onRouteVolumeChanged(router, route);
+    }
+
+    @Override
+    public void onRoutePresentationDisplayChanged(MediaRouter router, MediaRouter.RouteInfo route) {
+        super.onRoutePresentationDisplayChanged(router, route);
+    }
+
+    @Override
+    public void onProviderAdded(MediaRouter router, MediaRouter.ProviderInfo provider) {
+        super.onProviderAdded(router, provider);
+    }
+
+    @Override
+    public void onProviderRemoved(MediaRouter router, MediaRouter.ProviderInfo provider) {
+        super.onProviderRemoved(router, provider);
+    }
+
+    @Override
+    public void onRouteUnselected(MediaRouter router, MediaRouter.RouteInfo route, int reason) {
+        super.onRouteUnselected(router, route, reason);
+    }
+
+    private void foudRoute(MediaRouter router, MediaRouter.RouteInfo route) {
         if (mListener == null) {
             return;
         }
@@ -74,18 +126,5 @@ public class KRouterCallback extends MediaRouter.Callback {
         if (sendAddEvent) {
             mListener.onRouteUpdate(true, kCastDevice);
         }
-    }
-
-    @Override
-    public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
-        if (mListener == null) {
-            return;
-        }
-        if (router.getRoutes().size() == 0) {
-            didFindDevices = false;
-            mListener.onFoundDevices(false);
-        }
-        KCastDevice info = new KCastDevice(route);
-        mListener.onRouteUpdate(false, info);
     }
 }

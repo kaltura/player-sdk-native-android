@@ -24,6 +24,7 @@ import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.casting.KCastFactory;
+import com.kaltura.playersdk.casting.KCastPrefs;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
@@ -94,9 +95,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mActionBar.setCustomView(mCustomView);
             mActionBar.setDisplayShowCustomEnabled(true);
         }
-
-
-
 
         mMediaRouteButtonDiscon = (ImageButton) mCustomView.findViewById(R.id.route_button_discon);
         mMediaRouteButtonDiscon.setOnClickListener(new View.OnClickListener() {
