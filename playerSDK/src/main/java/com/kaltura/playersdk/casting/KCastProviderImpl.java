@@ -1,18 +1,20 @@
 package com.kaltura.playersdk.casting;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
-import android.util.Log;
 
 import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
 import com.google.android.gms.cast.LaunchOptions;
-import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -22,7 +24,7 @@ import com.kaltura.playersdk.players.KChromeCastPlayer;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
+import java.util.List;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
@@ -31,7 +33,9 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 /**
  * Created by nissimpardo on 29/05/16.
  */
-public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCastProvider, KRouterCallback.KRouterCallbackListener {
+public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCastProvider,
+                KRouterCallback.KRouterCallbackListener, GoogleApiClient.ConnectionCallbacks,
+                GoogleApiClient.OnConnectionFailedListener, KCastKalturaChannel.KCastKalturaChannelListener {
     private static final String TAG = "KCastProviderImpl";
     private String nameSpace = "urn:x-cast:com.kaltura.cast.player";
     private String mCastAppID;
@@ -46,8 +50,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private MediaRouteSelector mSelector;
 
     private Cast.Listener mCastClientListener;
-    private ConnectionCallbacks mConnectionCallbacks;
-    private ConnectionFailedListener mConnectionFailedListener;
 
     private boolean mWaitingForReconnect = false;
     private boolean mApplicationStarted = false;
@@ -56,9 +58,10 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private KCastMediaRemoteControl mCastMediaRemoteControl;
 
     private String mSessionId;
+    private String mRouterId;
 
     private InternalListener mInternalListener;
-
+    protected AsyncTask<Void, Integer, Boolean> mReconnectionTask;
 
     public GoogleApiClient getApiClient() {
         return mApiClient;
@@ -138,8 +141,8 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     @Override
     public void disconnectFromDevice() {
         disconnectFromDevice(true);
+        clearPersistedConnectionInfo();
     }
-
 
     /**
      * This method disconnects the receiver from the current sender.
@@ -227,7 +230,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
 
                             if ("Ready to play".equals(status) && mProviderListener != null) {
-                                mProviderListener.onDeviceConnected();
+                                mProviderListener.onDeviceConnected(null,null);
                             }
 
                         } catch (IllegalStateException e) {
@@ -263,20 +266,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             };
         }
         return mCastClientListener;
-    }
-
-    private ConnectionCallbacks getConnectionCallbacks() {
-        if (mConnectionCallbacks == null) {
-            mConnectionCallbacks = new ConnectionCallbacks();
-        }
-        return mConnectionCallbacks;
-    }
-
-    private ConnectionFailedListener getConnectionFailedListener() {
-        if (mConnectionFailedListener == null) {
-            mConnectionFailedListener = new ConnectionFailedListener();
-        }
-        return mConnectionFailedListener;
     }
 
     private void teardown() {
@@ -334,12 +323,13 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     public void onDeviceSelected(CastDevice castDeviceSelected) {
         if (castDeviceSelected != null) {
             mSelectedDevice = castDeviceSelected;
+            mRouterId = castDeviceSelected.getDeviceId();
             Cast.CastOptions.Builder apiOptionsBuilder = Cast.CastOptions
                     .builder(castDeviceSelected, getCastClientListener());
             mApiClient = new GoogleApiClient.Builder(mContext)
                     .addApi(Cast.API, apiOptionsBuilder.build())
-                    .addConnectionCallbacks(getConnectionCallbacks())
-                    .addOnConnectionFailedListener(getConnectionFailedListener())
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
                     .build();
             mApiClient.connect();
         } else if (mProviderListener != null){
@@ -371,12 +361,163 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 //        }
     }
 
+    public boolean hasMediaSession() {
+        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession();
+    }
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (mWaitingForReconnect) {
+            mWaitingForReconnect = false;
+            reconnectChannels(bundle);
+            // In case of kaltura receiver is loaded, open channel for sneding messages
+        } else {
+            try {
+                loadSession();
+                if (mSessionId != null && !mSessionId.isEmpty()) {
+                    Cast.CastApi.joinApplication(mApiClient, mCastAppID, mSessionId)
+                            .setResultCallback(new ResultCallback<Cast.ApplicationConnectionResult>() {
+                                @Override
+                                public void onResult(Cast.ApplicationConnectionResult result) {
+                                    if (result.getStatus().isSuccess()) {
+                                        onLauchedAppResult(result.getStatus().isSuccess(), result.getSessionId());
+                                    } else {
+                                        lauchCastApp();
+                                    }
+                                }
+                            });
+                } else {
+                    lauchCastApp();
+                }
+
+            } catch (Exception e) {
+                LOGD(TAG, "Failed to launch application", e);
+            }
+
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mWaitingForReconnect = true;
+        switch (i) {
+            case CAUSE_NETWORK_LOST:
+                break;
+            case CAUSE_SERVICE_DISCONNECTED:
+                break;
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        teardown();
+    }
+
+    private void reconnectChannels( Bundle hint ) {
+        if( ( hint != null ) && hint.getBoolean( Cast.EXTRA_APP_NO_LONGER_RUNNING ) ) {
+            //Log.e( TAG, "App is no longer running" );
+            teardown();
+        } else {
+            onLauchedAppResult(true, mSessionId);
+        }
+    }
+
+    private void lauchCastApp() {
+        try {
+            Cast.CastApi.launchApplication(mApiClient, mCastAppID, new LaunchOptions())
+                    .setResultCallback(
+                            new ResultCallback<Cast.ApplicationConnectionResult>() {
+                                @Override
+                                public void onResult(Cast.ApplicationConnectionResult result) {
+                                    onLauchedAppResult(result.getStatus().isSuccess(), result.getSessionId());
+                                }
+                            });
+
+        } catch (Exception e) {
+            LOGD(TAG, "Failed to launch application", e);
+        }
+    }
+
+    private void onLauchedAppResult(boolean isSuccess, String sessionId) {
+        if (isSuccess && sessionId != null) {
+            mSessionId = sessionId;
+            saveSession();
+            mChannel = new KCastKalturaChannel(nameSpace, this);
+            mApplicationStarted = true;
+            sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
+
+            try {
+                Cast.CastApi.setMessageReceivedCallbacks(mApiClient,
+                        mChannel.getNamespace(),
+                        mChannel);
+            } catch (IOException e) {
+                LOGE(TAG, "Exception while creating channel", e);
+            }
+
+            if (mProviderListener != null) {
+                mProviderListener.onDeviceConnected(null,null);
+            }
+        } else {
+            teardown();
+        }
+    }
+
+    @Override
+    public void readyForMedia(String[] castParams) {
+        sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+        // Receiver send the new content
+        String[] params = castParams;
+        if (params == null) {
+            params = KCastPrefs.loadArray(mContext, KCastPrefs.CHANNEL_PARAMS);
+        }
+
+        if (params != null) {
+            KCastPrefs.saveArray(mContext, KCastPrefs.CHANNEL_PARAMS, params);
+            mCastMediaRemoteControl = new KChromeCastPlayer(mApiClient);
+            ((KChromeCastPlayer)mCastMediaRemoteControl).setMediaInfoParams(params);
+            if (mInternalListener != null) {
+                mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+            }
+        }
+    }
+
+    public void prepareChannel() {
+        if (mChannel == null) {
+            return;
+        }
+        //if (mCastMediaRemoteControl == null) {
+        //mChannel = new KCastKalturaChannel(nameSpace, KCastProviderImpl.this);
+        sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
+        try {
+            Cast.CastApi.setMessageReceivedCallbacks(mApiClient,
+                    mChannel.getNamespace(),
+                    mChannel);
+        } catch (IOException e) {
+            LOGE(TAG, "Exception while creating channel", e);
+        }
+        //readyForMedia(null);
+        //}
+        /*if (mInternalListener != null) {
+            mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+        }*/
+    }
+
+    private void saveSession() {
+        KCastPrefs.save(mContext, KCastPrefs.ROUTER_ID,  mRouterId);
+        KCastPrefs.save(mContext, KCastPrefs.SESSION_ID, mSessionId);
+    }
+
+    private void loadSession() {
+        mRouterId  = KCastPrefs.loadString(mContext, KCastPrefs.ROUTER_ID);
+        mSessionId = KCastPrefs.loadString(mContext, KCastPrefs.SESSION_ID);
+    }
+
 
     @Override
     public void setCastMetaDataBundle(CastMetaDataBundle metaDataBundle) {
 
     }
-
 
     @Override
     public CastMetaDataBundle getCastMetaDataBundle() {
@@ -384,85 +525,124 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
 
-    private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
-        @Override
-        public void onConnected(Bundle bundle) {
-            if (mWaitingForReconnect) {
-                mWaitingForReconnect = false;
-
-                // In case of kaltura receiver is loaded, open channel for sneding messages
-            } else {
-
-                try {
-                    Cast.CastApi.launchApplication(mApiClient, mCastAppID, new LaunchOptions())
-                            .setResultCallback(
-                                    new ResultCallback<Cast.ApplicationConnectionResult>() {
-                                        @Override
-                                        public void onResult(@NonNull Cast.ApplicationConnectionResult result) {
-                                            Status status = result.getStatus();
-                                            if (status.isSuccess()) {
-                                                mSessionId = result.getSessionId();
-//                                                mRemoteMediaPlayer = new RemoteMediaPlayer();
-
-                                                // Prepare the custom channel (listens to Kaltura's receiver messages)
-                                                mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
-
-                                                    @Override
-                                                    public void readyForMedia(final String[] params) {
-                                                        sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
-                                                        // Receiver send the new content
-                                                        if (params != null) {
-                                                            mCastMediaRemoteControl = new KChromeCastPlayer(mApiClient);
-                                                            ((KChromeCastPlayer)mCastMediaRemoteControl).setMediaInfoParams(params);
-                                                            if (mInternalListener != null) {
-                                                                mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                                sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
-                                                mApplicationStarted = true;
-                                                try {
-                                                    Cast.CastApi.setMessageReceivedCallbacks(mApiClient,
-                                                            mChannel.getNamespace(),
-                                                            mChannel);
-                                                } catch (IOException e) {
-                                                    LOGE(TAG, "Exception while creating channel", e);
-                                                }
-                                                if (mProviderListener != null) {
-                                                    mProviderListener.onDeviceConnected();
-                                                }
-                                            } else {
-                                                teardown();
-                                            }
-                                        }
-                                    });
-
-                } catch (Exception e) {
-                    LOGD(TAG, "Failed to launch application", e);
-                }
-            }
-        }
-
-        @Override
-        public void onConnectionSuspended(int i) {
-            mWaitingForReconnect = true;
-        }
+    public final boolean isConnected() {
+        return (mApiClient != null) && mApiClient.isConnected();
     }
-
-    private class ConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
-        @Override
-        public void onConnectionFailed(ConnectionResult result) {
-            teardown();
-        }
-    }
-
 
     private void reconnectSessionIfPossible() {
-
+        reconnectSessionIfPossible(5);
     }
 
-    public boolean hasMediaSession() {
-        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession();
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    public void reconnectSessionIfPossible(final int timeoutInSeconds) { //, String ssidName) {
+        LOGD(TAG, String.format("reconnectSessionIfPossible timeout = " + timeoutInSeconds));
+        if (isConnected()) {
+            return;
+        }
+        String routeId = KCastPrefs.loadString(mContext, KCastPrefs.ROUTER_ID);
+        if (canConsiderSessionRecovery()) {//(ssidName)) {
+            List<MediaRouter.RouteInfo> routes = mRouter.getRoutes();
+            MediaRouter.RouteInfo theRoute = null;
+            if (routes != null) {
+                for (MediaRouter.RouteInfo route : routes) {
+                    if (route.getId().equals(routeId)) {
+                        theRoute = route;
+                        break;
+                    }
+                }
+            }
+            if (theRoute != null) {
+                // route has already been discovered, so lets just get the device
+                reconnectSessionIfPossibleInternal(theRoute);
+            } else {
+                // we set a flag so if the route is discovered within a short period, we let
+                // onRouteAdded callback of CastMediaRouterCallback take care of that
+                //setReconnectionStatus(RECONNECTION_STATUS_STARTED);
+            }
+
+            // cancel any prior reconnection task
+            if (mReconnectionTask != null && !mReconnectionTask.isCancelled()) {
+                mReconnectionTask.cancel(true);
+            }
+
+            // we may need to reconnect to an existing session
+            mReconnectionTask = new AsyncTask<Void, Integer, Boolean>() {
+
+                @Override
+                protected Boolean doInBackground(Void... params) {
+                    for (int i = 0; i < timeoutInSeconds; i++) {
+                        LOGD(TAG, "Reconnection: Attempt " + (i + 1));
+                        if (isCancelled()) {
+                            return true;
+                        }
+                        try {
+                            if (isConnected()) {
+                                cancel(true);
+                            }
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            // ignore
+                        }
+                    }
+                    return false;
+                }
+
+                @Override
+                protected void onPostExecute(Boolean result) {
+                    if (result == null || !result) {
+                        LOGD(TAG, "Couldn't reconnect, dropping connection");
+                        //setReconnectionStatus(RECONNECTION_STATUS_INACTIVE);
+                        onDeviceSelected(null /* CastDevice */);
+                    }
+                }
+
+            };
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                mReconnectionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                mReconnectionTask.execute();
+            }
+        }
+    }
+
+    private void reconnectSessionIfPossibleInternal(MediaRouter.RouteInfo theRoute) {
+        if (isConnected()) {
+            return;
+        }
+        String sessionId = KCastPrefs.loadString(mContext, KCastPrefs.SESSION_ID);
+        String routeId = KCastPrefs.loadString(mContext, KCastPrefs.ROUTER_ID);
+        LOGD(TAG, "reconnectSessionIfPossible() Retrieved from preferences: " + "sessionId="
+                + sessionId + ", routeId=" + routeId);
+        if (sessionId == null || routeId == null) {
+            return;
+        }
+        //setReconnectionStatus(RECONNECTION_STATUS_IN_PROGRESS);
+        CastDevice device = CastDevice.getFromBundle(theRoute.getExtras());
+
+        if (device != null) {
+            LOGD(TAG, "trying to acquire Cast Client for " + device);
+            onDeviceSelected(device);
+        }
+    }
+
+    public final boolean canConsiderSessionRecovery() { //(String ssidName) {
+        String sessionId = KCastPrefs.loadString(mContext, KCastPrefs.SESSION_ID);
+        String routeId = KCastPrefs.loadString(mContext, KCastPrefs.ROUTER_ID);
+        if (sessionId == null || routeId == null) {
+            return false;
+        }
+
+//        String ssid = mPreferenceAccessor.getStringFromPreference(PREFS_KEY_SSID);
+//        if (ssidName != null && (ssid == null || (!ssid.equals(ssidName)))) {
+//            return false;
+//        }
+        LOGD(TAG, "Found session info in the preferences, so proceed with an "
+                + "attempt to reconnect if possible");
+        return true;
+    }
+
+    public final void clearPersistedConnectionInfo() {
+        KCastPrefs.save(mContext, KCastPrefs.ROUTER_ID, null);
+        KCastPrefs.save(mContext, KCastPrefs.SESSION_ID, null);//        if (isFlagSet(what, CLEAR_SESSION)) {
     }
 }

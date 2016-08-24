@@ -59,7 +59,29 @@ public class KRouterCallback extends MediaRouter.Callback {
     }
 
     @Override
+    public void onRouteChanged(MediaRouter router, MediaRouter.RouteInfo route) {
+        foudRoute(router, route);
+    }
+
+    @Override
     public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+        foudRoute(router, route);
+    }
+
+    @Override
+    public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
+        if (mListener == null) {
+            return;
+        }
+        if (router.getRoutes().size() == 0) {
+            didFindDevices = false;
+            mListener.onFoundDevices(false);
+        }
+        KCastDevice info = new KCastDevice(route);
+        mListener.onRouteUpdate(false, info);
+    }
+
+    private void foudRoute(MediaRouter router, MediaRouter.RouteInfo route) {
         if (mListener == null) {
             return;
         }
@@ -74,18 +96,5 @@ public class KRouterCallback extends MediaRouter.Callback {
         if (sendAddEvent) {
             mListener.onRouteUpdate(true, kCastDevice);
         }
-    }
-
-    @Override
-    public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
-        if (mListener == null) {
-            return;
-        }
-        if (router.getRoutes().size() == 0) {
-            didFindDevices = false;
-            mListener.onFoundDevices(false);
-        }
-        KCastDevice info = new KCastDevice(route);
-        mListener.onRouteUpdate(false, info);
     }
 }

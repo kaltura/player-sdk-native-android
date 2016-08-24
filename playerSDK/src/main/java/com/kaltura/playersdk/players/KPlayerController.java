@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -225,6 +224,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             }
         });
+        if (mCastProvider != null) {
+            mCastProvider.prepareChannel();
+        }
     }
 
 
