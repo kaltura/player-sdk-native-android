@@ -22,6 +22,7 @@ import android.widget.SeekBar;
 
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.casting.CastMetaDataBundle;
 import com.kaltura.playersdk.casting.KCastDevice;
 import com.kaltura.playersdk.casting.KCastFactory;
 import com.kaltura.playersdk.events.KPErrorEventListener;
@@ -30,7 +31,6 @@ import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 import com.kaltura.playersdk.interfaces.KCastProvider;
-import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onDeviceConnected() {
+            public void onDeviceConnected(KCastProvider.ConnectionEvent connectionType, CastMetaDataBundle metaDataBundle) {
                 mMediaRouteButtonDiscon.setVisibility(View.INVISIBLE);
                 mMediaRouteButtonCon.setVisibility(View.VISIBLE);
                 mStopCasting.setVisibility(View.VISIBLE);
@@ -230,14 +230,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onDeviceFailedToConnect(KPError error) {
-
+            public void onDeviceFailedToConnect(KCastProvider.ConnectionEvent connectionEvent) {
+                
             }
 
             @Override
-            public void onDeviceFailedToDisconnect(KPError error) {
+            public void onDeviceFailedToDisconnect(KCastProvider.ConnectionEvent connectionEvent) {
+                mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
+                mMediaRouteButtonCon.setVisibility(View.INVISIBLE);
+                mStopCasting.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onStartToReconnectIfPossible() {
 
             }
+
         });
         mCastProvider.startScan(getApplicationContext(), CCApplicationID);
     }
