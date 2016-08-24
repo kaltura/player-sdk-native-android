@@ -2,6 +2,9 @@ package com.kaltura.playersdk.casting;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
 
@@ -56,6 +59,8 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     private InternalListener mInternalListener;
 
+    @NonNull
+    private Handler devicesReporter = new Handler(Looper.getMainLooper());
 
     public GoogleApiClient getApiClient() {
         return mApiClient;
@@ -86,7 +91,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         mCastButtonEnabled = enable;
     }
 
-    @Override
+       @Override
     public void startScan(Context context, String appID, boolean guestModeEnabled) {
         mContext = context;
         mCastAppID = appID;
@@ -99,6 +104,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         if (mRouter != null) {
             mRouter.addCallback(mSelector, mCallback, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
         }
+        startDevicesReporter();
     }
 
     @Override
@@ -108,12 +114,31 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void stopScan() {
+        stopScan();
         mRouter.removeCallback(mCallback);
     }
 
     @Override
     public void setPassiveScan(boolean passiveScan) {
 
+    }
+
+    private void startDevicesReporter() {
+        devicesReporter.post(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<KCastDevice> devices = getDevices();
+                for(KCastDevice device :devices) {
+                    mProviderListener.onDeviceCameOnline(device);
+                }
+                devicesReporter.postDelayed(this, 10000);
+            }
+        });
+    }
+
+    private void stopDevicesReporter() {
+        LOGD(TAG, "remove handler callbacks");
+        devicesReporter.removeMessages(0);
     }
 
     @Override
