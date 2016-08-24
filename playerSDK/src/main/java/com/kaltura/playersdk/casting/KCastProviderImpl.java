@@ -33,6 +33,8 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
  */
 public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCastProvider, KRouterCallback.KRouterCallbackListener {
     private static final String TAG = "KCastProviderImpl";
+
+    public static int SEND_CAME_ONLNE_TIME_UPDATE = 15000;
     private String nameSpace = "urn:x-cast:com.kaltura.cast.player";
     private String mCastAppID;
     private KCastProviderListener mProviderListener;
@@ -131,7 +133,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 for(KCastDevice device :devices) {
                     mProviderListener.onDeviceCameOnline(device);
                 }
-                devicesReporter.postDelayed(this, 10000);
+                devicesReporter.postDelayed(this, SEND_CAME_ONLNE_TIME_UPDATE);
             }
         });
     }
