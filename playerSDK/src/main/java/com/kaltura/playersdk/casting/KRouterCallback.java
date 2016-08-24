@@ -10,6 +10,7 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGD;
  * Created by nissimpardo on 07/12/15.
  */
 public class KRouterCallback extends MediaRouter.Callback {
+    
     private static final String TAG = "KRouterCallback";
 
     private KRouterCallbackListener mListener;
