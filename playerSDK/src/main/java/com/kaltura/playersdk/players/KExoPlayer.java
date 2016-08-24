@@ -38,6 +38,7 @@ import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -510,6 +511,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             errorString = (Util.SDK_INT < 18) ? "error_drm_not_supported"
                     : unsupportedDrmException.reason == UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME
                     ? "error_drm_unsupported_scheme" : "error_drm_unknown";
+        } else if (e instanceof ExoPlaybackException && e.getCause() instanceof FileNotFoundException) {
+            errorString = "DRM License Unavailable"; // probably license issue
         } else if (e instanceof ExoPlaybackException && e.getCause() instanceof BehindLiveWindowException) {
             LOGE(TAG, "Recovering BehindLiveWindowException"); // happens if network is bad and no more chunk in hte buffer
             mExoPlayer.prepare();

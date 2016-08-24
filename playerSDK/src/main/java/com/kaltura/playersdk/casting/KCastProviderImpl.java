@@ -345,10 +345,13 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void onRouteUpdate(boolean isAdded, KCastDevice route) {
+        LOGD(TAG, "start onRouteUpdate: " + route.getRouterName() + " isAdded: " + isAdded);
         if (mProviderListener != null) {
             if (isAdded) {
+                LOGD(TAG, "fire onDeviceCameOnline: " + route.getRouterName());
                 mProviderListener.onDeviceCameOnline(route);
             } else {
+                LOGD(TAG, "fire onDeviceWentOffline: " + route.getRouterName());
                 mProviderListener.onDeviceWentOffline(route);
             }
         }

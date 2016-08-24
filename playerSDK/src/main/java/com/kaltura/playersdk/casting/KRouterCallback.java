@@ -4,10 +4,14 @@ import android.support.v7.media.MediaRouter;
 
 import com.google.android.gms.cast.CastDevice;
 
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+
 /**
  * Created by nissimpardo on 07/12/15.
  */
 public class KRouterCallback extends MediaRouter.Callback {
+    private static final String TAG = "KRouterCallback";
+
     private KRouterCallbackListener mListener;
     private MediaRouter mRouter;
     private boolean didFindDevices = false;
@@ -65,20 +69,8 @@ public class KRouterCallback extends MediaRouter.Callback {
 
     @Override
     public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+        LOGD(TAG, "start onRouteAdded: " + route.getName());
         foudRoute(router, route);
-    }
-
-    @Override
-    public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
-        if (mListener == null) {
-            return;
-        }
-        if (router.getRoutes().size() == 0) {
-            didFindDevices = false;
-            mListener.onFoundDevices(false);
-        }
-        KCastDevice info = new KCastDevice(route);
-        mListener.onRouteUpdate(false, info);
     }
 
     private void foudRoute(MediaRouter router, MediaRouter.RouteInfo route) {
@@ -92,9 +84,26 @@ public class KRouterCallback extends MediaRouter.Callback {
         KCastDevice kCastDevice = new KCastDevice(route);
         CastDevice castDevice = CastDevice.getFromBundle(route.getExtras());
         boolean sendAddEvent =  (mGuestModeEnabled || (castDevice != null && castDevice.isOnLocalNetwork())) && !route.isDefaultOrBluetooth();
-
+        LOGD(TAG, "foudRoute: isSendAddEvent = " + sendAddEvent);
         if (sendAddEvent) {
+            LOGD(TAG, "foudRoute fire onRouteAdded: " + route.getName());
             mListener.onRouteUpdate(true, kCastDevice);
         }
+    }
+
+    @Override
+    public void onRouteRemoved(MediaRouter router, MediaRouter.RouteInfo route) {
+        LOGD(TAG, "start onRouteRemoved: " + route.getName());
+        if (mListener == null) {
+            return;
+        }
+        if (router.getRoutes().size() == 0) {
+            didFindDevices = false;
+            LOGD(TAG, "fire onRouteRemoved->onFoundDevices: flase");
+            mListener.onFoundDevices(false);
+        }
+        KCastDevice info = new KCastDevice(route);
+        LOGD(TAG, "onRouteRemoved->fire onRouteUpdate :" + route.getName());
+        mListener.onRouteUpdate(false, info);
     }
 }
