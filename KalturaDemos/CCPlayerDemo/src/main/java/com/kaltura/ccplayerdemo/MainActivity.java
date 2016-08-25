@@ -111,8 +111,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View v) {
                 if (mCastProvider != null) {
-                    KCastDevice cc = mCastProvider.getSelectedCastDevice();
-                    LOGD(TAG, "CastDevice: " + cc.getRouterName() + " id: " + cc.getRouterId());
+                    KCastDevice ccDevice = mCastProvider.getSelectedCastDevice();
+                    if (ccDevice != null)
+                    LOGD(TAG, "CastDevice: " + ccDevice.getRouterName() + " id: " + ccDevice.getRouterId());
                     mCastProvider.disconnectFromDevice();
                 }
             }
