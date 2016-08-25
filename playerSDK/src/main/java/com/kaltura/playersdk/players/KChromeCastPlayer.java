@@ -102,14 +102,12 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
         } catch (IOException e) {
             LOGE(TAG, e.getMessage());
         }
-
     }
 
     private void startTimer() {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-
                 try {
                     long currentTime = mRemoteMediaPlayer.getApproximateStreamPosition();
                     if (currentTime != 0 && currentTime < mRemoteMediaPlayer.getStreamDuration()) {
@@ -256,6 +254,18 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     @Override
     public boolean hasMediaSession() {
         return mApiClient != null && mApiClient.isConnected();
+    }
+
+    @Override
+    public boolean  isPlaying() {
+        if (hasMediaSession()) {
+                if (mRemoteMediaPlayer != null) {
+                    if (mRemoteMediaPlayer.getMediaStatus().equals(MediaStatus.PLAYER_STATE_PLAYING)) {
+                        return true;
+                    }
+                }
+        }
+        return false;
     }
 
     private void updateState(State state) {

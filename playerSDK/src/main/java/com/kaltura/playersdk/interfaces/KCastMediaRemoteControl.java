@@ -6,6 +6,7 @@ package com.kaltura.playersdk.interfaces;
 public interface KCastMediaRemoteControl {
     void play();
     void pause();
+    boolean isPlaying();
     void seek(long position);
     void addListener(KCastMediaRemoteControlListener listener);
     void removeListeners();
