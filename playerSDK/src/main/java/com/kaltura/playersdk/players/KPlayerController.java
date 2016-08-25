@@ -263,6 +263,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             return;
         }
         if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
+            playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
             LOGD(TAG, "PLAY REJECTED");
             return;
         }
