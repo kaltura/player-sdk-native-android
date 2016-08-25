@@ -287,7 +287,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
-                        mCastProvider.getCastMediaRemoteControl().play();
+                    mCastProvider.getCastMediaRemoteControl().play();
                 }
             }
         }
