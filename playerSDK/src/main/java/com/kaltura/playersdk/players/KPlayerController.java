@@ -68,6 +68,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private int mContentPreferredBitrate = -1;
     private long mPlayLastClickTime = 0;
     private long mPauseLastClickTime = 0;
+    private boolean mShouldPauseChromecastInBg = false;
 
 
     private KCastProviderImpl mCastProvider;
@@ -328,6 +329,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
+                    if (isBackgrounded && !mShouldPauseChromecastInBg ) {
+                       return;
+                    }
                     mCastProvider.getCastMediaRemoteControl().pause();
                 }
             }
@@ -432,6 +436,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             }
         }
+    }
+
+    public void removePlayer(boolean shouldSaveState, boolean shouldPauseChromecastInBg) {
+        mShouldPauseChromecastInBg = shouldPauseChromecastInBg;
+        removePlayer(shouldSaveState);
     }
 
     public void recoverPlayer() {
