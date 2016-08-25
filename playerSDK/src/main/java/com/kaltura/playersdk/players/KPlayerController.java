@@ -148,9 +148,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
-            public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
+            public void onStartCasting(KChromeCastPlayer remoteMediaPlayer, boolean setCastProviderSsChangeMedia) {
                 mCastPlayer = remoteMediaPlayer;
-                mCastPlayer.load(player.getCurrentPlaybackTime());
+                long pbTime = player.getCurrentPlaybackTime();
+                if (setCastProviderSsChangeMedia) {
+                    player.pause();
+                    pbTime = 0;
+                }
+                mCastPlayer.load(pbTime);
                 mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
                 remoteMediaPlayer.addListener(this);
             }
@@ -262,6 +267,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             return;
         }
         if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
+            playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
             LOGD(TAG, "PLAY REJECTED");
             return;
         }

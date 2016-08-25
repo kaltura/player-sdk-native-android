@@ -32,6 +32,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     private State mState;
     private String[] mMediaInfoParams;
     private boolean isEnded = false;
+    private boolean isChangeMedia = false;
 
 
     String TAG = "KChromeCastPlayer";
@@ -78,11 +79,17 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void setMediaInfoParams(final String[] mediaInfoParams) {
+        if (mMediaInfoParams != null) {
+            isChangeMedia = true;
+        }
         mMediaInfoParams = mediaInfoParams;
     }
 
     public void load(final long fromPosition) {
         try {
+            if (!hasMediaSession()) {
+                return;
+            }
             Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
 
             // Prepare the content according to Kaltura's reciever
@@ -99,6 +106,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
             } else {
                 mRemoteMediaPlayer.load(mApiClient, mediaInfo).setResultCallback(KChromeCastPlayer.this);
             }
+            isChangeMedia = false;
         } catch (IOException e) {
             LOGE(TAG, e.getMessage());
         }
@@ -131,9 +139,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     public void play() {
         LOGD(TAG, "Start PLAY");
-        if (isEnded) {
+        if (isEnded ) {
             load(0);
             isEnded = false;
+            isChangeMedia = false;
             stopTimer();
             startTimer();
             updateState(State.Playing);

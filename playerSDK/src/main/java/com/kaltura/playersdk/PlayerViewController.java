@@ -646,11 +646,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             bridgeMethod = KStringUtilities.isMethodImplemented(player, functionName);
             object = player;
         }
-        if ("false".equals(getConfig().getConfigValueString("controlBarContainer.plugin"))) {
-            if (functionName.equals("play") || functionName.equals("pause")) {
-                return;
-            }
-        }
         if (bridgeMethod != null) {
             try {
                 if (args == null) {
