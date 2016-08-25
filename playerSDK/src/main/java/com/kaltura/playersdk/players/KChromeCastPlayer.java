@@ -109,12 +109,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-
                 try {
                     long currentTime = mRemoteMediaPlayer.getApproximateStreamPosition();
                     if (currentTime != 0 && currentTime < mRemoteMediaPlayer.getStreamDuration()) {
                         for (KCastMediaRemoteControlListener listener : mListeners) {
-                            LOGD(TAG, "CC SEND TIME UPDATE " + currentTime );
+                            LOGD(TAG, "CC SEND TIME UPDATE " + currentTime);
                             listener.onCastMediaProgressUpdate(currentTime);
                         }
                     }
@@ -132,76 +131,80 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void play() {
-        if (hasMediaSession()) {
-            LOGD(TAG, "Start PLAY");
-            if (isEnded) {
-                load(0);
-                isEnded = false;
-                stopTimer();
-                startTimer();
-                updateState(State.Playing);
-                return;
-            }
-
-            mRemoteMediaPlayer.play(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
-                @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                    Status status = mediaChannelResult.getStatus();
-                    LOGD(TAG, "play status " + status.isSuccess());
-                    if (status.isSuccess()) {
-                        startTimer();
-                        updateState(State.Playing);
-                    }
-                }
-            });
+        if (!hasMediaSession()) {
+            return;
         }
+
+        LOGD(TAG, "Start PLAY");
+        if (isEnded) {
+            load(0);
+            isEnded = false;
+            stopTimer();
+            startTimer();
+            updateState(State.Playing);
+            return;
+        }
+
+        mRemoteMediaPlayer.play(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            @Override
+            public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                Status status = mediaChannelResult.getStatus();
+                LOGD(TAG, "play status " + status.isSuccess());
+                if (status.isSuccess()) {
+                    startTimer();
+                    updateState(State.Playing);
+                }
+            }
+        });
     }
 
     public void pause() {
-        if (hasMediaSession()) {
-            LOGD(TAG, "Start PAUSE");
-            mRemoteMediaPlayer.pause(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
-                @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                    Status status = mediaChannelResult.getStatus();
-                    if (status.isSuccess()) {
-                        mHandler.removeMessages(0);
-                        updateState(State.Pause);
-                    }
-                }
-            });
+        if (!hasMediaSession()) {
+            return;
         }
+        LOGD(TAG, "Start PAUSE");
+        mRemoteMediaPlayer.pause(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            @Override
+            public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                Status status = mediaChannelResult.getStatus();
+                if (status.isSuccess()) {
+                    mHandler.removeMessages(0);
+                    updateState(State.Pause);
+                }
+            }
+        });
     }
 
     public void seek(long currentPosition) {
-        if (hasMediaSession()) {
-            LOGD(TAG, "CC seek to " + currentPosition);
-            LOGD(TAG, "CC SEND SEEKING");
-            updateState(State.Seeking);
-            mRemoteMediaPlayer.seek(mApiClient, currentPosition, RemoteMediaPlayer.RESUME_STATE_UNCHANGED).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
-                @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                    if (!mediaChannelResult.getStatus().isSuccess()) {
-                        LOGD(TAG, "FAILED to Seeked");
-                    } else {
-                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                LOGD(TAG, "CC SEND SEEKED");
-                                updateState(State.Seeked);
-                            }
-                        }, 2500);
-                    }
-                }
-            });
+        if (!hasMediaSession()) {
+            return;
         }
+        LOGD(TAG, "CC seek to " + currentPosition);
+        LOGD(TAG, "CC SEND SEEKING");
+        updateState(State.Seeking);
+        mRemoteMediaPlayer.seek(mApiClient, currentPosition, RemoteMediaPlayer.RESUME_STATE_UNCHANGED).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            @Override
+            public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                if (!mediaChannelResult.getStatus().isSuccess()) {
+                    LOGD(TAG, "FAILED to Seeked");
+                } else {
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            LOGD(TAG, "CC SEND SEEKED");
+                            updateState(State.Seeked);
+                        }
+                    }, 2500);
+                }
+            }
+        });
     }
 
     @Override
     public void addListener(KCastMediaRemoteControlListener listener) {
         if (mListeners != null) {
             if (mListeners.size() == 0 || mListeners.size() > 0 && !mListeners.contains(listener)) {
-                 mListeners.add(listener);
+                mListeners.add(listener);
             }
         }
     }
@@ -218,18 +221,19 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public void setStreamVolume(double streamVolume) {
-        if (hasMediaSession()) {
-            LOGD(TAG, "CC setStreamVolume " + streamVolume);
-            mRemoteMediaPlayer.setStreamVolume(mApiClient, streamVolume).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
-                @Override
-                public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
-                    Status status = mediaChannelResult.getStatus();
-                    if (status.isSuccess()) {
-                        updateState(State.VolumeChanged);
-                    }
-                }
-            });
+        if (!hasMediaSession()) {
+            return;
         }
+        LOGD(TAG, "CC setStreamVolume " + streamVolume);
+        mRemoteMediaPlayer.setStreamVolume(mApiClient, streamVolume).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+            @Override
+            public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
+                Status status = mediaChannelResult.getStatus();
+                if (status.isSuccess()) {
+                    updateState(State.VolumeChanged);
+                }
+            }
+        });
     }
 
     @Override
