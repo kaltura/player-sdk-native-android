@@ -151,7 +151,7 @@ public class KPPlayerConfig implements Serializable{
 	}
 
 	public boolean isAutoPlay() {
-		return mAutoPlay;
+		return mAutoPlay && "true".equals(getConfigValueString("autoPlay"));
 	}
 
 	public void setAutoPlay(boolean autoPlay) {
