@@ -237,8 +237,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
             mListeners.clear();
             mListeners = null;
         }
-        mHandler.removeMessages(0); // remove the timer that is responsible for time update
-        mHandler = null;
+        if (mHandler != null) {
+            mHandler.removeMessages(0); // remove the timer that is responsible for time update
+            mHandler = null;
+        }
     }
 
     @Override
