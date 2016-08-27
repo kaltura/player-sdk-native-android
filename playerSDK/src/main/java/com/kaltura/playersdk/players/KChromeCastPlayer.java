@@ -134,7 +134,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     private void stopTimer() {
         LOGD(TAG, "remove handler callbacks");
-        mHandler.removeMessages(0);
+        if (mHandler != null) {
+            mHandler.removeMessages(0);
+        }
     }
 
     public void play() {
@@ -176,7 +178,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 Status status = mediaChannelResult.getStatus();
                 if (status.isSuccess()) {
-                    mHandler.removeMessages(0);
+                    if (mHandler != null) {
+                        mHandler.removeMessages(0);
+                    }
                     updateState(State.Pause);
                 }
             }
