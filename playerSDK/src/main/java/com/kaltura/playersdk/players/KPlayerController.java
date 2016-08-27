@@ -149,10 +149,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
-            public void onStartCasting(KChromeCastPlayer remoteMediaPlayer, boolean setCastProviderSsChangeMedia) {
+            public void onStartCasting(KChromeCastPlayer remoteMediaPlayer, boolean setCastProviderChangeMedia) {
                 mCastPlayer = remoteMediaPlayer;
                 long pbTime = player.getCurrentPlaybackTime();
-                if (setCastProviderSsChangeMedia) {
+                if (setCastProviderChangeMedia) {
                     player.pause();
                     pbTime = 0;
                 }
