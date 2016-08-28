@@ -104,10 +104,12 @@ public class CacheManager {
         if (! uri.toString().startsWith(mBaseURL)) {
             return false;   // not our server
         }
-        
-        // #HACK# until we implement do-not-cache patterns.
-        if (uri.getHost().equals("stats.kaltura.com")) {
-            return false;
+
+        // Special case: do not cache the embedFrame page, UNLESS localContentId is set.
+        if (uri.getPath().contains("/mwEmbedFrame.php") || uri.getPath().contains("/embedIframeJs/")) {
+            if (TextUtils.isEmpty(getLocalContentId(uri))) {
+                return false;
+            }
         }
         
         return true;
@@ -166,7 +168,12 @@ public class CacheManager {
     }
     
     public void cacheResponse(Uri requestUrl) throws IOException {
-        WebResourceResponse resp = getResponse(requestUrl, Collections.<String, String>emptyMap(), "GET");
+
+        // Explicitly load and save the URL - don't even check db.
+        String fileName = getCacheFileId(requestUrl);
+        File targetFile = new File(mCachePath, fileName);
+        WebResourceResponse resp = getResponseFromNetwork(requestUrl, Collections.<String, String>emptyMap(), "GET", fileName, targetFile);
+        
         InputStream inputStream = resp.getData();
 
         // Must fully read the input stream so that it gets cached. But we don't need the data now.
@@ -263,12 +270,16 @@ public class CacheManager {
     @NonNull
     private String getCacheFileId(Uri requestUrl) {
         if (requestUrl.getFragment() != null) {
-            String localContentId = KStringUtilities.extractFragmentParam(requestUrl, "localContentId");
+            String localContentId = getLocalContentId(requestUrl);
             if (!TextUtils.isEmpty(localContentId)) {
                 return md5("contentId:" + localContentId);
             }
         }
         return md5(requestUrl.toString());
+    }
+
+    private String getLocalContentId(Uri requestUrl) {
+        return KStringUtilities.extractFragmentParam(requestUrl, "localContentId");
     }
 
     public void release() {
