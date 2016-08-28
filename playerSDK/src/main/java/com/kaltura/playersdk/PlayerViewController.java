@@ -660,7 +660,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     bridgeMethod.invoke(object, args);
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error calling bridgeMethod " + bridgeMethod, e);
+                LOGE(TAG, "Error calling bridgeMethod " + bridgeMethod, e);
             }
         }
     }
