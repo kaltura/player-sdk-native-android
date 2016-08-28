@@ -136,6 +136,10 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             mRouter.unselect(MediaRouter.UNSELECT_REASON_STOPPED);
             mSelectedDevice = null;
         }
+        if (mInternalListener != null) {
+            mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
+            mInternalListener.onCastStateChanged("hideConnectingMessage");
+        }
     }
 
     @Override
@@ -234,12 +238,16 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     private void teardown() {
-        LOGD(TAG, "teardown");
         if (mApiClient != null) {
+            LOGD(TAG, "START TEARDOWN mApiClient.isConnected() = " + mApiClient.isConnected() + " mApiClient.isConnecting() = " + mApiClient.isConnecting()) ;
             if (mApplicationStarted) {
-                if (mApiClient.isConnected() || mApiClient.isConnecting()) {
+                boolean isConnected = mApiClient.isConnected();
+                boolean isConnecting = mApiClient.isConnecting();
+                if (isConnected || isConnecting) {
                     try {
-                        Cast.CastApi.stopApplication(mApiClient, mSessionId);
+                        if (isConnected) {
+                            Cast.CastApi.stopApplication(mApiClient, mSessionId);
+                        }
                         if (mChannel != null) {
                             Cast.CastApi.removeMessageReceivedCallbacks(
                                     mApiClient,
@@ -309,10 +317,15 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void onRouteUpdate(boolean isAdded, KCastDevice route) {
-        if (isAdded) {
-            mProviderListener.onDeviceCameOnline(route);
-        } else {
-            mProviderListener.onDeviceWentOffline(route);
+        LOGD(TAG, "start onRouteUpdate: " + route.getRouterName() + " isAdded: " + isAdded);
+        if (mProviderListener != null) {
+            if (isAdded) {
+                LOGD(TAG, "fire onDeviceCameOnline: " + route.getRouterName());
+                mProviderListener.onDeviceCameOnline(route);
+            } else {
+                LOGD(TAG, "fire onDeviceWentOffline: " + route.getRouterName());
+                mProviderListener.onDeviceWentOffline(route);
+            }
         }
     }
 

@@ -74,8 +74,8 @@ public class ExtractorRendererBuilder implements RendererBuilder {
         }
 
         @Override
-        public String getPassthroughDecoderName() throws MediaCodecUtil.DecoderQueryException {
-            return MediaCodecSelector.DEFAULT.getPassthroughDecoderName();
+        public DecoderInfo getPassthroughDecoderInfo() throws MediaCodecUtil.DecoderQueryException {
+            return MediaCodecSelector.DEFAULT.getPassthroughDecoderInfo();
         }
     };
 

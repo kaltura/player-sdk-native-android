@@ -908,6 +908,11 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     }
   }
 
+  @Override
+  public void onMediaPlaylistLoadCompleted(byte[] bytes) {
+
+  }
+
 
   @Override
   public void onPlayWhenReadyCommitted() {

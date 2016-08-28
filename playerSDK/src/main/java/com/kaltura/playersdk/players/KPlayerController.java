@@ -68,6 +68,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private int mContentPreferredBitrate = -1;
     private long mPlayLastClickTime = 0;
     private long mPauseLastClickTime = 0;
+    private boolean mShouldPauseChromecastInBg = false;
 
 
     private KCastProviderImpl mCastProvider;
@@ -144,7 +145,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setCastProvider(final KCastProvider castProvider) {
-        //player.pause(); //commented might cause extra play/pause in cast
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
@@ -180,10 +180,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 switch (state) {
                     case Loaded:
+                        boolean isPlayingBeforeCast = player.isPlaying();
+                        player.pause();
                         playerListener.eventWithValue(player, "hideConnectingMessage", null);
                         playerListener.eventWithValue(player, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
                         playerListener.eventWithValue(player, KPlayerListener.LoadedMetaDataKey, "");
                         playerListener.eventWithValue(player, KPlayerListener.CanPlayKey, null);
+                        if (isPlayingBeforeCast) {
+                            playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
+                        }
                         break;
                     case Playing:
                         playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
@@ -255,6 +260,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             return;
         }
         if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
+            playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
             LOGD(TAG, "PLAY REJECTED");
             return;
         }
@@ -315,6 +321,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
+                    if (isBackgrounded && !mShouldPauseChromecastInBg ) {
+                       return;
+                    }
                     mCastProvider.getCastMediaRemoteControl().pause();
                 }
             }
@@ -419,6 +428,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             }
         }
+    }
+
+    public void removePlayer(boolean shouldSaveState, boolean shouldPauseChromecastInBg) {
+        mShouldPauseChromecastInBg = shouldPauseChromecastInBg;
+        removePlayer(shouldSaveState);
     }
 
     public void recoverPlayer() {

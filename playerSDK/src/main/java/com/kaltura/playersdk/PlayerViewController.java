@@ -304,6 +304,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    public void releaseAndSavePosition(boolean shouldResumeState, boolean mShouldPauseChromecastInBg) {
+        if (playerController != null) {
+            playerController.removePlayer(shouldResumeState, mShouldPauseChromecastInBg);
+        }
+    }
+
     public void resetPlayer() {
         if (playerController != null) {
             playerController.reset();
