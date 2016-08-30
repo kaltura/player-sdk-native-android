@@ -62,7 +62,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     public interface InternalListener extends KCastMediaRemoteControl.KCastMediaRemoteControlListener {
-        void onStartCasting(KChromeCastPlayer remoteMediaPlayer);
+        void onStartCasting(KChromeCastPlayer remoteMediaPlayer, boolean isChangeMedia);
         void onCastStateChanged(String state);
         void onStopCasting();
     }
@@ -184,6 +184,9 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             mCastClientListener = new Cast.Listener() {
                 @Override
                 public void onApplicationStatusChanged() {
+                    if (!hasMediaSession()) {
+                        return;
+                    }
                     if (mApiClient != null) {
                         if (hasMediaSession()) {
                             LOGD(TAG, "onApplicationStatusChanged: " + Cast.CastApi.getApplicationStatus(mApiClient));
@@ -364,12 +367,17 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                                     public void readyForMedia(final String[] params) {
                                                         sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
                                                         // Receiver send the new content
+                                                        boolean isReadyForMediaChangeMedia = false;
                                                         if (params != null) {
-                                                            mCastMediaRemoteControl = new KChromeCastPlayer(mApiClient);
-                                                            ((KChromeCastPlayer)mCastMediaRemoteControl).setMediaInfoParams(params);
-                                                            if (mInternalListener != null) {
-                                                                mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+                                                            if (mCastMediaRemoteControl == null) {
+                                                                mCastMediaRemoteControl = new KChromeCastPlayer(mApiClient);
+                                                            } else {
+                                                                isReadyForMediaChangeMedia = true;
                                                             }
+                                                        }
+                                                        ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(params);
+                                                        if (mInternalListener != null) {
+                                                            mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl, isReadyForMediaChangeMedia);
                                                         }
                                                     }
                                                 });
