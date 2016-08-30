@@ -179,6 +179,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         return mCastMediaRemoteControl;
     }
 
+    @Override
+    public boolean hasMediaSession() {
+        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession();
+    }
+
     private Cast.Listener getCastClientListener() {
         if (mCastClientListener == null) {
             mCastClientListener = new Cast.Listener() {
@@ -408,9 +413,5 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         public void onConnectionFailed(ConnectionResult result) {
             teardown();
         }
-    }
-
-    public boolean hasMediaSession() {
-        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession();
     }
 }

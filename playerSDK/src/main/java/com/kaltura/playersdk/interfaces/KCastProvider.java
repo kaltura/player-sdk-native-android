@@ -22,6 +22,7 @@ public interface KCastProvider {
     void setKCastProviderListener(KCastProviderListener listener);
     ArrayList<KCastDevice> getDevices();
     KCastMediaRemoteControl getCastMediaRemoteControl();
+    boolean hasMediaSession();
 
     interface KCastProviderListener {
         void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl);
