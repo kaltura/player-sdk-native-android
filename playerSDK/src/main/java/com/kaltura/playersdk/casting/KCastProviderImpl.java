@@ -137,7 +137,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             mSelectedDevice = null;
         }
         if (mInternalListener != null) {
-            mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
             mInternalListener.onCastStateChanged("hideConnectingMessage");
         }
     }
@@ -186,10 +185,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 @Override
                 public void onApplicationStatusChanged() {
                     if (mApiClient != null) {
-                        LOGD(TAG, "onApplicationStatusChanged: "
-                                + Cast.CastApi.getApplicationStatus(mApiClient));
-                        if ("Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient)) && mProviderListener != null) {
-                            mProviderListener.onDeviceConnected();
+                        if (hasMediaSession()) {
+                            LOGD(TAG, "onApplicationStatusChanged: " + Cast.CastApi.getApplicationStatus(mApiClient));
+                            if (mProviderListener != null && "Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient))) {
+                                mProviderListener.onDeviceConnected();
+                            }
                         }
                     }
                 }
