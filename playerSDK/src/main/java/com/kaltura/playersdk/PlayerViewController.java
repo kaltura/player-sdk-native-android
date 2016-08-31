@@ -883,8 +883,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
-//                    getRouterManager().initialize(attributeValue);
-//                    getRouterManager().initialize(attributeValue);
+                    //getRouterManager().initialize(attributeValue);
                     LOGD(TAG, "chromecast.initialize:" + attributeValue);
                     break;
                 case playerError:
@@ -895,17 +894,31 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     if (attributeValue == null){
                         return;
                     }
-                    if ("Off".equalsIgnoreCase(attributeValue)){
-                        getTrackManager().switchTrack(TrackType.TEXT,-1);
-                        return;
-                    }
-                    for (int index = 0 ; index < getTrackManager().getTextTrackList().size() ; index++) {
-                        //LOGD(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
-                        if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)){
-                            getTrackManager().switchTrack(TrackType.TEXT,index);
-                            return;
+                    if (mCastProvider != null) {
+                        if ("Off".equalsIgnoreCase(attributeValue)) {
+                            mCastProvider.getCastMediaRemoteControl().switchTextTrack(0);
+                        } else {
+                            for (String lang : mCastProvider.getCastMediaRemoteControl().getTextTracks().keySet()) {
+                                if (lang.equals(attributeValue)) {
+                                    mCastProvider.getCastMediaRemoteControl().switchTextTrack(mCastProvider.getCastMediaRemoteControl().getTextTracks().get(lang));
+                                    break;
+                                }
+                            }
                         }
                     }
+
+                    if ("Off".equalsIgnoreCase(attributeValue)) {
+                            getTrackManager().switchTrack(TrackType.TEXT, -1);
+                            return;
+                    }
+                    for (int index = 0; index < getTrackManager().getTextTrackList().size(); index++) {
+                            //LOGD(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
+                            if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)) {
+                                getTrackManager().switchTrack(TrackType.TEXT, index);
+                                return;
+                            }
+                    }
+
                     break;
                 case audioTrackSelected:
                     LOGD(TAG, "audioTrackSelected");

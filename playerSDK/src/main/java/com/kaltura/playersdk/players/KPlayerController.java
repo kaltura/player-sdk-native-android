@@ -206,6 +206,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
 
             @Override
+            public void onTextTrackSwitch(int trackIndex) {
+                if (mCastProvider != null) {
+                    mCastProvider.sendMessage("{\"type\":\"ENABLE_CC\",\"trackNumber\":" + trackIndex + "}");
+                }
+            }
+
+            @Override
             public void onCastMediaProgressUpdate(long currentPosition) {
                 if (playerListener != null) {
                     playerListener.eventWithValue(player, KPlayerListener.TimeUpdateKey, Float.toString(currentPosition / 1000f));

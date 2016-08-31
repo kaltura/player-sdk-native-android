@@ -16,6 +16,8 @@ import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
@@ -32,6 +34,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     private State mState;
     private String[] mMediaInfoParams;
     private boolean isEnded = false;
+    private HashMap<String, Integer> mTextTracks;
+    private List<Integer> mVideoTracks;
 
 
     String TAG = "KChromeCastPlayer";
@@ -83,6 +87,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     public void load(final long fromPosition) {
         try {
+            mTextTracks = new HashMap<>();
+            mVideoTracks = new ArrayList<>();
             Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
 
             // Prepare the content according to Kaltura's reciever
@@ -291,6 +297,35 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     @Override
     public boolean hasMediaSession() {
         return mApiClient != null && mApiClient.isConnected();
+    }
+
+    @Override
+    public void switchTextTrack(int index) {
+        if (mListeners != null) {
+            for (KCastMediaRemoteControlListener listener : mListeners) {
+                listener.onTextTrackSwitch(index);
+            }
+        }
+    }
+
+    @Override
+    public void setTextTracks(HashMap<String, Integer> textTrackHash) {
+        mTextTracks = textTrackHash;
+    }
+
+    @Override
+    public void setVideoTracks(List<Integer> videoTracksList) {
+        mVideoTracks = videoTracksList;
+    }
+
+    @Override
+    public HashMap<String, Integer> getTextTracks() {
+        return mTextTracks;
+    }
+
+    @Override
+    public List<Integer> getVideoTracks() {
+        return mVideoTracks;
     }
 
     private void updateState(State state) {
