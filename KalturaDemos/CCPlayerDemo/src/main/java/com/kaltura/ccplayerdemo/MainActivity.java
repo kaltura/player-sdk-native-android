@@ -153,9 +153,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (hash.containsKey("eng")) {
                                 mCastProvider.getCastMediaRemoteControl().switchTextTrack(hash.get("eng"));
                                 for (TrackFormat tf : mPlayer.getTrackManager().getTextTrackList()) {
-                                    LOGE(TAG, "getTrackFullLanguageName " + tf.getTrackFullName());
-                                    LOGE(TAG, "getTrackLanguage " + tf.getTrackLanguage());
-                                    LOGE(TAG, "getTrackName " + tf.getTrackName());
+                                    LOGD(TAG, "getTrackFullLanguageName " + tf.getTrackFullName());
+                                    LOGD(TAG, "getTrackLanguage " + tf.getTrackLanguage());
+                                    LOGD(TAG, "getTrackName " + tf.getTrackName());
                                 }
                                 mPlayer.getTrackManager().switchTrack(TrackType.TEXT, 0);
                             } else {
@@ -232,17 +232,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mCastProvider.getCastMediaRemoteControl().addListener(new KCastMediaRemoteControl.KCastMediaRemoteControlListener() {
                     @Override
                     public void onCastMediaProgressUpdate(long currentPosition) {
-
+                        LOGD(TAG, "onCastMediaProgressUpdate to currentPosition = " + currentPosition);
                     }
 
                     @Override
                     public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
-
+                        LOGD(TAG, "onCastMediaStateChanged to state = " + state.name());
                     }
 
                     @Override
                     public void onTextTrackSwitch(int trackIndex) {
-
+                        LOGD(TAG, "onTextTrackSwitch to index = " + trackIndex);
                     }
                 });
             }
