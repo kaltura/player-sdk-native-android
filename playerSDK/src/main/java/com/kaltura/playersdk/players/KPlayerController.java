@@ -534,6 +534,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
     public void initIMA(String adTagURL, String adMimeType, int adPreferredBitrate, Activity activity) {
+        LOGD(TAG, "initIMA adTagURL = " + adTagURL + ", adMimeType = " + adMimeType);
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
         mAdMimeType = adMimeType;
@@ -549,8 +550,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void addAdPlayer() {
+        LOGD(TAG, "Start addAdPlayer");
         ((View)player).setVisibility(View.INVISIBLE);
-
         // Add adPlayer view
         adPlayerContainer = new FrameLayout(mActivity.get());
         ViewGroup.LayoutParams lp = parentViewController.getLayoutParams();
