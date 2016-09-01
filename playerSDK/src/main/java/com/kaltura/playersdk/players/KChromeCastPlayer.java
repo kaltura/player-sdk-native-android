@@ -16,6 +16,8 @@ import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
@@ -32,6 +34,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     private State mState;
     private String[] mMediaInfoParams;
     private boolean isEnded = false;
+    private HashMap<String, Integer> mTextTracks;
+    private List<Integer> mVideoTracks;
+    private int currentSelectedTextTrack = 0;
 
 
     String TAG = "KChromeCastPlayer";
@@ -83,6 +88,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     public void load(final long fromPosition) {
         try {
+            mTextTracks = new HashMap<>();
+            mVideoTracks = new ArrayList<>();
             Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
 
             // Prepare the content according to Kaltura's reciever
@@ -109,12 +116,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-
                 try {
                     long currentTime = mRemoteMediaPlayer.getApproximateStreamPosition();
                     if (currentTime != 0 && currentTime < mRemoteMediaPlayer.getStreamDuration()) {
+                        LOGD(TAG, "CC SEND TIME UPDATE " + currentTime);
                         for (KCastMediaRemoteControlListener listener : mListeners) {
-                            LOGD(TAG, "CC SEND TIME UPDATE " + currentTime );
                             listener.onCastMediaProgressUpdate(currentTime);
                         }
                     }
@@ -132,6 +138,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void play() {
+        if (!hasMediaSession()) {
+            return;
+        }
+
         LOGD(TAG, "Start PLAY");
         if (isEnded) {
             load(0);
@@ -156,6 +166,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void pause() {
+        if (!hasMediaSession()) {
+            return;
+        }
         LOGD(TAG, "Start PAUSE");
         mRemoteMediaPlayer.pause(mApiClient).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
@@ -170,10 +183,13 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void seek(long currentPosition) {
+        if (!hasMediaSession()) {
+            return;
+        }
         LOGD(TAG, "CC seek to " + currentPosition);
         LOGD(TAG, "CC SEND SEEKING");
         updateState(State.Seeking);
-        mRemoteMediaPlayer.seek(mApiClient, currentPosition,RemoteMediaPlayer.RESUME_STATE_UNCHANGED).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
+        mRemoteMediaPlayer.seek(mApiClient, currentPosition, RemoteMediaPlayer.RESUME_STATE_UNCHANGED).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
@@ -192,9 +208,25 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     @Override
+    public boolean  isPlaying() {
+        if (mApiClient != null) {
+            if (mApiClient.isConnected()) {
+                if (mRemoteMediaPlayer != null) {
+                    if (mRemoteMediaPlayer.getMediaStatus().equals(MediaStatus.PLAYER_STATE_PLAYING)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void addListener(KCastMediaRemoteControlListener listener) {
-        if (mListeners.size() == 0 || mListeners.size() > 0 && !mListeners.contains(listener)) {
-            mListeners.add(listener);
+        if (mListeners != null) {
+            if (mListeners.size() == 0 || mListeners.size() > 0 && !mListeners.contains(listener)) {
+                mListeners.add(listener);
+            }
         }
     }
 
@@ -210,6 +242,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public void setStreamVolume(double streamVolume) {
+        if (!hasMediaSession()) {
+            return;
+        }
+        LOGD(TAG, "CC setStreamVolume " + streamVolume);
         mRemoteMediaPlayer.setStreamVolume(mApiClient, streamVolume).setResultCallback(new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
             @Override
             public void onResult(RemoteMediaPlayer.MediaChannelResult mediaChannelResult) {
@@ -223,12 +259,18 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public double getCurrentVolume() {
-        return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
+        if (hasMediaSession()) {
+            return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
+        }
+        return 0;
     }
 
     @Override
     public boolean isMute() {
-        return mRemoteMediaPlayer.getMediaStatus().isMute();
+        if (hasMediaSession()) {
+            return mRemoteMediaPlayer.getMediaStatus().isMute();
+        }
+        return false;
     }
 
     @Override
@@ -258,8 +300,44 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
         return mApiClient != null && mApiClient.isConnected();
     }
 
+    @Override
+    public void switchTextTrack(int index) {
+        if (mListeners != null) {
+            for (KCastMediaRemoteControlListener listener : mListeners) {
+                currentSelectedTextTrack = index;
+                listener.onTextTrackSwitch(index);
+            }
+        }
+    }
+
+    @Override
+    public int getSelectedTextTrackIndex() {
+        return currentSelectedTextTrack;
+    }
+
+    @Override
+    public void setTextTracks(HashMap<String, Integer> textTrackHash) {
+        mTextTracks = textTrackHash;
+        updateState(State.TextTracksUpdated);
+    }
+
+    @Override
+    public void setVideoTracks(List<Integer> videoTracksList) {
+        mVideoTracks = videoTracksList;
+    }
+
+    @Override
+    public HashMap<String, Integer> getTextTracks() {
+        return mTextTracks;
+    }
+
+    @Override
+    public List<Integer> getVideoTracks() {
+        return mVideoTracks;
+    }
+
     private void updateState(State state) {
-        if (state != State.VolumeChanged) {
+        if (state != State.VolumeChanged && state != State.TextTracksUpdated) {
             mState = state;
         }
         if (mListeners != null) {

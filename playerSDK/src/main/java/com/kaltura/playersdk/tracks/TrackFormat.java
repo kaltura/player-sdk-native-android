@@ -65,15 +65,37 @@ public class TrackFormat {
         } else if (MimeTypes.isAudio(mimeType)) {
             trackName = buildTrackIdString();
             if (!"".equals(buildLanguageString())){
-                trackName = buildLanguageString() + "-" + trackName;
+                trackName = buildLanguageString();
             }
         } else {
             trackName = buildTrackIdString();
             if (!"".equals(buildLanguageString())){
-                trackName = buildLanguageString() + "-" + trackName;
+                trackName = buildLanguageString();
             }
         }
         return trackName.length() == 0 ? "unknown" : trackName;
+    }
+
+    public String getTrackLanguage() {
+        return this.language.length() == 0 ? "unknown" : this.language;
+    }
+
+    public String getTrackFullName() {
+        if (adaptive) {
+            return "auto" + "-" + index;
+        }
+        String trackName;
+        if (MimeTypes.isVideo(mimeType)) {
+            trackName = joinWithSeparator(joinWithSeparator(buildResolutionString(),
+                    buildBitrateString()), buildTrackIdString());
+
+        } else if (MimeTypes.isAudio(mimeType)) {
+            trackName = buildTrackIdString();
+        } else {
+            trackName = buildTrackIdString();
+        }
+        return trackName.length() == 0 ? "unknown" : trackName;
+
     }
 
     private String buildResolutionString() {
@@ -136,11 +158,10 @@ public class TrackFormat {
                 jsonObject.put("index", this.index);
                 jsonObject.put("kind", "subtitle");
                 jsonObject.put("label", this.trackLabel);
-                jsonObject.put("language", this.trackLabel);
-                jsonObject.put("title", this.trackLabel);
+                jsonObject.put("language", this.language);
+                jsonObject.put("title", getTrackFullName());
                 String trackId = (this.trackId != null) ? this.trackId: "Auto";
                 jsonObject.put("srclang", this.trackLabel); // maybe trackId???
-
             }
         } catch (JSONException e) {
             e.printStackTrace();
