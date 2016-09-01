@@ -4,10 +4,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.webkit.WebResourceResponse;
 
-import com.kaltura.playersdk.Utilities;
+import com.kaltura.playersdk.utils.Utilities;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 
 /**
@@ -44,23 +45,23 @@ public class CacheManager {
 
     
     private void logCacheHit(Uri url, String fileId) {
-        Log.d(TAG, "CACHE HIT: " + fileId + " : " + url);
+        LOGD(TAG, "CACHE HIT: " + fileId + " : " + url);
     }
 
     private void logCacheMiss(Uri url, String fileId) {
-        Log.d(TAG, "CACHE MISS: " + fileId + " : " + url);
+        LOGD(TAG, "CACHE MISS: " + fileId + " : " + url);
     }
     
     private void logCacheIgnored(Uri url, String method) {
-        Log.d(TAG, "CACHE IGNORE: " + method + " " + url);
+        LOGD(TAG, "CACHE IGNORE: " + method + " " + url);
     }
 
     private void logCacheSaved(Uri url, String fileId) {
-        Log.d(TAG, "CACHE SAVED: " + fileId + " : " + url);
+        LOGD(TAG, "CACHE SAVED: " + fileId + " : " + url);
     }
 
     private void logCacheDeleted(String fileId) {
-        Log.d(TAG, "CACHE DELETE: " + fileId);
+        LOGD(TAG, "CACHE DELETE: " + fileId);
     }
 
     public CacheManager(Context context) {
@@ -77,7 +78,7 @@ public class CacheManager {
             try {
                 mCacheConditions = new JSONObject(string);
             } catch (JSONException e) {
-                Log.e(TAG, "Invalid json", e);
+                LOGE(TAG, "Invalid json", e);
             }
         }
     }
@@ -136,7 +137,7 @@ public class CacheManager {
         try {
             connection.setRequestMethod(method);
         } catch (ProtocolException e) {
-            Log.e(TAG, "Invalid method " + method, e);
+            LOGE(TAG, "Invalid method " + method, e);
             // This can't really happen. But if it did, and we're on a debug build, the app should crash.
             throw new IllegalArgumentException(e);
         }
@@ -149,13 +150,13 @@ public class CacheManager {
         String fileId = getCacheFileId(requestUrl);
 
         if (!mSQLHelper.removeFile(fileId)) {
-            Log.e(TAG, "Failed to remove cache entry for request: " + requestUrl);
+            LOGE(TAG, "Failed to remove cache entry for request: " + requestUrl);
             return false;
         } else {
             File file = new File(mCachePath, fileId);
 
             if (!file.delete()) {
-                Log.e(TAG, "Failed to delete file for request: " + requestUrl);
+                LOGE(TAG, "Failed to delete file for request: " + requestUrl);
                 return false;
             }
         }
@@ -209,7 +210,7 @@ public class CacheManager {
             logCacheMiss(requestUrl, fileName);
             
             if (!online) {
-                Log.e(TAG, "Error: device is offline and response is not cached.");
+                LOGE(TAG, "Error: device is offline and response is not cached.");
             }
             
             return getResponseFromNetwork(requestUrl, headers, method, fileName, targetFile);

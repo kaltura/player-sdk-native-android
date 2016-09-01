@@ -116,11 +116,11 @@ public class SimpleVideoPlayer {
     layers.add(playbackControlLayer);
     layers.add(subtitleLayer);
 
-    boolean preferedSoftwareDecoder = checkIfSoftwareDecoderPrefered();
+    boolean preferredSoftwareDecoder = checkIfSoftwareDecoderPreferred();
     layerManager = new LayerManager(activity,
         container,
         video,
-        preferedSoftwareDecoder,
+        preferredSoftwareDecoder,
         layers);
 
     layerManager.getExoplayerWrapper().setCaptionListener(subtitleLayer);
@@ -130,10 +130,10 @@ public class SimpleVideoPlayer {
     }
   }
 
-  private boolean checkIfSoftwareDecoderPrefered() {
-    //boolean isSoftwareDecoderPrefered = false;
+  private boolean checkIfSoftwareDecoderPreferred() {
+    //boolean isSoftwareDecoderPreferred = false;
     //if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) { // For Galaxy S4 Lolipop so it is hardware problem ...
-    //  isSoftwareDecoderPrefered = true;
+    //  isSoftwareDecoderPreferred = true;
     //}
     return true;
   }
@@ -295,7 +295,7 @@ public class SimpleVideoPlayer {
   }
 
   public void changedMedia(FrameLayout container, Video v, boolean doPlay){
-    boolean preferedSoftwareDecoder = checkIfSoftwareDecoderPrefered();
+    boolean preferredSoftwareDecoder = checkIfSoftwareDecoderPreferred();
     List<Layer> layers = new ArrayList<Layer>();
     layers.add(videoSurfaceLayer);
     layers.add(playbackControlLayer);
@@ -304,7 +304,7 @@ public class SimpleVideoPlayer {
     layerManager = new LayerManager(activity,
             container,
             v,
-            preferedSoftwareDecoder,
+            preferredSoftwareDecoder,
             layers);
     layerManager.getExoplayerWrapper().setCaptionListener(subtitleLayer);
     if (doPlay) {

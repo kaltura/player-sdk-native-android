@@ -7,15 +7,19 @@ import android.drm.DrmInfoEvent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.kaltura.playersdk.helpers.CacheManager;
+import com.kaltura.playersdk.utils.Utilities;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGI;
 
 
 /**
@@ -60,7 +64,7 @@ public class LocalAssetsManager {
 
 
         if (! Utilities.isOnline(context)) {
-            Log.i(TAG, "Can't register/refresh when offline");
+            LOGI(TAG, "Can't register/refresh when offline");
             return false;
         }
 
@@ -97,7 +101,7 @@ public class LocalAssetsManager {
                         Uri licenseUri = prepareLicenseUri(entry, flavor, DRMScheme.WidevineClassic);
                         registerWidevineClassicAsset(context, localPath, licenseUri, listener);
                     } catch (JSONException | IOException e) {
-                        Log.e(TAG, "Error", e);
+                        LOGE(TAG, "Error", e);
                         if (listener != null) {
                             listener.onFailed(localPath, e);
                         }
@@ -145,12 +149,12 @@ public class LocalAssetsManager {
                 widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
                     @Override
                     public void onError(DrmErrorEvent event) {
-                        Log.d(TAG, event.toString());
+                        LOGD(TAG, event.toString());
                     }
 
                     @Override
                     public void onEvent(DrmEvent event) {
-                        Log.d(TAG, event.toString());
+                        LOGD(TAG, event.toString());
                         switch (event.getType()) {
                             case DrmInfoEvent.TYPE_RIGHTS_REMOVED:
                                 if (listener != null) {
@@ -198,7 +202,7 @@ public class LocalAssetsManager {
         widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
             @Override
             public void onError(DrmErrorEvent event) {
-                Log.d(TAG, event.toString());
+                LOGD(TAG, event.toString());
 
                 if (listener != null) {
                     listener.onFailed(localPath, new Exception("License acquisition failed; DRM client error code: " + event.getType()));
@@ -207,7 +211,7 @@ public class LocalAssetsManager {
 
             @Override
             public void onEvent(DrmEvent event) {
-                Log.d(TAG, event.toString());
+                LOGD(TAG, event.toString());
                 switch (event.getType()) {
                     case DrmInfoEvent.TYPE_RIGHTS_INSTALLED:
                         if (listener != null) {

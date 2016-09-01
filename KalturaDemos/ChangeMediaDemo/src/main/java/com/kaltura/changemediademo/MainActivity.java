@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -25,6 +25,9 @@ import com.kaltura.playersdk.types.KPError;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, KPEventListener, SelectMediaFragment.MediaIdPostman {
     public static final String MEDIA_ID_KEY = "MEDIA_ID";
@@ -95,11 +98,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         currentMediaId = mediaId;
         Toast.makeText(getApplicationContext(), "Selected Media Id = " + mediaId, Toast.LENGTH_SHORT).show();
         if (mPlayer == null) {
-            Log.d(TAG, "first time with entry id = " +  currentMediaId);
+            LOGD(TAG, "first time with entry id = " +  currentMediaId);
             getPlayer();
         }
         else {
-            Log.d(TAG, "changeMedia with entry id = " + currentMediaId);
+            LOGD(TAG, "changeMedia with entry id = " + currentMediaId);
             mPlayer.changeMedia(currentMediaId);
 
             //Change configuration
@@ -119,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return null;
             }
 
-            config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.42.rc8/mwEmbedFrame.php", "33189171", "2068231").setEntryId(currentMediaId);
+            config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.44/mwEmbedFrame.php", "33189171", "2068231").setEntryId(currentMediaId);
             config.addConfig("controlBarContainer.plugin", "false");
             config.addConfig("topBarContainer.plugin", "false");
             config.addConfig("largePlayBtn.plugin", "false");
@@ -218,18 +221,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         if (state == KPlayerState.ENDED) {
-            Log.d(TAG,"Stream ENDED");
+            LOGD(TAG,"Stream ENDED");
             chooseMediaButton.setVisibility(View.VISIBLE);
             mPlayPauseButton.setVisibility(View.INVISIBLE);
             mSeekBar.setVisibility(View.INVISIBLE);
             mPlayer.setVisibility(View.INVISIBLE);
         }
         if (state == KPlayerState.PAUSED) {
-            Log.d(TAG, "Stream PAUSED");
+            LOGD(TAG, "Stream PAUSED");
             chooseMediaButton.setVisibility(View.VISIBLE);
         }
         if (state == KPlayerState.PLAYING) {
-            Log.d(TAG, "Stream PAUSED");
+            LOGD(TAG, "Stream PAUSED");
             chooseMediaButton.setVisibility(View.INVISIBLE);
         }
     }
@@ -246,6 +249,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerError(PlayerViewController playerViewController, KPError error) {
-        Log.e(TAG, "Error Received:" + error.getErrorMsg());
+        LOGE(TAG, "Error Received:" + error.getErrorMsg());
     }
 }
