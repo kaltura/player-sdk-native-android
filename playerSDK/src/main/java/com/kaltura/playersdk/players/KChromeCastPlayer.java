@@ -16,6 +16,8 @@ import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
@@ -32,6 +34,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     private State mState;
     private String[] mMediaInfoParams;
     private boolean isEnded = false;
+    private HashMap<String, Integer> mTextTracks;
+    private List<Integer> mVideoTracks;
+    private int currentSelectedTextTrack = 0;
 
 
     String TAG = "KChromeCastPlayer";
@@ -83,6 +88,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     public void load(final long fromPosition) {
         try {
+            mTextTracks = new HashMap<>();
+            mVideoTracks = new ArrayList<>();
             Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
 
             // Prepare the content according to Kaltura's reciever
@@ -112,8 +119,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
                 try {
                     long currentTime = mRemoteMediaPlayer.getApproximateStreamPosition();
                     if (currentTime != 0 && currentTime < mRemoteMediaPlayer.getStreamDuration()) {
+                        LOGD(TAG, "CC SEND TIME UPDATE " + currentTime);
                         for (KCastMediaRemoteControlListener listener : mListeners) {
-                            LOGD(TAG, "CC SEND TIME UPDATE " + currentTime);
                             listener.onCastMediaProgressUpdate(currentTime);
                         }
                     }
@@ -293,8 +300,44 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
         return mApiClient != null && mApiClient.isConnected();
     }
 
+    @Override
+    public void switchTextTrack(int index) {
+        if (mListeners != null) {
+            for (KCastMediaRemoteControlListener listener : mListeners) {
+                currentSelectedTextTrack = index;
+                listener.onTextTrackSwitch(index);
+            }
+        }
+    }
+
+    @Override
+    public int getSelectedTextTrackIndex() {
+        return currentSelectedTextTrack;
+    }
+
+    @Override
+    public void setTextTracks(HashMap<String, Integer> textTrackHash) {
+        mTextTracks = textTrackHash;
+        updateState(State.TextTracksUpdated);
+    }
+
+    @Override
+    public void setVideoTracks(List<Integer> videoTracksList) {
+        mVideoTracks = videoTracksList;
+    }
+
+    @Override
+    public HashMap<String, Integer> getTextTracks() {
+        return mTextTracks;
+    }
+
+    @Override
+    public List<Integer> getVideoTracks() {
+        return mVideoTracks;
+    }
+
     private void updateState(State state) {
-        if (state != State.VolumeChanged) {
+        if (state != State.VolumeChanged && state != State.TextTracksUpdated) {
             mState = state;
         }
         if (mListeners != null) {
