@@ -24,6 +24,8 @@ import com.kaltura.playersdk.players.KChromeCastPlayer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import java.util.HashMap;
 import java.util.List;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
@@ -161,6 +163,10 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             mSelectedDevice = null;
         }
 
+        if (mInternalListener != null) {
+            mInternalListener.onCastStateChanged("hideConnectingMessage");
+        }
+
         if (disableReconnectOption) {
             disableReconnectOption();
         }
@@ -223,18 +229,12 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 @Override
                 public void onApplicationStatusChanged() {
                     if (mApiClient != null) {
-
-                        try {
-                            String status = Cast.CastApi.getApplicationStatus(mApiClient);
-                            LOGD(TAG, "onApplicationStatusChanged: " + status);
-
-
-                            if ("Ready to play".equals(status) && mProviderListener != null) {
+                        if (hasMediaSession()) {
+                            LOGD(TAG, "onApplicationStatusChanged: " + Cast.CastApi.getApplicationStatus(mApiClient));
+                            if (mProviderListener != null && "Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient))) {
                                 mProviderListener.onDeviceConnected(null,null);
                             }
 
-                        } catch (IllegalStateException e) {
-                            LOGE(TAG, e.getMessage());
                         }
                     }
                 }
@@ -269,12 +269,16 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     private void teardown() {
-        LOGD(TAG, "teardown");
         if (mApiClient != null) {
+            LOGD(TAG, "START TEARDOWN mApiClient.isConnected() = " + mApiClient.isConnected() + " mApiClient.isConnecting() = " + mApiClient.isConnecting()) ;
             if (mApplicationStarted) {
-                if (mApiClient.isConnected() || mApiClient.isConnecting()) {
+                boolean isConnected = mApiClient.isConnected();
+                boolean isConnecting = mApiClient.isConnecting();
+                if (isConnected || isConnecting) {
                     try {
-                        Cast.CastApi.stopApplication(mApiClient, mSessionId);
+                        if (isConnected) {
+                            Cast.CastApi.stopApplication(mApiClient, mSessionId);
+                        }
                         if (mChannel != null) {
                             Cast.CastApi.removeMessageReceivedCallbacks(
                                     mApiClient,
@@ -356,6 +360,82 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             }
         }
     }
+
+//    private class ConnectionCallbacks implements GoogleApiClient.ConnectionCallbacks {
+//        @Override
+//        public void onConnected(Bundle bundle) {
+//            if (mWaitingForReconnect) {
+//                mWaitingForReconnect = false;
+//
+//                // In case of kaltura receiver is loaded, open channel for sneding messages
+//            } else {
+//
+//                try {
+//                    Cast.CastApi.launchApplication(mApiClient, mCastAppID, new LaunchOptions())
+//                            .setResultCallback(
+//                                    new ResultCallback<Cast.ApplicationConnectionResult>() {
+//                                        @Override
+//                                        public void onResult(Cast.ApplicationConnectionResult result) {
+//                                            Status status = result.getStatus();
+//                                            if (status.isSuccess()) {
+//                                                mSessionId = result.getSessionId();
+////                                                mRemoteMediaPlayer = new RemoteMediaPlayer();
+//
+//                                                // Prepare the custom channel (listens to Kaltura's receiver messages)
+//                                                mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
+//
+//                                                    @Override
+//                                                    public void readyForMedia(final String[] params) {
+//                                                        sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+//                                                        // Receiver send the new content
+//                                                        if (params != null) {
+//                                                            mCastMediaRemoteControl = new KChromeCastPlayer(mApiClient);
+//                                                            ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(params);
+//                                                            if (mInternalListener != null) {
+//                                                                mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+//                                                            }
+//                                                        }
+//                                                    }
+//
+//                                                    @Override
+//                                                    public void textTeacksRecived(HashMap<String, Integer> textTrackHash) {
+//                                                        getCastMediaRemoteControl().setTextTracks(textTrackHash);
+//                                                    }
+//
+//                                                    @Override
+//                                                    public void videoTracksReceived(List<Integer> videoTracksList) {
+//                                                        getCastMediaRemoteControl().setVideoTracks(videoTracksList);
+//                                                    }
+//                                                });
+//                                                sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
+//                                                mApplicationStarted = true;
+//                                                try {
+//                                                    Cast.CastApi.setMessageReceivedCallbacks(mApiClient,
+//                                                            mChannel.getNamespace(),
+//                                                            mChannel);
+//                                                } catch (IOException e) {
+//                                                    LOGE(TAG, "Exception while creating channel", e);
+//                                                }
+//                                                if (mProviderListener != null) {
+//                                                    mProviderListener.onDeviceConnected(null,null);
+//                                                }
+//                                            } else {
+//                                                teardown();
+//                                            }
+//                                        }
+//                                    });
+//
+//                } catch (Exception e) {
+//                    LOGD(TAG, "Failed to launch application", e);
+//                }
+//            }
+//        }
+//
+//        @Override
+//        public void onConnectionSuspended(int i) {
+//
+//        }
+//    }
 
     @Override
     public void onFoundDevices(boolean didFound) {
@@ -485,6 +565,16 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         }
     }
 
+    @Override
+    public void textTeacksRecived(HashMap<String, Integer> textTrackHash) {
+        getCastMediaRemoteControl().setTextTracks(textTrackHash);
+    }
+
+    @Override
+    public void videoTracksReceived(List<Integer> videoTracksList) {
+        getCastMediaRemoteControl().setVideoTracks(videoTracksList);
+    }
+
     public void prepareChannel() {
         if (mChannel == null) {
             return;
@@ -589,6 +679,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                     }
                     return false;
                 }
+
 
                 @Override
                 protected void onPostExecute(Boolean result) {

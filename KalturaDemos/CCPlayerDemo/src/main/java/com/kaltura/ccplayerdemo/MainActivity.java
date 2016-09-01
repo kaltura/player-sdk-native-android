@@ -304,7 +304,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onDeviceFailedToDisconnect(KCastProvider.ConnectionEvent connectionEvent) {
                 mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
                 mMediaRouteButtonCon.setVisibility(View.INVISIBLE);
-                mStopCasting.setVisibility(View.INVISIBLE);
             }
 
             @Override
