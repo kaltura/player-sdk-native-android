@@ -22,6 +22,7 @@ public interface KCastMediaRemoteControl {
     long getDuration();
     boolean hasMediaSession(); // if there is conncetion esteblished  & working
     void switchTextTrack(int index);
+    int getSelectedTextTrackIndex();
 
     void setTextTracks(HashMap<String, Integer> textTrackHash);
     void setVideoTracks(List<Integer> videoTracksList);
@@ -42,6 +43,7 @@ public interface KCastMediaRemoteControl {
         Seeking,
         Seeked,
         Ended,
-        VolumeChanged
+        VolumeChanged,
+        TextTracksUpdated
     }
 }

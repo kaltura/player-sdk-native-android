@@ -220,7 +220,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             try {
                 isMediaChanged = true;
                 entryJson.put("entryId", entryId);
-                sendNotification("changeMedia", entryJson.toString());
+                String jsonString = entryJson.toString();
+                playerController.changeMedia();
+                sendNotification("changeMedia",jsonString);
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }

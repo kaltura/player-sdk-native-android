@@ -36,6 +36,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     private boolean isEnded = false;
     private HashMap<String, Integer> mTextTracks;
     private List<Integer> mVideoTracks;
+    private int currentSelectedTextTrack = 0;
 
 
     String TAG = "KChromeCastPlayer";
@@ -303,14 +304,21 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     public void switchTextTrack(int index) {
         if (mListeners != null) {
             for (KCastMediaRemoteControlListener listener : mListeners) {
+                currentSelectedTextTrack = index;
                 listener.onTextTrackSwitch(index);
             }
         }
     }
 
     @Override
+    public int getSelectedTextTrackIndex() {
+        return currentSelectedTextTrack;
+    }
+
+    @Override
     public void setTextTracks(HashMap<String, Integer> textTrackHash) {
         mTextTracks = textTrackHash;
+        updateState(State.TextTracksUpdated);
     }
 
     @Override
@@ -329,7 +337,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     private void updateState(State state) {
-        if (state != State.VolumeChanged) {
+        if (state != State.VolumeChanged && state != State.TextTracksUpdated) {
             mState = state;
         }
         if (mListeners != null) {

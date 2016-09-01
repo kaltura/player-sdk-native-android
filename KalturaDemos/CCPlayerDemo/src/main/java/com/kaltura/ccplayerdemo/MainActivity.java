@@ -157,7 +157,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     LOGD(TAG, "getTrackLanguage " + tf.getTrackLanguage());
                                     LOGD(TAG, "getTrackName " + tf.getTrackName());
                                 }
-                                mPlayer.getTrackManager().switchTrack(TrackType.TEXT, 0);
+
+                                int castTextTrackIndex = mCastProvider.getCastMediaRemoteControl().getSelectedTextTrackIndex();
+
+                                for (String castLang : mCastProvider.getCastMediaRemoteControl().getTextTracks().keySet()) {
+                                    LOGD(TAG, "loop castLang  = " + castLang);
+                                    if (castTextTrackIndex == mCastProvider.getCastMediaRemoteControl().getTextTracks().get(castLang)) {
+
+                                        for (TrackFormat textTrack : mPlayer.getTrackManager().getTextTrackList()) {
+                                            if ((textTrack.language).equals(castLang)) {
+                                                mPlayer.getTrackManager().switchTrack(TrackType.TEXT, textTrack.index);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+
                             } else {
                                 LOGE(TAG, "lang <eng> does not exist");
                             }
