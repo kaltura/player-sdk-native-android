@@ -39,6 +39,7 @@ public interface KCastMediaRemoteControl {
         Idle,
         Playing,
         Pause,
+        Loading,
         Loaded,
         Seeking,
         Seeked,
