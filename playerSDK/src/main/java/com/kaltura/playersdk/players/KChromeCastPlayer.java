@@ -88,7 +88,6 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     public void load(final long fromPosition) {
         try {
-            updateState(State.Loading);
             mTextTracks = new HashMap<>();
             mVideoTracks = new ArrayList<>();
             Cast.CastApi.setMessageReceivedCallbacks(mApiClient, mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
