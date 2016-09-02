@@ -20,7 +20,7 @@ public interface KCastMediaRemoteControl {
     State getCastMediaRemoteControlState();
     long getCurrentPosition();
     long getDuration();
-    boolean hasMediaSession(); // if there is conncetion esteblished  & working
+    boolean hasMediaSession(boolean validateCastConnectingState); // if there is conncetion esteblished  & working
     void switchTextTrack(int index);
     int getSelectedTextTrackIndex();
 

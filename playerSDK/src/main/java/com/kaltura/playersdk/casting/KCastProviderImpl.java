@@ -180,8 +180,8 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     }
 
     @Override
-    public boolean hasMediaSession() {
-        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession();
+    public boolean hasMediaSession(boolean validateCastConnectingState) {
+       return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession(true);
     }
 
     private Cast.Listener getCastClientListener() {
@@ -190,7 +190,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 @Override
                 public void onApplicationStatusChanged() {
                     if (mApiClient != null) {
-                        if (hasMediaSession()) {
+                        if (hasMediaSession(false)) {
                             LOGD(TAG, "onApplicationStatusChanged: " + Cast.CastApi.getApplicationStatus(mApiClient));
                             if (mProviderListener != null && "Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient))) {
                                 mProviderListener.onDeviceConnected();

@@ -138,7 +138,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void play() {
-        if (!hasMediaSession()) {
+        if (!hasMediaSession(true)) {
             return;
         }
 
@@ -166,7 +166,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void pause() {
-        if (!hasMediaSession()) {
+        if (!hasMediaSession(true)) {
             return;
         }
         LOGD(TAG, "Start PAUSE");
@@ -183,7 +183,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     public void seek(long currentPosition) {
-        if (!hasMediaSession()) {
+        if (!hasMediaSession(true)) {
             return;
         }
         LOGD(TAG, "CC seek to " + currentPosition);
@@ -242,7 +242,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public void setStreamVolume(double streamVolume) {
-        if (!hasMediaSession()) {
+        if (!hasMediaSession(true)) {
             return;
         }
         LOGD(TAG, "CC setStreamVolume " + streamVolume);
@@ -259,7 +259,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public double getCurrentVolume() {
-        if (hasMediaSession()) {
+        if (hasMediaSession(true)) {
             return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
         }
         return 0;
@@ -267,7 +267,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
 
     @Override
     public boolean isMute() {
-        if (hasMediaSession()) {
+        if (hasMediaSession(true)) {
             return mRemoteMediaPlayer.getMediaStatus().isMute();
         }
         return false;
@@ -296,8 +296,18 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl, ResultCallbac
     }
 
     @Override
-    public boolean hasMediaSession() {
-        return mApiClient != null && mApiClient.isConnected();
+    public boolean hasMediaSession(boolean validateCastConnectingState) {
+        if (mApiClient == null) {
+            return false;
+        }
+        boolean isCastSessionValid = mApiClient.isConnected();
+        if (validateCastConnectingState) {
+            boolean isCastSessionInConnectingMode = mApiClient.isConnecting();
+            if (isCastSessionInConnectingMode) {
+                return false; // no session to work with
+            }
+        }
+        return isCastSessionValid;
     }
 
     @Override
