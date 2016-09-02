@@ -22,6 +22,7 @@ import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.KTracksManager;
+import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 
 import java.lang.ref.WeakReference;
@@ -159,13 +160,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
             @Override
             public void onCastStateChanged(String state) {
+                if (playerListener == null)  {
+                    return;
+                }
                 playerListener.eventWithValue(player, state, "");
             }
 
             @Override
             public void onStopCasting() {
                 if (mCastPlayer != null) {
-                    player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                    if(player != null) {
+                        player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                    }
                     mCastPlayer.removeListeners();
                     mCastPlayer = null;
                 }
@@ -188,7 +194,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         playerListener.eventWithValue(player, KPlayerListener.LoadedMetaDataKey, "");
                         playerListener.eventWithValue(player, KPlayerListener.CanPlayKey, null);
                         playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
-
                         break;
                     case Playing:
                         playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
@@ -202,6 +207,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     case Ended:
                         playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
                         break;
+                    case TextTracksUpdated:
+                        updateCastPlayerTextTrack();
+                        break;
+                }
+            }
+
+            @Override
+            public void onTextTrackSwitch(int trackIndex) {
+                if (mCastProvider != null) {
+                    mCastProvider.sendMessage("{\"type\":\"ENABLE_CC\",\"trackNumber\":" + trackIndex + "}");
                 }
             }
 
@@ -212,6 +227,28 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
             }
         });
+    }
+
+    private void updateCastPlayerTextTrack() {
+        TrackFormat streamTextTrack = getTracksManager().getCurrentTrack(TrackType.TEXT);
+        String playerLang = streamTextTrack.language;
+        if (playerLang != null) {
+            LOGD(TAG, "playerLang = " + playerLang);
+            for (String castLang : mCastPlayer.getTextTracks().keySet()) {
+                LOGD(TAG, "loop castLang  = " + castLang);
+                if (castLang.equals(playerLang)) {
+                    mCastPlayer.switchTextTrack(mCastPlayer.getTextTracks().get(castLang));
+                    break;
+                }
+            }
+        }
+    }
+
+    //remove caption before changeMedia
+    public void changeMedia() {
+        player.pause();
+        player.setCurrentPlaybackTime(0);
+        player.switchTrack(TrackType.TEXT,-1);
     }
 
     private enum UIState {
@@ -534,6 +571,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
     public void initIMA(String adTagURL, String adMimeType, int adPreferredBitrate, Activity activity) {
+        LOGD(TAG, "initIMA adTagURL = " + adTagURL + ", adMimeType = " + adMimeType);
         ((View)player).setVisibility(View.INVISIBLE);
         isIMAActive = true;
         mAdMimeType = adMimeType;
@@ -549,8 +587,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void addAdPlayer() {
+        LOGD(TAG, "Start addAdPlayer");
         ((View)player).setVisibility(View.INVISIBLE);
-
         // Add adPlayer view
         adPlayerContainer = new FrameLayout(mActivity.get());
         ViewGroup.LayoutParams lp = parentViewController.getLayoutParams();

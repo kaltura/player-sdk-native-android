@@ -19,6 +19,8 @@ import com.kaltura.playersdk.players.KChromeCastPlayer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
@@ -55,8 +57,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private String mSessionId;
 
     private InternalListener mInternalListener;
-
-
     public GoogleApiClient getApiClient() {
         return mApiClient;
     }
@@ -376,6 +376,16 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                                                 mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
                                                             }
                                                         }
+                                                    }
+
+                                                    @Override
+                                                    public void textTeacksRecived(HashMap<String,Integer> textTrackHash) {
+                                                        getCastMediaRemoteControl().setTextTracks(textTrackHash);
+                                                    }
+
+                                                    @Override
+                                                    public void videoTracksReceived(List<Integer> videoTracksList) {
+                                                        getCastMediaRemoteControl().setVideoTracks(videoTracksList);
                                                     }
                                                 });
                                                 sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
