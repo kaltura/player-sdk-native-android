@@ -178,8 +178,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     public KCastMediaRemoteControl getCastMediaRemoteControl() {
         return mCastMediaRemoteControl;
     }
-
-    @Override
+    
     public boolean hasMediaSession(boolean validateCastConnectingState) {
        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession(true);
     }
