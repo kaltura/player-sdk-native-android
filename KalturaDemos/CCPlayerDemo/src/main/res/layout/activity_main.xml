@@ -71,6 +71,15 @@
             android:layout_toRightOf="@+id/audio_controls"
             android:layout_toEndOf="@+id/audio_controls" />
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ChangeMedia"
+            android:id="@+id/change_media"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+
     </RelativeLayout>
 
     <RelativeLayout
@@ -121,10 +130,11 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Stop Casting"
-            android:id="@+id/stopCasting"
+            android:text="Captoins"
+            android:id="@+id/add_captions"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true" />
+
     </RelativeLayout>
 </LinearLayout>

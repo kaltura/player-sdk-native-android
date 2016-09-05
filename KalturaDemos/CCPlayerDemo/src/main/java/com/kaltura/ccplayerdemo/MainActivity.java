@@ -7,7 +7,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,13 +29,13 @@ import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 import com.kaltura.playersdk.interfaces.KCastProvider;
-import com.kaltura.playersdk.interfaces.KMediaControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.types.KPError;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -63,7 +62,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton mMediaRouteButtonCon;
     private ImageButton mStreamButton;
     private Button mLoadPlayer;
-    private Button mStopCasting;
+    private Button mAddCaptionsBtn;
+    private Button mChangeMediaBtn;
     private
     KCastProvider mCastProvider;
 
@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button videoButton;
     private Button audioButton;
     private Button textButton;
+    private static int changeLangIdx = 0;
+    private static int changeMediaIdx = 0;
 
     private RelativeLayout.LayoutParams defaultVideoViewParams;
     private int defaultScreenOrientationMode;
@@ -139,13 +141,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        mStopCasting = (Button) findViewById(R.id.stopCasting);
-        mStopCasting.setVisibility(View.INVISIBLE);
-        mStopCasting.setOnClickListener(new View.OnClickListener() {
+        mAddCaptionsBtn = (Button) findViewById(R.id.add_captions);
+        mAddCaptionsBtn.setVisibility(View.INVISIBLE);
+        mAddCaptionsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCastProvider.disconnectFromDevice();
-                mStopCasting.setVisibility(View.INVISIBLE);
+                if (mCastProvider != null && mCastProvider.getCastMediaRemoteControl() != null) {
+                    HashMap<String, Integer> hash = mCastProvider.getCastMediaRemoteControl().getTextTracks();
+                    if (hash.keySet().size() > 0) {
+                        if (changeLangIdx % 2 == 0) {
+                            if (hash.containsKey("eng")) {
+                                mCastProvider.getCastMediaRemoteControl().switchTextTrack(hash.get("eng"));
+                                for (TrackFormat tf : mPlayer.getTrackManager().getTextTrackList()) {
+                                    LOGD(TAG, "getTrackFullLanguageName " + tf.getTrackFullName());
+                                    LOGD(TAG, "getTrackLanguage " + tf.getTrackLanguage());
+                                    LOGD(TAG, "getTrackName " + tf.getTrackName());
+                                }
+
+                                int castTextTrackIndex = mCastProvider.getCastMediaRemoteControl().getSelectedTextTrackIndex();
+
+                                for (String castLang : mCastProvider.getCastMediaRemoteControl().getTextTracks().keySet()) {
+                                    LOGD(TAG, "loop castLang  = " + castLang);
+                                    if (castTextTrackIndex == mCastProvider.getCastMediaRemoteControl().getTextTracks().get(castLang)) {
+
+                                        for (TrackFormat textTrack : mPlayer.getTrackManager().getTextTrackList()) {
+                                            if ((textTrack.language).equals(castLang)) {
+                                                mPlayer.getTrackManager().switchTrack(TrackType.TEXT, textTrack.index);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+
+                            } else {
+                                LOGE(TAG, "lang <eng> does not exist");
+                            }
+
+                        } else {
+                            mCastProvider.getCastMediaRemoteControl().switchTextTrack(0);
+                            mPlayer.getTrackManager().switchTrack(TrackType.TEXT, -1);
+                        }
+                    }
+                    changeLangIdx++;
+                }
+            }
+        });
+
+        mChangeMediaBtn = (Button) findViewById(R.id.change_media);
+        mChangeMediaBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mPlayer != null) {
+                    if (changeMediaIdx % 3 == 0) {
+                        mPlayer.changeMedia("1_8t7qo08r");
+                    } else if (changeMediaIdx % 3 == 1) {
+                        mPlayer.changeMedia("1_ng282arr");
+                    } else if (changeMediaIdx % 3 == 2) {
+                        mPlayer.changeMedia("1_uvmb65k7");
+                    }
+                    changeMediaIdx++;
+                }
+
             }
         });
 
@@ -191,12 +248,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mCastProvider.getCastMediaRemoteControl().addListener(new KCastMediaRemoteControl.KCastMediaRemoteControlListener() {
                     @Override
                     public void onCastMediaProgressUpdate(long currentPosition) {
-
+                        LOGD(TAG, "onCastMediaProgressUpdate to currentPosition = " + currentPosition);
                     }
 
                     @Override
                     public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
+                        LOGD(TAG, "onCastMediaStateChanged to state = " + state.name());
+                    }
 
+                    @Override
+                    public void onTextTrackSwitch(int trackIndex) {
+                        LOGD(TAG, "onTextTrackSwitch to index = " + trackIndex);
                     }
                 });
             }
@@ -222,14 +284,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onDeviceConnected() {
                 mMediaRouteButtonDiscon.setVisibility(View.INVISIBLE);
                 mMediaRouteButtonCon.setVisibility(View.VISIBLE);
-                mStopCasting.setVisibility(View.VISIBLE);
+                mAddCaptionsBtn.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onDeviceDisconnected() {
                 mMediaRouteButtonDiscon.setVisibility(View.VISIBLE);
                 mMediaRouteButtonCon.setVisibility(View.INVISIBLE);
-                mStopCasting.setVisibility(View.INVISIBLE);
+                mAddCaptionsBtn.setVisibility(View.INVISIBLE);
             }
 
             @Override
@@ -250,8 +312,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
-                //KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.rc11/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                //LOCAL - KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.1/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+
+                //DRM - KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
+                //HAROLD - KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.1/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
+
+                config.addConfig("autoPlay", "true");
                 config.addConfig("closedCaptions.plugin", "true");
                 config.addConfig("sourceSelector.plugin", "true");
                 config.addConfig("sourceSelector.displayMode", "bitrate");

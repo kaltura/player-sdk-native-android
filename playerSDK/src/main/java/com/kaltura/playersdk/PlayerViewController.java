@@ -220,7 +220,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             try {
                 isMediaChanged = true;
                 entryJson.put("entryId", entryId);
-                sendNotification("changeMedia", entryJson.toString());
+                String jsonString = entryJson.toString();
+                playerController.changeMedia();
+                sendNotification("changeMedia",jsonString);
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -873,14 +876,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
+                    LOGD(TAG, "IMA doubleClickRequestAds initialize:" + attributeValue);
                     playerController.initIMA(attributeValue,mConfig.getAdMimeType(), mConfig.getAdPreferredBitrate(), mActivity);
                     break;
                 case goLive:
                     (playerController.getPlayer()).switchToLive();
                     break;
                 case chromecastAppId:
-//                    getRouterManager().initialize(attributeValue);
-//                    getRouterManager().initialize(attributeValue);
+                    //getRouterManager().initialize(attributeValue);
                     LOGD(TAG, "chromecast.initialize:" + attributeValue);
                     break;
                 case playerError:
@@ -891,17 +894,31 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     if (attributeValue == null){
                         return;
                     }
-                    if ("Off".equalsIgnoreCase(attributeValue)){
-                        getTrackManager().switchTrack(TrackType.TEXT,-1);
-                        return;
-                    }
-                    for (int index = 0 ; index < getTrackManager().getTextTrackList().size() ; index++) {
-                        //LOGD(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
-                        if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)){
-                            getTrackManager().switchTrack(TrackType.TEXT,index);
-                            return;
+                    if (mCastProvider != null) {
+                        if ("Off".equalsIgnoreCase(attributeValue)) {
+                            mCastProvider.getCastMediaRemoteControl().switchTextTrack(0);
+                        } else {
+                            for (String lang : mCastProvider.getCastMediaRemoteControl().getTextTracks().keySet()) {
+                                if (lang.equals(attributeValue)) {
+                                    mCastProvider.getCastMediaRemoteControl().switchTextTrack(mCastProvider.getCastMediaRemoteControl().getTextTracks().get(lang));
+                                    break;
+                                }
+                            }
                         }
                     }
+
+                    if ("Off".equalsIgnoreCase(attributeValue)) {
+                            getTrackManager().switchTrack(TrackType.TEXT, -1);
+                            return;
+                    }
+                    for (int index = 0; index < getTrackManager().getTextTrackList().size(); index++) {
+                            //LOGD(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
+                            if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)) {
+                                getTrackManager().switchTrack(TrackType.TEXT, index);
+                                return;
+                            }
+                    }
+
                     break;
                 case audioTrackSelected:
                     LOGD(TAG, "audioTrackSelected");
