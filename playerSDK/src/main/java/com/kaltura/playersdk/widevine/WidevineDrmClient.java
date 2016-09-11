@@ -11,6 +11,7 @@ import android.drm.DrmInfoRequest;
 import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
 import android.drm.DrmStore;
+import android.net.Uri;
 import android.text.TextUtils;
 
 import java.io.FileDescriptor;
@@ -109,7 +110,7 @@ public class WidevineDrmClient {
 
     public static boolean isSupported(Context context) {
         DrmManagerClient drmManagerClient = new DrmManagerClient(context);
-        boolean canHandle = drmManagerClient.canHandle("", WIDEVINE_MIME_TYPE);
+        boolean canHandle = drmManagerClient.canHandle(Uri.EMPTY, WIDEVINE_MIME_TYPE);
         drmManagerClient.release();
         return canHandle;
     }

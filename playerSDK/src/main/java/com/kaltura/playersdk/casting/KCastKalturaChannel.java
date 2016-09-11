@@ -42,6 +42,12 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
                 mListener.readyForMedia(Arrays.copyOfRange(params, 1, 3));
             }
         }
+        else if (s1.contains("\"Data Loaded\"")){
+            //mListener.dataLoaded();
+        }
+        else if (s1.contains("\"aborted\"")){
+            //mListener.dataAborted();
+        }
         else if (s1.contains("\"captions\"")){
             mListener.textTeacksRecived(parseCaptions(s1));
         } else if (s1.contains("\"video_bitrates\"")) {

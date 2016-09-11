@@ -3,6 +3,8 @@ package com.kaltura.playersdk.players;
 import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,8 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.google.android.gms.cast.framework.CastSession;
+import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
@@ -70,6 +74,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private long mPlayLastClickTime = 0;
     private long mPauseLastClickTime = 0;
     private boolean mShouldPauseChromecastInBg = false;
+
+    private String mEntryName = "";
+    private String mEntryDescription = "";
+    private String mEntryThumbnailUrl = "";
+
 
 
     private KCastProviderImpl mCastProvider;
@@ -146,16 +155,25 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+
+
     public void setCastProvider(final KCastProvider castProvider) {
-        pause();
+        //pause();
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
-            public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
+            public void onStartCasting(final CastSession castSession, KChromeCastPlayer remoteMediaPlayer) {
                 mCastPlayer = remoteMediaPlayer;
-                mCastPlayer.load(player.getCurrentPlaybackTime());
                 mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
                 remoteMediaPlayer.addListener(this);
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCastPlayer.load(castSession, player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl);
+                    }
+                }, 2000);
+
+
             }
 
             @Override
@@ -170,7 +188,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             public void onStopCasting() {
                 if (mCastPlayer != null) {
                     if(player != null) {
-                        player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                        if (mCastPlayer.hasMediaSession(false)) {
+                            player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                        }
                     }
                     mCastPlayer.removeListeners();
                     mCastPlayer = null;
@@ -186,6 +206,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 if (playerListener == null) {
                     return;
                 }
+                LOGD(TAG, "onCastMediaStateChanged state = " + state.name());
                 switch (state) {
                     case Loaded:
                         player.pause();
@@ -251,6 +272,45 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         player.switchTrack(TrackType.TEXT,-1);
     }
 
+    public void setEntryMetadata() {
+        playerListener.asyncEvaluate("{mediaProxy.entry.name}", "EntryTitle", new PlayerViewController.EvaluateListener() {
+            @Override
+            public void handler(String evaluateResponse) {
+                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
+                    mEntryName = evaluateResponse;
+                } else {
+                    mEntryName = "";
+                }
+                LOGD(TAG, "XX entryName:" + mEntryName);
+            }
+        });
+
+        playerListener.asyncEvaluate("{mediaProxy.entry.description}", "EntryDescription", new PlayerViewController.EvaluateListener() {
+            @Override
+            public void handler(String evaluateResponse) {
+
+                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
+                    mEntryDescription = evaluateResponse;
+                } else {
+                    mEntryDescription = "";
+                }
+                LOGD(TAG, "XX entryDescription:" + mEntryDescription);
+            }
+        });
+        playerListener.asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", "EntryThubnailUrl", new PlayerViewController.EvaluateListener() {
+            @Override
+            public void handler(String evaluateResponse) {
+
+                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
+                    mEntryThumbnailUrl = evaluateResponse;
+                } else{
+                    mEntryThumbnailUrl = "https://webcasting.kaltura.com/wp-content/uploads/2016/08/small-logo.png";
+                }
+                LOGD(TAG, "XX entryThumbnailUrl:" + mEntryThumbnailUrl);
+            }
+        });
+    }
+
     private enum UIState {
         Idle,
         Play,
@@ -298,7 +358,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null && mCastProvider == null) {
             return;
         }
-        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
+        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000 /*&& mCastProvider == null*/) {
             playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
             LOGD(TAG, "PLAY REJECTED");
             return;
@@ -340,7 +400,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null && mCastProvider == null) {
             return;
         }
-        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
+        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000 /*&& mCastProvider == null*/) {
             LOGD(TAG, "PAUSE REJECTED");
             return;
         }
@@ -525,6 +585,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
     public void setSrc(String newSrc) {
+
+        setEntryMetadata();
+
+
         Context context = parentViewController.getContext();
         if (isBackgrounded && imaManager != null){
             newSourceDuringBg = newSrc;
@@ -684,6 +748,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         //LOGE(TAG, "XXXX playerStateChanged " + state);
         switch (state) {
             case KPlayerCallback.CAN_PLAY:
+
                 LOGD(TAG, "playerStateChanged CAN_PLAY");
                 tracksManager = new KTracksManager(player);
                 if (videoTrackEventListener != null) {

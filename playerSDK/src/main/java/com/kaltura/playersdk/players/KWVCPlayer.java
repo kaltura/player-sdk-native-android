@@ -16,6 +16,7 @@ import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
+import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
@@ -126,6 +127,7 @@ public class KWVCPlayer
             listener = new KPlayerListener() {
                 public void eventWithValue(KPlayer player, String eventName, String eventValue) {}
                 public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {}
+                public void asyncEvaluate(String expression, String expressionID, PlayerViewController.EvaluateListener evaluateListener) {}
                 public void contentCompleted(KPlayer currentPlayer) {}
             };
         }

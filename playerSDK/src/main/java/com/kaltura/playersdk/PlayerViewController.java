@@ -25,6 +25,7 @@ import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
+import com.kaltura.playersdk.casting.KCastSessionManagerListener;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
@@ -101,12 +102,50 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private KCastProvider mCastProvider;
 
-
-
-    public void setCastProvider(KCastProvider castProvider) {
-        mCastProvider = castProvider;
-        playerController.setCastProvider(castProvider);
+    public KCastProvider setCastProvider(final KCastSessionManagerListener sessionManagerListener) {
+        boolean isReconnect = false;
+        mCastProvider = sessionManagerListener.getCastProvider();
+        if (mCastProvider == null && sessionManagerListener.getSessionManager().getCurrentCastSession().isConnected()) {
+            isReconnect = true;
+            sessionManagerListener.startCC();
+            mCastProvider = sessionManagerListener.getCastProvider();
+        }
+        if (mCastProvider == null) {
+            return null;
+        }
+        playerController.setCastProvider(mCastProvider);
+        if (isReconnect) {
+            mWebView.triggerEvent("chromecastDeviceDisConnected", null);
+        }
         mWebView.triggerEvent("chromecastDeviceConnected", null);
+
+        if(isReconnect) {
+            asyncEvaluate("{mediaProxy.entry.id}", "EntryId", new PlayerViewController.EvaluateListener() {
+                @Override
+                public void handler(final String idEvaluateResponse) {
+                    if (idEvaluateResponse != null && !"null".equals(idEvaluateResponse)) {
+                        changeMedia(idEvaluateResponse);
+//                        final long currPos = sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().getApproximateStreamPosition();
+//
+//                        final String currEntryName = sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().getMediaInfo().getMetadata().getString(MediaMetadata.KEY_TITLE);
+//                        asyncEvaluate("{mediaProxy.entry.name}", "EntryTitle", new PlayerViewController.EvaluateListener() {
+//                            @Override
+//                            public void handler(String nameEvaluateResponse) {
+//                                if (nameEvaluateResponse != null && !"null".equals(nameEvaluateResponse)) {
+//                                    changeMedia(idEvaluateResponse);
+//                                    if (nameEvaluateResponse.equals(currEntryName)) {
+//                                        sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().seek(currPos);
+//                                        //playerController.seek(currPos);
+//                                    }
+//                                }
+//
+//                            }
+//                        });
+                    }
+                }
+            });
+        }
+        return mCastProvider;
     }
 
     @Override
@@ -116,9 +155,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
-
     // trigger timeupdate events
-
     public interface EventListener {
         void handler(String eventName, String params);
     }
@@ -800,11 +837,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    @Override
     public void asyncEvaluate(String expression, String expressionID, EvaluateListener evaluateListener) {
         if (mPlayerEvaluatedHash == null) {
             mPlayerEvaluatedHash = new HashMap<String, EvaluateListener>();
         }
         mPlayerEvaluatedHash.put(expressionID, evaluateListener);
+        //mWebView.triggerEvent("asyncEvaluate", expression);
         mWebView.evaluate(expression, expressionID);
     }
 
@@ -844,6 +883,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             LOGD(TAG, "setAttribute Attribute: " + attribute + " " + attributeValue);
             switch (attribute) {
                 case src:
+                    playerController.setEntryMetadata();
                     // attributeValue is the selected source -- allow override.
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
                     playerController.setSrc(attributeValue);

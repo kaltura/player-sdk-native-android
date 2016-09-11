@@ -116,7 +116,7 @@ public class KStringUtilities {
     }
 
     static public String asyncEvaluate(String expression, String evaluateID) {
-        return JSMethod(AsyncEvaluate, expression, evaluateID);
+        return JSMethod(AsyncEvaluate, "'" + expression + "'", "'" + evaluateID + "'");
     }
 
     static public String setKDPAttribute(String pluginName, String propertyName, String value) {
