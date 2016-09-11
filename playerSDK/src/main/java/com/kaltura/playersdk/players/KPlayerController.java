@@ -158,7 +158,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
     public void setCastProvider(final KCastProvider castProvider) {
-        //pause();
+        pause();
         mCastProvider = (KCastProviderImpl)castProvider;
         mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
             @Override
@@ -187,10 +187,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             @Override
             public void onStopCasting() {
                 if (mCastPlayer != null) {
-                    if(player != null) {
-                        if (mCastPlayer.hasMediaSession(false)) {
-                            player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
-                        }
+                    if(player != null && mCastPlayer != null) {
+                       player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
                     }
                     mCastPlayer.removeListeners();
                     mCastPlayer = null;

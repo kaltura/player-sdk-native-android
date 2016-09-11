@@ -2,11 +2,8 @@ package com.kaltura.playersdk.casting;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.v7.media.MediaRouteSelector;
-import android.support.v7.media.MediaRouter;
 import android.util.Log;
 
-import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.common.api.ResultCallbacks;
 import com.google.android.gms.common.api.Status;
@@ -32,10 +29,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private Context mContext;
 
     private KCastKalturaChannel mChannel;
-
-    private CastDevice mSelectedDevice;
-    private MediaRouter mRouter;
-    private MediaRouteSelector mSelector;
 
     private boolean mApplicationStarted = false;
     private boolean mCastButtonEnabled = false;
@@ -116,26 +109,18 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
 
     @Override
     public void disconnectFromCastDevice() {
-        if (mRouter != null) {
-            mRouter.unselect(MediaRouter.UNSELECT_REASON_STOPPED);
-            mSelectedDevice = null;
-        }
+
         if (mInternalListener != null) {
-            mInternalListener.onCastStateChanged("hideConnectingMessage");
+            //mInternalListener.onCastStateChanged("hideConnectingMessage");
             mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
-        }
-        if (mInternalListener != null) {
             mInternalListener.onStopCasting();
         }
-//        if (mProviderListener != null) {
-//            mProviderListener.onDeviceDisconnected();
-//        }
         teardown();
     }
 
     @Override
     public KCastDevice getSelectedCastDevice() {
-        if (mSelectedDevice != null) {
+        if (mCastSession != null) {
             return new KCastDevice(mCastSession.getCastDevice());
         }
         return null;
@@ -155,50 +140,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
        return mCastMediaRemoteControl != null && mCastMediaRemoteControl.hasMediaSession(true);
     }
 
-//    private Cast.Listener getCastClientListener() {
-//        if (mCastClientListener == null) {
-//            mCastClientListener = new Cast.Listener() {
-//                @Override
-//                public void onApplicationStatusChanged() {
-//                    if (mCastSession != null) {
-//                        if (hasMediaSession(false)) {
-//                            LOGD(TAG, "onApplicationStatusChanged: " + mCastSession.getApplicationStatus());
-//                            if (mProviderListener != null && "Ready to play".equals(mCastSession.getApplicationStatus())) {
-//                                mProviderListener.onDeviceConnected();
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onApplicationMetadataChanged(ApplicationMetadata applicationMetadata) {
-//                }
-//
-//                @Override
-//                public void onApplicationDisconnected(int statusCode) {
-//                    if (mProviderListener != null) {
-//                        mProviderListener.onDeviceDisconnected();
-//                    }
-//                    teardown();
-//                }
-//
-//                @Override
-//                public void onActiveInputStateChanged(int activeInputState) {
-//                }
-//
-//                @Override
-//                public void onStandbyStateChanged(int standbyState) {
-//                }
-//
-//                @Override
-//                public void onVolumeChanged() {
-//
-//                }
-//            };
-//        }
-//        return mCastClientListener;
-//    }
-
     private void teardown() {
         if (mCastSession != null) {
             LOGD(TAG, "START TEARDOWN mApiClient.isConnected() = " + mCastSession.isConnected() + " mApiClient.isConnecting() = " + mCastSession.isConnecting()) ;
@@ -211,7 +152,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                         e.printStackTrace();
                     }
                 }
-               // mCastSession.removeCastListener(mCastClientListener);
             }
             if (mApplicationStarted) {
                 boolean isConnected = mCastSession.isConnected();
@@ -233,7 +173,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             }
             mCastSession = null;
         }
-        mSelectedDevice = null;
         mSessionId = null;
     }
 

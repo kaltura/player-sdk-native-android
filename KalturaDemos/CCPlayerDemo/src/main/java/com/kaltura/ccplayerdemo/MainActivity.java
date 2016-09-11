@@ -103,25 +103,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 LOGD(TAG, "ZZZZZ onCastStateChanged newState:" + newState);
                 if (newState == CastState.NO_DEVICES_AVAILABLE) {
                     LOGD(TAG, "ZZZZZ NO_DEVICES_AVAILABLE");
-                    if (mCastProvider != null) {
-                        mCastProvider.disconnectFromCastDevice();
-                    } else {
-                        getPlayer().sendNotification("hideConnectingMessage", "");
+                    mAddCaptionsBtn.setVisibility(View.INVISIBLE);
+                    mStreamButton.setVisibility(View.INVISIBLE);
+//                    if (mCastProvider != null) {
+//                        mCastProvider.disconnectFromCastDevice();
+//                    } else {
+//                        //getPlayer().sendNotification("hideConnectingMessage", "");
                         getPlayer().sendNotification("chromecastDeviceDisConnected", "");
-                    }
+//                    }
                     //showIntroductoryOverlay();
                 } else if (newState == CastState.CONNECTING) {
                     LOGD(TAG, "ZZZZZ CONNECTING");
                 } else if (newState == CastState.CONNECTED) {
                     LOGD(TAG, "ZZZZZ CONNECTED");
+                    mStreamButton.setVisibility(View.VISIBLE);
                 } else if (newState == CastState.NOT_CONNECTED) {
                     LOGD(TAG, "ZZZZZ NOT_CONNECTED");
-                    if (mCastProvider != null) {
-                        mCastProvider.disconnectFromCastDevice();
-                    } else {
-                        getPlayer().sendNotification("hideConnectingMessage", "");
+                    mAddCaptionsBtn.setVisibility(View.INVISIBLE);
+                    mStreamButton.setVisibility(View.INVISIBLE);
+//                    if (mCastProvider != null) {
+//                        mCastProvider.disconnectFromCastDevice();
+//                    } else {
+//                        //getPlayer().sendNotification("hideConnectingMessage", "");
                         getPlayer().sendNotification("chromecastDeviceDisConnected", "");
-                    }
+//                    }
                 }
             }
         };
@@ -143,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
                         LOGD(TAG, "XX onCastMediaRemoteControlReady hasMediaSession = " + castMediaRemoteControl.hasMediaSession(false));
+                        mAddCaptionsBtn.setVisibility(View.VISIBLE);
                     }
                 });
            }
@@ -162,11 +168,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View v) {
                 if (mCastProvider != null && mCastProvider.getCastMediaRemoteControl() != null) {
-                    HashMap<String, Integer> hash = mCastProvider.getCastMediaRemoteControl().getTextTracks();
-                    if (hash.keySet().size() > 0) {
+                    HashMap<String, Integer> tracksHash = mCastProvider.getCastMediaRemoteControl().getTextTracks();
+                    if (tracksHash == null || tracksHash.keySet() == null) {
+                        return;
+                    }
+                    if (tracksHash.keySet().size() > 0) {
                         if (changeLangIdx % 2 == 0) {
-                            if (hash.containsKey("eng")) {
-                                mCastProvider.getCastMediaRemoteControl().switchTextTrack(hash.get("eng"));
+                            if (tracksHash.containsKey("eng")) {
+                                mCastProvider.getCastMediaRemoteControl().switchTextTrack(tracksHash.get("eng"));
                                 for (TrackFormat tf : mPlayer.getTrackManager().getTextTrackList()) {
                                     LOGD(TAG, "getTrackFullLanguageName " + tf.getTrackFullName());
                                     LOGD(TAG, "getTrackLanguage " + tf.getTrackLanguage());

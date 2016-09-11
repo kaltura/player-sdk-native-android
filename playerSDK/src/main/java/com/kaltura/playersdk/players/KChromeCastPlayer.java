@@ -301,7 +301,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
     @Override
     public boolean  isPlaying() {
-        return mCastSession.getRemoteMediaClient().isPlaying();
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+            return mCastSession.getRemoteMediaClient().isPlaying();
+        }
+        return false;
     }
 
     @Override
@@ -363,13 +366,18 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
     @Override
     public long getCurrentPosition() {
-
-        return mCastSession.getRemoteMediaClient().getApproximateStreamPosition();
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+            return mCastSession.getRemoteMediaClient().getApproximateStreamPosition();
+        }
+        return 0;
     }
 
     @Override
     public long getDuration() {
-        return mCastSession.getRemoteMediaClient().getStreamDuration();
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+            return mCastSession.getRemoteMediaClient().getStreamDuration();
+        }
+        return 0;
     }
 
     @Override
