@@ -310,10 +310,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
                 //LOCAL - KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-                //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.rc2/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.rc3/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
                 //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.149/html5.kaltura/mwEmbed/mwEmbedFrame.php", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
 
-                 KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
+                 //KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
                 //HAROLD - KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.1/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
 
                 //config.addConfig("debugKalturaPlayer", "true");
