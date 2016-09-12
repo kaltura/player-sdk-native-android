@@ -154,9 +154,6 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             mEntryThumbnailUrl = entryThumbnailUrl;
         LOGD(TAG, "CC LOAD " +  mEntryName);
 
-
-
-
         JSONObject descriptionJsonObj = null;
         try {
             descriptionJsonObj = new JSONObject();
@@ -300,7 +297,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     }
 
     @Override
-    public boolean  isPlaying() {
+    public boolean isPlaying() {
         if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
             return mCastSession.getRemoteMediaClient().isPlaying();
         }

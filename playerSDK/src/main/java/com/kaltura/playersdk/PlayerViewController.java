@@ -267,6 +267,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
     }
 
+    public void changeMedia(JSONObject proxyData) {
+        if (proxyData == null) {
+            return;
+        }
+        isMediaChanged = true;
+        playerController.changeMedia();
+        sendNotification("changeMedia", proxyData.toString());
+    }
+
     public void changeConfiguration(KPPlayerConfig config) {
         if (config != null) {
             resetPlayer();

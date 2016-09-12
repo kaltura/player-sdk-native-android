@@ -57,8 +57,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         return mProviderListener;
     }
 
-
-
     public KCastKalturaChannel getChannel() {
         return mChannel;
     }
