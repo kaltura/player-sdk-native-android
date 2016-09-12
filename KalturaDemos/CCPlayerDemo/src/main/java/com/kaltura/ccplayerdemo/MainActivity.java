@@ -109,7 +109,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                        mCastProvider.disconnectFromCastDevice();
 //                    } else {
 //                        //getPlayer().sendNotification("hideConnectingMessage", "");
+                    if (mPlayer != null) {
                         getPlayer().sendNotification("chromecastDeviceDisConnected", "");
+                    }
 //                    }
                     //showIntroductoryOverlay();
                 } else if (newState == CastState.CONNECTING) {
@@ -125,14 +127,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                        mCastProvider.disconnectFromCastDevice();
 //                    } else {
 //                        //getPlayer().sendNotification("hideConnectingMessage", "");
-                        getPlayer().sendNotification("chromecastDeviceDisConnected", "");
+                        if (mPlayer != null) {
+                            getPlayer().sendNotification("chromecastDeviceDisConnected", "");
+                        }
 //                    }
                 }
             }
         };
 
         mCastContext = CastContext.getSharedInstance(this);
-        mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
+        //mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
         mSessionManager  = CastContext.getSharedInstance(this).getSessionManager();
         mSessionManagerListener = new KCastSessionManagerListener(this,mSessionManager,getString(R.string.app_id));
 
