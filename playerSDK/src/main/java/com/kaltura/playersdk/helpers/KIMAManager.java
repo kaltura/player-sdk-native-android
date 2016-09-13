@@ -162,7 +162,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
         renderingSettings.setMimeTypes(mimeTypes);
         renderingSettings.setUiElements(Collections.<UiElement>emptySet());
-        renderingSettings.setEnablePreloading(true);
+
         //Set<UiElement> set = new HashSet<UiElement>();
         //set.add(UiElement.AD_ATTRIBUTION);
         //set.add(UiElement.COUNTDOWN);
