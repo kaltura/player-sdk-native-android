@@ -1,20 +1,19 @@
 package com.kaltura.playersdk.casting;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.CastStateListener;
 import com.google.android.gms.cast.framework.Session;
-import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
-import com.kaltura.playersdk.interfaces.KCastProvider;
-import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
-import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.common.api.ResultCallbacks;
 import com.google.android.gms.common.api.Status;
+import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
+import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.players.KChromeCastPlayer;
 
 import java.io.IOException;
@@ -205,6 +204,10 @@ public class KCastProviderV3Impl implements KCastProvider {
                 }
             });
         }
+    }
+
+    public CastSession getCastSession() {
+        return mCastSession;
     }
 
     private void teardown() {
