@@ -14,9 +14,9 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.google.android.gms.cast.framework.CastSession;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.casting.KCastProviderImpl;
+import com.kaltura.playersdk.casting.KCastInternalListener;
+import com.kaltura.playersdk.casting.KCastProviderV3Impl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
 import com.kaltura.playersdk.helpers.KIMAManagerEvents;
@@ -81,7 +81,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
 
-    private KCastProviderImpl mCastProvider;
+    private KCastProviderV3Impl mCastProvider;
     private KChromeCastPlayer mCastPlayer;
 
     @Override
@@ -155,25 +155,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-
-
     public void setCastProvider(final KCastProvider castProvider) {
         pause();
-        mCastProvider = (KCastProviderImpl)castProvider;
-        mCastProvider.setInternalListener(new KCastProviderImpl.InternalListener() {
+        mCastProvider = (KCastProviderV3Impl)castProvider;
+        mCastProvider.setInternalListener(new KCastInternalListener() {
             @Override
-            public void onStartCasting(final CastSession castSession, KChromeCastPlayer remoteMediaPlayer) {
+            public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
                 mCastPlayer = remoteMediaPlayer;
                 mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
                 remoteMediaPlayer.addListener(this);
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mCastPlayer.load(castSession, player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl);
+                        mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl);
                     }
                 }, 2000);
-
-
             }
 
             @Override
@@ -566,6 +562,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             player = null;
         }
         playerListener = null;
+        if (mCastPlayer != null) {
+            mCastPlayer.removeListeners();
+        }
     }
 
 
