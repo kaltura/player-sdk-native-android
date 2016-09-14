@@ -4,10 +4,8 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.MediaRouteButton;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,15 +17,12 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
 import com.google.android.gms.cast.framework.CastButtonFactory;
-import com.google.android.gms.cast.framework.CastContext;
-import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.CastState;
 import com.google.android.gms.cast.framework.CastStateListener;
-import com.google.android.gms.cast.framework.SessionManager;
-import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.casting.KCastSessionManagerListener;
+import com.kaltura.playersdk.casting.KCastFactory;
+import com.kaltura.playersdk.casting.KCastProviderV3Impl;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPPlayheadUpdateEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
@@ -60,23 +55,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean onCreate = false;
 
     private MediaRouteButton mMediaRouteButton;
-    private CastContext mCastContext;
-    private CastSession mCastSession;
 
-
-    //private MenuItem mediaRouteMenuItem;
-    //private MenuItem mQueueMenuItem;
-    private SessionManager mSessionManager;
-
-    private SessionManagerListener<CastSession> mSessionManagerListener;
     private CastStateListener mCastStateListener;
 
     private Button mStreamButton;
     private Button mLoadPlayer;
     private Button mAddCaptionsBtn;
     private Button mChangeMediaBtn;
-    private
-    KCastProvider mCastProvider;
+    KCastProviderV3Impl mCastProvider;
 
     private boolean enableBackgroundAudio;
     private Button videoButton;
@@ -135,19 +121,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
 
-        mCastContext = CastContext.getSharedInstance(this);
-        //mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
-        mSessionManager  = CastContext.getSharedInstance(this).getSessionManager();
-        mSessionManagerListener = new KCastSessionManagerListener(this,mSessionManager,getString(R.string.app_id));
-
         mStreamButton = (Button) findViewById(R.id.stream_to_cc);
         mStreamButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCastProvider =  mPlayer.setCastProvider((KCastSessionManagerListener)mSessionManagerListener);
-                if (mCastProvider == null) {
-                    return;
-                }
+                mCastProvider = (KCastProviderV3Impl)KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id));
+                mCastProvider.addCastStateListener(mCastStateListener);
+                mPlayer.setCastProvider(mCastProvider);
                 mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
                     @Override
                     public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
@@ -262,61 +242,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         onCreate = true;
     }
 
-//    private void startCC(CastDevice castDevice) {
-//        mCastProvider = KCastFactory.createCastProvider();
-//        mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
-//            @Override
-//            public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
-//                mAddCaptionsBtn.setVisibility(View.VISIBLE);
-//                mCastProvider.getCastMediaRemoteControl().addListener(new KCastMediaRemoteControl.KCastMediaRemoteControlListener() {
-//                    @Override
-//                    public void onCastMediaProgressUpdate(long currentPosition) {
-//                        LOGD(TAG, "onCastMediaProgressUpdate to currentPosition = " + currentPosition);
-//                    }
-//
-//                    @Override
-//                    public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
-//                        //LOGD(TAG, "XX onCastMediaStateChanged to state = " + state.name());
-//
-//                    }
-//
-//                    @Override
-//                    public void onTextTrackSwitch(int trackIndex) {
-//                        LOGD(TAG, "onTextTrackSwitch to index = " + trackIndex);
-//                    }
-//                });
-//            }
-//
-//            @Override
-//            public void onDeviceCameOnline(KCastDevice device) {
-//                LOGD(TAG, "onDeviceCameOnline deviceName = " + device.getRouterName());
-//            }
-//
-//            @Override
-//            public void onDeviceWentOffline(KCastDevice device) {
-//            }
-//
-//            @Override
-//            public void onDeviceConnected() {
-//            }
-//
-//            @Override
-//            public void onDeviceDisconnected() {
-//            }
-//
-//            @Override
-//            public void onDeviceFailedToConnect(KPError error) {
-//
-//            }
-//
-//            @Override
-//            public void onDeviceFailedToDisconnect(KPError error) {
-//
-//            }
-//        });
-//        mCastProvider.startScan(getApplicationContext(), getString(R.string.app_id), mCastSession);
-//    }
-
     private PlayerViewController getPlayer() {
         if (mPlayer == null) {
             mPlayer = (PlayerViewController)findViewById(R.id.player);
@@ -385,15 +310,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer != null) {
             mPlayer.releaseAndSavePosition(true,false);
         }
-        //mCastContext.removeCastStateListener(mCastStateListener);
-        //mCastContext.getSessionManager().removeSessionManagerListener(mSessionManagerListener, CastSession.class);
-        //mCastSession = null;
         super.onPause();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (mCastProvider != null) {
+            mCastProvider.removeCastStateListener(mCastStateListener);
+        }
     }
 
     @Override
@@ -404,17 +329,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mPlayer != null) {
             mPlayer.resumePlayer();
         }
-        mCastContext.addCastStateListener(mCastStateListener);
-        mCastContext.getSessionManager().addSessionManagerListener(
-                mSessionManagerListener, CastSession.class);
-        if (mCastSession == null) {
-            mCastSession = CastContext.getSharedInstance(this).getSessionManager()
-                    .getCurrentCastSession();
-        }
-        //if (mQueueMenuItem != null) {
-        //    mQueueMenuItem.setVisible(
-        //            (mCastSession != null) && mCastSession.isConnected());
-        //}
         super.onResume();
     }
 
@@ -656,14 +570,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
-
-
-
-
-
-
-
     @Override public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.menu, menu);
@@ -686,11 +592,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //            return true;
 //    }
 
-    @Override
-    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
-        return mCastContext.onDispatchVolumeKeyEventBeforeJellyBean(event)
-                || super.dispatchKeyEvent(event);
-    }
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
 //        super.onCreateOptionsMenu(menu);

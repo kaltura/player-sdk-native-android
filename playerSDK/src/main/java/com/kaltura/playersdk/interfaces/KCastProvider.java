@@ -9,12 +9,13 @@ import com.kaltura.playersdk.casting.KCastDevice;
  * Created by nissimpardo on 29/05/16.
  */
 public interface KCastProvider {
-    void startReceiver(Context context, String appID, boolean guestModeEnabled, CastSession castSession);
-    void startReceiver(Context context, String appID, CastSession castSession);
+    void startReceiver(Context context, boolean guestModeEnabled);
+    void startReceiver(Context context);
     void disconnectFromCastDevice();
     KCastDevice getSelectedCastDevice();
     void setKCastProviderListener(KCastProviderListener listener);
     KCastMediaRemoteControl getCastMediaRemoteControl();
+    boolean isConnected();
 
     interface KCastProviderListener {
         void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl);

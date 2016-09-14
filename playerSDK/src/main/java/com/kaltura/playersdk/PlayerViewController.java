@@ -24,8 +24,7 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.actionHandlers.ShareManager;
-import com.kaltura.playersdk.casting.KCastProviderImpl;
-import com.kaltura.playersdk.casting.KCastSessionManagerListener;
+import com.kaltura.playersdk.casting.KCastProviderV3Impl;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
@@ -102,13 +101,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private KCastProvider mCastProvider;
 
-    public KCastProvider setCastProvider(final KCastSessionManagerListener sessionManagerListener) {
+    public KCastProvider setCastProvider(KCastProvider castProvider) {
         boolean isReconnect = false;
-        mCastProvider = sessionManagerListener.getCastProvider();
-        if (mCastProvider == null && sessionManagerListener.getSessionManager().getCurrentCastSession().isConnected()) {
+        mCastProvider = castProvider;
+        if (mCastProvider != null && castProvider.isConnected()) {
             isReconnect = true;
-            sessionManagerListener.startCC();
-            mCastProvider = sessionManagerListener.getCastProvider();
+            mCastProvider.startReceiver(mActivity);
         }
         if (mCastProvider == null) {
             return null;
@@ -1165,7 +1163,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             e.printStackTrace();
         }
         LOGD(TAG, "sendCCRecieverMessage : " + decodeArgs);
-        ((KCastProviderImpl)mCastProvider).sendMessage(decodeArgs);
+        ((KCastProviderV3Impl)mCastProvider).sendMessage(decodeArgs);
     }
 
     private void loadCCMedia() {

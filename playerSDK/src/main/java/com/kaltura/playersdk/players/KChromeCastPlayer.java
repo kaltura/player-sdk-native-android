@@ -61,7 +61,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                     switch (mediaStatus.getPlayerState()) {
                         case MediaStatus.PLAYER_STATE_IDLE:
                             if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
-                                mHandler.removeMessages(0);
+                                stopTimer();
                                 updateState(State.Ended);
                                 isEnded = true;
                             }
@@ -144,7 +144,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         mMediaInfoParams = mediaInfoParams;
     }
 
-    public void load(CastSession castSession, final long fromPosition, String entryTitle, String entryDescription, String entryThumbnailUrl) {
+    public void load(final long fromPosition, String entryTitle, String entryDescription, String entryThumbnailUrl) {
             //Init the tracks
             mTextTracks = new HashMap<>();
             mVideoTracks = new ArrayList<>();
@@ -177,7 +177,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                 .setCustomData(descriptionJsonObj)
                 .build();
 
-            RemoteMediaClient remoteMediaClient = castSession.getRemoteMediaClient();
+            RemoteMediaClient remoteMediaClient = mCastSession.getRemoteMediaClient();
             remoteMediaClient.load(mediaInfo, false, fromPosition).setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
 
                 @Override
@@ -232,7 +232,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
         LOGD(TAG, "Start PLAY");
         if (isEnded) {
-            load(mCastSession, 0, mEntryName, mEntryDescription , mEntryThumbnailUrl);
+            load(0, mEntryName, mEntryDescription , mEntryThumbnailUrl);
             isEnded = false;
             stopTimer();
             startTimer();
@@ -267,7 +267,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                 }
             }
         });
-        mHandler.removeMessages(0);
+        stopTimer();
 
     }
 
@@ -319,7 +319,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             mListeners.clear();
             mListeners = null;
         }
-        mHandler.removeMessages(0); // remove the timer that is responsible for time update
+        stopTimer(); // remove the timer that is responsible for time update
         mHandler = null;
     }
 
