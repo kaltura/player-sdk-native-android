@@ -31,6 +31,7 @@ public class ExpandedControlsActivity extends ExpandedControllerActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.expanded_controller, menu);
+        //findViewById(R.id.cast_button_type_closed_caption).setVisibility(View.GONE);
         CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item);
         return true;
     }

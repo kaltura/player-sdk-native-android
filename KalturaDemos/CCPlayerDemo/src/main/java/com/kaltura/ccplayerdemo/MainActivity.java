@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mMediaRouteButton = (MediaRouteButton) findViewById(R.id.media_route_button);
         CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), mMediaRouteButton);
+        mCastProvider = (KCastProviderV3Impl)KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id));
         mCastStateListener = new CastStateListener() {
             @Override
             public void onCastStateChanged(int newState) {
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mStreamButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCastProvider = (KCastProviderV3Impl)KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id));
+                //mCastProvider = (KCastProviderV3Impl)KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id));
                 mCastProvider.addCastStateListener(mCastStateListener);
                 mPlayer.setCastProvider(mCastProvider);
                 mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
@@ -249,6 +250,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mPlayer.loadPlayerIntoActivity(this);
                 //LOCAL - KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
                 KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.rc3/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.149/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+
                 //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.149/html5.kaltura/mwEmbed/mwEmbedFrame.php", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
 
                  //KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
@@ -268,6 +271,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 config.addConfig("chromecast.applicationID", getString(R.string.app_id));
                 config.addConfig("chromecast.useKalturaPlayer", "true");
                 config.addConfig("chromecast.receiverLogo", "true");
+                //config.addConfig("chromecast.defaultThumbnail", "http://i.utdstc.com/icons/120/voot-android.png");
+                //config.addConfig("chromecast", "{\"proxyData\":" + proxyDataReceiver + "}");  // change Format in order to stream it to TV
+                //config.addConfig("strings.mwe-chromecast-loading", "Loading to CC");  // Set Loading message
 
                 //config.addConfig("topBarContainer.hover", "true");
                 config.addConfig("topBarContainer.plugin", "true");

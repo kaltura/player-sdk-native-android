@@ -28,7 +28,7 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
  */
 public class KCastProviderV3Impl implements KCastProvider {
     private static final String TAG = "KCastProviderImpl";
-    public static  String nameSpace = "urn:x-cast:com.kaltura.cast.player";
+    public static String nameSpace = "urn:x-cast:com.kaltura.cast.player";
     private SessionManager mSessionManager;
     private CastSession mCastSession;
     private CastContext mCastContext;
@@ -44,9 +44,12 @@ public class KCastProviderV3Impl implements KCastProvider {
         mContext = context;
         mCastContext = CastContext.getSharedInstance(context);
         //mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
-        mSessionManager  = mCastContext.getSessionManager();
+        mSessionManager = mCastContext.getSessionManager();
         mSessionManager.addSessionManagerListener(mSessionManagerListener);
-        mCastSession = mSessionManager.getCurrentCastSession();
+        if (mSessionManager.getCurrentCastSession() != null) {
+            mCastSession = mSessionManager.getCurrentCastSession();
+        }
+
         mCastAppId = castAppId;
     }
 
@@ -70,6 +73,10 @@ public class KCastProviderV3Impl implements KCastProvider {
 
         @Override
         public void onSessionStarted(Session session, String s) {
+            LOGD(TAG, "XXXX onSessionStarted calling startReceiver");
+            if (mCastSession == null) {
+                mCastSession = mSessionManager.getCurrentCastSession();
+            }
             startReceiver(mContext);
         }
 
@@ -115,6 +122,13 @@ public class KCastProviderV3Impl implements KCastProvider {
 
     @Override
     public void startReceiver(Context context, boolean guestModeEnabled) {
+        mContext = context;
+        mApplicationStarted = true;
+
+        if (mChannel != null) {
+            return;
+        }
+
         mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
             @Override
             public void readyForMedia(final String[] params) {
@@ -146,7 +160,6 @@ public class KCastProviderV3Impl implements KCastProvider {
             Log.e(TAG, "Exception while creating channel", e);
         }
         mCastSession.sendMessage(nameSpace, "{\"type\":\"show\",\"target\":\"logo\"}");
-        mApplicationStarted = true;
     }
 
     @Override
