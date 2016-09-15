@@ -101,6 +101,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private KCastProvider mCastProvider;
 
+
     public KCastProvider setCastProvider(KCastProvider castProvider) {
 
         mCastProvider = castProvider;
@@ -158,6 +159,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 }
             });
         }
+        return mCastProvider;
+    }
+
+    public KCastProvider getCastProvider() {
         return mCastProvider;
     }
 
