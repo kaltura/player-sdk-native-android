@@ -183,8 +183,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             @Override
             public void onStopCasting() {
                 if (mCastPlayer != null) {
-                    if(player != null && mCastPlayer != null) {
-                       player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                    if(player != null) {
+                        if (mCastProvider != null && mCastProvider.getCastSession() != null && mCastProvider.getCastSession().getRemoteMediaClient() != null)
+                        {
+                            player.setCurrentPlaybackTime(mCastProvider.getCastSession().getRemoteMediaClient().getApproximateStreamPosition());
+                        } else {
+                            player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                        }
                     }
                     mCastPlayer.removeListeners();
                     mCastPlayer = null;

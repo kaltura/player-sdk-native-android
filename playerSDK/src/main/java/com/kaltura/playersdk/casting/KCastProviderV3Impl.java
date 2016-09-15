@@ -2,7 +2,6 @@ package com.kaltura.playersdk.casting;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
@@ -66,47 +65,52 @@ public class KCastProviderV3Impl implements KCastProvider {
     private SessionManagerListener mSessionManagerListener = new SessionManagerListener() {
         @Override
         public void onSessionStarting(Session session) {
-
+            LOGD(TAG, "SessionManagerListener onSessionStarting");
         }
 
         @Override
         public void onSessionStarted(Session session, String s) {
+            LOGD(TAG, "SessionManagerListener onSessionStarted");
             isReconnedted = false;
             startReceiver(mContext);
         }
 
         @Override
         public void onSessionStartFailed(Session session, int i) {
-
+            LOGD(TAG, "SessionManagerListener onSessionStartFailed");
         }
 
         @Override
         public void onSessionEnding(Session session) {
+            LOGD(TAG, "SessionManagerListener onSessionEnding");
             disconnectFromCastDevice();
         }
 
         @Override
         public void onSessionEnded(Session session, int i) {
-
+            LOGD(TAG, "SessionManagerListener onSessionEnded");
+            disconnectFromCastDevice();
         }
 
         @Override
         public void onSessionResuming(Session session, String s) {
-
+            LOGD(TAG, "SessionManagerListener onSessionResuming");
         }
 
         @Override
         public void onSessionResumed(Session session, boolean b) {
-
+            LOGD(TAG, "SessionManagerListener onSessionResumed");
         }
 
         @Override
         public void onSessionResumeFailed(Session session, int i) {
-
+            LOGD(TAG, "SessionManagerListener onSessionResumeFailed");
+            disconnectFromCastDevice();
         }
 
         @Override
         public void onSessionSuspended(Session session, int i) {
+            LOGD(TAG, "SessionManagerListener onSessionSuspended POS = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
 
         }
     };
@@ -149,7 +153,7 @@ public class KCastProviderV3Impl implements KCastProvider {
             try {
                 mCastSession.setMessageReceivedCallbacks(nameSpace, mChannel);
             } catch (IOException e) {
-                Log.e(TAG, "Exception while creating channel", e);
+                LOGE(TAG, "Exception while creating channel", e);
             }
             if (!isRecconected()) {
                 mCastSession.sendMessage(nameSpace, "{\"type\":\"show\",\"target\":\"logo\"}");
