@@ -441,7 +441,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void replay() {
-        setCurrentPlaybackTime(0.01f);
+        if (parentViewController != null) {
+            ((PlayerViewController) parentViewController).sendNotification("doReplay", null);
+        }
     }
 
     @Override
@@ -810,7 +812,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 if (currentState == UIState.Play || currentState == UIState.Replay) {
                     play();
                 }
-         
+
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
                     mSeekCallback = null;
