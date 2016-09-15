@@ -282,6 +282,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //config.addConfig("chromecast.defaultThumbnail", "http://i.utdstc.com/icons/120/voot-android.png");
                 //config.addConfig("chromecast", "{\"proxyData\":" + proxyDataReceiver + "}");  // change media Format in order to stream it to TV in higher resolution
                 //config.addConfig("strings.mwe-chromecast-loading", "Loading to CC");  // Set Loading message
+                //config.addConfig("chromecast.logoUrl", "http://i.utdstc.com/icons/120/voot-android.png")
 
 
 
