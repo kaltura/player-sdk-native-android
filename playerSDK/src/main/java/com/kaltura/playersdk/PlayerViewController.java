@@ -102,15 +102,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     private KCastProvider mCastProvider;
 
     public KCastProvider setCastProvider(KCastProvider castProvider) {
-        boolean isReconnect = false;
+
         mCastProvider = castProvider;
-        if (mCastProvider != null && castProvider.isConnected()) {
-            isReconnect = true;
-            mCastProvider.startReceiver(mActivity);
-        }
         if (mCastProvider == null) {
             return null;
         }
+        boolean isReconnect = mCastProvider.isRecconected();
+        if (isReconnect) {
+            mCastProvider.startReceiver(mActivity);
+        }
+
         playerController.setCastProvider(mCastProvider);
         if (isReconnect) {
             mWebView.triggerEvent("chromecastDeviceDisConnected", null);

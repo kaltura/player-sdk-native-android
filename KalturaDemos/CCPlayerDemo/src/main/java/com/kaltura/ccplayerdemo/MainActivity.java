@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button textButton;
     private static int changeLangIdx = 0;
     private static int changeMediaIdx = 0;
+    int firstCastDeviceState = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,15 +81,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-
-        mMediaRouteButton = (MediaRouteButton) findViewById(R.id.media_route_button);
-        CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), mMediaRouteButton);
         mCastStateListener = new CastStateListener() {
             @Override
             public void onCastStateChanged(int newState) {
-                LOGD(TAG, "ZZZZZ onCastStateChanged newState:" + newState);
+                LOGD(TAG, "onCastStateChanged newState:" + newState);
                 if (newState == CastState.NO_DEVICES_AVAILABLE) {
-                    LOGD(TAG, "ZZZZZ NO_DEVICES_AVAILABLE");
+                    LOGD(TAG, "NO_DEVICES_AVAILABLE");
                     mAddCaptionsBtn.setVisibility(View.INVISIBLE);
                     mStreamButton.setVisibility(View.INVISIBLE);
 //                    if (mCastProvider != null) {
@@ -101,41 +99,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                    }
                     //showIntroductoryOverlay();
                 } else if (newState == CastState.CONNECTING) {
-                    LOGD(TAG, "ZZZZZ CONNECTING");
+                    LOGD(TAG, "CONNECTING");
                 } else if (newState == CastState.CONNECTED) {
-                    LOGD(TAG, "ZZZZZ CONNECTED");
+                    LOGD(TAG, "CONNECTED");
+                    if (firstCastDeviceState == -1) {
+                        firstCastDeviceState = CastState.NOT_CONNECTED;
+                    }
                     mStreamButton.setVisibility(View.VISIBLE);
                 } else if (newState == CastState.NOT_CONNECTED) {
-                    LOGD(TAG, "ZZZZZ NOT_CONNECTED");
+                    LOGD(TAG, "NOT_CONNECTED");
+                    if (firstCastDeviceState == -1) {
+                        firstCastDeviceState = CastState.NOT_CONNECTED;
+                    }
                     mAddCaptionsBtn.setVisibility(View.INVISIBLE);
                     mStreamButton.setVisibility(View.INVISIBLE);
 //                    if (mCastProvider != null) {
 //                        mCastProvider.disconnectFromCastDevice();
 //                    } else {
 //                        //getPlayer().sendNotification("hideConnectingMessage", "");
-                        if (mPlayer != null) {
-                            getPlayer().sendNotification("chromecastDeviceDisConnected", "");
-                        }
+                    if (mPlayer != null) {
+                        getPlayer().sendNotification("chromecastDeviceDisConnected", "");
+                    }
 //                    }
                 }
             }
         };
+        mMediaRouteButton = (MediaRouteButton) findViewById(R.id.media_route_button);
+        CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), mMediaRouteButton);
+
+        mCastProvider = (KCastProviderV3Impl) KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id));
+        mCastProvider.addCastStateListener(mCastStateListener);
+
 
         mStreamButton = (Button) findViewById(R.id.stream_to_cc);
         mStreamButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCastProvider = (KCastProviderV3Impl)KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id));
-                mCastProvider.addCastStateListener(mCastStateListener);
+                if (mPlayer == null) {
+                    return;
+                }
                 mPlayer.setCastProvider(mCastProvider);
                 mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
                     @Override
                     public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
-                        LOGD(TAG, "XX onCastMediaRemoteControlReady hasMediaSession = " + castMediaRemoteControl.hasMediaSession(false));
+                        LOGD(TAG, "onCastMediaRemoteControlReady hasMediaSession = " + castMediaRemoteControl.hasMediaSession(false));
                         mAddCaptionsBtn.setVisibility(View.VISIBLE);
                     }
                 });
-           }
+            }
+
         });
 
         mLoadPlayer = (Button) findViewById(R.id.loadPlayer);
@@ -203,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (mCastProvider != null && mCastProvider.getCastMediaRemoteControl() != null) {
                     if (mPlayer != null) {
                         boolean hasSession = mCastProvider.getCastMediaRemoteControl().hasMediaSession(true);
-                        LOGD(TAG,"GILAD hasMediaSession" + hasSession);
+                        LOGD(TAG,"hasMediaSession" + hasSession);
                         if (hasSession) {
                             if (changeMediaIdx % 3 == 0) {
                                 mPlayer.changeMedia("1_8t7qo08r");
@@ -216,7 +228,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     }
                 }
-
             }
         });
 
@@ -268,6 +279,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 config.addConfig("chromecast.applicationID", getString(R.string.app_id));
                 config.addConfig("chromecast.useKalturaPlayer", "true");
                 config.addConfig("chromecast.receiverLogo", "true");
+                //config.addConfig("chromecast.defaultThumbnail", "http://i.utdstc.com/icons/120/voot-android.png");
+                //config.addConfig("chromecast", "{\"proxyData\":" + proxyDataReceiver + "}");  // change media Format in order to stream it to TV in higher resolution
+                //config.addConfig("strings.mwe-chromecast-loading", "Loading to CC");  // Set Loading message
+
+
 
                 //config.addConfig("topBarContainer.hover", "true");
                 config.addConfig("topBarContainer.plugin", "true");

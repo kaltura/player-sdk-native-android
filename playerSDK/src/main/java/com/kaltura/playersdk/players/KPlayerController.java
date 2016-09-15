@@ -275,7 +275,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 } else {
                     mEntryName = "";
                 }
-                LOGD(TAG, "XX entryName:" + mEntryName);
+                LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
             }
         });
 
@@ -288,7 +288,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 } else {
                     mEntryDescription = "";
                 }
-                LOGD(TAG, "XX entryDescription:" + mEntryDescription);
+                LOGD(TAG, "setEntryMetadata entryDescription:" + mEntryDescription);
             }
         });
         playerListener.asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", "EntryThubnailUrl", new PlayerViewController.EvaluateListener() {
@@ -300,7 +300,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 } else{
                     mEntryThumbnailUrl = "https://webcasting.kaltura.com/wp-content/uploads/2016/08/small-logo.png";
                 }
-                LOGD(TAG, "XX entryThumbnailUrl:" + mEntryThumbnailUrl);
+                LOGD(TAG, "setEntryMetadata entryThumbnailUrl:" + mEntryThumbnailUrl);
             }
         });
     }

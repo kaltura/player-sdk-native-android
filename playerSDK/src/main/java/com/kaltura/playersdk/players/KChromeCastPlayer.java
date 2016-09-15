@@ -30,8 +30,6 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
  */
 public class KChromeCastPlayer implements KCastMediaRemoteControl{
     public static final String KEY_DESCRIPTION = "description";
-    //private RemoteMediaPlayer mRemoteMediaPlayer;
-    //private GoogleApiClient mApiClient;
     private CastSession mCastSession;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private static int PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -50,13 +48,12 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     String TAG = "KChromeCastPlayer";
 
     public KChromeCastPlayer(CastSession castSession) {
-        //mApiClient = apiClient;
         mCastSession = castSession;
         mCastSession.getRemoteMediaClient().addListener(new RemoteMediaClient.Listener() {
             @Override
             public void onStatusUpdated() {
                 MediaStatus mediaStatus = mCastSession.getRemoteMediaClient().getMediaStatus();
-                LOGD(TAG, "XXXX onStatusUpdated mediaStatus = " + mediaStatus.getPlayerState());
+                LOGD(TAG, "onStatusUpdated mediaStatus = " + mediaStatus.getPlayerState());
                 if (mediaStatus != null) {
                     switch (mediaStatus.getPlayerState()) {
                         case MediaStatus.PLAYER_STATE_IDLE:
@@ -99,46 +96,6 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             }
         });
     }
-
-        //mRemoteMediaPlayer = new RemoteMediaPlayer();
-
-//        mRemoteMediaPlayer.setOnStatusUpdatedListener(new RemoteMediaPlayer.OnStatusUpdatedListener() {
-//            @Override
-//            public void onStatusUpdated() {
-//                MediaStatus mediaStatus = mCastSession.getRemoteMediaClient().getMediaStatus();
-//                LOGD(TAG, "XXXX onStatusUpdated mediaStatus = " + mediaStatus.getPlayerState());
-//                if (mediaStatus != null) {
-//                    switch (mediaStatus.getPlayerState()) {
-//                        case MediaStatus.PLAYER_STATE_IDLE:
-//                            if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
-//                                mHandler.removeMessages(0);
-//                                updateState(State.Ended);
-//                                isEnded = true;
-//                            }
-//                            break;
-//                        case MediaStatus.PLAYER_STATE_BUFFERING:
-//                            break;
-//                        case MediaStatus.PLAYER_STATE_PLAYING:
-//                            break;
-//                    }
-//                }
-//            }
-//        });
-//
-//        mRemoteMediaPlayer.setOnPreloadStatusUpdatedListener(new RemoteMediaPlayer.OnPreloadStatusUpdatedListener() {
-//            @Override
-//            public void onPreloadStatusUpdated() {
-//
-//            }
-//        });
-//
-//
-//        mRemoteMediaPlayer.setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener() {
-//            @Override
-//            public void onMetadataUpdated() {
-//            }
-//        });
-//    }
 
     public void setMediaInfoParams(final String[] mediaInfoParams) {
         mMediaInfoParams = mediaInfoParams;

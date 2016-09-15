@@ -39,6 +39,7 @@ public class KCastProviderV3Impl implements KCastProvider {
     private Context mContext;
     private String mCastAppId;
     private boolean mApplicationStarted;
+    private boolean isReconnedted  = true;
 
     public KCastProviderV3Impl(Context context, String castAppId) {
         mContext = context;
@@ -70,6 +71,7 @@ public class KCastProviderV3Impl implements KCastProvider {
 
         @Override
         public void onSessionStarted(Session session, String s) {
+            isReconnedted = false;
             startReceiver(mContext);
         }
 
@@ -115,10 +117,13 @@ public class KCastProviderV3Impl implements KCastProvider {
 
     @Override
     public void startReceiver(Context context, boolean guestModeEnabled) {
+        mCastSession = mSessionManager.getCurrentCastSession();
         mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
             @Override
             public void readyForMedia(final String[] params) {
-                sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+                if (!isRecconected()) {
+                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+                }
                 // Receiver send the new content
                 if (params != null) {
                     mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
@@ -140,13 +145,17 @@ public class KCastProviderV3Impl implements KCastProvider {
             }
         });
 
-        try {
-            mCastSession.setMessageReceivedCallbacks(nameSpace, mChannel);
-        } catch (IOException e) {
-            Log.e(TAG, "Exception while creating channel", e);
+        if (mCastSession != null) {
+            try {
+                mCastSession.setMessageReceivedCallbacks(nameSpace, mChannel);
+            } catch (IOException e) {
+                Log.e(TAG, "Exception while creating channel", e);
+            }
+            if (!isRecconected()) {
+                mCastSession.sendMessage(nameSpace, "{\"type\":\"show\",\"target\":\"logo\"}");
+            }
+            mApplicationStarted = true;
         }
-        mCastSession.sendMessage(nameSpace, "{\"type\":\"show\",\"target\":\"logo\"}");
-        mApplicationStarted = true;
     }
 
     @Override
@@ -183,9 +192,22 @@ public class KCastProviderV3Impl implements KCastProvider {
     }
 
     @Override
+    public boolean isRecconected() {
+        return isReconnedted;
+    }
+
+    @Override
     public boolean isConnected() {
         if (mCastSession != null) {
             return mCastSession.isConnected();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isCasting() {
+        if (mCastSession != null) {
+            return mCastSession.getRemoteMediaClient().hasMediaSession();
         }
         return false;
     }
