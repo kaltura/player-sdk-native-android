@@ -124,7 +124,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 public void handler(final String idEvaluateResponse) {
                     if (idEvaluateResponse != null && !"null".equals(idEvaluateResponse)) {
                         pause();
-                        if ("".equals(getConfig().getConfigValueString("proxyData"))) {
+                        if (getConfig().getConfigValueString("proxyData") == null || "".equals(getConfig().getConfigValueString("proxyData"))) {
                             changeMedia(idEvaluateResponse);
                         } else {
                             try {
