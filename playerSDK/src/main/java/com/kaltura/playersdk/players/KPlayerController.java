@@ -162,12 +162,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             @Override
             public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {
                 mCastPlayer = remoteMediaPlayer;
-                mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
+                if (mCastProvider != null && mCastProvider.getProviderListener() != null) {
+                    mCastProvider.getProviderListener().onCastMediaRemoteControlReady(remoteMediaPlayer);
+                }
                 remoteMediaPlayer.addListener(this);
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl);
+                        if (player != null) {
+                            mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl);
+                        }
                     }
                 }, 2000);
             }
@@ -296,14 +300,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 LOGD(TAG, "setEntryMetadata entryDescription:" + mEntryDescription);
             }
         });
-        playerListener.asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", "EntryThubnailUrl", new PlayerViewController.EvaluateListener() {
+        playerListener.asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", "EntryThumbnailUrl", new PlayerViewController.EvaluateListener() {
             @Override
             public void handler(String evaluateResponse) {
 
                 if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
                     mEntryThumbnailUrl = evaluateResponse;
                 } else{
-                    mEntryThumbnailUrl = "https://webcasting.kaltura.com/wp-content/uploads/2016/08/small-logo.png";
+                    mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
                 }
                 LOGD(TAG, "setEntryMetadata entryThumbnailUrl:" + mEntryThumbnailUrl);
             }

@@ -123,7 +123,21 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 @Override
                 public void handler(final String idEvaluateResponse) {
                     if (idEvaluateResponse != null && !"null".equals(idEvaluateResponse)) {
-                        changeMedia(idEvaluateResponse);
+                        pause();
+                        if ("".equals(getConfig().getConfigValueString("proxyData"))) {
+                            changeMedia(idEvaluateResponse);
+                        } else {
+                            try {
+                                JSONObject changeMediaJSON = new JSONObject();
+                                JSONObject proxyData = new JSONObject(getConfig().getConfigValueString("proxyData"));
+                                changeMediaJSON.put("entryId", idEvaluateResponse);
+                                changeMediaJSON.put("proxyData", proxyData);
+                                changeMedia(changeMediaJSON);
+                            } catch (JSONException e) {
+                                LOGE(TAG, "Error could not create change media proxy dat object");
+                            }
+                        }
+
 //                        final long currPos = sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().getApproximateStreamPosition();
 //
 //                        final String currEntryName = sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().getMediaInfo().getMetadata().getString(MediaMetadata.KEY_TITLE);
