@@ -33,6 +33,7 @@ public interface KCastMediaRemoteControl {
         void onCastMediaProgressUpdate(long currentPosition);
         void onCastMediaStateChanged(State state);
         void onTextTrackSwitch(int trackIndex);
+        void onError(String errorMessage, Exception e);
     }
 
     enum State {

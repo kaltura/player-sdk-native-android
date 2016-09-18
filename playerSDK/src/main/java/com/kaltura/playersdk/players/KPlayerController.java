@@ -251,6 +251,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
 
             @Override
+            public void onError(String errorMessage, Exception e) {
+                if (playerListener != null) {
+                    String errMsg = "Cast Player Error";
+                    String exception = "";
+                    if (e != null) {
+                        exception = "-" + e.getMessage();
+                    }
+                    playerListener.eventWithValue(player, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" + errorMessage + exception);
+                }
+            }
+
+            @Override
             public void onCastMediaProgressUpdate(long currentPosition) {
                 if (playerListener != null) {
                     playerListener.eventWithValue(player, KPlayerListener.TimeUpdateKey, Float.toString(currentPosition / 1000f));

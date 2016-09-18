@@ -4,7 +4,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
@@ -103,23 +102,23 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     }
 
     public void load(final long fromPosition, String entryTitle, String entryDescription, String entryThumbnailUrl, String entryId) {
-            //Init the tracks
-            mTextTracks = new HashMap<>();
-            mVideoTracks = new ArrayList<>();
+        //Init the tracks
+        mTextTracks = new HashMap<>();
+        mVideoTracks = new ArrayList<>();
 
-            mEntryId = entryId;
-            mEntryName = entryTitle;
-            mEntryDescription = entryDescription;
-            mEntryThumbnailUrl = entryThumbnailUrl;
-        LOGD(TAG, "CC LOAD " +  mEntryName);
+        mEntryId = entryId;
+        mEntryName = entryTitle;
+        mEntryDescription = entryDescription;
+        mEntryThumbnailUrl = entryThumbnailUrl;
+        LOGD(TAG, "CC LOAD " + mEntryName);
 
         JSONObject descriptionJsonObj = null;
         try {
             descriptionJsonObj = new JSONObject();
             descriptionJsonObj.put(KEY_DESCRIPTION, mEntryDescription);
         } catch (JSONException e) {
-            Log.e(TAG, "Failed to add description to the json object", e);
-        };
+            sendError("CC Failed to add description to the json object", e);
+        }
 
         MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
         mediaMetadata.putString(MediaMetadata.KEY_TITLE, mEntryName);
@@ -144,6 +143,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                 public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
                     if (!mediaChannelResult.getStatus().isSuccess()) {
                         LOGE(TAG, "CC LOAD failed");
+                        sendError("CC Load failed", null);
                     } else {
                         //stopTimer();
                         startTimer();
@@ -171,7 +171,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                         }
                     }
                 } catch (IllegalStateException e) {
-                    String errMsg = "Failed to request status";
+                    sendError("Failed to request status", e);
                 }
                 mHandler.postDelayed(this, PLAYHEAD_UPDATE_INTERVAL);
             }
@@ -203,7 +203,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             @Override
             public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
-                    LOGE(TAG, "CC PLAY failed");
+                    LOGE(TAG, "CC Play failed");
+                    sendError("CC Play failed", null);
                 } else {
                     startTimer();
                     updateState(State.Playing);
@@ -221,7 +222,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             @Override
             public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
-                    LOGE(TAG, "CC PAUSE failed");
+                    LOGE(TAG, "CC Pause failed");
+                    sendError("CC Pause failed", null);
                 } else {
                     updateState(State.Pause);
                 }
@@ -242,18 +244,19 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             @Override
             public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
                 if (!mediaChannelResult.getStatus().isSuccess()) {
-                    LOGE(TAG, "Seek to currentPosition failed");
-                }
-            }
-        });
-
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    LOGE(TAG, "CC Seek to currentPosition failed");
+                    sendError("CC Seek failed", null);
+                } else {
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             LOGD(TAG, "CC SEND SEEKED");
                             updateState(State.Seeked);
                         }
                     }, 2500);
+                }
+            }
+        });
     }
 
     @Override
@@ -289,8 +292,17 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             return;
         }
         LOGD(TAG, "CC setStreamVolume " + streamVolume);
-        mCastSession.getRemoteMediaClient().setStreamVolume(streamVolume);
-        updateState(State.VolumeChanged);
+        mCastSession.getRemoteMediaClient().setStreamVolume(streamVolume).setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
+            @Override
+            public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
+                if (!mediaChannelResult.getStatus().isSuccess()) {
+                    LOGE(TAG, "CC setStreamVolume failed");
+                    sendError("CC setStreamVolume failed", null);
+                } else {
+                    updateState(State.VolumeChanged);
+                }
+            }
+        });
     }
 
     @Override
@@ -395,6 +407,14 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         if (mListeners != null) {
             for (KCastMediaRemoteControlListener listener : mListeners) {
                 listener.onCastMediaStateChanged(state);
+            }
+        }
+    }
+
+    private void sendError(String errorMessage, Exception e) {
+        if (mListeners != null) {
+            for (KCastMediaRemoteControlListener listener : mListeners) {
+                listener.onError(errorMessage,e);
             }
         }
     }
