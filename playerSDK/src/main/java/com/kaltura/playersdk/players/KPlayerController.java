@@ -29,6 +29,9 @@ import com.kaltura.playersdk.tracks.KTracksManager;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
@@ -75,9 +78,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private long mPauseLastClickTime = 0;
     private boolean mShouldPauseChromecastInBg = false;
 
+    private String mEntryId = "";
     private String mEntryName = "";
     private String mEntryDescription = "";
     private String mEntryThumbnailUrl = "";
+    private String mMediaProxy = "";
 
 
 
@@ -170,7 +175,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     @Override
                     public void run() {
                         if (player != null) {
-                            mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl);
+                            mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
                         }
                     }
                 }, 2000);
@@ -277,42 +282,49 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void setEntryMetadata() {
-        playerListener.asyncEvaluate("{mediaProxy.entry.name}", "EntryTitle", new PlayerViewController.EvaluateListener() {
-            @Override
-            public void handler(String evaluateResponse) {
-                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
-                    mEntryName = evaluateResponse;
-                } else {
-                    mEntryName = "";
-                }
-                LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
-            }
-        });
 
-        playerListener.asyncEvaluate("{mediaProxy.entry.description}", "EntryDescription", new PlayerViewController.EvaluateListener() {
+        playerListener.asyncEvaluate("{mediaProxy.entry}", "MediaProxy", new PlayerViewController.EvaluateListener() {
             @Override
             public void handler(String evaluateResponse) {
 
                 if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
-                    mEntryDescription = evaluateResponse;
-                } else {
-                    mEntryDescription = "";
-                }
-                LOGD(TAG, "setEntryMetadata entryDescription:" + mEntryDescription);
-            }
-        });
-        playerListener.asyncEvaluate("{mediaProxy.entry.thumbnailUrl}", "EntryThumbnailUrl", new PlayerViewController.EvaluateListener() {
-            @Override
-            public void handler(String evaluateResponse) {
+                    mMediaProxy = evaluateResponse;
+                    try {
+                        JSONObject jObject  = new JSONObject(mMediaProxy);
+                        if (jObject.has("partnerData") && JSONObject.NULL.equals(jObject.get("partnerData"))) {
+                            //OVP
+                            mEntryId = jObject.getString("id");
+                        } else {
+                            if (jObject.has("partnerData") && jObject.getJSONObject("partnerData").has("requestData")) {
+                                //OTT
+                                mEntryId = jObject.getJSONObject("partnerData").getJSONObject("requestData").getString("MediaID");
+                            }
+                        }
 
-                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
-                    mEntryThumbnailUrl = evaluateResponse;
+
+                        mEntryName = jObject.getString("name");
+                        mEntryThumbnailUrl = jObject.getString("thumbnailUrl");
+                        if("".equals(mEntryThumbnailUrl)) {
+                            mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
+                        }
+
+                        mEntryDescription = jObject.getString("description");
+
+
+                        LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 } else{
-                    mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
+                    mMediaProxy = "";
                 }
-                LOGD(TAG, "setEntryMetadata entryThumbnailUrl:" + mEntryThumbnailUrl);
+                LOGD(TAG, "setEntryMetadata MediaProxy:" + mMediaProxy);
             }
         });
+
+
+
     }
 
     private enum UIState {

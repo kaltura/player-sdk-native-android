@@ -39,10 +39,12 @@ public class KCastProviderV3Impl implements KCastProvider {
     private String mCastAppId;
     private boolean mApplicationStarted;
     private boolean isReconnedted  = true;
+    private String mCastLogoUrl = "";
 
-    public KCastProviderV3Impl(Context context, String castAppId) {
+    public KCastProviderV3Impl(Context context, String castAppId, String logoUrl) {
         mContext = context;
         mCastContext = CastContext.getSharedInstance(context);
+        mCastLogoUrl = logoUrl;
         //mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
         mSessionManager  = mCastContext.getSessionManager();
         mSessionManager.addSessionManagerListener(mSessionManagerListener);
@@ -156,6 +158,9 @@ public class KCastProviderV3Impl implements KCastProvider {
                 LOGE(TAG, "Exception while creating channel", e);
             }
             if (!isRecconected()) {
+                if (!"".equals(mCastLogoUrl)) {
+                    mCastSession.sendMessage(nameSpace, "{\"type\": \"setLogo\", \"logo\": \"" + mCastLogoUrl + "\"}");
+                }
                 mCastSession.sendMessage(nameSpace, "{\"type\":\"show\",\"target\":\"logo\"}");
             }
             mApplicationStarted = true;

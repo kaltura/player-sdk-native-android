@@ -41,6 +41,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     private List<Integer> mVideoTracks;
     private int currentSelectedTextTrack = 0;
 
+    private String mEntryId = "";
     private String mEntryName = "";
     private String mEntryDescription = "";
     private String mEntryThumbnailUrl = "";
@@ -101,11 +102,12 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         mMediaInfoParams = mediaInfoParams;
     }
 
-    public void load(final long fromPosition, String entryTitle, String entryDescription, String entryThumbnailUrl) {
+    public void load(final long fromPosition, String entryTitle, String entryDescription, String entryThumbnailUrl, String entryId) {
             //Init the tracks
             mTextTracks = new HashMap<>();
             mVideoTracks = new ArrayList<>();
 
+            mEntryId = entryId;
             mEntryName = entryTitle;
             mEntryDescription = entryDescription;
             mEntryThumbnailUrl = entryThumbnailUrl;
@@ -121,6 +123,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
         MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
         mediaMetadata.putString(MediaMetadata.KEY_TITLE, mEntryName);
+        //mediaMetadata.putString("KEY_ENTRY_ID", mEntryId);
         //small thumbnail
         mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));// + "/width/480/hight/270")));
         //big thumbnail
@@ -189,7 +192,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
         LOGD(TAG, "Start PLAY");
         if (isEnded) {
-            load(0, mEntryName, mEntryDescription , mEntryThumbnailUrl);
+            load(0, mEntryName, mEntryDescription , mEntryThumbnailUrl, mEntryId);
             isEnded = false;
             stopTimer();
             startTimer();
@@ -277,7 +280,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             mListeners = null;
         }
         stopTimer(); // remove the timer that is responsible for time update
-        mHandler = null;
+        //mHandler = null;
     }
 
     @Override
