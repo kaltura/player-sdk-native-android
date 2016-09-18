@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int ID_OFFSET = 2;
 //  private static final String CCApplicationID = "48A28189"; //"276999A7"; //Old Id C43947A1
 
+    private static final String LOGO_URL = ""; // PATH TO APP LOGO
     private Button mPlayPauseButton;
     private SeekBar mSeekBar;
     private PlayerViewController mPlayer;
@@ -127,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mMediaRouteButton = (MediaRouteButton) findViewById(R.id.media_route_button);
         CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), mMediaRouteButton);
 
-        mCastProvider = (KCastProviderV3Impl) KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id));
+        mCastProvider = (KCastProviderV3Impl) KCastFactory.createCastProvider(MainActivity.this, getString(R.string.app_id), LOGO_URL);
         mCastProvider.addCastStateListener(mCastStateListener);
 
 
