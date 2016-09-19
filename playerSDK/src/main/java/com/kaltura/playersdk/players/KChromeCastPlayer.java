@@ -29,6 +29,7 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
  */
 public class KChromeCastPlayer implements KCastMediaRemoteControl{
     public static final String KEY_DESCRIPTION = "description";
+    public static final String KEY_ENTRY_ID = "entryid";
     private CastSession mCastSession;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private static int PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -122,7 +123,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
         MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
         mediaMetadata.putString(MediaMetadata.KEY_TITLE, mEntryName);
-        //mediaMetadata.putString("KEY_ENTRY_ID", mEntryId);
+        //mediaMetadata.putString(KEY_ENTRY_ID, mEntryId);
         //small thumbnail
         mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));// + "/width/480/hight/270")));
         //big thumbnail
