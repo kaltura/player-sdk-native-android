@@ -324,14 +324,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
 
                         LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
-
+                        LOGD(TAG, "setEntryMetadata mEntryThumbnailUrl:" + mEntryThumbnailUrl);
+                        LOGD(TAG, "setEntryMetadata mEntryId:" + mEntryId);
+                        LOGD(TAG, "setEntryMetadata mEntryDescription:" + mEntryDescription);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 } else{
                     mMediaProxy = "";
                 }
-                LOGD(TAG, "setEntryMetadata MediaProxy:" + mMediaProxy);
+                //LOGD(TAG, "setEntryMetadata MediaProxy:" + mMediaProxy);
             }
         });
 

@@ -124,10 +124,17 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
         mediaMetadata.putString(MediaMetadata.KEY_TITLE, mEntryName);
         //mediaMetadata.putString(KEY_ENTRY_ID, mEntryId);
+
         //small thumbnail
-        mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));// + "/width/480/hight/270")));
+        ////mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));// + "/width/480/hight/270")));
+
+
         //big thumbnail
-        mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));// + "/width/1200/hight/780")));
+        if (mEntryId.contains("_")) {
+            mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl + "/width/1200/hight/780")));//"/width/480/hight/270")));
+        } else {
+            mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));
+        }
 
         MediaInfo mediaInfo = new MediaInfo.Builder(
                 mMediaInfoParams[0])
