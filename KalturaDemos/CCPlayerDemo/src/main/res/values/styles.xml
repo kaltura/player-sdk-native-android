@@ -74,6 +74,10 @@
         <item name="castSubtitleTextAppearance">@style/TextAppearance.AppCompat.Caption</item>
     </style>
 
-    <style name="CustomCastExpandedController" parent="CastExpandedController"/>
+    <style name="CustomCastExpandedController" parent="CastExpandedController">
+        <item name="castControlButtons">
+            @array/cast_expanded_controller_control_buttons
+        </item>
+    </style>
 
 </resources>
