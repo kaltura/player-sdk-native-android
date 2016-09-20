@@ -5,9 +5,8 @@
     <string name="text">Text</string>
 
     <string name="app_id">48A28189</string>
+    <string name="cast_logo_url">""</string>
     <string name="media_route_menu_title">Play on&#8230;</string>
-
-
     <string name="show_queue">Show Queue</string>
 
 </resources>
