@@ -64,6 +64,14 @@ public class KCastProviderV3Impl implements KCastProvider {
         mInternalListener = internalListener;
     }
 
+    public String getCastLogoUrl() {
+        return mCastLogoUrl;
+    }
+
+    public void setCastLogoUrl(String mCastLogoUrl) {
+        this.mCastLogoUrl = mCastLogoUrl;
+    }
+
     private SessionManagerListener mSessionManagerListener = new SessionManagerListener() {
         @Override
         public void onSessionStarting(Session session) {
