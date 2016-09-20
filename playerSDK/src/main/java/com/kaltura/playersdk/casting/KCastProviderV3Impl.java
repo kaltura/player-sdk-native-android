@@ -120,8 +120,10 @@ public class KCastProviderV3Impl implements KCastProvider {
 
         @Override
         public void onSessionSuspended(Session session, int i) {
-            LOGD(TAG, "SessionManagerListener onSessionSuspended POS = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
-
+            LOGD(TAG, "SessionManagerListener onSessionSuspended");
+            if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+                 LOGD(TAG, "onSessionSuspended CURRENT POSITION = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
+            }
         }
     };
 
