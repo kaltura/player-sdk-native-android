@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
@@ -160,13 +161,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
             @Override
             public void onCastStateChanged(String state) {
+                if (playerListener == null)  {
+                    return;
+                }
                 playerListener.eventWithValue(player, state, "");
             }
 
             @Override
             public void onStopCasting() {
                 if (mCastPlayer != null) {
-                    player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                    if(player != null) {
+                        player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
+                    }
                     mCastPlayer.removeListeners();
                     mCastPlayer = null;
                 }
@@ -372,7 +378,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void replay() {
-        setCurrentPlaybackTime(0.01f);
+        if (parentViewController != null) {
+            ((PlayerViewController) parentViewController).sendNotification("doReplay", null);
+        }
     }
 
     @Override
@@ -733,7 +741,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 if (currentState == UIState.Play || currentState == UIState.Replay) {
                     play();
                 }
-         
+
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
                     mSeekCallback = null;
