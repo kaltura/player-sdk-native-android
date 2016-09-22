@@ -111,7 +111,7 @@ public class WidevineDrmClient {
     public static boolean isSupported(Context context) {
         DrmManagerClient drmManagerClient = new DrmManagerClient(context);
         boolean canHandle = false;
-        // adding try catch due to TPE-11 some not official android versions canHandle methos has unexpected behaviour in the arguments validation inside it
+        // adding try catch due some android devices have different canHandle method implementation regarding the arguments validation inside it
         try {
             canHandle = drmManagerClient.canHandle("", WIDEVINE_MIME_TYPE);
         } catch (IllegalArgumentException ex) {
