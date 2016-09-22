@@ -84,7 +84,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private boolean mIsJsCallReadyRegistration = false;
     private Set<ReadyEventListener> mCallBackReadyRegistrations;
-    private HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash;
+    private final HashMap<String, ArrayList<HashMap<String, EventListener>>> mPlayerEventsHash = new HashMap<>();
     private HashMap<String, EvaluateListener> mPlayerEvaluatedHash;
     private Set<KPEventListener> eventListeners;
 
@@ -669,7 +669,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     bridgeMethod.invoke(object, args);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGE(TAG, "Error calling bridgeMethod " + bridgeMethod, e);
             }
         }
     }
@@ -760,9 +760,6 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         this.registerReadyEvent(new ReadyEventListener() {
             @Override
             public void handler() {
-                if (mPlayerEventsHash == null) {
-                    mPlayerEventsHash = new HashMap();
-                }
                 ArrayList<HashMap<String, EventListener>> listenerArr = (ArrayList)mPlayerEventsHash.get(event);
                 if (listenerArr == null) {
                     listenerArr = new ArrayList();

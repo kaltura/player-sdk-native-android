@@ -1,5 +1,5 @@
 
-package com.kaltura.playersdk.widevine;
+package com.kaltura.playersdk.drm;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -29,9 +29,9 @@ public class WidevineDrmClient {
     
     public static final String TAG = "WidevineDrm";
 
-    private final static long DEVICE_IS_PROVISIONED = 0;
-    private final static long DEVICE_IS_NOT_PROVISIONED = 1;
-    private final static long DEVICE_IS_PROVISIONED_SD_ONLY = 2;
+    private final static String DEVICE_IS_PROVISIONED = "0";
+    private final static String DEVICE_IS_NOT_PROVISIONED = "1";
+    private final static String DEVICE_IS_PROVISIONED_SD_ONLY = "2";
     
     public static final String WV_DRM_SERVER_KEY = "WVDRMServerKey";
     public static final String WV_ASSET_URI_KEY = "WVAssetURIKey";
@@ -40,7 +40,7 @@ public class WidevineDrmClient {
     public static final String WV_DRM_INFO_REQUEST_STATUS_KEY = "WVDrmInfoRequestStatusKey";
     public static final String WV_DRM_INFO_REQUEST_VERSION_KEY = "WVDrmInfoRequestVersionKey";
     
-    private long mWVDrmInfoRequestStatusKey = DEVICE_IS_PROVISIONED;
+    private String mWVDrmInfoRequestStatusKey = DEVICE_IS_PROVISIONED;
     public static String WIDEVINE_MIME_TYPE = "video/wvm";
     public static String PORTAL_NAME = "kaltura";
 
@@ -272,12 +272,6 @@ public class WidevineDrmClient {
         return createDrmInfoRequest(assetUri, null);
     }
     
-    public boolean isProvisionedDevice() {
-
-        return ((mWVDrmInfoRequestStatusKey == DEVICE_IS_PROVISIONED) ||
-                (mWVDrmInfoRequestStatusKey == DEVICE_IS_PROVISIONED_SD_ONLY));
-    }
-
     public void registerPortal() {
 
         String portal = PORTAL_NAME;
@@ -289,9 +283,7 @@ public class WidevineDrmClient {
         LOGI(TAG, "Widevine Plugin Info: " + extractDrmInfo(response));
 
         String drmInfoRequestStatusKey = (String)response.get(WV_DRM_INFO_REQUEST_STATUS_KEY);
-        if (!TextUtils.isEmpty(drmInfoRequestStatusKey)) {
-            mWVDrmInfoRequestStatusKey = Long.parseLong(drmInfoRequestStatusKey);
-        }
+        LOGI(TAG, "Widevine provision status: " + drmInfoRequestStatusKey);
     }
 
     /**

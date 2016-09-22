@@ -22,6 +22,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
@@ -165,6 +166,17 @@ public class CacheManager {
         return true;
     }
     
+    public boolean refreshCachedResponse(Uri url) throws IOException {
+        boolean remove = removeCachedResponse(url);
+        if (!remove) {
+            return false;
+        }
+        
+        cacheResponse(url);
+        
+        return true;
+    }
+    
     public void cacheResponse(Uri requestUrl) throws IOException {
         WebResourceResponse resp = getResponse(requestUrl, Collections.<String, String>emptyMap(), "GET");
         InputStream inputStream = resp.getData();
@@ -186,7 +198,7 @@ public class CacheManager {
         }
         boolean online = Utilities.isOnline(mAppContext);
         if (!online && requestUrl.toString().contains("playManifest")) {
-            return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
+            return webResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
         }
         InputStream inputStream;
         String fileName = getCacheFileId(requestUrl);
@@ -203,7 +215,7 @@ public class CacheManager {
             contentType = (String)fileParams.get(CacheSQLHelper.COL_MIMETYPE);
             encoding = (String)fileParams.get(CacheSQLHelper.COL_ENCODING);
             mSQLHelper.updateDate(fileName);
-            WebResourceResponse response = new WebResourceResponse(contentType, encoding, inputStream);
+            WebResourceResponse response = webResourceResponse(contentType, encoding, inputStream);
             return response;
 
         } else {
@@ -229,6 +241,8 @@ public class CacheManager {
             connection.connect();
             contentType = connection.getContentType();
 
+            Map<String, List<String>> headerFields = connection.getHeaderFields();
+
             if (contentType == null) {
                 contentType = "";
             }
@@ -250,7 +264,7 @@ public class CacheManager {
                     connection.disconnect();
                 }
             });
-            return new WebResourceResponse(contentType, encoding, inputStream);
+            return webResourceResponse(contentType, encoding, inputStream);
         } finally {
             // if inputStream wasn't created, streamClosed() will not get called and the connection may leak. 
             if (inputStream == null) {
@@ -258,6 +272,11 @@ public class CacheManager {
             }
         }
 
+    }
+
+    @NonNull
+    private static WebResourceResponse webResourceResponse(String contentType, String encoding, InputStream inputStream) {
+        return new WebResourceResponse(contentType, encoding, inputStream);
     }
 
     @NonNull
