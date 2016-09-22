@@ -134,7 +134,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     }
 
-
     public void setTracksEventListener(KTrackActions.EventListener tracksEventListener) {
         this.tracksEventListener = tracksEventListener;
     }
@@ -350,8 +349,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public static Set<KMediaFormat> supportedFormats(Context context) {
-        // TODO: dynamically determine available players, use reflection.
-
         Set<KMediaFormat> formats = new HashSet<>();
 
         // All known players

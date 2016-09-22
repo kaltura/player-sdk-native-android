@@ -1,23 +1,19 @@
 package com.kaltura.playersdk;
 
 import android.content.Context;
-import android.drm.DrmErrorEvent;
-import android.drm.DrmEvent;
-import android.drm.DrmInfoEvent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.kaltura.playersdk.drm.DrmAdapter;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.utils.Utilities;
-import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
-import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 import static com.kaltura.playersdk.utils.LogUtils.LOGI;
 
@@ -36,7 +32,7 @@ public class LocalAssetsManager {
     }
     
     public interface AssetStatusListener {
-        void onStatus(String assetPath, int expiryTimeSeconds, int availableTimeSeconds);
+        void onStatus(String assetPath, long expiryTimeSeconds, long availableTimeSeconds);
     }
     
     public interface AssetRemovalListener {
@@ -49,73 +45,6 @@ public class LocalAssetsManager {
         return registerOrRefreshAsset(context, entry, flavor, localPath, false, listener);
     }
     
-    private static boolean registerOrRefreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
-                                        @NonNull final String localPath, final boolean refresh, @Nullable final AssetRegistrationListener listener) {
-
-        // NOTE: this method currently only supports (and assumes) Widevine Classic.
-
-        // Preflight: check that all parameters are valid.
-        checkNotNull(entry.getPartnerId(), "entry.partnerId");    // can be an empty string (but not null)
-        checkNotEmpty(entry.getServerURL(), "entry.domain");
-        checkNotEmpty(entry.getUiConfId(), "entry.uiConfId");
-        checkNotEmpty(entry.getEntryId(), "entry.entryId");
-        checkNotEmpty(flavor, "flavor");
-        checkNotEmpty(localPath, "localPath");
-
-
-        if (! Utilities.isOnline(context)) {
-            LOGI(TAG, "Can't register/refresh when offline");
-            return false;
-        }
-
-        doInBackground(new Runnable() {
-            @Override
-            public void run() {
-                CacheManager cacheManager = new CacheManager(context.getApplicationContext());
-                cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
-                cacheManager.setCacheSize(entry.getCacheSize());
-                try {
-                    try {
-                        Uri uri = Uri.parse(entry.getVideoURL());
-                        if (refresh) {
-                            cacheManager.removeCachedResponse(uri);
-                        }
-                        cacheManager.cacheResponse(uri);
-                    } catch (IOException e) {
-                        if (listener != null) {
-                            listener.onFailed(localPath, e);
-                        }
-                        return;
-                    }
-
-                    // If not widevine, stop here.
-                    if (!isWidevineClassic(localPath)) {
-                        if (listener != null) {
-                            listener.onRegistered(localPath);
-                        }
-                        return;
-                    }
-
-
-                    try {
-                        Uri licenseUri = prepareLicenseUri(entry, flavor, DRMScheme.WidevineClassic);
-                        registerWidevineClassicAsset(context, localPath, licenseUri, listener);
-                    } catch (JSONException | IOException e) {
-                        LOGE(TAG, "Error", e);
-                        if (listener != null) {
-                            listener.onFailed(localPath, e);
-                        }
-                    }
-                } finally {
-                    cacheManager.release();
-                }
-
-            }
-        });
-
-        return true;
-    }
-
     public static boolean refreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
                                         @NonNull final String localPath, @Nullable final AssetRegistrationListener listener) {
 
@@ -131,104 +60,111 @@ public class LocalAssetsManager {
             @Override
             public void run() {
                 // Remove cache
-                CacheManager cacheManager = new CacheManager(context.getApplicationContext());
-                cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
-                cacheManager.setCacheSize(entry.getCacheSize());
-                cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
+                CacheManager cacheManager = null;
+                try {
+                    cacheManager = getCacheManager(context, entry);
+                    cacheManager.removeCachedResponse(Uri.parse(entry.getVideoURL()));
 
-                if (!isWidevineClassic(localPath)) {
-                    // end here.
-                    if (listener != null) {
-                        listener.onRemoved(localPath);
+                    DrmAdapter drmAdapter = DrmAdapter.getDrmAdapter(context, localPath);
+                    drmAdapter.unregisterAsset(localPath, listener);
+                } finally {
+                    if (cacheManager != null) {
+                        cacheManager.release();
                     }
-                    return;
                 }
-
-                // Remove license
-                WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
-                widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
-                    @Override
-                    public void onError(DrmErrorEvent event) {
-                        LOGD(TAG, event.toString());
-                    }
-
-                    @Override
-                    public void onEvent(DrmEvent event) {
-                        LOGD(TAG, event.toString());
-                        switch (event.getType()) {
-                            case DrmInfoEvent.TYPE_RIGHTS_REMOVED:
-                                if (listener != null) {
-                                    listener.onRemoved(localPath);
-                                }
-                                break;
-                        }
-                    }
-                });
-                widevineDrmClient.removeRights(localPath);
             }
         });
         return true;
     }
 
-    public static boolean checkAssetStatus(@NonNull final Context context, @NonNull final String localPath, 
+    public static boolean checkAssetStatus(@NonNull final Context context, @NonNull final String localPath,
                                            @Nullable final AssetStatusListener listener) {
-        
-        if (!isWidevineClassic(localPath)) {
-            // end here.
-            if (listener != null) {
-                listener.onStatus(localPath, -1, -1);
+
+        final DrmAdapter drmAdapter = DrmAdapter.getDrmAdapter(context, localPath);
+
+        doInBackground(new Runnable() {
+            @Override
+            public void run() {
+                drmAdapter.checkAssetStatus(localPath, listener);
             }
-            return true;
+        });
+
+        return true;
+    }
+
+    private static boolean registerOrRefreshAsset(@NonNull final Context context, @NonNull final KPPlayerConfig entry, @NonNull final String flavor,
+                                                  @NonNull final String localPath, final boolean refresh, @Nullable final AssetRegistrationListener listener) {
+
+        // Preflight: check that all parameters are valid.
+        checkNotNull(entry.getPartnerId(), "entry.partnerId");    // can be an empty string (but not null)
+        checkNotEmpty(entry.getServerURL(), "entry.domain");
+        checkNotEmpty(entry.getUiConfId(), "entry.uiConfId");
+        checkNotEmpty(entry.getEntryId(), "entry.entryId");
+        checkNotEmpty(entry.getLocalContentId(), "entry.localContentId");
+        checkNotEmpty(flavor, "flavor");
+        checkNotEmpty(localPath, "localPath");
+
+
+        if (! Utilities.isOnline(context)) {
+            LOGI(TAG, "Can't register/refresh when offline");
+            return false;
         }
 
         doInBackground(new Runnable() {
             @Override
             public void run() {
-                WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
-                WidevineDrmClient.RightsInfo info = widevineDrmClient.getRightsInfo(localPath);
-                if (listener != null) {
-                    listener.onStatus(localPath, info.expiryTime, info.availableTime);
+
+                CacheManager cacheManager = null;
+                try {
+                    cacheManager = getCacheManager(context, entry);
+                    Uri uri = Uri.parse(entry.getVideoURL());
+                    if (refresh) {
+                        cacheManager.refreshCachedResponse(uri);
+                    } else {
+                        cacheManager.cacheResponse(uri);
+                    }
+                    
+                    DrmAdapter drmAdapter = DrmAdapter.getDrmAdapter(context, localPath);
+                    DrmAdapter.DRMScheme scheme = drmAdapter.getScheme();
+
+                    Uri licenseUri = prepareLicenseUri(entry, flavor, scheme);
+                    drmAdapter.registerAsset(localPath, String.valueOf(licenseUri), listener);
+
+                } catch (JSONException | IOException e) {
+                    LOGE(TAG, "Error", e);
+                    if (listener != null) {
+                        listener.onFailed(localPath, e);
+                    }
+                } finally {
+                    if (cacheManager != null) {
+                        cacheManager.release();
+                    }
                 }
+
             }
         });
-        
+
         return true;
     }
-
-
-    private static void registerWidevineClassicAsset(@NonNull Context context, @NonNull final String localPath, Uri licenseUri, @Nullable final AssetRegistrationListener listener) {
-
-        WidevineDrmClient widevineDrmClient = new WidevineDrmClient(context);
-        widevineDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
-            @Override
-            public void onError(DrmErrorEvent event) {
-                LOGD(TAG, event.toString());
-
-                if (listener != null) {
-                    listener.onFailed(localPath, new Exception("License acquisition failed; DRM client error code: " + event.getType()));
-                }
-            }
-
-            @Override
-            public void onEvent(DrmEvent event) {
-                LOGD(TAG, event.toString());
-                switch (event.getType()) {
-                    case DrmInfoEvent.TYPE_RIGHTS_INSTALLED:
-                        if (listener != null) {
-                            listener.onRegistered(localPath);
-                        }
-                        break;
-                }
-            }
-        });
-        widevineDrmClient.acquireLocalAssetRights(localPath, licenseUri.toString());
+    
+    @NonNull
+    private static CacheManager getCacheManager(@NonNull Context context, @NonNull KPPlayerConfig entry) {
+        CacheManager cacheManager = new CacheManager(context.getApplicationContext());
+        cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(entry.getServerURL()));
+        cacheManager.setCacheSize(entry.getCacheSize());
+        return cacheManager;
     }
 
-    private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DRMScheme drmScheme) throws IOException, JSONException {
+
+    private static Uri prepareLicenseUri(KPPlayerConfig config, @Nullable String flavor, @NonNull DrmAdapter.DRMScheme drmScheme) throws IOException, JSONException {
 
         String overrideUrl = config.getConfigValueString("Kaltura.overrideDrmServerURL");
         if (overrideUrl != null) {
             return Uri.parse(overrideUrl);
+        }
+        
+        if (drmScheme == DrmAdapter.DRMScheme.Null) {
+            return null;
         }
         
         // load license data
@@ -246,7 +182,7 @@ public class LocalAssetsManager {
         return Uri.parse(licenseUri);
     }
 
-    private static Uri prepareGetLicenseDataURL(KPPlayerConfig config, String flavor, DRMScheme drmScheme) throws IOException, JSONException {
+    private static Uri prepareGetLicenseDataURL(KPPlayerConfig config, String flavor, DrmAdapter.DRMScheme drmScheme) throws IOException, JSONException {
 
         Uri serviceURL = Uri.parse(config.getServerURL());
         // URL may either point to the root of the server or to mwEmbedFrame.php. Resolve this.
@@ -333,17 +269,9 @@ public class LocalAssetsManager {
         checkArg(obj == null || obj.length() == 0, name + " must not be empty");
     }
 
-    private static boolean isWidevineClassic(String localPath) {
-        return localPath.endsWith(".wvm");
-    }
-
     private static void doInBackground(Runnable runnable) {
         new Thread(runnable).start();
     }
-    
 
 
-    enum DRMScheme {
-        WidevineClassic, WidevineCENC
-    }
 }
