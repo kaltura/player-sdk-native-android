@@ -48,20 +48,14 @@ class OfflineDrmSessionManager implements DrmSessionManager {
 
             mMediaDrm.setOnEventListener(new MediaDrm.OnEventListener() {
                 @Override
-                public void onEvent(MediaDrm md, byte[] sessionId, int event, int extra, byte[] data) {
+                public void onEvent(@NonNull MediaDrm md, byte[] sessionId, int event, int extra, byte[] data) {
                     Log.d(TAG, "onEvent:" + toHexString(sessionId) + ":" + event + ":" + extra + ":" + toHexString(data));
                 }
             });
 
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mMediaDrm.setOnKeyStatusChangeListener(new MediaDrm.OnKeyStatusChangeListener() {
-                    @Override
-                    public void onKeyStatusChange(@NonNull MediaDrm md, @NonNull byte[] sessionId, @NonNull List<MediaDrm.KeyStatus> keyInformation, boolean hasNewUsableKey) {
-                        Log.d(TAG, "onKeyStatusChange:" + toHexString(sessionId) + ":" + hasNewUsableKey);
-                        logKeyInformation(keyInformation);
-                    }
-                }, null);
+                setOnKeyStatusChangeListener();
             }
 
 
@@ -69,14 +63,25 @@ class OfflineDrmSessionManager implements DrmSessionManager {
             throw new UnsupportedDrmException(UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME, e);
         }
     }
+    
+    @TargetApi(Build.VERSION_CODES.M)
+    private void setOnKeyStatusChangeListener() {
+        mMediaDrm.setOnKeyStatusChangeListener(new MediaDrm.OnKeyStatusChangeListener() {
+            @Override
+            public void onKeyStatusChange(@NonNull MediaDrm md, @NonNull byte[] sessionId, @NonNull List<MediaDrm.KeyStatus> keyInformation, boolean hasNewUsableKey) {
+                Log.d(TAG, "onKeyStatusChange:" + toHexString(sessionId) + ":" + hasNewUsableKey);
+                logKeyInformation(keyInformation);
+            }
+        }, null);
+    }
 
-    void onError(Exception error) {
+    private void onError(Exception error) {
         mLastError = error;
         mState = STATE_ERROR;
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    void logKeyInformation(List<MediaDrm.KeyStatus> keyInformation) {
+    private void logKeyInformation(List<MediaDrm.KeyStatus> keyInformation) {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
         for (MediaDrm.KeyStatus keyStatus : keyInformation) {
             map.put(toHexString(keyStatus.getKeyId()), keyStatus.getStatusCode());
