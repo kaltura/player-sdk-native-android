@@ -11,6 +11,8 @@ import android.drm.DrmInfoRequest;
 import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
 import android.drm.DrmStore;
+import android.os.Build;
+import android.text.TextUtils;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -108,12 +110,22 @@ public class WidevineDrmClient {
 
     public static boolean isSupported(Context context) {
         DrmManagerClient drmManagerClient = new DrmManagerClient(context);
-        boolean canHandle = drmManagerClient.canHandle("", WIDEVINE_MIME_TYPE);
-        drmManagerClient.release();
+        boolean canHandle = false;
+        // adding try catch due some android devices have different canHandle method implementation regarding the arguments validation inside it
+        try {
+            canHandle = drmManagerClient.canHandle("", WIDEVINE_MIME_TYPE);
+        } catch (IllegalArgumentException ex) {
+            LOGE(TAG, "drmManagerClient.canHandle failed");
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                LOGI(TAG, "Assuming WV Classic is supported although canHandle has failed");
+                canHandle = true;
+            }
+        } finally {
+            drmManagerClient.release();
+        }
         return canHandle;
     }
-    
-    
+
     public WidevineDrmClient(Context context) {
 
         mDrmManager = new DrmManagerClient(context) {

@@ -6,6 +6,7 @@ android:
   components:
   - tools
   - platform-tools
+  - build-tools-24.0.2
   - build-tools-24.0.0
   - android-24
   - extra-android-m2repository
@@ -44,5 +45,6 @@ notifications:
       - oren.melamed@kaltura.com
       - gilad.nadav@kaltura.com
       - g.kozlov@synergetica.co
+      - anton.afanasiev@kaltura.com
     on_success: change
     on_failure: always
