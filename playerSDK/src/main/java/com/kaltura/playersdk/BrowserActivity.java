@@ -29,7 +29,7 @@ public class BrowserActivity extends Activity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(extras.getString("VideoName"));
             String barColor = extras.getString("BarColor");
-            if(!barColor.isEmpty()){
+            if(barColor != null && !barColor.isEmpty()){
                 actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(barColor)));
             }
         }
