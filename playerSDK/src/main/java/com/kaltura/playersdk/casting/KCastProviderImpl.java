@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 
@@ -159,9 +158,9 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         if (mRouter != null && mRouter.getRoutes() != null && mRouter.getRoutes().size() > 0) {
             ArrayList<KCastDevice> devices = new ArrayList<>();
             for (MediaRouter.RouteInfo route: mRouter.getRoutes()) {
-                if (route.isDefaultOrBluetooth()) {
-                    continue;
-                }
+//                if (route.isDefaultOrBluetooth()) {
+//                    continue;
+//                }
                 KCastDevice castDevice = new KCastDevice(route);
                 CastDevice device = CastDevice.getFromBundle(route.getExtras());
                 if (!mGuestModeEnabled && device != null && !device.isOnLocalNetwork()) {

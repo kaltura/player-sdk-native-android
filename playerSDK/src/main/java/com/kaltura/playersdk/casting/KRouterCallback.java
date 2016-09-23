@@ -74,7 +74,7 @@ public class KRouterCallback extends MediaRouter.Callback {
         }
         KCastDevice kCastDevice = new KCastDevice(route);
         CastDevice castDevice = CastDevice.getFromBundle(route.getExtras());
-        boolean sendAddEvent =  (mGuestModeEnabled || (castDevice != null && castDevice.isOnLocalNetwork())) && !route.isDefaultOrBluetooth();
+        boolean sendAddEvent =  (mGuestModeEnabled || (castDevice != null && castDevice.isOnLocalNetwork()));
         LOGD(TAG, "onRouteAdded: isSendAddEvent = " + sendAddEvent);
         if (sendAddEvent) {
             LOGD(TAG, "fire onRouteAdded: " + route.getName());
