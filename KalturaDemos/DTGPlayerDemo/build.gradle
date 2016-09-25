@@ -30,8 +30,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile project(":playerSDK")
 
-    // Include DTGLib: either source or jar. Also see settings.gradle.
-    compile fileTree(dir: 'libs', include: ['dtglib*.jar'])
-//    compile project(":dtglib")
+    compile 'com.github.kaltura:playkit-dtg-android:v2.0.0.rc6'
+    // Uncomment to build dtglib yourself. Also see settings.grade.
+    // compile project(":dtglib")
     
 }

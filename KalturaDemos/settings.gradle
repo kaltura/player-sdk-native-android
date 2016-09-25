@@ -15,6 +15,6 @@ project(':googlemediaframework').projectDir = new File('../googlemediaframework'
 include ':playerSDK'
 project(':playerSDK').projectDir = new File('../playerSDK')
 
-// Uncomment to locally build dtglib.
+// Uncomment to build dtglib yourself. Also see DTGPlayerDemo's build.grade.
 //include ':dtglib'
 //project(':dtglib').projectDir = file('../../playkit-dtg-android/dtglib')
