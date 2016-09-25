@@ -7,6 +7,7 @@ include ':ChangeMediaDemo'
 include ':LocalAssetsDemo'
 include ':PlayerFragmentDemo'
 include ':AdPlayerDemo'
+include ':DTGPlayerDemo'
 
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir = new File('../googlemediaframework')
@@ -14,3 +15,6 @@ project(':googlemediaframework').projectDir = new File('../googlemediaframework'
 include ':playerSDK'
 project(':playerSDK').projectDir = new File('../playerSDK')
 
+// Uncomment to locally build dtglib.
+//include ':dtglib'
+//project(':dtglib').projectDir = file('../../playkit-dtg-android/dtglib')
