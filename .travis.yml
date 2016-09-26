@@ -22,7 +22,7 @@ before_cache:
 script:
   - ./gradlew :kalturaPlay:assembleRelease
   - ./gradlew :kalturaPlay:assembleDebug
-  - for $DEMO in AdPlayerDemo CCPlayerDemo DTGPlayerDemo MultiPlayerDemo PlayerFragmentDemo; do ./gradlew -p KalturaDemos $DEMO:assembleDebug; done
+  - for DEMO in AdPlayerDemo CCPlayerDemo DTGPlayerDemo MultiPlayerDemo PlayerFragmentDemo; do ./gradlew -p KalturaDemos $DEMO:assembleDebug; done
 after_success:
 - ls -lh kalturaPlay/build/outputs/apk
 - ./travis-pull-artifacts-upload.sh
