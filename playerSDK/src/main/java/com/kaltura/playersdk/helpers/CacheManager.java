@@ -20,10 +20,12 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
@@ -43,8 +45,9 @@ public class CacheManager {
     private String mCachePath;
     private File mFilesDir;
     private Context mAppContext;
+    private List<Pattern> mIncludePatterns;
 
-    
+
     private void logCacheHit(Uri url, String fileId) {
         LOGD(TAG, "CACHE HIT: " + fileId + " : " + url);
     }
@@ -101,8 +104,16 @@ public class CacheManager {
         if (! (uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
             return false;   // only cache http(s)
         }
+        
+        // Allow app-specific inclusion.
+        String uriString = uri.toString();
+        for (Pattern pattern : mIncludePatterns) {
+            if (pattern.matcher(uriString).matches()) {
+                return true;
+            }
+        }
 
-        if (! uri.toString().startsWith(mBaseURL)) {
+        if (! uriString.startsWith(mBaseURL)) {
             return false;   // not our server
         }
 
@@ -306,5 +317,9 @@ public class CacheManager {
             mSQLHelper.close();
             mSQLHelper = null;
         }
+    }
+
+    public void setIncludePatterns(List<Pattern> includePatterns) {
+        mIncludePatterns = new ArrayList<>(includePatterns);    // make a safe copy.
     }
 }
