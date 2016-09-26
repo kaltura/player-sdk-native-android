@@ -126,7 +126,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             mediaMetadata.putString(MediaMetadata.KEY_SUBTITLE, "Casting to " + mCastSession.getCastDevice().getFriendlyName());
         }
         mediaMetadata.putString(MediaMetadata.KEY_TITLE, mEntryName);
-        //mediaMetadata.putString(KEY_ENTRY_ID, mEntryId);
+        mediaMetadata.putString(KEY_ENTRY_ID, mEntryId);
 
         //small thumbnail
         ////mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));// + "/width/480/hight/270")));

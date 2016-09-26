@@ -782,7 +782,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
         if (mOnKPStateChangedEventListener != null) {
             if (!KPlayerState.UNKNOWN.equals(kState)) {
-                mOnKPStateChangedEventListener.onKPlayerStateChanged(this, kState);
+                if (kState == KPlayerState.READY && "CC".equals(eventValue)) {
+                    mOnKPStateChangedEventListener.onKPlayerStateChanged(this, KPlayerState.CC_READY);
+                    eventValue = null;
+                } else {
+                    mOnKPStateChangedEventListener.onKPlayerStateChanged(this, kState);
+                }
             }
         }
 
