@@ -221,7 +221,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         mCastProvider.sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
                         playerListener.eventWithValue(player, KPlayerListener.DurationChangedKey, Float.toString(getDuration() / 1000f));
                         playerListener.eventWithValue(player, KPlayerListener.LoadedMetaDataKey, "");
-                        playerListener.eventWithValue(player, KPlayerListener.CanPlayKey, null);
+                        playerListener.eventWithValue(player, KPlayerListener.CanPlayKey, "CC");
                         playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
                         break;
                     case Playing:
