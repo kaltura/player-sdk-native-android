@@ -165,6 +165,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     }
 
     private void startTimer() {
+        if (mHandler == null) {
+            mHandler = new Handler(Looper.getMainLooper());
+        }
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -176,8 +179,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                     if (currentTime != 0 && currentTime < mCastSession.getRemoteMediaClient().getStreamDuration()) {
                         if (mCastSession.getRemoteMediaClient().isPlaying()) {
                             LOGD(TAG, "CC SEND TIME UPDATE " + currentTime);
-                            for (KCastMediaRemoteControlListener listener : mListeners) {
-                                listener.onCastMediaProgressUpdate(currentTime);
+                            if(mListeners != null && mListeners.size() > 0) {
+                                for (KCastMediaRemoteControlListener listener : mListeners) {
+                                    listener.onCastMediaProgressUpdate(currentTime);
+                                }
                             }
                         }
                     }
