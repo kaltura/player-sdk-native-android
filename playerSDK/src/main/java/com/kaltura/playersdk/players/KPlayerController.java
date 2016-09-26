@@ -173,7 +173,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if (player != null) {
+                        if (player != null && mCastPlayer != null) {
                             mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
                         }
                     }
