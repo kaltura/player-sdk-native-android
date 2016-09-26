@@ -4,9 +4,9 @@ include ':inlineplayerdemo'
 include ':BasicPlayerTest'
 include ':MultiPlayerDemo'
 include ':ChangeMediaDemo'
-include ':LocalAssetsDemo'
 include ':PlayerFragmentDemo'
 include ':AdPlayerDemo'
+include ':DTGPlayerDemo'
 
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir = new File('../googlemediaframework')
@@ -14,3 +14,6 @@ project(':googlemediaframework').projectDir = new File('../googlemediaframework'
 include ':playerSDK'
 project(':playerSDK').projectDir = new File('../playerSDK')
 
+// Uncomment to build dtglib yourself. Also see DTGPlayerDemo's build.grade.
+//include ':dtglib'
+//project(':dtglib').projectDir = file('../../playkit-dtg-android/dtglib')

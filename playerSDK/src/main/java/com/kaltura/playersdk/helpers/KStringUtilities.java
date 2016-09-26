@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.helpers;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import org.json.JSONArray;
 
@@ -194,26 +195,33 @@ public class KStringUtilities {
     }
 
     static public String md5(String string) {
+        return md5(string.getBytes());
+    }
+
+    static public String md5(byte[] data) {
         try {
             // Create MD5 Hash
             java.security.MessageDigest digest = java.security.MessageDigest
                     .getInstance("MD5");
-            digest.update(string.getBytes());
+            digest.update(data);
             byte messageDigest[] = digest.digest();
+            return toHexString(messageDigest);
 
-            // Create Hex String
-            StringBuilder hexString = new StringBuilder();
-            for (byte aMessageDigest : messageDigest) {
-                String h = Integer.toHexString(0xFF & aMessageDigest);
-                while (h.length() < 2)
-                    h = "0" + h;
-                hexString.append(h);
-            }
-            return hexString.toString();
 
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         return "";
+    }
+
+    @NonNull
+    public static String toHexString(byte[] bytes) {
+        // Create Hex String
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String h = Integer.toHexString(0xFF & b);
+            hexString.append(h.length() == 1 ? "0" : "").append(h);
+        }
+        return hexString.toString();
     }
 }

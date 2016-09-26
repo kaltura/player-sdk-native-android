@@ -19,6 +19,8 @@ import com.kaltura.playersdk.players.KChromeCastPlayer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
@@ -55,8 +57,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private String mSessionId;
 
     private InternalListener mInternalListener;
-
-
     public GoogleApiClient getApiClient() {
         return mApiClient;
     }
@@ -137,7 +137,6 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
             mSelectedDevice = null;
         }
         if (mInternalListener != null) {
-            mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
             mInternalListener.onCastStateChanged("hideConnectingMessage");
         }
     }
@@ -186,10 +185,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                 @Override
                 public void onApplicationStatusChanged() {
                     if (mApiClient != null) {
-                        LOGD(TAG, "onApplicationStatusChanged: "
-                                + Cast.CastApi.getApplicationStatus(mApiClient));
-                        if ("Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient)) && mProviderListener != null) {
-                            mProviderListener.onDeviceConnected();
+                        if (hasMediaSession()) {
+                            LOGD(TAG, "onApplicationStatusChanged: " + Cast.CastApi.getApplicationStatus(mApiClient));
+                            if (mProviderListener != null && "Ready to play".equals(Cast.CastApi.getApplicationStatus(mApiClient))) {
+                                mProviderListener.onDeviceConnected();
+                            }
                         }
                     }
                 }
@@ -371,6 +371,16 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                                                 mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
                                                             }
                                                         }
+                                                    }
+
+                                                    @Override
+                                                    public void textTeacksRecived(HashMap<String,Integer> textTrackHash) {
+                                                        getCastMediaRemoteControl().setTextTracks(textTrackHash);
+                                                    }
+
+                                                    @Override
+                                                    public void videoTracksReceived(List<Integer> videoTracksList) {
+                                                        getCastMediaRemoteControl().setVideoTracks(videoTracksList);
                                                     }
                                                 });
                                                 sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");

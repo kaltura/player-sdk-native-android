@@ -201,6 +201,10 @@ public class KPPlayerConfig implements Serializable{
 		addConfig("controlBarContainer.hover", Boolean.toString(hide));
 	}
 
+	public String getLocalContentId() {
+		return mLocalContentId;
+	}
+	
 	public void setLocalContentId(String localContentId) {
         mLocalContentId = localContentId;
     }
