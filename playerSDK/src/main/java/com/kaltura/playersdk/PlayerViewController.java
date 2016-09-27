@@ -522,6 +522,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 CacheManager cacheManager = new CacheManager(mActivity.getApplicationContext());
                 cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(mConfig.getServerURL()));
                 cacheManager.setCacheSize(mConfig.getCacheSize());
+                cacheManager.setIncludePatterns(mConfig.getCacheConfig().includePatterns);
                 mWebView.setCacheManager(cacheManager);
             }
 
