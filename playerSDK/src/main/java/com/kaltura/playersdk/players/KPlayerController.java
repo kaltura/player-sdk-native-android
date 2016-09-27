@@ -356,7 +356,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
                     if (isBackgrounded && !mShouldPauseChromecastInBg ) {
-                       return;
+                        return;
                     }
                     mCastProvider.getCastMediaRemoteControl().pause();
                 }
@@ -552,7 +552,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.removeView((View) player);
         player.removePlayer();
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        this.parentViewController.addView((View) this.player, parentViewController.getChildCount() - 1, lp);
+        this.parentViewController.addView((View) this.player, lp);
 
         this.src = newSrc;
         player.setPlayerSource(this.src);
@@ -568,7 +568,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void initIMA(String adTagURL, String adMimeType, int adPreferredBitrate, Activity activity) {
         LOGD(TAG, "initIMA adTagURL = " + adTagURL + ", adMimeType = " + adMimeType);
         ((View)player).setVisibility(View.INVISIBLE);
-        isIMAActive = true;
         mAdMimeType = adMimeType;
         mAdPreferredBitrate = adPreferredBitrate;
         if (player != null) {
@@ -582,6 +581,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     private void addAdPlayer() {
+        isIMAActive = true;
         LOGD(TAG, "Start addAdPlayer");
         ((View)player).setVisibility(View.INVISIBLE);
         // Add adPlayer view
@@ -733,7 +733,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 if (currentState == UIState.Play || currentState == UIState.Replay) {
                     play();
                 }
-         
+
                 if (mSeekCallback != null) {
                     mSeekCallback.seeked(player.getCurrentPlaybackTime());
                     mSeekCallback = null;
