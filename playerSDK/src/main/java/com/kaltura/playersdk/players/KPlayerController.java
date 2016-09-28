@@ -112,6 +112,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void onAdError(String errorMsg) {
+        isIMAActive = false;
         playerListener.eventWithValue(player, KPlayerListener.AdsLoadErrorKey, null); // update web that we have AD Loading error
         removeAdPlayer();
         ((View)player).setVisibility(View.VISIBLE);
