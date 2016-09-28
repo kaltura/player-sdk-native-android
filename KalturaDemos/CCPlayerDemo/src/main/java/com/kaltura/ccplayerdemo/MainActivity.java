@@ -145,6 +145,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         LOGD(TAG, "onCastMediaRemoteControlReady hasMediaSession = " + castMediaRemoteControl.hasMediaSession(false));
                         mAddCaptionsBtn.setVisibility(View.VISIBLE);
                     }
+
+                    @Override
+                    public void onCastReceiverError(String errorMsg , int errorCode) {
+                        LOGE(TAG, "onCastReceiverError errorMsg = " + errorMsg + " errorCode = "  + errorCode);
+                    }
                 });
             }
 

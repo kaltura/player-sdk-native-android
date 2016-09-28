@@ -22,6 +22,7 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
         void readyForMedia(String[] castParams);
         void textTeacksRecived(HashMap<String,Integer> textTrackHash);
         void videoTracksReceived(List<Integer> videoTracksList);
+        void onCastReceiverError(String errorMsg, int errorCode);
     }
 
     public KCastKalturaChannel(String nameSpace, KCastKalturaChannelListener listener) {
@@ -47,8 +48,10 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
         }
         else if (s1.contains("\"aborted\"")){
             //mListener.dataAborted();
-        }
-        else if (s1.contains("\"captions\"")){
+        } else if (s1.toLowerCase().contains("\"error\"")){
+            List<String> errMessage = parseErrormessage(s1);
+            mListener.onCastReceiverError(errMessage.get(0),Integer.valueOf(errMessage.get(1)));
+        } else if (s1.contains("\"captions\"")){
             mListener.textTeacksRecived(parseCaptions(s1));
         } else if (s1.contains("\"video_bitrates\"")) {
             mListener.videoTracksReceived(parseVideoBitrates(s1));
@@ -78,5 +81,24 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
             videoBitratesList.add(Integer.valueOf(elm));
         }
         return videoBitratesList;
+    }
+
+    public List<String> parseErrormessage(String errorMsg) {
+        List<String> errorParams = new ArrayList<>();
+        //onMessageReceived <urn:x-cast:com.kaltura.cast.player> <mediaHostState: Fatal Error: code = 3>
+        errorMsg = errorMsg.replaceAll(" ", "");
+        if (errorMsg.contains(":") && errorMsg.contains("code=")) {
+            String[] erorrParts = errorMsg.split(":");
+            if (erorrParts.length != 2) {
+                errorParams.add(erorrParts[0]);
+                String[] codeParts = erorrParts[1].split("=");
+                errorParams.add(codeParts[1]);
+            }
+            return errorParams;
+        }
+
+        errorParams.add(errorMsg);
+        errorParams.add("-1");
+        return errorParams;
     }
 }
