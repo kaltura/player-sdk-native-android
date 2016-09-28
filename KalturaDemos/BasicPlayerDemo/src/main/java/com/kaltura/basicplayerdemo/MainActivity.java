@@ -96,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //config.addConfig("debugKalturaPlayer", "true");
             //config.addConfig("controlBarContainer.hover", "true");
+            //config.addConfig("fullScreenBtn.plugin", "true");
+
             config.addConfig("closedCaptions.plugin", "true");
             config.addConfig("sourceSelector.plugin", "true");
             config.addConfig("sourceSelector.displayMode", "bitrate");
