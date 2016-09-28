@@ -159,6 +159,11 @@ public class KCastProviderV3Impl implements KCastProvider {
             public void videoTracksReceived(List<Integer> videoTracksList) {
                 getCastMediaRemoteControl().setVideoTracks(videoTracksList);
             }
+
+            @Override
+            public void onCastReceiverError(String errorMsg, int errorCode) {
+                mProviderListener.onCastReceiverError(errorMsg, errorCode);
+            }
         });
 
         if (mCastSession != null) {

@@ -20,6 +20,7 @@ public interface KCastProvider {
 
     interface KCastProviderListener {
         void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl);
+        void onCastReceiverError(String errorMsg, int errorCode);
         //void onDeviceCameOnline(KCastDevice device);
         //void onDeviceWentOffline(KCastDevice device);
         //void onDeviceConnected();
