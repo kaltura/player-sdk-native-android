@@ -71,7 +71,13 @@ public class WidevineModularAdapter extends DrmAdapter {
     }
 
     private class RegisterException extends Exception {
-        public RegisterException(String detailMessage, Throwable throwable) {
+        RegisterException(String detailMessage, Throwable throwable) {
+            super(detailMessage, throwable);
+        }
+    }
+    
+    private class NoWidevinePSSHException extends RegisterException {
+        NoWidevinePSSHException(String detailMessage, Throwable throwable) {
             super(detailMessage, throwable);
         }
     }
@@ -84,7 +90,7 @@ public class WidevineModularAdapter extends DrmAdapter {
                 throw new RegisterException("Unknown format", null);
             }
             if (dashParser.hasContentProtection && dashParser.widevineInitData == null) {
-                throw new RegisterException("No Widevine PSSH in media", null);
+                throw new NoWidevinePSSHException("No Widevine PSSH in media", null);
             }
         } catch (IOException e) {
             throw new RegisterException("Can't parse local dash", e);
@@ -209,7 +215,6 @@ public class WidevineModularAdapter extends DrmAdapter {
 
     @Override
     public boolean checkAssetStatus(@NonNull String localPath, @Nullable LocalAssetsManager.AssetStatusListener listener) {
-        // TODO
 
         try {
             Map<String, String> assetStatus = checkAssetStatus(localPath);
@@ -225,7 +230,13 @@ public class WidevineModularAdapter extends DrmAdapter {
                 if (listener != null) {
                     listener.onStatus(localPath, licenseDurationRemaining, playbackDurationRemaining);
                 }
-            }            
+            }
+        } catch (NoWidevinePSSHException e) {
+            // Not a Widevine file
+            if (listener != null) {
+                listener.onStatus(localPath, -1, -1);
+            }
+            return false;
         } catch (RegisterException e) {
             if (listener != null) {
                 listener.onStatus(localPath, 0, 0);
@@ -244,7 +255,7 @@ public class WidevineModularAdapter extends DrmAdapter {
             throw new RegisterException("Can't parse dash", e);
         }
         if (dashParser.widevineInitData == null) {
-            throw new RegisterException("No Widevine PSSH in media", null);
+            throw new NoWidevinePSSHException("No Widevine PSSH in media", null);
         }
 
 
