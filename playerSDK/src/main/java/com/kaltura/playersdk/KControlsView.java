@@ -9,7 +9,6 @@ import android.net.http.SslError;
 import android.os.Build;
 import android.os.Looper;
 import android.util.Base64;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.ConsoleMessage;
@@ -165,6 +164,9 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         WebResourceResponse response = null;
         if (mCacheManager != null) {
             try {
+                if (requestUrl != null) {
+                    LOGD(TAG, "getResponse: CacheManager - requestUrl=" + requestUrl);
+                }
                 response = mCacheManager.getResponse(requestUrl, headers, method);
             } catch (IOException e) {
                 if (requestUrl.getPath().endsWith("favicon.ico")) {
