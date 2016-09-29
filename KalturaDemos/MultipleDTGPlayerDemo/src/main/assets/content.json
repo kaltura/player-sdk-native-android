@@ -1,0 +1,26 @@
+{
+  "baseConfig": {
+    "base": {
+      "server": "http://kgit.html5video.org/tags/v2.48.rc10/mwEmbedFrame.php",
+      "partnerId": "2159611",
+      "uiConfId": "35598651"
+    }
+  },
+  "items": {
+    "Embedding: Kaltura Education Video Solutions": {
+      "entryId": "1_fpgqdw5q",
+      "flavorId": "1_tmeu2zh5",
+      "remoteUrl": "http://cdnapi.kaltura.com/p/2159611/sp/215961100/playManifest/entryId/1_fpgqdw5q/flavorIds/1_tmeu2zh5,1_2xtyw7jg/format/applehttp/protocol/http/a.m3u8?referrer=aHR0cDovL2tnaXQuaHRtbDV2aWRlby5vcmc=&playSessionId=e3a4fb50-9856-6c03-1713-9e3f28eff055&clientTag=html5:v2.48.rc10__ba219263&uiConfId=35598651"
+    },
+    "Kaltura Enterprise Video Solutions": {
+      "entryId": "1_w7nniz1o",
+      "flavorId": "1_cj64chrj",
+      "remoteUrl": "http://cdnapi.kaltura.com/p/2159611/sp/215961100/playManifest/entryId/1_w7nniz1o/flavorIds/1_cj64chrj,1_6hhil84j/format/applehttp/protocol/http/a.m3u8?referrer=aHR0cDovL2tnaXQuaHRtbDV2aWRlby5vcmc=&playSessionId=355fea48-eeed-a49b-9a53-af599d7a6759&clientTag=html5:v2.48.rc10__ba219263&uiConfId=35598651"
+    },
+    "Kaltura Video Solutions": {
+      "entryId": "1_qcfrrw5y",
+      "flavorId": "1_w806z8ug",
+      "remoteUrl": "http://cdnapi.kaltura.com/p/2159611/sp/215961100/playManifest/entryId/1_qcfrrw5y/flavorIds/1_w806z8ug,1_ar4gfmn5/format/applehttp/protocol/http/a.m3u8?referrer=aHR0cDovL2tnaXQuaHRtbDV2aWRlby5vcmc=&playSessionId=e5fd9da9-7d80-81f3-ae42-29171a3dfa2c&clientTag=html5:v2.48.rc10__ba219263&uiConfId=35598651"
+    }
+  }
+}

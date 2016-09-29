@@ -7,6 +7,7 @@ include ':ChangeMediaDemo'
 include ':PlayerFragmentDemo'
 include ':AdPlayerDemo'
 include ':DTGPlayerDemo'
+include ':MultipleDTGPlayerDemo'
 
 include ':googlemediaframework'
 project(':googlemediaframework').projectDir = new File('../googlemediaframework')
