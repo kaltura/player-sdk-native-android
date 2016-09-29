@@ -33,7 +33,7 @@ dependencies {
     // Select between a local or a maven (JitPack) build of dtglib. See settings.gradle. 
     try {
         compile project(":dtglib");
-    } catch (UnknownProjectException e) {
+    } catch (UnknownProjectException ignored) {
         compile 'com.github.kaltura:playkit-dtg-android:v2.0.0.+'
     }
 }
