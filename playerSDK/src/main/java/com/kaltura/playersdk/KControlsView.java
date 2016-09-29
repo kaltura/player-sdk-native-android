@@ -172,7 +172,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
                 if (requestUrl.getPath().endsWith("favicon.ico")) {
                     response = getWhiteFaviconResponse();
                 } else {
-                    LOGE(TAG, "getResponse From CacheManager error::", e);
+                    LOGE(TAG, "getResponse From CacheManager error:: " + e.getMessage(), e);
                 }
             }
         }
