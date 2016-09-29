@@ -101,6 +101,24 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private KCastProvider mCastProvider;
 
+    public static void prefetchPlayerResources(KPPlayerConfig config, Activity activity) {
+
+        final PlayerViewController player = new PlayerViewController(activity);
+
+        player.loadPlayerIntoActivity(activity);
+
+        config.addConfig("EmbedPlayer.PreloadNativeComponent", "true");
+        
+        player.initWithConfiguration(config);
+        
+        player.registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                LOGD(TAG, "Player ready after prefetch - will now destroy player");
+                player.removePlayer();
+            }
+        });
+    }
 
     public KCastProvider setCastProvider(KCastProvider castProvider) {
 
