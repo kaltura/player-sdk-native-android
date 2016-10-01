@@ -1,5 +1,11 @@
 apply plugin: 'com.android.library'
 
+try {
+    apply plugin: 'com.github.dcendents.android-maven'
+} catch (UnknownPluginException ignore) {
+    // Ok - this plugin is optional and only needed for publishing to Maven.
+}
+
 apply from: "../kalturaCommon.gradle"
 
 android {
@@ -29,4 +35,14 @@ dependencies {
     compile 'com.android.support:mediarouter-v7:24.2.1'
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.google.ads.interactivemedia.v3:interactivemedia:3.3.2'
+}
+
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
 }
