@@ -224,6 +224,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         stopPlaybackTimeReporter();
         if (mExoPlayer != null) {
             mExoPlayer.seekTo(time);
+
+            ///voot-695 start
+            startPlaybackTimeReporter();
+            ///voot-695 end
         }
     }
 
