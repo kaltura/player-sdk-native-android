@@ -533,6 +533,22 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 errorString = "error_instantiating_decoder " +
                         decoderInitializationException.decoderName;
             }
+        } //[voot 594] 
+		else if (e.getCause() instanceof com.google.android.exoplayer.upstream.HttpDataSource.HttpDataSourceException) { // voot-723
+            mExoPlayer.prepare();
+            errorString = "HttpDataSourceException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
+        } else if ( e.getCause() instanceof java.net.UnknownHostException) {
+            mExoPlayer.prepare();
+            errorString = "UnknownHostException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
+        } else if ( e.getCause() instanceof java.net.ConnectException) {
+            mExoPlayer.prepare();
+            errorString = "ConnectException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
         }
         if (!"".equals(errorString)) {
             LOGE(TAG, errorString);
