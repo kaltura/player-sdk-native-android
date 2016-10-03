@@ -306,6 +306,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     public void saveState(boolean isOnBackground) {
         playerController.savePlayerState();
     }
+	//[voot 348]
+    public void setClientBackgroundStatus(boolean arg) {
+        playerController.setClientBackgroundStatus(arg);
+    }
 
     public void resumeState() {
         playerController.recoverPlayerState();
@@ -757,7 +761,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void play() {
-        playerController.play();
+        if (Utilities.isInternetOn(getContext())) {
+            LOGD(TAG,"Data connection on. go ahead for play command!");
+            playerController.play();
+        }
     }
 
     private void pause() {

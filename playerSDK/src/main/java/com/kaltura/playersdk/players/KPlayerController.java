@@ -314,10 +314,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             if (mCastProvider == null) {
                 if (player != null) {
                     player.play();
+                    isPlaying = true;
                     if (isBackgrounded) {
                         //if go to background on buffering and playback starting need to pause and change to playing
                         player.pause();
-                        isPlaying = true;
+                        currentState = UIState.Pause;
                     }
                 }
             } else {
@@ -440,6 +441,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+	//[Voot 348]
+    public void setClientBackgroundStatus(boolean isOnBackground) {
+        isBackgrounded = isOnBackground;
+    }
     public void recoverPlayerState() {
         if (isPlaying) {
             if (isIMAActive && imaManager != null) {

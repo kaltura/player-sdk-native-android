@@ -134,4 +134,14 @@ public class Utilities {
     public static String optString(JSONObject jsonObject, String key) {
         return jsonObject.isNull(key) ? null : jsonObject.optString(key);
     }
+
+    public static boolean isInternetOn(Context context) {
+        ConnectivityManager conn = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = conn.getActiveNetworkInfo();
+        if (networkInfo != null) {
+            return networkInfo.isConnected();
+        }
+        return false;
+    }
 }
