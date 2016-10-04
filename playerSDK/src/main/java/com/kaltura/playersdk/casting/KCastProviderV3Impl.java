@@ -152,12 +152,16 @@ public class KCastProviderV3Impl implements KCastProvider {
 
             @Override
             public void textTeacksRecived(HashMap<String, Integer> textTrackHash) {
-                getCastMediaRemoteControl().setTextTracks(textTrackHash);
+                if (getCastMediaRemoteControl() != null) {
+                    getCastMediaRemoteControl().setTextTracks(textTrackHash);
+                }
             }
 
             @Override
             public void videoTracksReceived(List<Integer> videoTracksList) {
-                getCastMediaRemoteControl().setVideoTracks(videoTracksList);
+                if (getCastMediaRemoteControl() != null) {
+                    getCastMediaRemoteControl().setVideoTracks(videoTracksList);
+                }
             }
 
             @Override
