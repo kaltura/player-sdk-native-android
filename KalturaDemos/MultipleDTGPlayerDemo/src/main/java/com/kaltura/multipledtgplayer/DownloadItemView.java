@@ -6,6 +6,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -26,11 +27,13 @@ public class DownloadItemView extends RelativeLayout implements View.OnClickList
     private ProgressBar mProgressBar;
     private TextView mStatus;
     private int mItemId;
+    private DownloadState mDownloadState;
+    private Button mDownloadBtn;
     private OnItemListener mOnItemListener;
 
     public interface OnItemListener {
         void onCheck(int itemId, boolean isChecked);
-        void onDownloadClick(int itemId);
+        void onDownloadClick(int itemId, DownloadState downloadState);
     }
 
     public DownloadItemView(Context context) {
@@ -59,7 +62,8 @@ public class DownloadItemView extends RelativeLayout implements View.OnClickList
         mCheckBox = (CheckBox) findViewById(R.id.checkBox);
         mProgressBar = (ProgressBar) findViewById(R.id.download_progress);
         mStatus = (TextView) findViewById(R.id.status);
-        findViewById(R.id.download_btn).setOnClickListener(this);
+        mDownloadBtn = (Button)findViewById(R.id.download_btn);
+        mDownloadBtn.setOnClickListener(this);
         mCheckBox.setOnClickListener(this);
     }
 
@@ -77,8 +81,9 @@ public class DownloadItemView extends RelativeLayout implements View.OnClickList
                     mStatus.setText("");
                 }
                 else {
-                    DownloadState state = downloadItem.getState();
-                    mStatus.setText(state == null ? "" : state.name());
+                    mDownloadState = downloadItem.getState();
+                    updateStatesButton();
+                    mStatus.setText(mDownloadState == null ? "" : mDownloadState.name());
                     updateProgress(downloadItem.getDownloadedSizeBytes(), downloadItem.getEstimatedSizeBytes());
                 }
             }
@@ -98,13 +103,32 @@ public class DownloadItemView extends RelativeLayout implements View.OnClickList
         switch (view.getId()) {
             case R.id.download_btn:
                 if (mOnItemListener != null) {
-                    mOnItemListener.onDownloadClick(mItemId);
+                    mOnItemListener.onDownloadClick(mItemId, mDownloadState);
                 }
                 break;
             case R.id.checkBox:
                 if (mOnItemListener != null) {
                     mOnItemListener.onCheck(mItemId, mCheckBox.isChecked());
                 }
+                break;
+        }
+    }
+
+    private void updateStatesButton() {
+        mDownloadBtn.setVisibility(VISIBLE);
+        switch (mDownloadState) {
+            case NEW:
+            case INFO_LOADED:
+                mDownloadBtn.setText("Start download");
+                break;
+            case PAUSED:
+                mDownloadBtn.setText("Resume download");
+                break;
+            case IN_PROGRESS:
+                mDownloadBtn.setText("Pause download");
+                break;
+            case COMPLETED:
+                mDownloadBtn.setVisibility(GONE);
                 break;
         }
     }

@@ -166,8 +166,22 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
     }
 
     @Override
-    public void onDownloadClick(int itemId) {
+    public void onDownloadClick(int itemId, DownloadState downloadState) {
         DownloadItem item = getItem(itemId).findDownloadItem();
+        if (item != null) {
+            switch (item.getState()) {
+                case NEW:
+                    item.loadMetadata();
+                    break;
+                case INFO_LOADED:
+                case PAUSED:
+                    item.startDownload();
+                    break;
+                case IN_PROGRESS:
+                    item.pauseDownload();
+                    break;
+            }
+        }
         if (item != null && item.getState() != DownloadState.COMPLETED) {
             item.loadMetadata();
         }
@@ -251,23 +265,25 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
     @Override
     public void onDownloadMetadata(DownloadItem item, Exception error) {
         LOGD("onDownloadMetadata", "");
+        DownloadState state = item.getState();
+        if (state == DownloadState.INFO_LOADED || state == DownloadState.NEW) {
+            DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
+            if (trackSelector != null) {
+                List<DownloadItem.Track> downloadedVideoTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.VIDEO);
 
-        DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
-        if (trackSelector != null) {
-            List<DownloadItem.Track> downloadedVideoTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.VIDEO);
+                List<DownloadItem.Track> availableTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
+                if (availableTracks.size() > 0) {
+                    trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, availableTracks);
+                }
+                try {
+                    trackSelector.apply();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
-            List<DownloadItem.Track> availableTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
-            if (availableTracks.size() > 0) {
-                trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, availableTracks);
-            }
-            try {
-                trackSelector.apply();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            item.startDownload();
         }
-
-        item.startDownload();
     }
 
     @Override
