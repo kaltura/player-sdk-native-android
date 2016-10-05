@@ -1,7 +1,7 @@
 {
   "baseConfig": {
     "base": {
-      "server": "http://kgit.html5video.org/tags/v2.48.rc10/mwEmbedFrame.php",
+      "server": "http://kgit.html5video.org/tags/v2.48.1/mwEmbedFrame.php",
       "partnerId": "1851571",
       "uiConfId": "31956421"
     }
@@ -9,40 +9,26 @@
   "items": {
     "webvtt": {
       "entryId": "1_kbt0jshy",
-      "flavorId": "1_osab9xe9",
       "remoteUrl": "http://www.kaltura.com/p/1851571/playManifest/entryId/1_kbt0jshy/format/mpegdash/manifest.mpd"
     },
     "sintel-dash-drm": {
       "entryId": "0_pl5lbfo0",
-      "flavorId": "0_ywkmqnkg",
       "remoteUrl": "http://cfvod.kaltura.com/edash/p/1851571/sp/185157100/serveFlavor/entryId/0_pl5lbfo0/v/2/flavorId/0_ywkmqnkg/forceproxy/true/name/a.mp4/manifest.mpd"
     },
     "count-dash-drm":  {
       "entryId": "0_uafvpmv8",
-      "flavorId": "0_6ackygkg",
       "remoteUrl": "http://cfvod.kaltura.com/edash/p/1851571/sp/185157100/serveFlavor/entryId/0_uafvpmv8/v/2/flavorId/0_6ackygkg/forceproxy/true/name/a.mp4/manifest.mpd"
     },
     "count-dash-clear":  {
       "entryId": "0_7xgt6xfm",
-      "flavorId": "0_uzum8idx",
       "remoteUrl": "http://cfvod.kaltura.com/dasha/p/1851571/sp/185157100/serveFlavor/entryId/0_7xgt6xfm/v/2/flavorId/0_uzum8idx/forceproxy/true/name/a.mp4/manifest.mpd"
-    },
-    "sintel-drm": {
-      "entryId": "0_pl5lbfo0",
-      "flavorId": "1_e0qtaj1j"
     },
     "cat-dash-clear": {
       "entryId": "1_aegxx56o",
-      "flavorId": "",
       "removeUrl": "http://cfvod.kaltura.com/dasha/p/1851571/sp/185157100/serveFlavor/entryId/1_aegxx56o/v/1/flavorId/1_,aope8b8c,ygii4ciz,/forceproxy/true/name/a.mp4.urlset/manifest.mpd"
-    },
-    "cat": {
-      "entryId": "1_aegxx56o",
-      "flavorId": "1_6dadj61z"
     },
     "kaltura": {
       "entryId": "1_cvd1usav",
-      "flavorId": "1_wabcvjtu",
       "remoteUrl": "http://cfvod.kaltura.com/pd/p/1851571/sp/185157100/serveFlavor/entryId/1_cvd1usav/v/11/flavorId/1_wabcvjtu/name/a.mp4"
     }
   }

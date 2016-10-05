@@ -101,7 +101,6 @@ public class LocalAssetsManager {
         checkNotEmpty(entry.getUiConfId(), "entry.uiConfId");
         checkNotEmpty(entry.getEntryId(), "entry.entryId");
         checkNotEmpty(entry.getLocalContentId(), "entry.localContentId");
-        checkNotEmpty(flavor, "flavor");
         checkNotEmpty(localPath, "localPath");
 
 
@@ -205,12 +204,18 @@ public class LocalAssetsManager {
                 break;
         }
 
-        return serviceURL.buildUpon()
+        if (flavor == null) {
+            flavor = "";    // the service requires the parameter, but it can be empty. 
+        }
+        
+        Uri.Builder builder = serviceURL.buildUpon()
                 .appendPath("services.php")
                 .encodedQuery(config.getQueryString())
                 .appendQueryParameter("service", "getLicenseData")
                 .appendQueryParameter("drm", drmName)
-                .appendQueryParameter("flavor_id", flavor).build();
+                .appendQueryParameter("flavor_id", flavor);
+        
+        return builder.build();
     }
 
     private static Uri resolvePlayerRootURL(Uri serverURL, String partnerId, String uiConfId, String ks) throws IOException, JSONException {
