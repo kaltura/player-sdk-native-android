@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity
 ////            config.addConfig("topBarContainer.plugin", "true");
 //            config.addConfig("largePlayBtn.plugin", "true");
 ////            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
-//
+////
 ////            config.addConfig("doubleClick.adTagUrl",adTagUrl);
 ////            config.addConfig("doubleClick.plugin","true");
 
