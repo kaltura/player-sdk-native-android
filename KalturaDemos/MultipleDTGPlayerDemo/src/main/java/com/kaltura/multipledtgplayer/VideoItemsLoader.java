@@ -169,6 +169,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
     public void onDownloadClick(int itemId, DownloadState downloadState) {
         DownloadItem item = getItem(itemId).findDownloadItem();
         if (item != null) {
+            LOGD("Download state click", "state = " + item.getState().name());
             switch (item.getState()) {
                 case NEW:
                     item.loadMetadata();
@@ -202,19 +203,19 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadComplete(DownloadItem item) {
-        LOGD("download", "completed");
+        LOGD("Download state", "completed");
         String localPath = getLocalPath(item.getItemId());
         VideoItem videoItem = findItemByMediaId(item.getItemId());
         if (localPath != null && videoItem != null) {
             LocalAssetsManager.registerAsset(mContext, videoItem.config, videoItem.flavorId, localPath, new LocalAssetsManager.AssetRegistrationListener() {
                 @Override
                 public void onRegistered(String assetPath) {
-                    LOGD("download", "Register successful");
+                    LOGD("Download state", "Register successful");
                 }
 
                 @Override
                 public void onFailed(String assetPath, Exception error) {
-                    LOGD("download", "Register failed " + error.getMessage());
+                    LOGD("Download state", "Register failed " + error.getMessage());
                 }
             });
         }
@@ -226,7 +227,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onProgressChange(DownloadItem item, long downloadedBytes) {
-        LOGD("onProgressChange", "downloaded " + downloadedBytes);
+        LOGD("Download state", "onProgressChange: downloaded " + downloadedBytes);
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
             view.bind(item);
@@ -235,7 +236,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadStart(DownloadItem item) {
-        LOGD("onDownloadStart", "");
+        LOGD("Download state", "onDownloadStart");
 
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
@@ -245,7 +246,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadPause(DownloadItem item) {
-        LOGD("onDownloadPause", "");
+        LOGD("Download state", "onDownloadPause");
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
             view.bind(item);
@@ -255,7 +256,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadStop(DownloadItem item) {
-        LOGD("onDownloadStop", "");
+        LOGD("Download state", "onDownloadStop");
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
             view.bind(item);
@@ -264,7 +265,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadMetadata(DownloadItem item, Exception error) {
-        LOGD("onDownloadMetadata", "");
+        LOGD("Download state", "onDownloadMetaData state = " + item.getState().toString());
         DownloadState state = item.getState();
         if (state == DownloadState.INFO_LOADED || state == DownloadState.NEW) {
             DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
@@ -288,6 +289,8 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
+        LOGD("Download state", "onTracksAvailable");
+
         // Select lowest-resolution video
         List<DownloadItem.Track> videoTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.VIDEO);
         DownloadItem.Track minVideo = Collections.min(videoTracks, DownloadItem.Track.bitrateComparator);
