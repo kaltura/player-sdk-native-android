@@ -138,11 +138,17 @@ public class DownloadItemView extends RelativeLayout implements View.OnClickList
         if (expected != 0) {
             progress = (int)((float)current/(float)expected * 100f);
         }
-        LOGD("update progress", progress + "%");
-        mProgressBar.setProgress(progress);
+       updateProgress(progress);
     }
 
     public void updateProgress(int progress) {
+        if (progress < 0) {
+            progress = 0;
+        }
+        else if (progress > 100) {
+            progress = 100;
+        }
+        LOGD("update progress", progress + "%");
         mProgressBar.setProgress(progress);
     }
 }
