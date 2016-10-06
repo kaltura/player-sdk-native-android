@@ -74,8 +74,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private int mAdPreferredBitrate;
     private String newSourceDuringBg = null;
     private int mContentPreferredBitrate = -1;
-    private long mPlayLastClickTime = 0;
-    private long mPauseLastClickTime = 0;
     private boolean mShouldPauseChromecastInBg = false;
 
     private String mEntryId = "";
@@ -385,12 +383,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null && mCastProvider == null) {
             return;
         }
-        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000 /*&& mCastProvider == null*/) {
-            playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
-            LOGD(TAG, "PLAY REJECTED");
-            return;
-        }
-        mPlayLastClickTime = SystemClock.elapsedRealtime();
+
         if (currentState != UIState.Play) {
             currentState = UIState.Play;
             if (isBackgrounded && isIMAActive) {
@@ -427,12 +420,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null && mCastProvider == null) {
             return;
         }
-        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000 /*&& mCastProvider == null*/) {
-            LOGD(TAG, "PAUSE REJECTED");
-            return;
-        }
 
-        mPauseLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Pause) {
             currentState = UIState.Pause;
             if (mCastProvider == null) {
