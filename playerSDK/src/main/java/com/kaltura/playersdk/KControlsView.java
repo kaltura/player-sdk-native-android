@@ -27,6 +27,8 @@ import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.types.KPError;
 import com.kaltura.playersdk.utils.LogUtils;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
@@ -138,6 +140,14 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
 
     public void setKDPAttribute(String pluginName, String propertyName, String value) {
+        this.loadUrl(KStringUtilities.setKDPAttribute(pluginName, propertyName, value));
+    }
+
+    public void setStringKDPAttribute(String pluginName, String propertyName, String value) {
+        this.loadUrl(KStringUtilities.setStringKDPAttribute(pluginName, propertyName, value));
+    }
+
+    public void setKDPAttribute(String pluginName, String propertyName, JSONObject value) {
         this.loadUrl(KStringUtilities.setKDPAttribute(pluginName, propertyName, value));
     }
 
