@@ -918,6 +918,24 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         });
     }
 
+    public void setStringKDPAttribute(final String pluginName, final String propertyName, final String value) {
+        registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                mWebView.setStringKDPAttribute(pluginName, propertyName, value);
+            }
+        });
+    }
+
+    public void setKDPAttribute(final String pluginName, final String propertyName, final JSONObject value) {
+        registerReadyEvent(new ReadyEventListener() {
+            @Override
+            public void handler() {
+                mWebView.setKDPAttribute(pluginName, propertyName, value);
+            }
+        });
+    }
+
     public void triggerEvent(String event, String value) {
         mWebView.triggerEvent(event, value);
     }
