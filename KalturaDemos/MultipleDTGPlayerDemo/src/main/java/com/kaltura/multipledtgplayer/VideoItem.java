@@ -3,7 +3,7 @@ package com.kaltura.multipledtgplayer;
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
-import com.kaltura.playersdk.KPPlayerConfig;
+import com.kaltura.playersdk.config.KPPlayerConfig;
 
 import java.io.File;
 

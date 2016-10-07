@@ -1,5 +1,7 @@
 package com.kaltura.playersdk;
 
+import com.kaltura.playersdk.config.KPPlayerConfig;
+
 /*
  * This class will be implemented by the SDK User and will be given to the SDK upon setComponents call
  */

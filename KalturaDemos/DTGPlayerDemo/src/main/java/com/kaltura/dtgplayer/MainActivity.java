@@ -17,7 +17,7 @@ import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
-import com.kaltura.playersdk.KPPlayerConfig;
+import com.kaltura.playersdk.config.KPPlayerConfig;
 import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.utils.Utilities;

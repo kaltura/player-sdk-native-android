@@ -8,7 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.kaltura.playersdk.KPPlayerConfig;
+import com.kaltura.playersdk.config.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 
 

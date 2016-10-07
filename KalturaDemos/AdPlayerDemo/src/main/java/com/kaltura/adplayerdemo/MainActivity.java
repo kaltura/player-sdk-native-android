@@ -21,7 +21,7 @@ import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
-import com.kaltura.playersdk.KPPlayerConfig;
+import com.kaltura.playersdk.config.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;

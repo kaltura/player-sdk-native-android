@@ -1,7 +1,8 @@
-package com.kaltura.playersdk;
+package com.kaltura.playersdk.config;
 
 import android.net.Uri;
 
+import com.kaltura.playersdk.BuildConfig;
 import com.kaltura.playersdk.players.KMediaFormat;
 import com.kaltura.playersdk.utils.Utilities;
 

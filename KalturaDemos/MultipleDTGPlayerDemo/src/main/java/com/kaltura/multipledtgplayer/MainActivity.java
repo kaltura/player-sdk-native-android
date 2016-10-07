@@ -13,7 +13,7 @@ import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.kaltura.playersdk.KPPlayerConfig;
+import com.kaltura.playersdk.config.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
