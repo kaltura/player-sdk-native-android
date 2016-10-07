@@ -177,7 +177,11 @@ public class LocalAssetsManager {
         }
         
         String licenseUri = licenseDataJSON.getString("licenseUri");
-        
+
+        if (flavor == null) {
+            licenseUri = licenseUri.replaceFirst("\\Q&files=\\E[^&]+", "");
+        }
+
         return Uri.parse(licenseUri);
     }
 

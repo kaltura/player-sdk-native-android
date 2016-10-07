@@ -2,6 +2,7 @@ package com.kaltura.multipledtgplayer;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -18,9 +19,16 @@ import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
+import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.utils.LogUtils;
+import com.kaltura.playersdk.utils.Utilities;
 
-import static com.kaltura.playersdk.utils.LogUtils.LOGD;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements KPErrorEventListener, KPStateChangedEventListener {
 
@@ -35,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         public String getURL(String entryId, String currentURL) {
 
             String playbackURL = mVideoItemsLoader.getUrl(entryId);
-
+            LogUtils.LOGD(TAG, "Playback URL => " + playbackURL);
             return playbackURL;
         }
     };
@@ -46,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        prepareCache();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -67,6 +76,95 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
             }
         });
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+    }
+
+    public String getPrefetchjJson() {
+        String json = "{\n" +
+                "  \"base\": {\n" +
+                // "    \"server\": \"http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php\",\n" +
+
+                //"    \"server\": \"http://player-as.ott.kaltura.com/225/v2.47_viacom_v0.30_v0.4.1_viacom_proxy_v0.4.4/mwEmbed/mwEmbedFrame.php\",\n" +
+
+                "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.2_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.4/mwEmbed/mwEmbedFrame.php\",\n" +
+                // "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.47_viacom_v0.30_v0.4.1_viacom_proxy_v0.4.4/mwEmbed/mwEmbedFrame.php\",\n" +
+                //                   "    \"server\": \"http://192.168.160.69/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
+                //"    \"server\": \"http://192.168.162.120/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
+                "    \"partnerId\": \"\",\n" +
+                "    \"uiConfId\": \"32626752\"\n" +
+                //"    \"entryId\": \"374130\"\n" +
+                //                 "    \"entryId\": \"384080\"\n" +
+
+
+
+                "  },\n" +
+                "  \"extra\": {\n" +
+                "    \"watermark.plugin\": \"true\",\n" +
+                "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
+                "    \"watermark.title\": \"Viacom18\",\n" +
+                "    \"watermark.cssClass\": \"topRight\",\n" +
+                "    \n" +
+                "    \"controlBarContainer.hover\": true,\n" +
+                "    \"controlBarContainer.plugin\": true,\n" +
+//                    "    \"adultPlayer.plugin\": false,\n" +
+                "    \"kidsPlayer.plugin\": true,\n" +
+                "    \"nextBtnComponent.plugin\": true,\n" +
+                "    \"prevBtnComponent.plugin\": true,\n" +
+                "    \n" +
+                "    \"liveCore.disableLiveCheck\": true,\n" +
+                "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
+                "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\"\n" +
+                "  }\n" +
+                "}\n";
+        return json;
+    }
+    
+    private void prepareCache() {
+        KPPlayerConfig prefetchConfig = null;
+        try {
+            prefetchConfig = KPPlayerConfig.fromJSONObject(new JSONObject(getPrefetchjJson()));
+            prefetchConfig.getCacheConfig().addIncludePattern(Pattern.compile("https://voot-kaltura.s3.amazonaws.com/voot-watermark.png", Pattern.LITERAL));
+            prefetchConfig.getCacheConfig().addIncludePattern(".*kwidget-ps/ps/modules/viacom/resources/.+/images.*");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        PlayerViewController.prefetchPlayerResources(prefetchConfig, this);
+        final CacheManager cacheManager = new CacheManager(this.getApplicationContext());
+        cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(prefetchConfig.getServerURL()));
+        cacheManager.setCacheSize(prefetchConfig.getCacheSize());
+        String vootDeploy = prefetchConfig.getServerURL().replaceAll("/mwEmbed/mwEmbedFrame.php","");
+        //String vootDeploy = "http://player-as.ott.kaltura.com/225/v2.48.1_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.4";
+
+        String ext = "?2016-10-06T11:13:20Z";
+        final String nextPng = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Next.png" + ext;
+        final String prvPng  = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Previous.png"+ ext;
+
+        final String kidsPlay  = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Play.png" + ext;
+        final String kidsPause = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Pause.png" + ext;
+
+        final String adultPlay  = vootDeploy +  "/kwidget-ps/ps/modules/viacom/resources/Player_Adult/images/Play.png"+ ext;
+        final String adultPause = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Adult/images/Pause.png"+ ext;
+        final String watermark  = "https://voot-kaltura.s3.amazonaws.com/voot-watermark.png";
+
+
+        Thread thread = new Thread(new Runnable(){
+            public void run() {
+                try {
+
+                    cacheManager.cacheResponse(Uri.parse(nextPng));
+                    cacheManager.cacheResponse(Uri.parse(prvPng));
+                    cacheManager.cacheResponse(Uri.parse(kidsPlay));
+                    cacheManager.cacheResponse(Uri.parse(kidsPause));
+                    cacheManager.cacheResponse(Uri.parse(adultPlay));
+                    cacheManager.cacheResponse(Uri.parse(adultPause));
+                    cacheManager.cacheResponse(Uri.parse(watermark));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
     }
 
 
