@@ -24,6 +24,7 @@ import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.KTracksManager;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
+import com.kaltura.playersdk.widevine.LicenseResource;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -74,6 +75,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     private KCastProviderImpl mCastProvider;
     private KChromeCastPlayer mCastPlayer;
+    private LicenseResource mWidevineClassicDataSource;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -271,10 +273,15 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.parentViewController = (RelativeLayout)listener;
     }
 
+    public void setWidevineClassicLicenseDataSource(LicenseResource licenseDataSource) {
+        mWidevineClassicDataSource = licenseDataSource;
+    }
+
     public void addPlayerToController(boolean isWVClassic) {
         Context context = parentViewController.getContext();
         if (isWVClassic) {
-            player = new KWVCPlayer(context);
+            KWVCPlayer kwvcPlayer = new KWVCPlayer(context, mWidevineClassicDataSource);
+            player = kwvcPlayer;
         } else {
             player = new KExoPlayer(context);
             if (prepareWithConfigurationMode) {

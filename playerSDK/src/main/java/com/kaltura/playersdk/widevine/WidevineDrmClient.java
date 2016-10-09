@@ -45,6 +45,7 @@ public class WidevineDrmClient {
 
     private String mDeviceId;
     private DrmManagerClient mDrmManager;
+    private LicenseResource mLicenseResource;
 
     public void setEventListener(EventListener eventListener) {
         mEventListener = eventListener;
@@ -113,9 +114,18 @@ public class WidevineDrmClient {
         drmManagerClient.release();
         return canHandle;
     }
-    
-    
+
+    public WidevineDrmClient(Context context, LicenseResource licenseResource) {
+        mLicenseResource = licenseResource;
+        init(context);
+    }
+
+
     public WidevineDrmClient(Context context) {
+        init(context);
+    }
+
+    private void init(Context context) {
 
         mDrmManager = new DrmManagerClient(context) {
             @Override
@@ -133,7 +143,7 @@ public class WidevineDrmClient {
         if (! mDrmManager.canHandle("", WIDEVINE_MIME_TYPE)) {
             throw new UnsupportedOperationException("Widevine Classic is not supported");
         }
-        
+
         mDeviceId = new DeviceUuidFactory(context).getDeviceUuid().toString();
 
         mDrmManager.setOnInfoListener(new DrmManagerClient.OnInfoListener() {
@@ -165,11 +175,13 @@ public class WidevineDrmClient {
                 }
             }
         });
-        
+
         registerPortal();
     }
     
-
+    public void setLicenseResource(LicenseResource licenseResource) {
+        mLicenseResource = licenseResource;
+    }
     private void logEvent(DrmEvent event) {
 //		if (! BuildConfig.DEBUG) {
 //			// Basic log
@@ -243,6 +255,10 @@ public class WidevineDrmClient {
     }
 
     private DrmInfoRequest createDrmInfoRequest(String assetUri, String licenseServerUri) {
+        if (mLicenseResource != null) {
+            return mLicenseResource.createDrmInfoRequest(assetUri, licenseServerUri);
+        }
+
         DrmInfoRequest rightsAcquisitionInfo;
         rightsAcquisitionInfo = new DrmInfoRequest(DrmInfoRequest.TYPE_RIGHTS_ACQUISITION_INFO,
                 WIDEVINE_MIME_TYPE);
@@ -269,7 +285,7 @@ public class WidevineDrmClient {
 
     public void registerPortal() {
 
-        String portal = PORTAL_NAME;
+        String portal = getPortalName();
         DrmInfoRequest request = new DrmInfoRequest(DrmInfoRequest.TYPE_REGISTRATION_INFO,
                 WIDEVINE_MIME_TYPE);
         request.put(WV_PORTAL_KEY, portal);
@@ -281,6 +297,11 @@ public class WidevineDrmClient {
         if (!TextUtils.isEmpty(drmInfoRequestStatusKey)) {
             mWVDrmInfoRequestStatusKey = Long.parseLong(drmInfoRequestStatusKey);
         }
+    }
+
+    private String getPortalName() {
+        if (mLicenseResource != null) return mLicenseResource.getPortalName();
+        return PORTAL_NAME;
     }
 
     /**

@@ -18,6 +18,7 @@ import android.widget.VideoView;
 
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
+import com.kaltura.playersdk.widevine.LicenseResource;
 import com.kaltura.playersdk.widevine.WidevineDrmClient;
 
 import java.util.Collections;
@@ -54,6 +55,7 @@ public class KWVCPlayer
     private boolean mWasDestroyed;
     private String mLastSentEvent = "";
 
+
     public static Set<KMediaFormat> supportedFormats(Context context) {
         if (WidevineDrmClient.isSupported(context)) {
             return Collections.singleton(KMediaFormat.wvm_widevine);
@@ -68,7 +70,16 @@ public class KWVCPlayer
      */
     public KWVCPlayer(Context context) {
         super(context);
-        mDrmClient = new WidevineDrmClient(context);
+        init(context, null);
+    }
+
+    public KWVCPlayer(Context context, LicenseResource widevineClassicDataSource) {
+        super(context);
+        init(context, widevineClassicDataSource);
+    }
+
+    private void init(Context context, LicenseResource licenseResource){
+        mDrmClient = new WidevineDrmClient(context, licenseResource);
         mDrmClient.setEventListener(new WidevineDrmClient.EventListener() {
             @Override
             public void onError(final DrmErrorEvent event) {
@@ -92,6 +103,10 @@ public class KWVCPlayer
         // Set no-op listeners so we don't have to check for null on use
         setPlayerListener(null);
         setPlayerCallback(null);
+    }
+
+    public void setLicenseDataSource(LicenseResource licenseDataSource) {
+        mDrmClient.setLicenseResource(licenseDataSource);
     }
 
     // Convert file:///local/path/a.wvm to /local/path/a.wvm
