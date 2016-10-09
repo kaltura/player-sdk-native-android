@@ -48,12 +48,14 @@ import com.kaltura.playersdk.utils.Utilities;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
@@ -101,16 +103,33 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private KCastProvider mCastProvider;
 
-    public static void prefetchPlayerResources(KPPlayerConfig config, Activity activity) {
+    public static void prefetchPlayerResources(KPPlayerConfig config, final List<Uri> uriItemsList, Activity activity) {
 
         final PlayerViewController player = new PlayerViewController(activity);
 
         player.loadPlayerIntoActivity(activity);
 
         config.addConfig("EmbedPlayer.PreloadNativeComponent", "true");
-        
+
         player.initWithConfiguration(config);
-        
+
+        final CacheManager cacheManager = new CacheManager(activity.getApplicationContext());
+        cacheManager.setBaseURL(Utilities.stripLastUriPathSegment(config.getServerURL()));
+        cacheManager.setCacheSize(config.getCacheSize());
+        if (uriItemsList != null && !uriItemsList.isEmpty()) {
+            Thread thread = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        for (Uri uriItem : uriItemsList)
+                            cacheManager.cacheResponse(uriItem);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+        }
+
         player.registerReadyEvent(new ReadyEventListener() {
             @Override
             public void handler() {
