@@ -5,7 +5,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.kaltura.playersdk.config.KPPlayerConfig;
 import com.kaltura.playersdk.drm.DrmAdapter;
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.utils.Utilities;

@@ -25,7 +25,6 @@ import android.widget.RelativeLayout;
 
 import com.kaltura.playersdk.actionHandlers.ShareManager;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
-import com.kaltura.playersdk.config.KPPlayerConfig;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPFullScreenToggledEventListener;
