@@ -5,7 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -160,6 +159,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void setCastProvider(final KCastProvider castProvider) {
         pause();
         mCastProvider = (KCastProviderV3Impl)castProvider;
+        /////////////////mCastProvider.setPlayerListener(playerListener); ///Need to test
         mCastProvider.setInternalListener(new KCastInternalListener() {
             @Override
             public void onStartCasting(KChromeCastPlayer remoteMediaPlayer) {

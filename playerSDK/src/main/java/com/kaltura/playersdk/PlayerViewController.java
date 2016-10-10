@@ -1009,8 +1009,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     playerController.setLocale(attributeValue);
                     break;
                 case doubleClickRequestAds:
+                    String useExternalAdPlayer = getConfig().getConfigValueString("EmbedPlayer.UseExternalAdPlayer");
+                    if("true".equals(useExternalAdPlayer)) {
+                        return;
+                    }
                     LOGD(TAG, "IMA doubleClickRequestAds initialize:" + attributeValue);
-                    playerController.initIMA(attributeValue,mConfig.getAdMimeType(), mConfig.getAdPreferredBitrate(), mActivity);
+                    playerController.initIMA(attributeValue, mConfig.getAdMimeType(), mConfig.getAdPreferredBitrate(), mActivity);
                     break;
                 case goLive:
                     (playerController.getPlayer()).switchToLive();

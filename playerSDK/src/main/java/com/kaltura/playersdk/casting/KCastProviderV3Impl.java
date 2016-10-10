@@ -40,6 +40,10 @@ public class KCastProviderV3Impl implements KCastProvider {
     private boolean mApplicationStarted;
     private boolean isReconnedted  = true;
     private String mCastLogoUrl = "";
+    //private boolean isPlayAfterEnded = false;
+    //private String[] currentMediaParams;
+    //@NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
+
 
     public KCastProviderV3Impl(Context context, String castAppId, String logoUrl) {
         mContext = context;
@@ -131,6 +135,19 @@ public class KCastProviderV3Impl implements KCastProvider {
         return mProviderListener;
     }
 
+//    private KPlayerListener noopPlayerListener() {
+//        return new KPlayerListener() {
+//            public void eventWithValue(KPlayer player, String eventName, String eventValue) {}
+//            public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {}
+//            public void asyncEvaluate(String expression, String expressionID, PlayerViewController.EvaluateListener evaluateListener) {}
+//            public void contentCompleted(KPlayer currentPlayer) {}
+//        };
+//    }
+
+//    public void setPlayerListener(@NonNull KPlayerListener listener) {
+//        mPlayerListener = listener;
+//    }
+
     @Override
     public void startReceiver(Context context, boolean guestModeEnabled) {
         mCastSession = mSessionManager.getCurrentCastSession();
@@ -142,12 +159,38 @@ public class KCastProviderV3Impl implements KCastProvider {
                 }
                 // Receiver send the new content
                 if (params != null) {
+                    //currentMediaParams = params;
                     mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
                     ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(params);
                     if (mInternalListener != null) {
                         mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
                     }
                 }
+            }
+
+            @Override
+            public void ccUpdateAdDuration(int adDuration) {
+                //LOGD(TAG, "ccUpdateAdDuration :" + adDuration);
+                //mPlayerListener.eventWithValue(null, KPlayerListener.AdDurationChangeKey, String.valueOf(adDuration));
+            }
+
+            @Override
+            public void ccUserInitiatedPlay() {
+//                if (isPlayAfterEnded) {
+//                    mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
+//                    ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(currentMediaParams);
+//                    if (mInternalListener != null) {
+//                        mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+//                    }
+//                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+//                    isPlayAfterEnded = false;
+//                }
+            }
+
+            @Override
+            public void ccPostEnded() {
+//                sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
+//                isPlayAfterEnded = true;
             }
 
             @Override
