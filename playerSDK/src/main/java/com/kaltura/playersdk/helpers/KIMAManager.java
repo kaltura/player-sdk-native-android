@@ -162,7 +162,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
         renderingSettings.setMimeTypes(mimeTypes);
         renderingSettings.setUiElements(Collections.<UiElement>emptySet());
-        renderingSettings.setEnablePreloading(true);
+//        renderingSettings.setEnablePreloading(true);
         //Set<UiElement> set = new HashSet<UiElement>();
         //set.add(UiElement.AD_ATTRIBUTION);
         //set.add(UiElement.COUNTDOWN);
@@ -178,6 +178,11 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     @Override
     public void onAdEvent(AdEvent adEvent) {
         LOGD(TAG, "Start onAdEvent " + adEvent.getType().name());
+
+        if (adEvent.getType() == AdEvent.AdEventType.SKIPPED) {
+            mIMAPlayer.stopAd();
+            mIMAPlayer.removeAd();
+        }
 
         if (mListener != null) {
             mListener.onAdEvent(adEvent.getType(), adJSONValue(adEvent));
