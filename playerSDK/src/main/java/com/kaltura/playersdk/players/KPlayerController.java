@@ -19,7 +19,7 @@ import com.kaltura.playersdk.helpers.KIMAManagerEvents;
 import com.kaltura.playersdk.interfaces.KCastMediaRemoteControl;
 import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
-import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.interfaces.KPlayerControl;
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.tracks.KTracksManager;
 import com.kaltura.playersdk.tracks.TrackFormat;
@@ -35,7 +35,7 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 /**
  * Created by nissopa on 6/14/15.
  */
-public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KMediaControl, KIMAManagerListener {
+public class KPlayerController implements KPlayerCallback, ContentProgressProvider, KPlayerControl, KIMAManagerListener {
     private static final String TAG = "KPlayerController";
     private KPlayer player;
     private KTracksManager tracksManager;
