@@ -285,9 +285,12 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     //remove caption before changeMedia
     public void changeMedia() {
+        if(mCastPlayer != null && mCastPlayer.hasMediaSession(true)) {
+            mCastPlayer.pause();
+        }
         player.pause();
-        player.setCurrentPlaybackTime(0);
-        player.switchTrack(TrackType.TEXT,-1);
+        //player.setCurrentPlaybackTime(0);
+        //player.switchTrack(TrackType.TEXT,-1);
     }
 
     public void setEntryMetadata() {
