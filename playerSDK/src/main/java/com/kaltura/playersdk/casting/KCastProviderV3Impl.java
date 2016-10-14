@@ -154,9 +154,9 @@ public class KCastProviderV3Impl implements KCastProvider {
         mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
             @Override
             public void readyForMedia(final String[] params) {
-                if (!isRecconected()) {
+                //if (!isRecconected()) {
                     sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
-                }
+                //}
                 // Receiver send the new content
                 if (params != null) {
                     //currentMediaParams = params;
