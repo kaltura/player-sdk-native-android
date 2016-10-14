@@ -136,9 +136,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             if (mEntryId.contains("_")) {
                 mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl + "/width/1200/hight/780")));//"/width/480/hight/270")));
             } else {
-
                 mediaMetadata.addImage(new WebImage(Uri.parse(mEntryThumbnailUrl)));
-
             }
         }
 

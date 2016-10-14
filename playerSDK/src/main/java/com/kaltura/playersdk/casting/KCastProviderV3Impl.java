@@ -264,7 +264,7 @@ public class KCastProviderV3Impl implements KCastProvider {
 
     @Override
     public boolean isRecconected() {
-        return isReconnedted;
+        return isReconnedted || (mCastSession != null && mCastSession.getRemoteMediaClient() != null && mCastSession.getRemoteMediaClient().hasMediaSession());
     }
 
     @Override
