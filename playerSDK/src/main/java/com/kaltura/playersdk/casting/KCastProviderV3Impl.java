@@ -76,6 +76,7 @@ public class KCastProviderV3Impl implements KCastProvider {
         this.mCastLogoUrl = mCastLogoUrl;
     }
 
+    private boolean isInSession = false;
     private SessionManagerListener mSessionManagerListener = new SessionManagerListener() {
         @Override
         public void onSessionStarting(Session session) {
@@ -84,26 +85,33 @@ public class KCastProviderV3Impl implements KCastProvider {
 
         @Override
         public void onSessionStarted(Session session, String s) {
-            LOGD(TAG, "SessionManagerListener onSessionStarted");
+
             isReconnedted = false;
-            startReceiver(mContext);
+            if (!isInSession) {
+                LOGD(TAG, "SessionManagerListener onSessionStarted");
+                startReceiver(mContext);
+            }
+            isInSession = true;
         }
 
         @Override
         public void onSessionStartFailed(Session session, int i) {
             LOGD(TAG, "SessionManagerListener onSessionStartFailed");
+            isInSession = false;
         }
 
         @Override
         public void onSessionEnding(Session session) {
             LOGD(TAG, "SessionManagerListener onSessionEnding");
             disconnectFromCastDevice();
+            isInSession = false;
         }
 
         @Override
         public void onSessionEnded(Session session, int i) {
             LOGD(TAG, "SessionManagerListener onSessionEnded");
             disconnectFromCastDevice();
+            isInSession = false;
         }
 
         @Override
@@ -114,6 +122,7 @@ public class KCastProviderV3Impl implements KCastProvider {
         @Override
         public void onSessionResumed(Session session, boolean b) {
             LOGD(TAG, "SessionManagerListener onSessionResumed");
+            isInSession = true;
         }
 
         @Override
@@ -126,7 +135,7 @@ public class KCastProviderV3Impl implements KCastProvider {
         public void onSessionSuspended(Session session, int i) {
             LOGD(TAG, "SessionManagerListener onSessionSuspended");
             if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
-                 LOGD(TAG, "onSessionSuspended CURRENT POSITION = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
+                LOGD(TAG, "onSessionSuspended CURRENT POSITION = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
             }
         }
     };
@@ -264,7 +273,7 @@ public class KCastProviderV3Impl implements KCastProvider {
 
     @Override
     public boolean isRecconected() {
-        return isReconnedted || (mCastSession != null && mCastSession.getRemoteMediaClient() != null && mCastSession.getRemoteMediaClient().hasMediaSession());
+        return isReconnedted;
     }
 
     @Override
@@ -277,8 +286,8 @@ public class KCastProviderV3Impl implements KCastProvider {
 
     @Override
     public boolean isCasting() {
-        if (mCastSession != null) {
-            return mCastSession.getRemoteMediaClient().hasMediaSession();
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+            return mCastSession.getRemoteMediaClient().isPlaying() || mCastSession.getRemoteMediaClient().isPaused();
         }
         return false;
     }
@@ -301,6 +310,10 @@ public class KCastProviderV3Impl implements KCastProvider {
 
     public CastSession getCastSession() {
         return mCastSession;
+    }
+
+    public void removeSessionManagerListener() {
+        mSessionManagerListener = null;
     }
 
     private void teardown() {

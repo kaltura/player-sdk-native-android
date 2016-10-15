@@ -145,8 +145,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (mCastProvider == null) {
             return null;
         }
-        boolean isReconnect = mCastProvider.isRecconected();
-        if (isReconnect) {
+        boolean isReconnect = mCastProvider.isRecconected() ;
+        boolean isCasting = mCastProvider.isCasting();
+        if (isCasting) {
             mCastProvider.startReceiver(mActivity);
         }
 
@@ -171,6 +172,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                                 changeMediaJSON.put("entryId", idEvaluateResponse);
                                 changeMediaJSON.put("proxyData", proxyData);
                                 changeMedia(changeMediaJSON);
+                                //final long currPos = ((KCastProviderV3Impl)mCastProvider).getCastSession().getRemoteMediaClient().getApproximateStreamPosition();
+                                //final String currEntryId = ((KCastProviderV3Impl)mCastProvider).getCastSession().getRemoteMediaClient().getMediaInfo().getMetadata().getString(KChromeCastPlayer.KEY_ENTRY_ID);
+                                //     if (currEntryId == idEvaluateResponse)
+                                //    ((KCastProviderV3Impl)mCastProvider).getCastSession().getRemoteMediaClient().seek(currPos);
+                                //     playerController.seek(currPos);
+
                             } catch (JSONException e) {
                                 LOGE(TAG, "Error could not create change media proxy dat object");
                             }
@@ -1045,15 +1052,15 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                     }
 
                     if ("Off".equalsIgnoreCase(attributeValue)) {
-                            getTrackManager().switchTrack(TrackType.TEXT, -1);
-                            return;
+                        getTrackManager().switchTrack(TrackType.TEXT, -1);
+                        return;
                     }
                     for (int index = 0; index < getTrackManager().getTextTrackList().size(); index++) {
-                            //LOGD(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
-                            if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)) {
-                                getTrackManager().switchTrack(TrackType.TEXT, index);
-                                return;
-                            }
+                        //LOGD(TAG, "<" + getTrackManager().getTextTrackList().get(index) + ">/<" + attributeValue + ">");
+                        if ((getTrackManager().getTextTrackList().get(index).trackLabel).equals(attributeValue)) {
+                            getTrackManager().switchTrack(TrackType.TEXT, index);
+                            return;
+                        }
                     }
 
                     break;
