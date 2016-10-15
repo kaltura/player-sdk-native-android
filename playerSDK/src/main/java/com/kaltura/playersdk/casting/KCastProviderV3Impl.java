@@ -160,6 +160,9 @@ public class KCastProviderV3Impl implements KCastProvider {
     @Override
     public void startReceiver(Context context, boolean guestModeEnabled) {
         mCastSession = mSessionManager.getCurrentCastSession();
+        if (mChannel != null) {
+            return;
+        }
         mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
             @Override
             public void readyForMedia(final String[] params) {
