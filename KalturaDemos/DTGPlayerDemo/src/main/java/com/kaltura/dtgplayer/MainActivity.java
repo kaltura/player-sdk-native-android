@@ -20,11 +20,11 @@ import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.LocalAssetsManager;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.utils.Utilities;
 import com.kaltura.playersdk.events.KPErrorEventListener;
 import com.kaltura.playersdk.events.KPStateChangedEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
+import com.kaltura.playersdk.utils.Utilities;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
                 }
 
                 KPPlayerConfig config = mSelectedItem.config;
-                LocalAssetsManager.registerAsset(MainActivity.this, config, mSelectedItem.flavorId, mSelectedItem.getLocalPath(), new LocalAssetsManager.AssetRegistrationListener() {
+                LocalAssetsManager.registerAsset(MainActivity.this, config, null, mSelectedItem.getLocalPath(), new LocalAssetsManager.AssetRegistrationListener() {
                     @Override
                     public void onRegistered(String assetPath) {
                         uiLog("Register successful", null);
@@ -275,13 +275,11 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
 
     class Item {
         KPPlayerConfig config;
-        String flavorId;
         String contentUrl;
         String name;
 
-        Item(KPPlayerConfig config, String flavorId, String contentUrl, String name) {
+        Item(KPPlayerConfig config, String contentUrl, String name) {
             this.config = config;
-            this.flavorId = flavorId;
             this.contentUrl = contentUrl;
             this.name = name;
         }
@@ -346,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
 
                 config.addConfig("autoPlay", "true");
 
-                Item item = new Item(config, flavorId, remoteUrl, key);
+                Item item = new Item(config, remoteUrl, key);
 
                 contentItems.add(item);
             }

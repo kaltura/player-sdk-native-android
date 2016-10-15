@@ -33,6 +33,7 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
+import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 
@@ -97,6 +98,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         return new KPlayerListener() {
             public void eventWithValue(KPlayer player, String eventName, String eventValue) {}
             public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {}
+            public void asyncEvaluate(String expression, String expressionID, PlayerViewController.EvaluateListener evaluateListener) {}
             public void contentCompleted(KPlayer currentPlayer) {}
         };
     }

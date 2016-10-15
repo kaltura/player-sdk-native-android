@@ -12,7 +12,6 @@ import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
 import android.drm.DrmStore;
 import android.os.Build;
-import android.text.TextUtils;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;

@@ -30,7 +30,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile project(":playerSDK")
 
-    compile 'com.github.kaltura:playkit-dtg-android:v2.0.0.rc8'
+    compile 'com.github.kaltura:playkit-dtg-android:v2.0.0.rc9'
     // Uncomment to build dtglib yourself. Also see settings.grade.
     // compile project(":dtglib")
     

@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
@@ -117,11 +118,20 @@ public class KStringUtilities {
     }
 
     static public String asyncEvaluate(String expression, String evaluateID) {
-        return JSMethod(AsyncEvaluate, expression, evaluateID);
+        return JSMethod(AsyncEvaluate, "'" + expression + "'", "'" + evaluateID + "'");
     }
 
     static public String setKDPAttribute(String pluginName, String propertyName, String value) {
         return JSMethod(SetKDPAttribute, "'" + pluginName + "'", "'" + propertyName + "'", value);
+    }
+
+    //adding 2 setKDPAttribute for String and JSON inorder not to create backwards compatibility problems (fixing the missing "'" in both value sides)
+    static public String setKDPAttribute(String pluginName, String propertyName, JSONObject value) {
+        return JSMethod(SetKDPAttribute, "'" + pluginName + "'", "'" + propertyName + "'", value.toString());
+    }
+
+    static public String setStringKDPAttribute(String pluginName, String propertyName, String value) {
+        return JSMethod(SetKDPAttribute, "'" + pluginName + "'", "'" + propertyName + "'", "'" + value + "'");
     }
 
     static public String triggerEvent(String event, String value) {

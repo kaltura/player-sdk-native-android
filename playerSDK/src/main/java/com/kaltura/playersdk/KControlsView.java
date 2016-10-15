@@ -9,7 +9,6 @@ import android.net.http.SslError;
 import android.os.Build;
 import android.os.Looper;
 import android.util.Base64;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.ConsoleMessage;
@@ -27,6 +26,8 @@ import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.types.KPError;
 import com.kaltura.playersdk.utils.LogUtils;
+
+import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -142,6 +143,14 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         this.loadUrl(KStringUtilities.setKDPAttribute(pluginName, propertyName, value));
     }
 
+    public void setStringKDPAttribute(String pluginName, String propertyName, String value) {
+        this.loadUrl(KStringUtilities.setStringKDPAttribute(pluginName, propertyName, value));
+    }
+
+    public void setKDPAttribute(String pluginName, String propertyName, JSONObject value) {
+        this.loadUrl(KStringUtilities.setKDPAttribute(pluginName, propertyName, value));
+    }
+
     public void triggerEvent(final String event, final String value) {
         loadUrl(KStringUtilities.triggerEvent(event, value));
     }
@@ -165,12 +174,15 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         WebResourceResponse response = null;
         if (mCacheManager != null) {
             try {
+                if (requestUrl != null) {
+                    LOGD(TAG, "getResponse: CacheManager - requestUrl=" + requestUrl);
+                }
                 response = mCacheManager.getResponse(requestUrl, headers, method);
             } catch (IOException e) {
                 if (requestUrl.getPath().endsWith("favicon.ico")) {
                     response = getWhiteFaviconResponse();
                 } else {
-                    LOGE(TAG, "getResponse From CacheManager error::", e);
+                    LOGE(TAG, "getResponse From CacheManager error:: " + e.getMessage(), e);
                 }
             }
         }
