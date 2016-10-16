@@ -1,7 +1,9 @@
 package com.kaltura.playersdk;
 
 import android.net.Uri;
+import android.util.Log;
 
+import com.kaltura.playersdk.config.KProxyData;
 import com.kaltura.playersdk.players.KMediaFormat;
 import com.kaltura.playersdk.utils.Utilities;
 
@@ -171,6 +173,11 @@ public class KPPlayerConfig implements Serializable{
 			mExtraConfig.put(key, value);
 		}
 		return this;
+	}
+
+	public KPPlayerConfig addProxyData(KProxyData proxyData) {
+		Log.d("proxyData", proxyData.toJson().toString());
+		return addConfig("proxyData", proxyData.toJson().toString());
 	}
 
 	public boolean isAutoPlay() {
