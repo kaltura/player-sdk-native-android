@@ -23,10 +23,12 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.config.KProxyData;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,8 +110,8 @@ public class MainActivity extends AppCompatActivity
                     mPlayer.detachView();
 
                     try {
-                        config = getConfig("388409");//KPPlayerConfig.fromJSONObject(new JSONObject(getJson("388409")));
-                    } catch (Exception e) {
+                        config = KPPlayerConfig.fromJSONObject(new JSONObject(getJson("388409")));
+                    } catch (JSONException e) {
                         e.printStackTrace();
                     }
                     if (adList.size() > 0) {
@@ -162,12 +164,12 @@ public class MainActivity extends AppCompatActivity
 ////            config.addConfig("doubleClick.plugin","true");
 
 
-            //String json = getJson("384080"/*"388409"*/);
+            String json = getJson("384080"/*"388409"*/);
 
 
             //KPPlayerConfig config = null;
             try {
-                /*config = KPPlayerConfig.fromJSONObject(new JSONObject(json));
+                config = KPPlayerConfig.fromJSONObject(new JSONObject(json));
 
                 config.addConfig("topBarContainer.hover", "true");
                 //config.addConfig("autoPlay", "true");
@@ -178,12 +180,11 @@ public class MainActivity extends AppCompatActivity
                 config.addConfig("scrubber.sliderPreview", "false");
                 //config.addConfig("largePlayBtn","false");
                 //config.addConfig("debugKalturaPlayer", "true");
-                config.addConfig("EmbedPlayer.HidePosterOnStart", "true");*/
-                if (config == null) config = getConfig("384080");
+                config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
                 mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
                 mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
 
-            } catch (Exception e) {
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -198,44 +199,76 @@ public class MainActivity extends AppCompatActivity
         return mPlayer;
     }
 
-    public KPPlayerConfig getConfig(String mediaID) {
-        KPPlayerConfig config = new KPPlayerConfig("http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php", "32626752", "");
-        config.setEntryId(mediaID);
-        config.addConfig("topBarContainer.hover", "true");
-        //config.addConfig("autoPlay", "true");
-        config.addConfig("controlBarContainer.plugin", "true");
-        config.addConfig("durationLabel.prefix", " ");
-        config.addConfig("largePlayBtn.plugin", "true");
-        //        config.addConfig("mediaProxy.mediaPlayFrom", String.valueOf("100"));
-        config.addConfig("scrubber.sliderPreview", "false");
-        //config.addConfig("largePlayBtn","false");
-        //config.addConfig("debugKalturaPlayer", "true");
-        config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
-        config.addConfig("watermark.plugin", "true");
-        config.addConfig("watermark.img", "https://voot-kaltura.s3.amazonaws.com/voot-watermark.png");
-        config.addConfig("watermark.title", "Viacom18");
-        config.addConfig("watermark.cssClass", "topRight");
-        config.addConfig("controlBarContainer.hover", "true");
-        config.addConfig("controlBarContainer.plugin", "true");
-        config.addConfig("kidsPlayer.plugin", "true,");
-        config.addConfig("nextBtnComponent.plugin", "true");
-        config.addConfig("prevBtnComponent.plugin", "true");
-        config.addConfig("liveCore.disableLiveCheck", "true");
-        config.addConfig("tvpapiGetLicensedLinks.plugin", "true");
-        config.addConfig("TVPAPIBaseUrl", "http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=");
-        config.addProxyData(KProxyData.newBuilder().setMediaId(mediaID)
-                .setIMediaId(mediaID)
-                .setMediaType("0")
-                .setPicSize(640, 360)
-                .setWithDynamic(false)
-                .setDomainId(0)
-                .setUserProtection("tvpapi_225", "11111", "aa5e1b6c96988d68")
-                .setSiteGuid("")
-                .setPlatform("Cellular")
-                .setLocale("", "", "Unknown", "")
-                .addProxyConfigFilter("dash Main")
-                .build());
-        return config;
+    public String getJson(String mediaID) {
+        String json = "{\n" +
+                "  \"base\": {\n" +
+                "    \"server\": \"http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php\",\n" +
+                //                 "    \"server\": \"http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
+
+                "    \"partnerId\": \"\",\n" +
+                "    \"uiConfId\": \"32626752\",\n" +
+                //"    \"entryId\": \"374130\"\n" +
+                //                 "    \"entryId\": \"384080\"\n" +
+                "    \"entryId\": \"" + mediaID + "\"\n" +
+
+
+                "  },\n" +
+                "  \"extra\": {\n" +
+                "    \"watermark.plugin\": \"true\",\n" +
+                "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
+                "    \"watermark.title\": \"Viacom18\",\n" +
+                "    \"watermark.cssClass\": \"topRight\",\n" +
+                "    \n" +
+                "    \"controlBarContainer.hover\": true,\n" +
+                "    \"controlBarContainer.plugin\": true,\n" +
+//                    "    \"adultPlayer.plugin\": false,\n" +
+                "    \"kidsPlayer.plugin\": true,\n" +
+                "    \"nextBtnComponent.plugin\": true,\n" +
+                "    \"prevBtnComponent.plugin\": true,\n" +
+                "    \n" +
+                "    \"liveCore.disableLiveCheck\": true,\n" +
+                "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
+                "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
+                "    \"proxyData\": {\n";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 /*4.3*/) {
+            json = json + "\"config\": {\n" +
+                    "                                    \"flavorassets\": {\n" +
+                    "                                        \"filters\": {\n" +
+                    "                                            \"include\": {\n" +
+                    "                                                \"Format\": [\n" +
+                    "                                                    \"dash Main\"\n" +
+                    "                                                ]\n" +
+                    "                                            }\n" +
+                    "                                        }\n" +
+                    "                                    }\n" +
+                    "                                },";
+        }
+        json = json + "      \"MediaID\": \"" + mediaID + "\",\n" +
+                "      \"iMediaID\": \"" + mediaID + "\",\n" +
+                "      \"mediaType\": \"0\",\n" +
+                "      \"picSize\": \"640x360\",\n" +
+                "      \"withDynamic\": \"false\",\n" +
+                "      \"initObj\": {\n" +
+                "        \"ApiPass\": \"11111\",\n" +
+                "        \"ApiUser\": \"tvpapi_225\",\n" +
+                "        \"DomainID\": 0,\n" +
+                "        \"Locale\": {\n" +
+                "            \"LocaleCountry\": \"null\",\n" +
+                "            \"LocaleDevice\": \"null\",\n" +
+                "            \"LocaleLanguage\": \"null\",\n" +
+                "            \"LocaleUserState\": \"Unknown\"\n" +
+                "        },\n" +
+                "        \"Platform\": \"Cellular\",\n" +
+                "        \"SiteGuid\": \"\",\n" +
+                "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }\n" +
+                "}\n";
+        return json;
+
+
     }
 
     private RelativeLayout getPlayerContainer() {
