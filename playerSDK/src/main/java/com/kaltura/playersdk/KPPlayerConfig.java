@@ -1,7 +1,6 @@
 package com.kaltura.playersdk;
 
 import android.net.Uri;
-import android.util.Log;
 
 import com.kaltura.playersdk.config.KProxyData;
 import com.kaltura.playersdk.players.KMediaFormat;
@@ -17,6 +16,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 
 
 public class KPPlayerConfig implements Serializable{
@@ -176,7 +177,7 @@ public class KPPlayerConfig implements Serializable{
 	}
 
 	public KPPlayerConfig addProxyData(KProxyData proxyData) {
-		Log.d("proxyData", proxyData.toJson().toString());
+		LOGD(TAG, "addProxyData - proxyData = " + proxyData.toJson().toString());
 		return addConfig("proxyData", proxyData.toJson().toString());
 	}
 

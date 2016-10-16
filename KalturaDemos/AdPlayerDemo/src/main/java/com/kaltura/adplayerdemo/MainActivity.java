@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity
                     mPlayer.detachView();
 
                     try {
-                        config = getConfig("388409");//KPPlayerConfig.fromJSONObject(new JSONObject(getJson("388409")));
+                        config = getConfig("388409");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -149,37 +149,21 @@ public class MainActivity extends AppCompatActivity
             mPlayer.loadPlayerIntoActivity(this);
 
 //            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-//            //config.addConfig("autoPlay", "true");
-//            //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
-////            config.addConfig("topBarContainer.hover", "true");
-////            config.addConfig("controlBarContainer.hover", "true");
+//            config.addConfig("autoPlay", "true");
+//            config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
+//            config.addConfig("topBarContainer.hover", "true");
+//            config.addConfig("controlBarContainer.hover", "true");
 //            config.addConfig("controlBarContainer.plugin", "true");
-////            config.addConfig("topBarContainer.plugin", "true");
+//            config.addConfig("topBarContainer.plugin", "true");
 //            config.addConfig("largePlayBtn.plugin", "true");
-////            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
-//
-////            config.addConfig("doubleClick.adTagUrl",adTagUrl);
-////            config.addConfig("doubleClick.plugin","true");
+//            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+//            config.addConfig("doubleClick.adTagUrl",adTagUrl);
+//            config.addConfig("doubleClick.plugin","true");
 
-
-            //String json = getJson("384080"/*"388409"*/);
-
-
-            //KPPlayerConfig config = null;
             try {
-                /*config = KPPlayerConfig.fromJSONObject(new JSONObject(json));
-
-                config.addConfig("topBarContainer.hover", "true");
-                //config.addConfig("autoPlay", "true");
-                config.addConfig("controlBarContainer.plugin", "true");
-                config.addConfig("durationLabel.prefix", " ");
-                config.addConfig("largePlayBtn.plugin", "true");
-                //        config.addConfig("mediaProxy.mediaPlayFrom", String.valueOf("100"));
-                config.addConfig("scrubber.sliderPreview", "false");
-                //config.addConfig("largePlayBtn","false");
-                //config.addConfig("debugKalturaPlayer", "true");
-                config.addConfig("EmbedPlayer.HidePosterOnStart", "true");*/
-                if (config == null) config = getConfig("384080");
+                if (config == null) {
+                    config = getConfig("384080");
+                }
                 mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
                 mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
 
@@ -199,14 +183,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public KPPlayerConfig getConfig(String mediaID) {
-        KPPlayerConfig config = new KPPlayerConfig("http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php", "32626752", "");
+        KPPlayerConfig config = new KPPlayerConfig("http://player-as.ott.kaltura.com/225/v2.48.6_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.7/mwEmbed/mwEmbedFrame.php", "32626752", "");
         config.setEntryId(mediaID);
         config.addConfig("topBarContainer.hover", "true");
         //config.addConfig("autoPlay", "true");
         config.addConfig("controlBarContainer.plugin", "true");
         config.addConfig("durationLabel.prefix", " ");
         config.addConfig("largePlayBtn.plugin", "true");
-        //        config.addConfig("mediaProxy.mediaPlayFrom", String.valueOf("100"));
+        //config.addConfig("mediaProxy.mediaPlayFrom", String.valueOf("100"));
         config.addConfig("scrubber.sliderPreview", "false");
         //config.addConfig("largePlayBtn","false");
         //config.addConfig("debugKalturaPlayer", "true");
