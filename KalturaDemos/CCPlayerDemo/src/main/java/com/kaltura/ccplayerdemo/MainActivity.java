@@ -150,6 +150,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onCastReceiverError(String errorMsg , int errorCode) {
                         LOGE(TAG, "onCastReceiverError errorMsg = " + errorMsg + " errorCode = "  + errorCode);
                     }
+
+                    @Override
+                    public void onCastReceiverAdOpen() {
+                        LOGE(TAG, "onCastReceiverAdOpen");
+                    }
+
+                    @Override
+                    public void onCastReceiverAdComplete() {
+                        LOGD(TAG, "onCastReceiverAdComplete");
+                    }
                 });
             }
 
