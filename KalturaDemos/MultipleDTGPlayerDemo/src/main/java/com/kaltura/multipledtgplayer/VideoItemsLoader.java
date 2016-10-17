@@ -108,7 +108,8 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
     private String getKPConfigJSON(String mediaId) {
         String configString= "{\n" +
                 "  \"base\": {\n" +
-                "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.2_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.4/mwEmbed/mwEmbedFrame.php\",\n" +
+                "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.6_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.7/mwEmbed/mwEmbedFrame.php\",\n" +
+               // "    \"server\": \"http://192.168.160.150/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
                 "    \"partnerId\": \"\",\n" +
                 "    \"uiConfId\": \"32626752\"\n" +
                 "  },\n" +
@@ -272,7 +273,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
         LOGD("download", "completed");
         String localPath = getLocalPath(item.getItemId());
         VideoItem videoItem = findItemByMediaId(item.getItemId());
-        if (localPath != null && videoItem != null) {
+        if (localPath != null && !localPath.isEmpty() && videoItem != null) {
             LocalAssetsManager.registerAsset(mContext, videoItem.config, null, localPath, new LocalAssetsManager.AssetRegistrationListener() {
                 @Override
                 public void onRegistered(String assetPath) {
