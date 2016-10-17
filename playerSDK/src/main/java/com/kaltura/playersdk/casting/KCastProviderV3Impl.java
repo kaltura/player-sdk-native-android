@@ -35,11 +35,13 @@ public class KCastProviderV3Impl implements KCastProvider {
     private KCastMediaRemoteControl mCastMediaRemoteControl;
     private KCastKalturaChannel mChannel;
     private KCastInternalListener mInternalListener;
+    private SessionManagerListener mSessionManagerListener = null;
     private Context mContext;
     private String mCastAppId;
     private boolean mApplicationStarted;
     private boolean isReconnedted  = true;
     private String mCastLogoUrl = "";
+    private boolean isInSession = false;
     //private boolean isPlayAfterEnded = false;
     //private String[] currentMediaParams;
     //@NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
@@ -51,9 +53,21 @@ public class KCastProviderV3Impl implements KCastProvider {
         mCastLogoUrl = logoUrl;
         //mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
         mSessionManager  = mCastContext.getSessionManager();
+        mSessionManagerListener = createProviderSessionManagerListener();
+        mSessionManager.removeSessionManagerListener(mSessionManagerListener);
         mSessionManager.addSessionManagerListener(mSessionManagerListener);
         mCastSession = mSessionManager.getCurrentCastSession();
         mCastAppId = castAppId;
+    }
+
+    @Override
+    public void setCastProviderContext(Context newContext) {
+        mContext = newContext;
+        mCastContext = CastContext.getSharedInstance(newContext);
+        mSessionManager  = mCastContext.getSessionManager();
+        mSessionManagerListener = createProviderSessionManagerListener();
+        mSessionManager.addSessionManagerListener(mSessionManagerListener);
+        mCastSession = mSessionManager.getCurrentCastSession();
     }
 
     public void addCastStateListener(CastStateListener castStateListener) {
@@ -75,70 +89,6 @@ public class KCastProviderV3Impl implements KCastProvider {
     public void setCastLogoUrl(String mCastLogoUrl) {
         this.mCastLogoUrl = mCastLogoUrl;
     }
-
-    private boolean isInSession = false;
-    private SessionManagerListener mSessionManagerListener = new SessionManagerListener() {
-        @Override
-        public void onSessionStarting(Session session) {
-            LOGD(TAG, "SessionManagerListener onSessionStarting");
-        }
-
-        @Override
-        public void onSessionStarted(Session session, String s) {
-
-            isReconnedted = false;
-            if (!isInSession) {
-                LOGD(TAG, "SessionManagerListener onSessionStarted");
-                startReceiver(mContext);
-            }
-            isInSession = true;
-        }
-
-        @Override
-        public void onSessionStartFailed(Session session, int i) {
-            LOGD(TAG, "SessionManagerListener onSessionStartFailed");
-            isInSession = false;
-        }
-
-        @Override
-        public void onSessionEnding(Session session) {
-            LOGD(TAG, "SessionManagerListener onSessionEnding");
-            disconnectFromCastDevice();
-            isInSession = false;
-        }
-
-        @Override
-        public void onSessionEnded(Session session, int i) {
-            LOGD(TAG, "SessionManagerListener onSessionEnded");
-            disconnectFromCastDevice();
-            isInSession = false;
-        }
-
-        @Override
-        public void onSessionResuming(Session session, String s) {
-            LOGD(TAG, "SessionManagerListener onSessionResuming");
-        }
-
-        @Override
-        public void onSessionResumed(Session session, boolean b) {
-            LOGD(TAG, "SessionManagerListener onSessionResumed");
-            isInSession = true;
-        }
-
-        @Override
-        public void onSessionResumeFailed(Session session, int i) {
-            LOGD(TAG, "SessionManagerListener onSessionResumeFailed");
-            disconnectFromCastDevice();
-        }
-
-        @Override
-        public void onSessionSuspended(Session session, int i) {
-            LOGD(TAG, "SessionManagerListener onSessionSuspended");
-            if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
-                LOGD(TAG, "onSessionSuspended CURRENT POSITION = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
-            }
-        }
-    };
 
     public KCastProviderListener getProviderListener() {
         return mProviderListener;
@@ -167,7 +117,7 @@ public class KCastProviderV3Impl implements KCastProvider {
             @Override
             public void readyForMedia(final String[] params) {
                 //if (!isRecconected()) {
-                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+                sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
                 //}
                 // Receiver send the new content
                 if (params != null) {
@@ -197,6 +147,19 @@ public class KCastProviderV3Impl implements KCastProvider {
 //                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
 //                    isPlayAfterEnded = false;
 //                }
+            }
+
+            @Override
+            public void ccReceiverAdOpen() {
+                LOGD(TAG, "ccReceiverAdOpen");
+                sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+                mProviderListener.onCastReceiverAdOpen();
+            }
+
+            @Override
+            public void ccReceiverAdComplete() {
+                LOGD(TAG, "ccReceiverAdComplete");
+                mProviderListener.onCastReceiverAdComplete();
             }
 
             @Override
@@ -284,6 +247,12 @@ public class KCastProviderV3Impl implements KCastProvider {
         if (mCastSession != null) {
             return mCastSession.isConnected();
         }
+        if (CastContext.getSharedInstance(mContext) != null && CastContext.getSharedInstance(mContext).getSessionManager() != null) {
+            mCastSession = CastContext.getSharedInstance(mContext).getSessionManager().getCurrentCastSession();
+            if (mCastSession != null) {
+                return mCastSession.isConnected();
+            }
+        }
         return false;
     }
 
@@ -352,5 +321,72 @@ public class KCastProviderV3Impl implements KCastProvider {
             }
             mCastSession = null;
         }
+    }
+
+
+
+    private SessionManagerListener createProviderSessionManagerListener() {
+        return  new SessionManagerListener() {
+            @Override
+            public void onSessionStarting(Session session) {
+                LOGD(TAG, "SessionManagerListener onSessionStarting");
+            }
+
+            @Override
+            public void onSessionStarted(Session session, String s) {
+
+                isReconnedted = false;
+                if (!isInSession) {
+                    LOGD(TAG, "SessionManagerListener onSessionStarted");
+                    startReceiver(mContext);
+                }
+                isInSession = true;
+            }
+
+            @Override
+            public void onSessionStartFailed(Session session, int i) {
+                LOGD(TAG, "SessionManagerListener onSessionStartFailed");
+                isInSession = false;
+            }
+
+            @Override
+            public void onSessionEnding(Session session) {
+                LOGD(TAG, "SessionManagerListener onSessionEnding");
+                disconnectFromCastDevice();
+                isInSession = false;
+            }
+
+            @Override
+            public void onSessionEnded(Session session, int i) {
+                LOGD(TAG, "SessionManagerListener onSessionEnded");
+                disconnectFromCastDevice();
+                isInSession = false;
+            }
+
+            @Override
+            public void onSessionResuming(Session session, String s) {
+                LOGD(TAG, "SessionManagerListener onSessionResuming");
+            }
+
+            @Override
+            public void onSessionResumed(Session session, boolean b) {
+                LOGD(TAG, "SessionManagerListener onSessionResumed");
+                isInSession = true;
+            }
+
+            @Override
+            public void onSessionResumeFailed(Session session, int i) {
+                LOGD(TAG, "SessionManagerListener onSessionResumeFailed");
+                disconnectFromCastDevice();
+            }
+
+            @Override
+            public void onSessionSuspended(Session session, int i) {
+                LOGD(TAG, "SessionManagerListener onSessionSuspended");
+                if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+                    LOGD(TAG, "onSessionSuspended CURRENT POSITION = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
+                }
+            }
+        };
     }
 }

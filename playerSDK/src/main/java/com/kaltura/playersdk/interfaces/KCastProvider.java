@@ -14,6 +14,7 @@ public interface KCastProvider {
     KCastDevice getSelectedCastDevice();
     void setKCastProviderListener(KCastProviderListener listener);
     KCastMediaRemoteControl getCastMediaRemoteControl();
+    void setCastProviderContext(Context newContext);
     boolean isRecconected();
     boolean isConnected();
     boolean isCasting();
@@ -21,6 +22,8 @@ public interface KCastProvider {
     interface KCastProviderListener {
         void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl);
         void onCastReceiverError(String errorMsg, int errorCode);
+        void onCastReceiverAdOpen();
+        void onCastReceiverAdComplete();
         //void onDeviceCameOnline(KCastDevice device);
         //void onDeviceWentOffline(KCastDevice device);
         //void onDeviceConnected();
