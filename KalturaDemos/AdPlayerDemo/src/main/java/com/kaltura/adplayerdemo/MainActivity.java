@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity
                     mPlayer.detachView();
 
                     try {
-                        config = getConfig("349105");
+                        config = getConfig("388409");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity
 
             try {
                 if (config == null) {
-                    config = getConfig("349105");
+                    config = getConfig("384080");
                 }
                 mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
                 mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public KPPlayerConfig getConfig(String mediaID) {
-        KPPlayerConfig config = new KPPlayerConfig("http://player-as.ott.kaltura.com/225/v2.48.5_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.7/mwEmbed/mwEmbedFrame.php", "32626752", "");
+        KPPlayerConfig config = new KPPlayerConfig("http://player-as.ott.kaltura.com/225/v2.48.6_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.7/mwEmbed/mwEmbedFrame.php", "32626752", "");
         config.setEntryId(mediaID);
         config.addConfig("topBarContainer.hover", "true");
         //config.addConfig("autoPlay", "true");
@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity
                 .setPicSize(640, 360)
                 .setWithDynamic(false)
                 .setDomainId(0)
-                .setUserProtection("tvpapi_225", "11111", "7f7fd3a3-5826-446e-b70d-12198f4a4ae4")
+                .setUserProtection("tvpapi_225", "11111", "aa5e1b6c96988d68")
                 .setSiteGuid("")
                 .setPlatform("Cellular")
                 .setLocale("", "", "Unknown", "")
