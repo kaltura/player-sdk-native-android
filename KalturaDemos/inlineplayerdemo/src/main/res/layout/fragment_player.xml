@@ -2,7 +2,8 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context="com.kaltura.inlineplayerdemo.PlayerFragment">
+             tools:context="com.kaltura.inlineplayerdemo.PlayerFragment"
+             android:background="@android:color/background_light">
 
     <!-- TODO: Update blank fragment layout -->
     <com.kaltura.playersdk.PlayerViewController
