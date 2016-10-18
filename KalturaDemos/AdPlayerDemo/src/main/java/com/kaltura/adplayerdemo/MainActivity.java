@@ -231,27 +231,14 @@ public class MainActivity extends AppCompatActivity
         // If the screen is off then the device has been locked
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         boolean isScreenOn = powerManager.isScreenOn();
-
-
         if (mPlayer != null) {
-            if (!isScreenOn) {
-                LOGD(TAG, "Screen OFF");
-                // The screen has been locked
-                // do stuff...
-                mPlayer.saveState();
-                mPlayer.getMediaControl().pause();
-            } else {
-                mPlayer.releaseAndSavePosition();
-            }
-
+            mPlayer.releaseAndSavePosition(true);
         }
         if (mAdPlayer != null) {
             mAdPlayer.pause();
             mAdPlayer.moveSurfaceToBackground();
         }
-
         super.onPause();
-
         NetworkChangeReceiver.getObservable().deleteObserver(this);
     }
 
@@ -260,9 +247,9 @@ public class MainActivity extends AppCompatActivity
         if (onCreate) {
             onCreate = false;
         } else {
-            if (mPlayer != null)
-                mPlayer.getMediaControl().start();
-            mPlayer.resumePlayer();
+            if (mPlayer != null) {
+                mPlayer.resumePlayer();
+            }
             LOGD(TAG, "on Resume called for player");
             if (mAdPlayer != null) {
                 mAdPlayer.moveSurfaceToForeground();

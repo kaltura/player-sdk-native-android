@@ -352,6 +352,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             playerController.destroy();
         }
         if (mWebView != null) {
+            mWebView.clearCache(true);
+            mWebView.clearHistory();
             mWebView.loadUrl("about:blank");
             removeView(mWebView);
             mWebView.destroy();

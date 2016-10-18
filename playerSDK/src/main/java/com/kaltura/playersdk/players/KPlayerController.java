@@ -342,17 +342,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             LOGD(TAG, "PAUSE REJECTED");
             return;
         }
-
+        LOGD(TAG, "pause() BEFORE PAUSE ");
         mPauseLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Pause) {
             currentState = UIState.Pause;
             if (mCastProvider == null) {
+                LOGD(TAG, "mCastProvider is null");
                 if (isBackgrounded && isIMAActive) {
                     if (imaManager != null) {
                         imaManager.pause();
                     }
                 } else {
                     if (player != null) {
+                        LOGD(TAG, "sending player PAUSE");
                         player.pause();
                     }
                 }
@@ -433,7 +435,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     public void savePlayerState() {
 //        isBackgrounded = isOnBackground;
         if (player != null) {
+
             isPlaying = player.isPlaying() || isIMAActive;
+            LOGD(TAG, "savePlayerState PAUSE isPlaying = " + isPlaying);
             pause();
         } else {
             isPlaying = false;
@@ -445,6 +449,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             if (isIMAActive && imaManager != null) {
                 imaManager.resume();
             } else if (player != null) {
+                LOGD(TAG, "recoverPlayerState send PLAY");
                 play();
             }
         }
@@ -459,6 +464,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 isPlaying = false;
                 pause();
             }
+            currentState = UIState.Pause;
             if (!isIMAActive) {
                 player.freezePlayer();
             } else {
@@ -733,7 +739,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 break;
             case KPlayerCallback.SEEKED:
-                LOGD(TAG, "playerStateChanged CAN_PLAY currentState " + currentState.name());
+                LOGD(TAG, "playerStateChanged SEEKED currentState " + currentState.name());
 
                 if (currentState == UIState.Play || currentState == UIState.Replay) {
                     play();
