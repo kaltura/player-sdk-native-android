@@ -24,7 +24,6 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
         void ccUserInitiatedPlay();
         void ccReceiverAdOpen();
         void ccReceiverAdComplete();
-        void ccPostEnded();
         void textTeacksRecived(HashMap<String,Integer> textTrackHash);
         void videoTracksReceived(List<Integer> videoTracksList);
         void onCastReceiverError(String errorMsg, int errorCode);
@@ -52,11 +51,6 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
             LOGD(TAG, "onMessageReceived userInitiatedPlay");
             //mListener.ccUserInitiatedPlay();
         }
-        else if (s1.contains("postEnded")){
-            LOGD(TAG, "onMessageReceived postEnded");
-            //mListener.ccPostEnded();
-        }
-
         else if (s1.startsWith("chromecastReceiverAdDuration")) {
             String[] params = s1.split("\\|");
             if (params.length == 2) {
@@ -74,8 +68,6 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
             LOGD(TAG, "onMessageReceived chromecastReceiverAdComplete");
             mListener.ccReceiverAdComplete();
         }
-        //chromecastReceiverAdOpen
-        //chromecastReceiverAdComplete
         else if (s1.contains("\"Data Loaded\"")){
             //mListener.dataLoaded();
         }

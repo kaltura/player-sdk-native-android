@@ -110,6 +110,11 @@ public class KCastProviderV3Impl implements KCastProvider {
 //    }
 
     @Override
+    public void init(Context context) {
+        setCastProviderContext(context);
+    }
+
+    @Override
     public void startReceiver(Context context, boolean guestModeEnabled) {
         mCastSession = mSessionManager.getCurrentCastSession();
         if (mChannel == null) {
@@ -163,12 +168,6 @@ public class KCastProviderV3Impl implements KCastProvider {
                 }
 
                 @Override
-                public void ccPostEnded() {
-//                sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
-//                isPlayAfterEnded = true;
-                }
-
-                @Override
                 public void textTeacksRecived(HashMap<String, Integer> textTrackHash) {
                     if (getCastMediaRemoteControl() != null) {
                         getCastMediaRemoteControl().setTextTracks(textTrackHash);
@@ -195,11 +194,13 @@ public class KCastProviderV3Impl implements KCastProvider {
             } catch (IOException e) {
                 LOGE(TAG, "Exception while creating channel", e);
             }
-            if (!isRecconected()) {
+            if (!isReconnected()) {
                 if (!"".equals(mCastLogoUrl)) {
                     mCastSession.sendMessage(nameSpace, "{\"type\": \"setLogo\", \"logo\": \"" + mCastLogoUrl + "\"}");
                 }
-                mCastSession.sendMessage(nameSpace, "{\"type\":\"show\",\"target\":\"logo\"}");
+                if (!isCasting()) {
+                    sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
+                }
             }
             mApplicationStarted = true;
         }
@@ -208,6 +209,16 @@ public class KCastProviderV3Impl implements KCastProvider {
     @Override
     public void startReceiver(Context context) {
         startReceiver(context, false);
+    }
+
+    @Override
+    public void showLogo() {
+        sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
+    }
+
+    @Override
+    public void hideLogo() {
+        sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
     }
 
     @Override
@@ -239,7 +250,7 @@ public class KCastProviderV3Impl implements KCastProvider {
     }
 
     @Override
-    public boolean isRecconected() {
+    public boolean isReconnected() {
         return isReconnedted;
     }
 
