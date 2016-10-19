@@ -54,7 +54,6 @@ public class KCastProviderV3Impl implements KCastProvider {
         //mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
         mSessionManager  = mCastContext.getSessionManager();
         mSessionManagerListener = createProviderSessionManagerListener();
-        mSessionManager.removeSessionManagerListener(mSessionManagerListener);
         mSessionManager.addSessionManagerListener(mSessionManagerListener);
         mCastSession = mSessionManager.getCurrentCastSession();
         mCastAppId = castAppId;
@@ -64,7 +63,10 @@ public class KCastProviderV3Impl implements KCastProvider {
     public void setCastProviderContext(Context newContext) {
         mContext = newContext;
         mCastContext = CastContext.getSharedInstance(newContext);
-        mSessionManager  = mCastContext.getSessionManager();
+        mSessionManager = mCastContext.getSessionManager();
+        if (mSessionManagerListener != null) {
+            mSessionManager.removeSessionManagerListener(mSessionManagerListener);
+        }
         mSessionManagerListener = createProviderSessionManagerListener();
         mSessionManager.addSessionManagerListener(mSessionManagerListener);
         mCastSession = mSessionManager.getCurrentCastSession();
@@ -110,34 +112,32 @@ public class KCastProviderV3Impl implements KCastProvider {
     @Override
     public void startReceiver(Context context, boolean guestModeEnabled) {
         mCastSession = mSessionManager.getCurrentCastSession();
-        if (mChannel != null) {
-            return;
-        }
-        mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
-            @Override
-            public void readyForMedia(final String[] params) {
-                //if (!isRecconected()) {
-                sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
-                //}
-                // Receiver send the new content
-                if (params != null) {
-                    //currentMediaParams = params;
-                    mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
-                    ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(params);
-                    if (mInternalListener != null) {
-                        mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+        if (mChannel == null) {
+            mChannel = new KCastKalturaChannel(nameSpace, new KCastKalturaChannel.KCastKalturaChannelListener() {
+                @Override
+                public void readyForMedia(final String[] params) {
+                    //if (!isRecconected()) {
+                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+                    //}
+                    // Receiver send the new content
+                    if (params != null) {
+                        //currentMediaParams = params;
+                        mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
+                        ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(params);
+                        if (mInternalListener != null) {
+                            mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void ccUpdateAdDuration(int adDuration) {
-                //LOGD(TAG, "ccUpdateAdDuration :" + adDuration);
-                //mPlayerListener.eventWithValue(null, KPlayerListener.AdDurationChangeKey, String.valueOf(adDuration));
-            }
+                @Override
+                public void ccUpdateAdDuration(int adDuration) {
+                    //LOGD(TAG, "ccUpdateAdDuration :" + adDuration);
+                    //mPlayerListener.eventWithValue(null, KPlayerListener.AdDurationChangeKey, String.valueOf(adDuration));
+                }
 
-            @Override
-            public void ccUserInitiatedPlay() {
+                @Override
+                public void ccUserInitiatedPlay() {
 //                if (isPlayAfterEnded) {
 //                    mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
 //                    ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(currentMediaParams);
@@ -147,46 +147,47 @@ public class KCastProviderV3Impl implements KCastProvider {
 //                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
 //                    isPlayAfterEnded = false;
 //                }
-            }
+                }
 
-            @Override
-            public void ccReceiverAdOpen() {
-                LOGD(TAG, "ccReceiverAdOpen");
-                sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
-                mProviderListener.onCastReceiverAdOpen();
-            }
+                @Override
+                public void ccReceiverAdOpen() {
+                    LOGD(TAG, "ccReceiverAdOpen");
+                    sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
+                    mProviderListener.onCastReceiverAdOpen();
+                }
 
-            @Override
-            public void ccReceiverAdComplete() {
-                LOGD(TAG, "ccReceiverAdComplete");
-                mProviderListener.onCastReceiverAdComplete();
-            }
+                @Override
+                public void ccReceiverAdComplete() {
+                    LOGD(TAG, "ccReceiverAdComplete");
+                    mProviderListener.onCastReceiverAdComplete();
+                }
 
-            @Override
-            public void ccPostEnded() {
+                @Override
+                public void ccPostEnded() {
 //                sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
 //                isPlayAfterEnded = true;
-            }
-
-            @Override
-            public void textTeacksRecived(HashMap<String, Integer> textTrackHash) {
-                if (getCastMediaRemoteControl() != null) {
-                    getCastMediaRemoteControl().setTextTracks(textTrackHash);
                 }
-            }
 
-            @Override
-            public void videoTracksReceived(List<Integer> videoTracksList) {
-                if (getCastMediaRemoteControl() != null) {
-                    getCastMediaRemoteControl().setVideoTracks(videoTracksList);
+                @Override
+                public void textTeacksRecived(HashMap<String, Integer> textTrackHash) {
+                    if (getCastMediaRemoteControl() != null) {
+                        getCastMediaRemoteControl().setTextTracks(textTrackHash);
+                    }
                 }
-            }
 
-            @Override
-            public void onCastReceiverError(String errorMsg, int errorCode) {
-                mProviderListener.onCastReceiverError(errorMsg, errorCode);
-            }
-        });
+                @Override
+                public void videoTracksReceived(List<Integer> videoTracksList) {
+                    if (getCastMediaRemoteControl() != null) {
+                        getCastMediaRemoteControl().setVideoTracks(videoTracksList);
+                    }
+                }
+
+                @Override
+                public void onCastReceiverError(String errorMsg, int errorCode) {
+                    mProviderListener.onCastReceiverError(errorMsg, errorCode);
+                }
+            });
+        }
 
         if (mCastSession != null) {
             try {
@@ -285,7 +286,10 @@ public class KCastProviderV3Impl implements KCastProvider {
     }
 
     public void removeSessionManagerListener() {
-        mSessionManagerListener = null;
+        if (mSessionManagerListener != null) {
+            mSessionManager.removeSessionManagerListener(mSessionManagerListener);
+            mSessionManagerListener = null;
+        }
     }
 
     private void teardown() {
