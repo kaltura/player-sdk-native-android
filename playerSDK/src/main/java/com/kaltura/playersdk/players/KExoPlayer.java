@@ -515,7 +515,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             mExoPlayer.prepare();
             return;
         } else if (e instanceof ExoPlaybackException && e.getCause() instanceof android.media.MediaCodec.CryptoException) {
-            errorString = "DRM Error"; // probably license issue
+            errorString = "DRM Error. Trying to recover"; // probably license issue
+            mExoPlayer.prepare();
+            return;
         } else if (e instanceof ExoPlaybackException
                 && e.getCause() instanceof MediaCodecTrackRenderer.DecoderInitializationException) {
             // Special case for decoder initialization failures.
@@ -536,11 +538,32 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         decoderInitializationException.decoderName;
             }
         }
+        else if (e.getCause() instanceof com.google.android.exoplayer.upstream.HttpDataSource.HttpDataSourceException) {
+                mExoPlayer.prepare();
+                errorString = "HttpDataSourceException . Trying to recover";
+                LOGE(TAG, errorString);
+                return;
+        } else if (e.getCause() instanceof java.net.UnknownHostException) {
+                 mExoPlayer.prepare();
+                 errorString = "UnknownHostException . Trying to recover";
+                 LOGE(TAG, errorString);
+                 return;
+            } else if (e.getCause() instanceof java.net.ConnectException) {
+                mExoPlayer.prepare();
+                errorString = "ConnectException . Trying to recover";
+                LOGE(TAG, errorString);
+                return;
+        }
+        else if (e.getCause() instanceof java.lang.IllegalStateException) {
+                mExoPlayer.prepare();
+                errorString = "IllegalStateException . Trying to recover";
+                LOGE(TAG, errorString);
+                return;
+        }
         if (!"".equals(errorString)) {
             LOGE(TAG, errorString);
             errorString += "-";
         }
-
         mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" + errorString + e.getMessage());
     }
 
