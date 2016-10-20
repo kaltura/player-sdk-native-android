@@ -245,7 +245,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError webResourceError) {
-            String errMsg = "";
+            String errMsg = "WebViewError:";
             if (request != null && request.getUrl() != null) {
                 errMsg += request.getUrl().toString();
             }
@@ -262,7 +262,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-            String errMsg = "";
+            String errMsg = "WebViewError:";
             if (failingUrl != null) {
                 errMsg += failingUrl + "-";
             }
@@ -280,7 +280,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse webResourceResponse) {
-            String errMsg = "";
+            String errMsg = "WebViewError:";
             if (request != null && request.getUrl() != null) {
                 errMsg += request.getUrl().toString() + "-";
             }
