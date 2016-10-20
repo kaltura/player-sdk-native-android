@@ -415,7 +415,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void start() {
-        play();
+        if (parentViewController != null) {
+            ((PlayerViewController) parentViewController).sendNotification("doPlay", null);
+        }
     }
 
     @Override
