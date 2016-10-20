@@ -242,20 +242,61 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             return false;
         }
 
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
-        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-//            controlsViewClient.handleKControlsError(new KPError(error.toString()));
-
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError webResourceError) {
+            String errMsg = "";
+            if (request != null && request.getUrl() != null) {
+                errMsg += request.getUrl().toString();
+            }
+            if (webResourceError != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!errMsg.isEmpty()) {
+                        errMsg += "-";
+                    }
+                    errMsg += webResourceError.getDescription();
+                }
+            }
+            controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
         @Override
-        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-//            controlsViewClient.handleKControlsError(new KPError(errorResponse.toString()));
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            String errMsg = "";
+            if (failingUrl != null) {
+                errMsg += failingUrl + "-";
+            }
+            if (description != null) {
+                errMsg += description;
+            }
+
+            if (errMsg.contains("favicon.ico")) {
+                return;
+            }
+
+            controlsViewClient.handleKControlsError(new KPError(errMsg));
+        }
+
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @Override
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse webResourceResponse) {
+            String errMsg = "";
+            if (request != null && request.getUrl() != null) {
+                errMsg += request.getUrl().toString() + "-";
+            }
+            if (webResourceResponse != null) {
+                errMsg += webResourceResponse.getReasonPhrase();
+            }
+
+            if (errMsg.contains("favicon.ico")) {
+                return;
+            }
+           controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-//            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+           controlsViewClient.handleKControlsError(new KPError(error.toString()));
         }
 
         private WebResourceResponse textResponse(String text) {
