@@ -36,6 +36,7 @@ import java.util.Map;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 /**
  * Created by nissopa on 6/7/15.
@@ -91,9 +92,23 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         this.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onConsoleMessage(ConsoleMessage cm) {
+                String message = cm.message();
+                String sourceId = cm.sourceId();
+                int lineNumber = cm.lineNumber();
+                ConsoleMessage.MessageLevel messageLevel = cm.messageLevel();
+
                 if (LogUtils.isWebViewDebugModeOn()) {
-                    LOGD(TAG, cm.message() + " at " + cm.sourceId() + ":" + cm.lineNumber());
+                    LOGD(TAG, "WebView console " + messageLevel.name() + ": " + message + " at " + sourceId + " : " + lineNumber);
                 }
+                
+                // Special case: clear cache if this error is given.
+                if (messageLevel == ConsoleMessage.MessageLevel.ERROR) {
+                    if (message.equals("Uncaught SyntaxError: Unexpected end of input")) {
+                        LOGW(TAG, "Removing faulty cached resource: " + sourceId);
+                        mCacheManager.removeCachedResponse(Uri.parse(sourceId));
+                    }
+                }
+                
                 return true;
             }
         });
@@ -174,10 +189,9 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         WebResourceResponse response = null;
         if (mCacheManager != null) {
             try {
-                if (requestUrl != null) {
-                    LOGD(TAG, "getResponse: CacheManager - requestUrl=" + requestUrl);
-                }
+                LOGD(TAG, "getResponse: CacheManager - requestUrl=" + requestUrl);
                 response = mCacheManager.getResponse(requestUrl, headers, method);
+                
             } catch (IOException e) {
                 if (requestUrl.getPath().endsWith("favicon.ico")) {
                     response = getWhiteFaviconResponse();
@@ -218,6 +232,8 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             super.onPageFinished(view, url);
         }
 
+        @SuppressWarnings("deprecation")    // deprecated on lollipop, required on earlier versions.
+        @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             LOGD(TAG, "shouldOverrideUrlLoading: " + url);
             if (url == null) {
