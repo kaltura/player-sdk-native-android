@@ -1,4 +1,4 @@
-package com.kaltura.playersdk.widevine;
+package com.kaltura.playersdk.drm;
 
 import android.content.Context;
 import android.content.SharedPreferences;

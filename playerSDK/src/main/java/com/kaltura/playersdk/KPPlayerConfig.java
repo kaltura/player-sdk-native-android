@@ -9,12 +9,29 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 
 public class KPPlayerConfig implements Serializable{
+	
+	public static class CacheConfig {
+		List<Pattern> includePatterns = new ArrayList<>();
+		
+		public void addIncludePattern(String pattern) {
+			includePatterns.add(Pattern.compile(pattern));
+		}
+		public void addIncludePattern(Pattern pattern) {
+			includePatterns.add(pattern);
+		}
+		public void reset() {
+			includePatterns.clear();
+		}
+	}
 
 	public static String TAG = "KPPlayerConfig";
 
@@ -39,6 +56,7 @@ public class KPPlayerConfig implements Serializable{
 	private Map<String, String> mExtraConfig = new HashMap<>();
 	private boolean mAutoPlay = false;
 	private boolean isWebDialogEnabled = false;
+	private final CacheConfig mCacheConfig = new CacheConfig();
 
 	static {
 		// Use System.out to print even when Log.X() are disabled.
@@ -48,6 +66,11 @@ public class KPPlayerConfig implements Serializable{
 	public static String getPlayerSdkVersion() {
 		return BuildConfig.VERSION_NAME;
 	}
+	
+	public CacheConfig getCacheConfig() {
+		return mCacheConfig;
+	}
+	
 	
 	public String getPartnerId() {
 		return mPartnerId;
@@ -201,6 +224,10 @@ public class KPPlayerConfig implements Serializable{
 		addConfig("controlBarContainer.hover", Boolean.toString(hide));
 	}
 
+	public String getLocalContentId() {
+		return mLocalContentId;
+	}
+	
 	public void setLocalContentId(String localContentId) {
         mLocalContentId = localContentId;
     }

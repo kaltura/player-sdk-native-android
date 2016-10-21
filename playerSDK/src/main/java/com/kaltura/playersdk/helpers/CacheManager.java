@@ -20,9 +20,12 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
@@ -42,8 +45,9 @@ public class CacheManager {
     private String mCachePath;
     private File mFilesDir;
     private Context mAppContext;
+    private List<Pattern> mIncludePatterns;
 
-    
+
     private void logCacheHit(Uri url, String fileId) {
         LOGD(TAG, "CACHE HIT: " + fileId + " : " + url);
     }
@@ -100,14 +104,24 @@ public class CacheManager {
         if (! (uri.getScheme().equals("http") || uri.getScheme().equals("https"))) {
             return false;   // only cache http(s)
         }
+        
+        // Allow app-specific inclusion.
+        String uriString = uri.toString();
+        for (Pattern pattern : mIncludePatterns) {
+            if (pattern.matcher(uriString).matches()) {
+                return true;
+            }
+        }
 
-        if (! uri.toString().startsWith(mBaseURL)) {
+        if (! uriString.startsWith(mBaseURL)) {
             return false;   // not our server
         }
-        
-        // #HACK# until we implement do-not-cache patterns.
-        if (uri.getHost().equals("stats.kaltura.com")) {
-            return false;
+
+        // Special case: do not cache the embedFrame page, UNLESS localContentId is set.
+        if (uri.getPath().contains("/mwEmbedFrame.php") || uri.getPath().contains("/embedIframeJs/")) {
+            if (TextUtils.isEmpty(getLocalContentId(uri))) {
+                return false;
+            }
         }
         
         return true;
@@ -165,8 +179,24 @@ public class CacheManager {
         return true;
     }
     
+    public boolean refreshCachedResponse(Uri url) throws IOException {
+        boolean remove = removeCachedResponse(url);
+        if (!remove) {
+            return false;
+        }
+        
+        cacheResponse(url);
+        
+        return true;
+    }
+    
     public void cacheResponse(Uri requestUrl) throws IOException {
-        WebResourceResponse resp = getResponse(requestUrl, Collections.<String, String>emptyMap(), "GET");
+
+        // Explicitly load and save the URL - don't even check db.
+        String fileName = getCacheFileId(requestUrl);
+        File targetFile = new File(mCachePath, fileName);
+        WebResourceResponse resp = getResponseFromNetwork(requestUrl, Collections.<String, String>emptyMap(), "GET", fileName, targetFile);
+        
         InputStream inputStream = resp.getData();
 
         // Must fully read the input stream so that it gets cached. But we don't need the data now.
@@ -186,7 +216,7 @@ public class CacheManager {
         }
         boolean online = Utilities.isOnline(mAppContext);
         if (!online && requestUrl.toString().contains("playManifest")) {
-            return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
+            return webResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("Empty".getBytes()));
         }
         InputStream inputStream;
         String fileName = getCacheFileId(requestUrl);
@@ -203,7 +233,7 @@ public class CacheManager {
             contentType = (String)fileParams.get(CacheSQLHelper.COL_MIMETYPE);
             encoding = (String)fileParams.get(CacheSQLHelper.COL_ENCODING);
             mSQLHelper.updateDate(fileName);
-            WebResourceResponse response = new WebResourceResponse(contentType, encoding, inputStream);
+            WebResourceResponse response = webResourceResponse(contentType, encoding, inputStream);
             return response;
 
         } else {
@@ -229,6 +259,8 @@ public class CacheManager {
             connection.connect();
             contentType = connection.getContentType();
 
+            Map<String, List<String>> headerFields = connection.getHeaderFields();
+
             if (contentType == null) {
                 contentType = "";
             }
@@ -250,7 +282,7 @@ public class CacheManager {
                     connection.disconnect();
                 }
             });
-            return new WebResourceResponse(contentType, encoding, inputStream);
+            return webResourceResponse(contentType, encoding, inputStream);
         } finally {
             // if inputStream wasn't created, streamClosed() will not get called and the connection may leak. 
             if (inputStream == null) {
@@ -261,9 +293,14 @@ public class CacheManager {
     }
 
     @NonNull
+    private static WebResourceResponse webResourceResponse(String contentType, String encoding, InputStream inputStream) {
+        return new WebResourceResponse(contentType, encoding, inputStream);
+    }
+
+    @NonNull
     private String getCacheFileId(Uri requestUrl) {
         if (requestUrl.getFragment() != null) {
-            String localContentId = KStringUtilities.extractFragmentParam(requestUrl, "localContentId");
+            String localContentId = getLocalContentId(requestUrl);
             if (!TextUtils.isEmpty(localContentId)) {
                 return md5("contentId:" + localContentId);
             }
@@ -271,10 +308,18 @@ public class CacheManager {
         return md5(requestUrl.toString());
     }
 
+    private String getLocalContentId(Uri requestUrl) {
+        return KStringUtilities.extractFragmentParam(requestUrl, "localContentId");
+    }
+
     public void release() {
         if (mSQLHelper != null) {
             mSQLHelper.close();
             mSQLHelper = null;
         }
+    }
+
+    public void setIncludePatterns(List<Pattern> includePatterns) {
+        mIncludePatterns = new ArrayList<>(includePatterns);    // make a safe copy.
     }
 }

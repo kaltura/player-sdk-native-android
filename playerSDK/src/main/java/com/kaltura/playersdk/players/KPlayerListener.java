@@ -1,12 +1,14 @@
 package com.kaltura.playersdk.players;
 
+import com.kaltura.playersdk.PlayerViewController;
+
 /**
  * Created by nissopa on 6/14/15.
  */
 public interface KPlayerListener {
     String PlayKey = "play";
     String PauseKey = "pause";
-    String DurationChangedKey = "durationchange";
+    String DurationChangedKey = "durationChange";
     String LoadedMetaDataKey = "loadedmetadata";
     String TimeUpdateKey = "timeupdate";
     String ProgressKey = "progress";
@@ -22,9 +24,11 @@ public interface KPlayerListener {
     String SourceSwitchingEndKey     = "sourceSwitchingEnd";
     String AdRemainingTimeChangeKey  = "adRemainingTimeChange";
     String AdsLoadErrorKey           = "adsLoadError";
+    String AdDurationChangeKey = "AdSupport_AdUpdateDuration";
 
     void eventWithValue(KPlayer player, String eventName, String eventValue);
     void eventWithJSON(KPlayer player, String eventName, String jsonValue);
+    void asyncEvaluate(String expression, String expressionID, PlayerViewController.EvaluateListener evaluateListener);
 }
 
 

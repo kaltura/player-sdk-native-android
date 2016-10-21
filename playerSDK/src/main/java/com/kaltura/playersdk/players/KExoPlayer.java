@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -20,7 +19,6 @@ import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecUtil;
-import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.metadata.id3.GeobFrame;
 import com.google.android.exoplayer.metadata.id3.Id3Frame;
@@ -35,17 +33,14 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
+import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
@@ -103,6 +98,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         return new KPlayerListener() {
             public void eventWithValue(KPlayer player, String eventName, String eventValue) {}
             public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {}
+            public void asyncEvaluate(String expression, String expressionID, PlayerViewController.EvaluateListener evaluateListener) {}
             public void contentCompleted(KPlayer currentPlayer) {}
         };
     }
@@ -167,7 +163,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
         mReadiness = KState.PREPARING;
 
-        mDrmCallback = new KPlayerExoDrmCallback();
+        boolean offline = mSourceURL.startsWith("file://");
+        mDrmCallback = new KPlayerExoDrmCallback(getContext(), offline);
         Video video = new Video(mSourceURL, getVideoType());
         final ExoplayerWrapper.RendererBuilder rendererBuilder = RendererBuilderFactory
                 .createRendererBuilder(getContext(), video, mDrmCallback);
@@ -518,7 +515,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             mExoPlayer.prepare();
             return;
         } else if (e instanceof ExoPlaybackException && e.getCause() instanceof android.media.MediaCodec.CryptoException) {
-            errorString = "DRM Error"; // probably license issue
+            errorString = "DRM Error. Trying to recover"; // probably license issue
+            mExoPlayer.prepare();
+            return;
         } else if (e instanceof ExoPlaybackException
                 && e.getCause() instanceof MediaCodecTrackRenderer.DecoderInitializationException) {
             // Special case for decoder initialization failures.
@@ -539,11 +538,32 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         decoderInitializationException.decoderName;
             }
         }
+        else if (e.getCause() instanceof com.google.android.exoplayer.upstream.HttpDataSource.HttpDataSourceException) {
+                mExoPlayer.prepare();
+                errorString = "HttpDataSourceException . Trying to recover";
+                LOGE(TAG, errorString);
+                return;
+        } else if (e.getCause() instanceof java.net.UnknownHostException) {
+                 mExoPlayer.prepare();
+                 errorString = "UnknownHostException . Trying to recover";
+                 LOGE(TAG, errorString);
+                 return;
+            } else if (e.getCause() instanceof java.net.ConnectException) {
+                mExoPlayer.prepare();
+                errorString = "ConnectException . Trying to recover";
+                LOGE(TAG, errorString);
+                return;
+        }
+        else if (e.getCause() instanceof java.lang.IllegalStateException) {
+                mExoPlayer.prepare();
+                errorString = "IllegalStateException . Trying to recover";
+                LOGE(TAG, errorString);
+                return;
+        }
         if (!"".equals(errorString)) {
             LOGE(TAG, errorString);
             errorString += "-";
         }
-
         mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" + errorString + e.getMessage());
     }
 
@@ -678,61 +698,6 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         void set(boolean playing, long position) {
             this.playing = playing;
             this.position = position;
-        }
-    }
-}
-
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-class KPlayerExoDrmCallback implements MediaDrmCallback {
-
-    private static final String TAG = "KPlayerDrmCallback";
-    private static final long MAX_LICENCE_URI_WAIT = 8000;
-    private String mLicenseUri;
-    private final Object mLicenseLock = new Object();
-
-    KPlayerExoDrmCallback() {
-        LOGD(TAG, "KPlayerDrmCallback created");
-    }
-
-    @Override
-    public byte[] executeProvisionRequest(UUID uuid, MediaDrm.ProvisionRequest request) {
-               throw new UnsupportedOperationException("We don't have a provisioning service");
-    }
-
-    @Override
-    public byte[] executeKeyRequest(UUID uuid, MediaDrm.KeyRequest request) throws IOException {
-
-        Map<String, String> headers = new HashMap<>(1);
-        headers.put("Content-Type", "application/octet-stream");
-
-        // The license uri arrives on a different thread (typically the main thread).
-        // If this method is called before the uri has arrived, we have to wait for it.
-        // mLicenseLock is the wait lock.
-        synchronized (mLicenseLock) {
-            // No uri? wait.
-            if (mLicenseUri == null) {
-                try {
-                    mLicenseLock.wait(MAX_LICENCE_URI_WAIT);
-                } catch (InterruptedException e) {
-                    LOGD(TAG, "Interrupted", e);
-                }
-            }
-            // Still no uri? throw.
-            if (mLicenseUri == null) {
-                throw new IllegalStateException("licenseUri cannot be null");
-            }
-            // Execute request.
-            byte[] response = ExoplayerUtil.executePost(mLicenseUri, request.getData(), headers);
-            LOGD(TAG, "response data (b64): " + Base64.encodeToString(response, 0));
-            return response;
-        }
-    }
-
-    public void setLicenseUri(String licenseUri) {
-        synchronized (mLicenseLock) {
-            mLicenseUri = licenseUri;
-            // notify executeKeyRequest() that we have the license uri.
-            mLicenseLock.notify();
         }
     }
 }

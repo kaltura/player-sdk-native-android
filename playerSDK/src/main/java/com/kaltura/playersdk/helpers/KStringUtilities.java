@@ -1,8 +1,10 @@
 package com.kaltura.playersdk.helpers;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
@@ -116,11 +118,20 @@ public class KStringUtilities {
     }
 
     static public String asyncEvaluate(String expression, String evaluateID) {
-        return JSMethod(AsyncEvaluate, expression, evaluateID);
+        return JSMethod(AsyncEvaluate, "'" + expression + "'", "'" + evaluateID + "'");
     }
 
     static public String setKDPAttribute(String pluginName, String propertyName, String value) {
         return JSMethod(SetKDPAttribute, "'" + pluginName + "'", "'" + propertyName + "'", value);
+    }
+
+    //adding 2 setKDPAttribute for String and JSON inorder not to create backwards compatibility problems (fixing the missing "'" in both value sides)
+    static public String setKDPAttribute(String pluginName, String propertyName, JSONObject value) {
+        return JSMethod(SetKDPAttribute, "'" + pluginName + "'", "'" + propertyName + "'", value.toString());
+    }
+
+    static public String setStringKDPAttribute(String pluginName, String propertyName, String value) {
+        return JSMethod(SetKDPAttribute, "'" + pluginName + "'", "'" + propertyName + "'", "'" + value + "'");
     }
 
     static public String triggerEvent(String event, String value) {
@@ -194,26 +205,33 @@ public class KStringUtilities {
     }
 
     static public String md5(String string) {
+        return md5(string.getBytes());
+    }
+
+    static public String md5(byte[] data) {
         try {
             // Create MD5 Hash
             java.security.MessageDigest digest = java.security.MessageDigest
                     .getInstance("MD5");
-            digest.update(string.getBytes());
+            digest.update(data);
             byte messageDigest[] = digest.digest();
+            return toHexString(messageDigest);
 
-            // Create Hex String
-            StringBuilder hexString = new StringBuilder();
-            for (byte aMessageDigest : messageDigest) {
-                String h = Integer.toHexString(0xFF & aMessageDigest);
-                while (h.length() < 2)
-                    h = "0" + h;
-                hexString.append(h);
-            }
-            return hexString.toString();
 
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         return "";
+    }
+
+    @NonNull
+    public static String toHexString(byte[] bytes) {
+        // Create Hex String
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String h = Integer.toHexString(0xFF & b);
+            hexString.append(h.length() == 1 ? "0" : "").append(h);
+        }
+        return hexString.toString();
     }
 }
