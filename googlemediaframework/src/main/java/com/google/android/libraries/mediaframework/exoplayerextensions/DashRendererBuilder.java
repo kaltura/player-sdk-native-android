@@ -45,6 +45,7 @@ import com.google.android.exoplayer.dash.mpd.Period;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElement;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver.UtcTimingCallback;
+import com.google.android.exoplayer.drm.DrmSessionManager;
 import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
@@ -201,7 +202,7 @@ public class DashRendererBuilder implements RendererBuilder {
 
       // Check drm support if necessary.
       boolean filterHdContent = false;
-      StreamingDrmSessionManager drmSessionManager = null;
+      DrmSessionManager drmSessionManager = null;
       if (hasContentProtection) {
         if (Util.SDK_INT < 18) {
           player.onRenderersError(
@@ -209,9 +210,14 @@ public class DashRendererBuilder implements RendererBuilder {
           return;
         }
         try {
-          drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(
-                  player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
-          filterHdContent = getWidevineSecurityLevel(drmSessionManager) != SECURITY_LEVEL_1;
+          if (drmCallback instanceof ExtendedMediaDrmCallback) {
+            drmSessionManager = ((ExtendedMediaDrmCallback) drmCallback).getSessionManager();
+          }
+          if (drmSessionManager == null) {
+            drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(
+                    player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
+            filterHdContent = getWidevineSecurityLevel((StreamingDrmSessionManager) drmSessionManager) != SECURITY_LEVEL_1;
+          }
         } catch (UnsupportedDrmException e) {
           player.onRenderersError(e);
           return;

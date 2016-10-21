@@ -11,6 +11,7 @@ import java.io.InputStream;
  * Created by nissimpardo on 25/10/15.
  */
 public class CachingInputStream extends BufferedInputStream {
+    private static final String TAG = "CachingInputStream";
     private String mFilePath;
     private BufferedOutputStream mOutputStream;
     private KInputStreamListener mListener;
@@ -24,22 +25,17 @@ public class CachingInputStream extends BufferedInputStream {
         super(in);
     }
 
-    public CachingInputStream(String filePath, InputStream inputStream, KInputStreamListener listener) {
+    public CachingInputStream(String filePath, InputStream inputStream, KInputStreamListener listener) throws FileNotFoundException {
         super(inputStream);
         mFilePath = filePath;
         mListener = listener;
-    }
-
-    private BufferedOutputStream getOutputStream() throws FileNotFoundException {
-        if (mOutputStream == null) {
-            mOutputStream = new BufferedOutputStream(new FileOutputStream(mFilePath));
-        }
-        return mOutputStream;
+        mOutputStream = new BufferedOutputStream(new FileOutputStream(mFilePath));
     }
 
     @Override
     public void close() throws IOException {
-        getOutputStream().close();
+        mOutputStream.close();
+        mOutputStream = null;
         super.close();
         mListener.streamClosed(fileSize, mFilePath);
     }
@@ -49,7 +45,7 @@ public class CachingInputStream extends BufferedInputStream {
         int bytesRead = super.read(buffer, byteOffset, byteCount);
         fileSize += bytesRead;
         if (bytesRead > 0) {
-            getOutputStream().write(buffer, 0, bytesRead);
+            mOutputStream.write(buffer, 0, bytesRead);
         }
         return bytesRead;
     }

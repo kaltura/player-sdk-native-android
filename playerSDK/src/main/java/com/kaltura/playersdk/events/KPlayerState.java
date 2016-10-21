@@ -8,6 +8,7 @@ public enum KPlayerState {
     UNKNOWN("unknown"),
     LOADED("loadedmetadata"),
     READY("canplay"),
+    CC_READY("canplay"),
     PLAYING("play"),
     PAUSED("pause"),
     SEEKED("seeked"),

@@ -1,0 +1,39 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
+
+    defaultConfig {
+        applicationId "com.kaltura.dtgplayer"
+        minSdkVersion 16
+        
+        //noinspection OldTargetApi
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    packagingOptions {
+        exclude 'jsr305_annotations/Jsr305_annotations.gwt.xml'
+    }
+
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile project(":playerSDK")
+
+    // Select between a local or a maven (JitPack) build of dtglib. See settings.gradle. 
+    try {
+        compile project(":dtglib");
+    } catch (UnknownProjectException ignored) {
+        compile 'com.github.kaltura:playkit-dtg-android:v2.0.0.+'
+    }
+}
