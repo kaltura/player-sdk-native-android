@@ -45,8 +45,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     private String mEntryName = "";
     private String mEntryDescription = "";
     private String mEntryThumbnailUrl = "";
+    private boolean mIsAdPLaying = false;
 
     String TAG = "KChromeCastPlayer";
+
 
     public KChromeCastPlayer(CastSession castSession) {
         mCastSession = castSession;
@@ -206,6 +208,9 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         if (!hasMediaSession(true)) {
             return;
         }
+        if (mIsAdPLaying) {
+            return;
+        }
 
         LOGD(TAG, "Start PLAY");
         if (isEnded) {
@@ -234,6 +239,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         if (!hasMediaSession(true)) {
             return;
         }
+
+        if (mIsAdPLaying) {
+            return;
+        }
+
         LOGD(TAG, "Start PAUSE");
         mCastSession.getRemoteMediaClient().pause().setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
             @Override
@@ -254,6 +264,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         if (!hasMediaSession(true)) {
             return;
         }
+
+        if (mIsAdPLaying) {
+            return;
+        }
+
         LOGD(TAG, "CC seek to " + currentPosition);
         LOGD(TAG, "CC SEND SEEKING");
         updateState(State.Seeking);
@@ -308,6 +323,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         if (!hasMediaSession(true)) {
             return;
         }
+
+        if (mIsAdPLaying) {
+            return;
+        }
+
         LOGD(TAG, "CC setStreamVolume " + streamVolume);
         mCastSession.getRemoteMediaClient().setStreamVolume(streamVolume).setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
             @Override
@@ -324,6 +344,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
     @Override
     public double getCurrentVolume() {
+
+        if (mIsAdPLaying) {
+            return 0;
+        }
+
         if (hasMediaSession(true)) {
             return mCastSession.getRemoteMediaClient().getMediaStatus().getStreamVolume();
         }
@@ -332,6 +357,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
     @Override
     public boolean isMute() {
+        if (mIsAdPLaying) {
+            return false;
+        }
+
         if (hasMediaSession(true)) {
             return mCastSession.getRemoteMediaClient().getMediaStatus().isMute();
         }
@@ -415,6 +444,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     @Override
     public List<Integer> getVideoTracks() {
         return mVideoTracks;
+    }
+
+    @Override
+    public void setAdIsPlaying(boolean isAdPlaying) {
+        mIsAdPLaying = isAdPlaying;
     }
 
     private void updateState(State state) {

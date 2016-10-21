@@ -159,12 +159,18 @@ public class KCastProviderV3Impl implements KCastProvider {
                     LOGD(TAG, "ccReceiverAdOpen");
                     sendMessage("{\"type\":\"hide\",\"target\":\"logo\"}");
                     mProviderListener.onCastReceiverAdOpen();
+                    if (getCastMediaRemoteControl() != null) {
+                        getCastMediaRemoteControl().setAdIsPlaying(true);
+                    }
                 }
 
                 @Override
                 public void ccReceiverAdComplete() {
                     LOGD(TAG, "ccReceiverAdComplete");
                     mProviderListener.onCastReceiverAdComplete();
+                    if (getCastMediaRemoteControl() != null) {
+                        getCastMediaRemoteControl().setAdIsPlaying(false);
+                    }
                 }
 
                 @Override

@@ -35,6 +35,7 @@ import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.helpers.KStringUtilities;
 import com.kaltura.playersdk.interfaces.KCastProvider;
 import com.kaltura.playersdk.interfaces.KMediaControl;
+import com.kaltura.playersdk.interfaces.KPrefetchListener;
 import com.kaltura.playersdk.players.KMediaFormat;
 import com.kaltura.playersdk.players.KPlayer;
 import com.kaltura.playersdk.players.KPlayerController;
@@ -103,7 +104,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     private KCastProvider mCastProvider;
 
-    public static void prefetchPlayerResources(KPPlayerConfig config, final List<Uri> uriItemsList, Activity activity) {
+    public static void prefetchPlayerResources(KPPlayerConfig config, final List<Uri> uriItemsList, final KPrefetchListener prefetchListener, Activity activity) {
+        LOGD(TAG, "Start prefetchPlayerResources");
 
         final PlayerViewController player = new PlayerViewController(activity);
 
@@ -135,6 +137,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             public void handler() {
                 LOGD(TAG, "Player ready after prefetch - will now destroy player");
                 player.removePlayer();
+                if (prefetchListener != null) {
+                    prefetchListener.onPrefetchFinished();
+                }
             }
         });
     }
