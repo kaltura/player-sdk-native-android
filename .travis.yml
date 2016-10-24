@@ -39,11 +39,6 @@ deploy:
 notifications:
   email:
     recipients:
-      - noam.tamim@kaltura.com
-      - itay.kinnrot@kaltura.com
-      - oren.melamed@kaltura.com
-      - gilad.nadav@kaltura.com
-      - g.kozlov@synergetica.co
-      - anton.afanasiev@kaltura.com
-    on_success: change
+      - $EMAIL_NOTIFY_LIST
+    on_success: always
     on_failure: always
