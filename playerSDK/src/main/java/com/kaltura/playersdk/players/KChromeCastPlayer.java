@@ -55,9 +55,12 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         mCastSession.getRemoteMediaClient().addListener(new RemoteMediaClient.Listener() {
             @Override
             public void onStatusUpdated() {
+                if (mCastSession == null || mCastSession.getRemoteMediaClient() == null) {
+                    return;
+                }
                 MediaStatus mediaStatus = mCastSession.getRemoteMediaClient().getMediaStatus();
-                LOGD(TAG, "onStatusUpdated mediaStatus = " + mediaStatus.getPlayerState());
                 if (mediaStatus != null) {
+                    LOGD(TAG, "onStatusUpdated mediaStatus = " + mediaStatus.getPlayerState());
                     switch (mediaStatus.getPlayerState()) {
                         case MediaStatus.PLAYER_STATE_IDLE:
                             if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
