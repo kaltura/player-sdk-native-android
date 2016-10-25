@@ -288,7 +288,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if(mCastPlayer != null && mCastPlayer.hasMediaSession(true)) {
             mCastPlayer.pause();
         }
-        player.pause();
+        if (player != null) {
+            player.pause();
+        }
         //player.setCurrentPlaybackTime(0);
         //player.switchTrack(TrackType.TEXT,-1);
     }
