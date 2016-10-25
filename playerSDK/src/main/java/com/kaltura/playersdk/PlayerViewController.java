@@ -1115,6 +1115,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
         try {
             trackIndex = Integer.parseInt(index);
+            if (TrackType.VIDEO.equals(trackIndex) || TrackType.AUDIO.equals(trackType)) {
+                if (trackIndex < 0) {
+                    trackIndex = 0;
+                }
+            }
         } catch (NumberFormatException e) {
             LOGE(TAG, "switchTrack " + trackType.name() + " failed parsing index, ignoring request" + index);
             return;
