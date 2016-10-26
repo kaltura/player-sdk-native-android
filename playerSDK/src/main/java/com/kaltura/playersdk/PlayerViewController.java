@@ -1115,7 +1115,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
         try {
             trackIndex = Integer.parseInt(index);
-            if (TrackType.VIDEO.equals(trackIndex) || TrackType.AUDIO.equals(trackType)) {
+            if (TrackType.VIDEO.equals(trackType) || TrackType.AUDIO.equals(trackType)) {
                 if (trackIndex < 0) {
                     trackIndex = 0;
                 }
