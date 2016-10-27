@@ -202,7 +202,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 mCastProvider = null;
                 currentState = UIState.Pause;
-                play();
+                if (!isBackgrounded) {
+                    play();
+                } else {
+                    if (parentViewController != null) {
+                        ((PlayerViewController) parentViewController).sendNotification("doPause", null);
+                    }
+                }
             }
 
 
