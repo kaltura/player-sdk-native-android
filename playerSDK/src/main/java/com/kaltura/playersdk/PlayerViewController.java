@@ -160,10 +160,8 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (isReconnect) {
             mWebView.triggerEvent("chromecastDeviceDisConnected", null);
         }
+        mWebView.triggerEvent("chromecastDeviceConnected", "" + getCurrentPlaybackTime());
 
-        if (!isCasting) {
-            mWebView.triggerEvent("chromecastDeviceConnected", "" + getCurrentPlaybackTime());
-        }
         if(isReconnect) {
             asyncEvaluate("{mediaProxy.entry.id}", "EntryId", new PlayerViewController.EvaluateListener() {
                 @Override
