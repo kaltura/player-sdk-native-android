@@ -28,7 +28,6 @@ public interface KCastMediaRemoteControl {
     void setVideoTracks(List<Integer> videoTracksList);
     HashMap<String, Integer> getTextTracks();
     List<Integer> getVideoTracks();
-    void setAdIsPlaying(boolean isAdPlaying);
 
     interface KCastMediaRemoteControlListener {
         void onCastMediaProgressUpdate(long currentPosition);
