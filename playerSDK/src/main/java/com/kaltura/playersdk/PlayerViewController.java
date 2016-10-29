@@ -1116,6 +1116,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         try {
             trackIndex = Integer.parseInt(index);
             if (TrackType.VIDEO.equals(trackType) || TrackType.AUDIO.equals(trackType)) {
+                if (mCastProvider != null && mCastProvider.isCasting()) {
+                    LOGD(TAG, "switchTrack " + trackType.name() + " is not supported while casting...");
+                    return;
+                }
                 if (trackIndex < 0) {
                     trackIndex = 0;
                 }
