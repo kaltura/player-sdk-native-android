@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.rc3/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.7/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
             //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc9/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.setAutoPlay(true);
             mPlayPauseButton.setText("Pause");
