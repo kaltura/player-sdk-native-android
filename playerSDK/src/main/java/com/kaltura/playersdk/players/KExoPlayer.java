@@ -188,11 +188,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                 if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
-                     mExoPlayer.setSurface(holder.getSurface());
-                     mReadiness = KState.READY;
-                     mExoPlayer.addListener(KExoPlayer.this);
-                 }
+                if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
+                    mExoPlayer.setSurface(holder.getSurface());
+                    mReadiness = KState.READY;
+                    mExoPlayer.addListener(KExoPlayer.this);
+                }
             }
 
             @Override
@@ -249,6 +249,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void play() {
 
         if (isPlaying() || mReadiness == KState.PLAYING) {
+            mPassedPlay = true;
             return;
         }
         LOGD(TAG, "action: play called");
@@ -469,7 +470,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             case ExoPlayer.STATE_ENDED:
                 LOGD(TAG, "STATE_ENDED mReadiness: " + mReadiness + " playWhenReady: " + playWhenReady + " mBuffering: " + mBuffering);
-                if (mReadiness == KState.IDLE) {
+
+                if (mReadiness == KState.IDLE || mReadiness == KState.PAUSED) {
                     return;
                 }
                 if (playWhenReady) {
@@ -539,26 +541,26 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             }
         }
         else if (e.getCause() instanceof com.google.android.exoplayer.upstream.HttpDataSource.HttpDataSourceException) {
-                mExoPlayer.prepare();
-                errorString = "HttpDataSourceException . Trying to recover";
-                LOGE(TAG, errorString);
-                return;
+            mExoPlayer.prepare();
+            errorString = "HttpDataSourceException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
         } else if (e.getCause() instanceof java.net.UnknownHostException) {
-                 mExoPlayer.prepare();
-                 errorString = "UnknownHostException . Trying to recover";
-                 LOGE(TAG, errorString);
-                 return;
-            } else if (e.getCause() instanceof java.net.ConnectException) {
-                mExoPlayer.prepare();
-                errorString = "ConnectException . Trying to recover";
-                LOGE(TAG, errorString);
-                return;
+            mExoPlayer.prepare();
+            errorString = "UnknownHostException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
+        } else if (e.getCause() instanceof java.net.ConnectException) {
+            mExoPlayer.prepare();
+            errorString = "ConnectException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
         }
         else if (e.getCause() instanceof java.lang.IllegalStateException) {
-                mExoPlayer.prepare();
-                errorString = "IllegalStateException . Trying to recover";
-                LOGE(TAG, errorString);
-                return;
+            mExoPlayer.prepare();
+            errorString = "IllegalStateException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
         }
         if (!"".equals(errorString)) {
             LOGE(TAG, errorString);
