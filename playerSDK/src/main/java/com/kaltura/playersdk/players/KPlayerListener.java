@@ -8,7 +8,7 @@ import com.kaltura.playersdk.PlayerViewController;
 public interface KPlayerListener {
     String PlayKey = "play";
     String PauseKey = "pause";
-    String DurationChangedKey = "durationChange";
+    String DurationChangedKey = "durationchange";
     String LoadedMetaDataKey = "loadedmetadata";
     String TimeUpdateKey = "timeupdate";
     String ProgressKey = "progress";
