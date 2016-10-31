@@ -474,6 +474,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                 if (mReadiness == KState.IDLE || mReadiness == KState.PAUSED) {
                     return;
                 }
+                if (mReadiness == KState.SEEKING && playWhenReady) {
+                    mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                }
+
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
                     mReadiness = KState.IDLE;
