@@ -512,7 +512,7 @@ public class KWVCPlayer
                         if (!mWasDestroyed) {
                             int currPos = mp.getCurrentPosition();
                             LOGD(TAG, "percent = " + percent + " " + currPos + "/" + mp.getDuration());
-                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && currPos < mp.getDuration()) ? "true" : "false");
+                            //NO NEED TO SEND THIS EXTRA DATA ---- mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && currPos < mp.getDuration()) ? "true" : "false");
                         }
                     }
                 });
