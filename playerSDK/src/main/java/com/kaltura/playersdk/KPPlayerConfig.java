@@ -128,7 +128,6 @@ public class KPPlayerConfig implements Serializable{
 		};
 		Uri uri = Uri.parse(embedFrameURL);
 		config.mServerURL = uri.getScheme() + "://" + uri.getAuthority();
-		config.addConfig("nativeVersion", BuildConfig.VERSION_NAME);
 		return config;
 	}
 
