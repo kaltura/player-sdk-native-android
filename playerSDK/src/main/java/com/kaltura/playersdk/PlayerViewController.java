@@ -168,6 +168,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 public void handler(final String idEvaluateResponse) {
                     if (idEvaluateResponse != null && !"null".equals(idEvaluateResponse)) {
                         pause();
+                        if (mCastProvider != null && mCastProvider.isCasting()) {
+                            LOGD(TAG, "----- Before Sending new AD Tag on CC --------");
+                            String newAdTag = getConfig().getConfigValueString("doubleClick.adTagUrl");
+                            if (newAdTag != null) {
+                                LOGD(TAG, "----- Sending new AD Tag to CC --------");
+                                ((KCastProviderV3Impl)mCastProvider).sendMessage("{\"type\":\"setKDPAttribute\",\"plugin\":\"doubleClick\",\"property\":\"adTagUrl\",\"value\":\"" + newAdTag + "\"}");
+                            }
+                        }
                         if (getConfig().getConfigValueString("proxyData") == null || "".equals(getConfig().getConfigValueString("proxyData"))) {
                             changeMedia(idEvaluateResponse);
                         } else {
