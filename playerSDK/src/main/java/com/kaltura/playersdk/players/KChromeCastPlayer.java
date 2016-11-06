@@ -36,7 +36,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     private ArrayList<KCastMediaRemoteControlListener> mListeners = new ArrayList<>();
     private State mState;
     private String[] mMediaInfoParams;
-    private boolean isEnded = false;
+    private boolean isEnded = true;
     private HashMap<String, Integer> mTextTracks;
     private List<Integer> mVideoTracks;
     private int currentSelectedTextTrack = 0;
@@ -50,6 +50,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
 
     public KChromeCastPlayer(CastSession castSession) {
+        LOGD(TAG, "NEW INSTANCE OF KChromeCastPlayer");
         mCastSession = castSession;
         mCastSession.getRemoteMediaClient().addListener(new RemoteMediaClient.Listener() {
             @Override
@@ -57,24 +58,34 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                 if (mCastSession == null || mCastSession.getRemoteMediaClient() == null) {
                     return;
                 }
-                MediaStatus mediaStatus = mCastSession.getRemoteMediaClient().getMediaStatus();
+                MediaStatus mediaStatus  = mCastSession.getRemoteMediaClient().getMediaStatus();
+                int playerState = mCastSession.getRemoteMediaClient().getMediaStatus().getPlayerState();
                 if (mediaStatus != null) {
-                    LOGD(TAG, "onStatusUpdated mediaStatus = " + mediaStatus.getPlayerState());
-                    switch (mediaStatus.getPlayerState()) {
+                    LOGD(TAG, "onStatusUpdated playerState = " + playerState + " mediaStatus = " + mediaStatus.getIdleReason());
+                    switch (playerState) {
                         case MediaStatus.PLAYER_STATE_IDLE:
                             if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
+                                LOGD(TAG, "onStatusUpdated isEnded = " + isEnded);
+                                if (isEnded) {
+                                    LOGD(TAG, "onStatusUpdated ALREADY ENDED RETUEN");
+                                    return;
+                                }
                                 stopTimer();
+                                LOGD(TAG, "onStatusUpdated ENDED");
                                 updateState(State.Ended);
                                 isEnded = true;
                             }
                             break;
                         case MediaStatus.PLAYER_STATE_PAUSED:
+                            isEnded = false;
                             //updateState(State.Pause);
                             break;
                         case MediaStatus.PLAYER_STATE_PLAYING:
+                            isEnded = false;
                             //updateState(State.Playing);
                             break;
                         case MediaStatus.PLAYER_STATE_BUFFERING:
+                            isEnded = false;
                             break;
                     }
                 }
@@ -82,7 +93,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
             @Override
             public void onMetadataUpdated() {
-
+                //LOGD(TAG, "onStatusUpdated onMetadataUpdated");
             }
 
             @Override
@@ -152,21 +163,21 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                 .setCustomData(descriptionJsonObj)
                 .build();
 
-            RemoteMediaClient remoteMediaClient = mCastSession.getRemoteMediaClient();
-            remoteMediaClient.load(mediaInfo, false, fromPosition).setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
+        RemoteMediaClient remoteMediaClient = mCastSession.getRemoteMediaClient();
+        remoteMediaClient.load(mediaInfo, false, fromPosition).setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
 
-                @Override
-                public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
-                    if (!mediaChannelResult.getStatus().isSuccess()) {
-                        LOGE(TAG, "CC LOAD failed");
-                        sendError("CC Load failed", null);
-                    } else {
-                        //stopTimer();
-                        startTimer();
-                        updateState(State.Loaded);
-                    }
+            @Override
+            public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
+                if (!mediaChannelResult.getStatus().isSuccess()) {
+                    LOGE(TAG, "CC LOAD failed");
+                    sendError("CC Load failed", null);
+                } else {
+                    //stopTimer();
+                    startTimer();
+                    updateState(State.Loaded);
                 }
-            });
+            }
+        });
     }
 
     private void startTimer() {
@@ -183,7 +194,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                     long currentTime = mCastSession.getRemoteMediaClient().getApproximateStreamPosition();
                     if (currentTime != 0 && currentTime < mCastSession.getRemoteMediaClient().getStreamDuration()) {
                         if (mCastSession.getRemoteMediaClient().isPlaying()) {
-                            LOGD(TAG, "CC SEND TIME UPDATE " + currentTime);
+                            //LOGD(TAG, "CC SEND TIME UPDATE " + currentTime);
                             if(mListeners != null && mListeners.size() > 0) {
                                 for (KCastMediaRemoteControlListener listener : mListeners) {
                                     listener.onCastMediaProgressUpdate(currentTime);
@@ -214,7 +225,6 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         LOGD(TAG, "Start PLAY");
         if (isEnded) {
             load(0, mEntryName, mEntryDescription , mEntryThumbnailUrl, mEntryId);
-            isEnded = false;
             stopTimer();
             startTimer();
             updateState(State.Playing);
@@ -443,4 +453,3 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         }
     }
 }
-
