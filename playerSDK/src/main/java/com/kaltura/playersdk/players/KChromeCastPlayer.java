@@ -34,6 +34,8 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private static int PLAYHEAD_UPDATE_INTERVAL = 200;
     private ArrayList<KCastMediaRemoteControlListener> mListeners = new ArrayList<>();
+    private RemoteMediaClient.Listener mRemoteMediaClientListener = null;
+
     private State mState;
     private String[] mMediaInfoParams;
     private boolean isEnded = true;
@@ -50,9 +52,15 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
 
 
     public KChromeCastPlayer(CastSession castSession) {
-        LOGD(TAG, "NEW INSTANCE OF KChromeCastPlayer");
+        LOGD(TAG, "onStatusUpdated NEW OBJECT OF KChromeCastPlayer");
+        isEnded = true;
+        setRemoteMediaClientListener();
         mCastSession = castSession;
-        mCastSession.getRemoteMediaClient().addListener(new RemoteMediaClient.Listener() {
+        mCastSession.getRemoteMediaClient().addListener(getRemoteMediaClientListener());
+    }
+
+    private void setRemoteMediaClientListener() {
+        mRemoteMediaClientListener = new RemoteMediaClient.Listener() {
             @Override
             public void onStatusUpdated() {
                 if (mCastSession == null || mCastSession.getRemoteMediaClient() == null) {
@@ -60,31 +68,37 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
                 }
                 MediaStatus mediaStatus  = mCastSession.getRemoteMediaClient().getMediaStatus();
                 int playerState = mCastSession.getRemoteMediaClient().getMediaStatus().getPlayerState();
+
                 if (mediaStatus != null) {
-                    LOGD(TAG, "onStatusUpdated playerState = " + playerState + " mediaStatus = " + mediaStatus.getIdleReason());
+                    LOGD(TAG, "onStatusUpdated playerStatus = " + playerState);
+                    LOGD(TAG, "onStatusUpdated mediaStatus  = " + mediaStatus.getIdleReason());
                     switch (playerState) {
                         case MediaStatus.PLAYER_STATE_IDLE:
-                            if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
                                 LOGD(TAG, "onStatusUpdated isEnded = " + isEnded);
-                                if (isEnded) {
-                                    LOGD(TAG, "onStatusUpdated ALREADY ENDED RETUEN");
-                                    return;
+                                if (mediaStatus.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED) {
+                                    if (isEnded) {
+                                        LOGD(TAG, "onStatusUpdated ALREADY ENDED RETUEN");
+                                        return;
+                                    }
+                                    isEnded = true;
+                                    stopTimer();
+                                    LOGD(TAG, "onStatusUpdated ENDED");
+                                    updateState(State.Ended);
+
                                 }
-                                stopTimer();
-                                LOGD(TAG, "onStatusUpdated ENDED");
-                                updateState(State.Ended);
-                                isEnded = true;
-                            }
                             break;
                         case MediaStatus.PLAYER_STATE_PAUSED:
+                            //LOGD(TAG, "onStatusUpdated playerStatus = PLAYER_STATE_PAUSED");
                             isEnded = false;
                             //updateState(State.Pause);
                             break;
                         case MediaStatus.PLAYER_STATE_PLAYING:
+                            //LOGD(TAG, "onStatusUpdated playerStatus = PLAYER_STATE_PLAYING");
                             isEnded = false;
                             //updateState(State.Playing);
                             break;
                         case MediaStatus.PLAYER_STATE_BUFFERING:
+                            //LOGD(TAG, "onStatusUpdated playerStatus = PLAYER_STATE_BUFFERING");
                             isEnded = false;
                             break;
                     }
@@ -110,7 +124,11 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             public void onSendingRemoteMediaRequest() {
 
             }
-        });
+        };
+    }
+
+    public RemoteMediaClient.Listener getRemoteMediaClientListener() {
+        return  mRemoteMediaClientListener;
     }
 
     public void setMediaInfoParams(final String[] mediaInfoParams) {
@@ -314,6 +332,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
         if (mListeners != null && mListeners.size() > 0) {
             mListeners.clear();
             mListeners = null;
+        }
+        if (mRemoteMediaClientListener != null &&mCastSession != null &&  mCastSession.getRemoteMediaClient() != null ) {
+            mCastSession.getRemoteMediaClient().removeListener(mRemoteMediaClientListener);
+            mRemoteMediaClientListener = null;
         }
         stopTimer(); // remove the timer that is responsible for time update
         //mHandler = null;
