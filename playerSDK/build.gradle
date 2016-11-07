@@ -10,7 +10,7 @@ apply from: "../kalturaCommon.gradle"
 
 android {
     compileSdkVersion kaltura.compileSdkVersion
-    buildToolsVersion '24.0.2'
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         minSdkVersion kaltura.minSdkVersion
@@ -31,11 +31,11 @@ android {
 
 dependencies {
     compile project(':googlemediaframework')
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.google.android.gms:play-services-cast-framework:9.6.0'
+    compile 'com.android.support:appcompat-v7:25.0.0'
+    compile 'com.google.android.gms:play-services-cast-framework:9.8.0'
     compile 'com.googlecode.android-query:android-query:0.25.9'
-    compile 'com.android.support:mediarouter-v7:24.2.1'
-    compile 'com.google.ads.interactivemedia.v3:interactivemedia:3.3.2'
+    compile 'com.android.support:mediarouter-v7:25.0.0'
+    compile 'com.google.ads.interactivemedia.v3:interactivemedia:3.4.0'
 }
 
 // build a jar with source files
