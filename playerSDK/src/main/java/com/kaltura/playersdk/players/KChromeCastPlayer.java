@@ -136,6 +136,10 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
     }
 
     public void load(final long fromPosition, String entryTitle, String entryDescription, String entryThumbnailUrl, String entryId) {
+        if (mCastSession == null) {
+            return;
+        }
+
         //Init the tracks
         mTextTracks = new HashMap<>();
         mVideoTracks = new ArrayList<>();
@@ -333,7 +337,7 @@ public class KChromeCastPlayer implements KCastMediaRemoteControl{
             mListeners.clear();
             mListeners = null;
         }
-        if (mRemoteMediaClientListener != null &&mCastSession != null &&  mCastSession.getRemoteMediaClient() != null ) {
+        if (mRemoteMediaClientListener != null && mCastSession != null &&  mCastSession.getRemoteMediaClient() != null ) {
             mCastSession.getRemoteMediaClient().removeListener(mRemoteMediaClientListener);
             mRemoteMediaClientListener = null;
         }
