@@ -103,7 +103,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
                 
                 // Special case: clear cache if this error is given.
                 if (messageLevel == ConsoleMessage.MessageLevel.ERROR) {
-                    if (message.equals("Uncaught SyntaxError: Unexpected end of input")) {
+                    if (message.contains("Uncaught SyntaxError")) { // for cases like "Uncaught SyntaxError: Unexpected end of input" or "Uncaught SyntaxError: Invalid or unexpected token"
                         LOGW(TAG, "Removing faulty cached resource: " + sourceId);
                         mCacheManager.removeCachedResponse(Uri.parse(sourceId));
                     }
