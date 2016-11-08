@@ -187,7 +187,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
 
             @Override
-            public void onStopCasting() {
+            public void onStopCasting(boolean appInBg) {
                 if (mCastPlayer != null) {
                     if(player != null) {
                         if (mCastProvider != null && mCastProvider.getCastSession() != null && mCastProvider.getCastSession().getRemoteMediaClient() != null)
@@ -202,7 +202,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 }
                 mCastProvider = null;
                 currentState = UIState.Pause;
-                if (!isBackgrounded) {
+                if (!isBackgrounded && !appInBg) {
                     play();
                 } else {
                     if (parentViewController != null) {

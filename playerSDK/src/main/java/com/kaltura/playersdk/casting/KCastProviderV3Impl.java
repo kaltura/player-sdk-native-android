@@ -42,6 +42,7 @@ public class KCastProviderV3Impl implements KCastProvider {
     private boolean isReconnedted  = true;
     private String mCastLogoUrl = "";
     private boolean isInSession = false;
+    private boolean appInbg = false;
     //private boolean isPlayAfterEnded = false;
     //private String[] currentMediaParams;
     //@NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
@@ -71,6 +72,8 @@ public class KCastProviderV3Impl implements KCastProvider {
         mSessionManager.addSessionManagerListener(mSessionManagerListener);
         mCastSession = mSessionManager.getCurrentCastSession();
     }
+
+
 
     public void addCastStateListener(CastStateListener castStateListener) {
         mCastContext.addCastStateListener(castStateListener);
@@ -226,11 +229,20 @@ public class KCastProviderV3Impl implements KCastProvider {
         if (mInternalListener != null) {
             //mInternalListener.onCastStateChanged("hideConnectingMessage");
             mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
-            mInternalListener.onStopCasting();
+            mInternalListener.onStopCasting(appInbg);
         }
         teardown();
     }
 
+    @Override
+    public void setAppBackgroundState(boolean appBgState) {
+        appInbg = appBgState;
+    }
+
+    @Override
+    public boolean getAppBackgroundState() {
+        return appInbg;
+    }
     @Override
     public KCastDevice getSelectedCastDevice() {
         if (mCastSession != null) {
