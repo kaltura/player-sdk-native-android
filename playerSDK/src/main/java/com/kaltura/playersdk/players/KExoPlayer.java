@@ -393,6 +393,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         prepareWithConfigurationMode = true;
     }
 
+    @Override
+    public void setPrepareWithConfigurationModeOff() {
+        prepareWithConfigurationMode = false;
+    }
 
 
 //    private void savePlayerState() {

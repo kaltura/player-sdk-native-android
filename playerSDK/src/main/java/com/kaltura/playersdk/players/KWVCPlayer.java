@@ -330,6 +330,10 @@ public class KWVCPlayer
     public void setPrepareWithConfigurationMode() {
 
     }
+    @Override
+    public void setPrepareWithConfigurationModeOff() {
+
+    }
 
     public void savePosition() {
         if(mPlayer != null) {
