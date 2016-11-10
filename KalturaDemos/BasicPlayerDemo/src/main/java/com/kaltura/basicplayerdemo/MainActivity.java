@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button videoButton;
     private Button audioButton;
     private Button textButton;
+    private Button replayButton;
 
     private RelativeLayout.LayoutParams defaultVideoViewParams;
     private int defaultScreenOrientationMode;
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         videoButton = (Button) findViewById(R.id.video_controls);
         audioButton = (Button) findViewById(R.id.audio_controls);
         textButton = (Button) findViewById(R.id.text_controls);
+        replayButton = (Button) findViewById(R.id.replay);
         mPlayPauseButton = (Button)findViewById(R.id.button);
         mPlayPauseButton.setOnClickListener(this);
         mPlayPauseButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -87,13 +89,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.rc4/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.7/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
             //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc9/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.setAutoPlay(true);
             mPlayPauseButton.setText("Pause");
 
             //config.addConfig("debugKalturaPlayer", "true");
             //config.addConfig("controlBarContainer.hover", "true");
+            //config.addConfig("fullScreenBtn.plugin", "true");
+
             config.addConfig("closedCaptions.plugin", "true");
             config.addConfig("sourceSelector.plugin", "true");
             config.addConfig("sourceSelector.displayMode", "bitrate");
@@ -188,11 +192,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mPlayPauseButton.setText("Play");
                 getPlayer().getMediaControl().pause();
             }
-        } else {
-            mPlayer.getMediaControl().replay();
-            mPlayPauseButton.setText("Pause");
         }
-
     }
 
     @Override
@@ -216,12 +216,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        LOGD(TAG, "onKPlayerStateChanged: state = " + state.name());
         if (state == KPlayerState.PAUSED && playerViewController.getCurrentPlaybackTime() > 0) {
 //            findViewById(R.id.replay).setVisibility(View.VISIBLE);
             mPlayPauseButton.setText("Play");
         } else if (state == KPlayerState.PLAYING) {
 //            findViewById(R.id.replay).setVisibility(View.INVISIBLE);
             mPlayPauseButton.setText("Pause");
+        } else if (state == KPlayerState.ENDED) {
+            replayButton.setVisibility(View.VISIBLE);
+        }  else if (state == KPlayerState.READY) {
+            replayButton.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -308,6 +313,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mPlayer.getTrackManager().switchTrack(type, switchTrackIndex);
 
         return true;
+    }
+
+    public void doReplay(View v) {
+        if (mPlayer != null) {
+            mPlayer.getMediaControl().replay();
+            mPlayPauseButton.setText("Pause");
+        }
     }
 
     public void showVideoPopup(View v) {

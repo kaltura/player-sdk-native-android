@@ -159,12 +159,12 @@ public class MainActivity extends AppCompatActivity
 ////            config.addConfig("topBarContainer.plugin", "true");
 //            config.addConfig("largePlayBtn.plugin", "true");
 ////            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
-//
+////
 ////            config.addConfig("doubleClick.adTagUrl",adTagUrl);
 ////            config.addConfig("doubleClick.plugin","true");
 
 
-            String json = getJson("384080"/*"388409"*/);
+            String json = getJson("384080"/*"388409"*/); //456237
 
 
             //KPPlayerConfig config = null;
@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity
     public String getJson(String mediaID) {
         String json = "{\n" +
                 "  \"base\": {\n" +
-                "    \"server\": \"http://player-as.ott.kaltura.com/viacom18/v2.41.2_viacom_v0.19_v0.3.rc9_viacom_proxy_v0.2.2/mwEmbed/mwEmbedFrame.php\",\n" +
+                "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.7_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.11/mwEmbed/mwEmbedFrame.php\",\n" +
                 //                 "    \"server\": \"http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
 
                 "    \"partnerId\": \"\",\n" +
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity
                 "    \"prevBtnComponent.plugin\": true,\n" +
                 "    \n" +
                 "    \"liveCore.disableLiveCheck\": true,\n" +
-                "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
+                //"    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
                 "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
                 "    \"proxyData\": {\n";
 
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity
                     "                                        \"filters\": {\n" +
                     "                                            \"include\": {\n" +
                     "                                                \"Format\": [\n" +
-                    "                                                    \"dash Main\"\n" +
+                    "                                                    \"Tablet Main\"\n" + // dash Main/dash Mobile
                     "                                                ]\n" +
                     "                                            }\n" +
                     "                                        }\n" +
@@ -410,6 +410,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
+        LOGD(TAG, "onKPlayerStateChanged state = "  +state.name());
         if (state == KPlayerState.READY) {
             LOGD(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
             kPlayerReady = true;

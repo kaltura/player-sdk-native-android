@@ -14,15 +14,7 @@
         android:orientation="vertical"
         android:layout_weight="8">
 
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Replay"
-            android:id="@+id/replay"
-            android:visibility="invisible"
-            android:onClick="onClick"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true" />
+
 
         <com.kaltura.playersdk.PlayerViewController
             android:layout_width="match_parent"
@@ -30,10 +22,21 @@
             android:id="@+id/player"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true">
+            android:layout_alignParentStart="true">
 
         </com.kaltura.playersdk.PlayerViewController>
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Replay"
+            android:id="@+id/replay"
+            android:visibility="invisible"
+            android:onClick="doReplay"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
 
         <Button
             android:layout_width="wrap_content"
@@ -43,7 +46,6 @@
             style="@style/DemoButton"
             android:visibility="visible"
             android:onClick="showVideoPopup"
-            android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true" />
 

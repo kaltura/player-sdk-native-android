@@ -14,6 +14,20 @@
 
     <LinearLayout
         android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wifi"
+            android:id="@+id/switch_wifi"
+            android:checked="true"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
 
@@ -36,8 +50,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false">
-    
-    
+
+
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -87,6 +101,12 @@
                 android:text="Refresh"
                 android:id="@+id/btn_refresh"
                 android:padding="5dp"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Play"
+                android:id="@+id/btn_play"/>
 
         </LinearLayout>
     </HorizontalScrollView>

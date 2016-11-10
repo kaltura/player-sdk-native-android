@@ -6,12 +6,11 @@ android:
   components:
   - tools
   - platform-tools
+  - build-tools-24.0.2
   - build-tools-24.0.0
   - android-24
   - extra-android-m2repository
   - extra-google-m2repository
-env:
-  - BUILD_DEMOS: false
 before_install:
   - ./travis-verify-version-tag.sh
 cache:
@@ -21,9 +20,11 @@ cache:
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 script:
-  - ./travis-build.sh
+  - ./gradlew :kalturaPlay:assembleRelease
+  - ./gradlew :kalturaPlay:assembleDebug
+  - for DEMO in AdPlayerDemo CCPlayerDemo DTGPlayerDemo MultiPlayerDemo PlayerFragmentDemo; do ./gradlew -p KalturaDemos $DEMO:assembleDebug; done
 after_success:
-- ls -lh kalturaPlay/build/outputs/apk testapp/build/outputs/apk
+- ls -lh kalturaPlay/build/outputs/apk
 - ./travis-pull-artifacts-upload.sh
 - ./travis-verify-no-hacks.sh
 deploy:
@@ -32,7 +33,6 @@ deploy:
   skip_cleanup: true
   file:
     - kalturaPlay/build/outputs/apk/kalturaPlay-debug.apk
-    - testapp/build/outputs/apk/testapp-debug.apk
   on:
     tags: true
   api-key: $GH_TOKEN
@@ -44,5 +44,6 @@ notifications:
       - oren.melamed@kaltura.com
       - gilad.nadav@kaltura.com
       - g.kozlov@synergetica.co
+      - anton.afanasiev@kaltura.com
     on_success: change
     on_failure: always
