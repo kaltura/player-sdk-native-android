@@ -185,33 +185,10 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                                 changeMediaJSON.put("entryId", idEvaluateResponse);
                                 changeMediaJSON.put("proxyData", proxyData);
                                 changeMedia(changeMediaJSON);
-                                //final long currPos = ((KCastProviderV3Impl)mCastProvider).getCastSession().getRemoteMediaClient().getApproximateStreamPosition();
-                                //final String currEntryId = ((KCastProviderV3Impl)mCastProvider).getCastSession().getRemoteMediaClient().getMediaInfo().getMetadata().getString(KChromeCastPlayer.KEY_ENTRY_ID);
-                                //     if (currEntryId == idEvaluateResponse)
-                                //    ((KCastProviderV3Impl)mCastProvider).getCastSession().getRemoteMediaClient().seek(currPos);
-                                //     playerController.seek(currPos);
-
                             } catch (JSONException e) {
                                 LOGE(TAG, "Error could not create change media proxy dat object");
                             }
                         }
-
-//                        final long currPos = sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().getApproximateStreamPosition();
-//
-//                        final String currEntryName = sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().getMediaInfo().getMetadata().getString(MediaMetadata.KEY_TITLE);
-//                        asyncEvaluate("{mediaProxy.entry.name}", "EntryTitle", new PlayerViewController.EvaluateListener() {
-//                            @Override
-//                            public void handler(String nameEvaluateResponse) {
-//                                if (nameEvaluateResponse != null && !"null".equals(nameEvaluateResponse)) {
-//                                    changeMedia(idEvaluateResponse);
-//                                    if (nameEvaluateResponse.equals(currEntryName)) {
-//                                        sessionManagerListener.getSessionManager().getCurrentCastSession().getRemoteMediaClient().seek(currPos);
-//                                        //playerController.seek(currPos);
-//                                    }
-//                                }
-//
-//                            }
-//                        });
                     }
                 }
             });
@@ -857,6 +834,33 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
         if(KPlayerListener.ErrorKey.equals(eventName) && !getConfig().isWebDialogEnabled()) {
             LOGE(TAG, "blocking Dialog for: " + eventValue);
+            if (eventValue.contains("AudioTrack") || eventValue.contains("Socket")) {
+                String isExternalAdPlayer = getConfig().getConfigValueString("EmbedPlayer.UseExternalAdPlayer");
+                if (player != null && isExternalAdPlayer != null && "true".equals(isExternalAdPlayer)) {
+                    setPrepareWithConfigurationMode(false);
+                    player.setPrepareWithConfigurationModeOff();
+                }
+                asyncEvaluate("{mediaProxy.entry.id}", "EntryId", new PlayerViewController.EvaluateListener() {
+                    @Override
+                    public void handler(final String idEvaluateResponse) {
+                        if (idEvaluateResponse != null && !"null".equals(idEvaluateResponse)) {
+                            if (getConfig().getConfigValueString("proxyData") == null || "".equals(getConfig().getConfigValueString("proxyData"))) {
+                                changeMedia(idEvaluateResponse);
+                            } else {
+                                try {
+                                    JSONObject changeMediaJSON = new JSONObject();
+                                    JSONObject proxyData = new JSONObject(getConfig().getConfigValueString("proxyData"));
+                                    changeMediaJSON.put("entryId", idEvaluateResponse);
+                                    changeMediaJSON.put("proxyData", proxyData);
+                                    changeMedia(changeMediaJSON);
+                                } catch (JSONException e) {
+                                    LOGE(TAG, "Error could not create change media proxy dat object");
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             sendOnKPlayerError(eventValue);
             return;
