@@ -258,27 +258,32 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             return false;
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError webResourceError) {
             String errMsg = "WebViewError:";
-            if (request != null && request.getUrl() != null) {
-                errMsg += request.getUrl().toString();
-            }
+
             if (webResourceError != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!errMsg.isEmpty()) {
-                        errMsg += "-";
-                    }
-                    errMsg += webResourceError.getDescription();
+                if (webResourceError.getErrorCode() == -2) {
+                    view.loadData("<div></div>", "text/html", "UTF-8");
                 }
+                errMsg += webResourceError.getErrorCode() + "-" ;
+                if (request != null && request.getUrl() != null) {
+                    errMsg += request.getUrl().toString() + "-";
+                }
+                errMsg += webResourceError.getDescription();
             }
             controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            if (errorCode == -2)    {
+                view.loadData("<div></div>", "text/html", "UTF-8");
+            }
+
             String errMsg = "WebViewError:";
+            errMsg += errorCode + "-" ;
             if (failingUrl != null) {
                 errMsg += failingUrl + "-";
             }
@@ -293,10 +298,11 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse webResourceResponse) {
             String errMsg = "WebViewError:";
+            errMsg += webResourceResponse.getStatusCode() + "-" ;
             if (request != null && request.getUrl() != null) {
                 errMsg += request.getUrl().toString() + "-";
             }
