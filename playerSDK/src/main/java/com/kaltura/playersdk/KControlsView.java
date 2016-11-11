@@ -263,9 +263,10 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError webResourceError) {
             String errMsg = "WebViewError:";
 
+
             if (webResourceError != null) {
                 if (webResourceError.getErrorCode() == -2) {
-                    view.loadData("<div></div>", "text/html", "UTF-8");
+                   //view.loadData("<div></div>", "text/html", "UTF-8");
                 }
                 errMsg += webResourceError.getErrorCode() + "-" ;
                 if (request != null && request.getUrl() != null) {
@@ -273,13 +274,16 @@ public class KControlsView extends WebView implements View.OnTouchListener {
                 }
                 errMsg += webResourceError.getDescription();
             }
+            if (errMsg.contains("favicon.ico")) {
+                return;
+            }
             controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             if (errorCode == -2)    {
-                view.loadData("<div></div>", "text/html", "UTF-8");
+               //view.loadData("<div></div>", "text/html", "UTF-8");
             }
 
             String errMsg = "WebViewError:";
