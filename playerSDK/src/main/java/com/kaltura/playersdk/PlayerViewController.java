@@ -834,7 +834,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
         if(KPlayerListener.ErrorKey.equals(eventName) && !getConfig().isWebDialogEnabled()) {
             LOGE(TAG, "blocking Dialog for: " + eventValue);
-            if (eventValue.contains("AudioTrack") || eventValue.contains("Socket")) {
+            if (eventValue.contains("Socket")) {
                 String isExternalAdPlayer = getConfig().getConfigValueString("EmbedPlayer.UseExternalAdPlayer");
                 if (player != null && isExternalAdPlayer != null && "true".equals(isExternalAdPlayer)) {
                     setPrepareWithConfigurationMode(false);
