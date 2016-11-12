@@ -491,17 +491,19 @@ public class MainActivity extends AppCompatActivity
         ViewGroup.LayoutParams lp = mPlayer.getLayoutParams();
         lp = new ViewGroup.LayoutParams(lp.width, lp.height);
         mPlayer.addView(adPlayerContainer, lp);
-
-        Video source = new Video(adUrl, Video.VideoType.MP4);
-        mAdPlayer = new SimpleVideoPlayer(this, adPlayerContainer, source, "", true);
-        mAdPlayer.disableSeeking();
         changeAdMedia(adList.get(0), 0);
     }
 
     public void changeAdMedia(String adUrl, final int index) {
 
         Video source = new Video(adUrl, Video.VideoType.MP4);
-        mAdPlayer.changedMedia(adPlayerContainer, source, true);
+        if (mAdPlayer == null) {
+            mAdPlayer = new SimpleVideoPlayer(this, adPlayerContainer, source, "", true);
+            mAdPlayer.disableSeeking();
+        }
+        else {
+            mAdPlayer.changedMedia(adPlayerContainer, source, true);
+        }
         mAdPlayer.addPlaybackListener(new ExoplayerWrapper.PlaybackListener() {
             @Override
             public void onStateChanged(boolean playWhenReady, int playbackState) {
