@@ -12,7 +12,6 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
@@ -296,11 +295,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player == null && mCastProvider == null) {
             return;
         }
-        if (SystemClock.elapsedRealtime() - mPlayLastClickTime < 1000) {
-            playerListener.eventWithValue(player, KPlayerListener.PlayKey, null);
-            LOGD(TAG, "PLAY REJECTED");
-            return;
-        }
+
         mPlayLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Play) {
             currentState = UIState.Play;
@@ -336,10 +331,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     @Override
     public void pause() {
         if (player == null && mCastProvider == null) {
-            return;
-        }
-        if (SystemClock.elapsedRealtime() - mPauseLastClickTime < 1000) {
-            LOGD(TAG, "PAUSE REJECTED");
             return;
         }
 
