@@ -266,13 +266,14 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
             if (webResourceError != null) {
                 if (webResourceError.getErrorCode() == -2) {
-                   //view.loadData("<div></div>", "text/html", "UTF-8");
+                    //view.loadData("<div></div>", "text/html", "UTF-8");
                 }
                 errMsg += webResourceError.getErrorCode() + "-" ;
+                errMsg += webResourceError.getDescription() + "-";
                 if (request != null && request.getUrl() != null) {
-                    errMsg += request.getUrl().toString() + "-";
+                    errMsg += request.getUrl().toString();
                 }
-                errMsg += webResourceError.getDescription();
+
             }
             if (errMsg.contains("favicon.ico")) {
                 return;
@@ -283,16 +284,18 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             if (errorCode == -2)    {
-               //view.loadData("<div></div>", "text/html", "UTF-8");
+                //view.loadData("<div></div>", "text/html", "UTF-8");
             }
 
             String errMsg = "WebViewError:";
             errMsg += errorCode + "-" ;
-            if (failingUrl != null) {
-                errMsg += failingUrl + "-";
-            }
+
             if (description != null) {
-                errMsg += description;
+                errMsg += description + "-";
+            }
+
+            if (failingUrl != null) {
+                errMsg += failingUrl;
             }
 
             if (errMsg.contains("favicon.ico")) {
@@ -301,6 +304,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
             controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
+
 
         @TargetApi(Build.VERSION_CODES.M)
         @Override
