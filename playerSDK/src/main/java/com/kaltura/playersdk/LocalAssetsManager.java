@@ -204,17 +204,15 @@ public class LocalAssetsManager {
                 break;
         }
 
-        if (flavor == null) {
-            flavor = "";    // the service requires the parameter, but it can be empty. 
-        }
-        
         Uri.Builder builder = serviceURL.buildUpon()
                 .appendPath("services.php")
                 .encodedQuery(config.getQueryString())
                 .appendQueryParameter("service", "getLicenseData")
-                .appendQueryParameter("drm", drmName)
-                .appendQueryParameter("flavor_id", flavor);
-        
+                .appendQueryParameter("drm", drmName);
+        if (flavor != null) {
+            builder.appendQueryParameter("flavor_id", flavor);
+        }
+
         return builder.build();
     }
 
