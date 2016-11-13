@@ -173,6 +173,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     public void run() {
                         if (player != null && mCastPlayer != null) {
                             mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
+                            currentState = UIState.Play;
                         }
                     }
                 }, 250);
