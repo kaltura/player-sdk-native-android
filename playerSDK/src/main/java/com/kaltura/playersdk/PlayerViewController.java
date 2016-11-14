@@ -432,7 +432,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             playerController.destroy();
         }
         if (mWebView != null) {
-            mWebView.loadUrl("about:blank");
+            try {
+                mWebView.loadUrl("about:blank");
+            }  catch(NullPointerException e){
+                LOGE(TAG, "WebView NullPointerException caught " + e.getMessage());
+            }
             removeView(mWebView);
             mWebView.destroy();
         }
