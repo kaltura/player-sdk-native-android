@@ -21,6 +21,7 @@ public interface KCastProvider {
     boolean isReconnected();
     boolean isConnected();
     boolean isCasting();
+    long getStreamDuration();
     void setAppBackgroundState(boolean appBgState);
     boolean getAppBackgroundState();
 

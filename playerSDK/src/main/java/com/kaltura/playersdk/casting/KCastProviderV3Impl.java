@@ -288,6 +288,14 @@ public class KCastProviderV3Impl implements KCastProvider {
         return false;
     }
 
+    @Override
+    public long getStreamDuration() {
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+            return mCastSession.getRemoteMediaClient().getStreamDuration();
+        }
+        return -1;
+    }
+
     public void sendMessage(final String message) {
         if (mCastSession != null) {
             mCastSession.sendMessage(nameSpace, message).setResultCallback(new ResultCallbacks<Status>() {
