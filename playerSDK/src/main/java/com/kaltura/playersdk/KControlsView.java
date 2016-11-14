@@ -167,7 +167,12 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     }
 
     public void triggerEvent(final String event, final String value) {
-        loadUrl(KStringUtilities.triggerEvent(event, value));
+        try {
+            loadUrl(KStringUtilities.triggerEvent(event, value));
+        }
+        catch(NullPointerException e) { //for old android there is but in WebView internal that they through NPE
+            LOGE(TAG, "WebView NullPointerException caught: " + e.getMessage());
+        }
     }
 
     public void triggerEventWithJSON(String event, String jsonString) {
