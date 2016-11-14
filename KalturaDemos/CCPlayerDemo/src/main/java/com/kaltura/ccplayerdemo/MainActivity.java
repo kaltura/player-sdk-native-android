@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int MENU_GROUP_TRACKS = 1;
     private static final int TRACK_DISABLED = -1;
     private static final int ID_OFFSET = 2;
-    private static final String CCApplicationID = "48A28189"; //"276999A7"; //Old Id C43947A1
+    private static final String CCApplicationID = "2A6E530B";//"48A28189"; //"276999A7"; //Old Id C43947A1
 
 
     private Button mPlayPauseButton;
@@ -238,10 +238,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-
     private void startCC() {
 
-        mCastProvider = KCastFactory.createCastProvider();
+        mCastProvider = KCastFactory.createCastProvider("");
         mCastProvider.setKCastProviderListener(new KCastProvider.KCastProviderListener() {
             @Override
             public void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl) {
@@ -313,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
                 //LOCAL - KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
-                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.1/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.49/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
 
                 //DRM - KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
                 //HAROLD - KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.47.1/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");

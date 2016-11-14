@@ -53,6 +53,7 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
     private boolean mCastButtonEnabled = false;
     private boolean mGuestModeEnabled = false; // do not enable paring the cc from guest network
     private KCastMediaRemoteControl mCastMediaRemoteControl;
+    private String mCastLogoUrl = "";
 
     private String mSessionId;
 
@@ -65,6 +66,11 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
         void onStartCasting(KChromeCastPlayer remoteMediaPlayer);
         void onCastStateChanged(String state);
         void onStopCasting();
+    }
+
+
+    public KCastProviderImpl(String logoUrl) {
+        this.mCastLogoUrl = logoUrl;
     }
 
     public void setInternalListener(InternalListener internalListener) {
@@ -383,6 +389,9 @@ public class KCastProviderImpl implements com.kaltura.playersdk.interfaces.KCast
                                                         getCastMediaRemoteControl().setVideoTracks(videoTracksList);
                                                     }
                                                 });
+                                                if (!"".equals(mCastLogoUrl)) {
+                                                    sendMessage("{\"type\": \"setLogo\", \"logo\": \"" + mCastLogoUrl + "\"}");
+                                                }
                                                 sendMessage("{\"type\":\"show\",\"target\":\"logo\"}");
                                                 mApplicationStarted = true;
                                                 try {
