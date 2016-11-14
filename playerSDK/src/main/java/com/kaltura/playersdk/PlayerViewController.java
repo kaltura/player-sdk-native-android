@@ -150,9 +150,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             return null;
         }
         mCastProvider.init(mActivity);
-        boolean isReconnect = mCastProvider.isReconnected() || mCastProvider.getStreamDuration() > 0;
+        boolean isReconnect = mCastProvider.isReconnected() || mCastProvider.getSelectedCastDevice() != null;
         boolean isCasting = mCastProvider.isCasting();
-        if (isCasting || mCastProvider.getStreamDuration() > 0) {
+        if (isCasting || mCastProvider.getSelectedCastDevice() != null) {
             mCastProvider.startReceiver(mActivity);
         }
 
