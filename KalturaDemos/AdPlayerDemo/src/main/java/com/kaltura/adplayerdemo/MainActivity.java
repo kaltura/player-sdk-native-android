@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity
 
             try {
                 if (config == null) {
-                    config = getConfig("384080");
+                    config = getConfig("436970");
                 }
                 mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
                 mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
