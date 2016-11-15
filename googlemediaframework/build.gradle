@@ -16,6 +16,12 @@
 
 apply plugin: 'com.android.library'
 
+try {
+    apply plugin: 'com.github.dcendents.android-maven'
+} catch (UnknownPluginException ignore) {
+    // Ok - this plugin is optional and only needed for publishing to Maven.
+}
+
 android {
     compileSdkVersion 24
     buildToolsVersion '24.0.2'
@@ -37,4 +43,14 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
 }
