@@ -47,7 +47,12 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 /**
  * Created by noamt on 18/01/2016.
  */
-public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener ,ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener {
+public class KExoPlayer extends FrameLayout implements KPlayer
+        ,ExoplayerWrapper.PlaybackListener
+        ,ExoplayerWrapper.CaptionListener
+        ,ExoplayerWrapper.Id3MetadataListener
+        ,ExoplayerWrapper.UnhandledExceptionListener
+{
 
     private static final String TAG = "KExoPlayer";
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -180,6 +185,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
         configureSubtitleView();
         mExoPlayer.addListener(this);
+        mExoPlayer.addUnhandledExceptionListener(this);
         mExoPlayer.prepare();
 
         mSurfaceCallback = new SurfaceHolder.Callback() {
@@ -190,6 +196,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                      mExoPlayer.setSurface(holder.getSurface());
                      mReadiness = KState.READY;
                      mExoPlayer.addListener(KExoPlayer.this);
+                     mExoPlayer.addUnhandledExceptionListener(KExoPlayer.this);
                  }
             }
 
@@ -209,7 +216,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         };
 
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
-        LOGD(TAG, "KExoPlaer prepareWithConfigurationMode " + prepareWithConfigurationMode);
+        LOGD(TAG, "KExoPlayer prepareWithConfigurationMode " + prepareWithConfigurationMode);
         if(!prepareWithConfigurationMode) {
             this.addView(mSurfaceView, layoutParams);
             mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
@@ -339,6 +346,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         stopPlaybackTimeReporter();
         pause();
         if (mExoPlayer != null) {
+            mExoPlayer.removeUnhandledExceptionListener(this);
             mExoPlayer.release();
             mExoPlayer = null;
         }
@@ -493,6 +501,12 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             mExoPlayer.setPlayWhenReady(shouldPlay);
         }
         setKeepScreenOn(shouldPlay);
+    }
+
+    @Override
+    public void onUnhandledError(Exception e) {
+        LOGE(TAG, "onUnhandledError ", e);
+        mExoPlayer.prepare();
     }
 
     @Override

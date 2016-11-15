@@ -93,7 +93,14 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees,
                             float pixelWidthHeightRatio);
   }
+  /**
+   * A listener for Unhandled exceptions
+   * Note: This will be triggered only when onError is not triggered.
+   */
+  public interface UnhandledExceptionListener {
+    void onUnhandledError(Exception e);
 
+  }
   /**
    * A listener for internal errors.
    * <p>
@@ -360,6 +367,11 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   private final CopyOnWriteArrayList<PlaybackListener> playbackListeners;
 
   /**
+   * Listeners are notified when underlying player gets exceptions.
+   */
+  private final CopyOnWriteArrayList<UnhandledExceptionListener> unhandledExceptionListeners;
+
+  /**
    * States are idle, building, or built.
    */
   private int rendererBuildingState;
@@ -437,6 +449,7 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     playerControl = new ObservablePlayerControl(player);
     mainHandler = new Handler();
     playbackListeners = new CopyOnWriteArrayList<PlaybackListener>();
+    unhandledExceptionListeners = new CopyOnWriteArrayList<UnhandledExceptionListener>();
     lastReportedPlaybackState = ExoPlayer.STATE_IDLE;
     rendererBuildingState = RENDERER_BUILDING_STATE_IDLE;
     trackStateForType = new int[RENDERER_COUNT];
@@ -465,12 +478,33 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
   }
 
   /**
+   * Add a listener from notifications about unhandled exceptions.
+   *
+   * @param listener
+   */
+
+  public void addUnhandledExceptionListener(UnhandledExceptionListener listener) {
+    if (!unhandledExceptionListeners.contains(listener)) {
+      unhandledExceptionListeners.add(listener);
+    }
+  }
+
+  /**
    * Remove a listener from notifications about size changes and errors.
    *
    * @param playbackListener
    */
   public void removeListener(PlaybackListener playbackListener) {
     playbackListeners.remove(playbackListener);
+  }
+
+  /**
+   * Remove a listener from notifications about unhandled exceptions.
+   *
+   * @param listener
+   */
+  public void removeUnhandledExceptionListener(UnhandledExceptionListener listener) {
+    unhandledExceptionListeners.remove(listener);
   }
 
   /**
@@ -750,6 +784,14 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     rendererBuildingState = RENDERER_BUILDING_STATE_IDLE;
     for (PlaybackListener playbackListener : playbackListeners) {
       playbackListener.onError(exception);
+    }
+    // some devices crypto exceptions are coming when app is going to background.
+    // That time, playbackListeners list becomes 0 from surfaceDestroyed,
+    // Need a callback to intiate prepare in these situations.
+    if (playbackListeners.size() == 0 && unhandledExceptionListeners!=null) {
+      for (UnhandledExceptionListener listener : unhandledExceptionListeners) {
+        listener.onUnhandledError(exception);
+      }
     }
   }
 
