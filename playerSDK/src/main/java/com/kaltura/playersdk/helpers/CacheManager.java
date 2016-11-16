@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import static com.kaltura.playersdk.helpers.KStringUtilities.md5;
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 import static com.kaltura.playersdk.utils.LogUtils.LOGE;
+import static com.kaltura.playersdk.utils.LogUtils.LOGW;
 
 
 /**
@@ -182,7 +183,7 @@ public class CacheManager {
     public boolean refreshCachedResponse(Uri url) throws IOException {
         boolean remove = removeCachedResponse(url);
         if (!remove) {
-            return false;
+            LOGW(TAG, "Failed to remove cached response for " + url);
         }
         
         cacheResponse(url);
