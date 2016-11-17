@@ -22,6 +22,7 @@ public interface KCastProvider {
     boolean isConnected();
     boolean isCasting();
     long getStreamDuration();
+    String getSessionEntryID();
     void setAppBackgroundState(boolean appBgState);
     boolean getAppBackgroundState();
 
