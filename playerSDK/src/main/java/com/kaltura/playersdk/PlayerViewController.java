@@ -146,7 +146,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public KCastProvider setCastProvider(KCastProvider castProvider) {
         boolean isFirstSetup = true;
-        if (mCastProvider != null) {
+        if (mCastProvider != null) { // if we get notifications of number of connected devices we can do logic not to change media first time
             isFirstSetup = false;
         }
 
@@ -167,7 +167,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
         mWebView.triggerEvent("chromecastDeviceConnected", "" + getCurrentPlaybackTime());
 
-        if((isReconnect)) {// && !isFirstSetup) || mCastProvider.getSessionEntryID() != null) {
+        if(isReconnect) { // && !isFirstSetup) || mCastProvider.getSessionEntryID() != null) {
             asyncEvaluate("{mediaProxy.entry.id}", "EntryId", new PlayerViewController.EvaluateListener() {
                 @Override
                 public void handler(final String idEvaluateResponse) {
