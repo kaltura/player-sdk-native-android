@@ -296,6 +296,23 @@ public class KCastProviderV3Impl implements KCastProvider {
         return -1;
     }
 
+    @Override
+    public String getSessionEntryID() {
+        String sessionEntryID = null;
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null &&
+            mCastSession.getRemoteMediaClient().getMediaInfo() != null &&
+            mCastSession.getRemoteMediaClient().getMediaInfo().getMetadata() != null) {
+            sessionEntryID =  mCastSession.getRemoteMediaClient().getMediaInfo().getMetadata().getString(KChromeCastPlayer.KEY_ENTRY_ID);
+        }
+
+        if (sessionEntryID != null) {
+            LOGD(TAG, "sessionEntryID = " + sessionEntryID);
+        } else {
+            LOGD(TAG, "sessionEntryID is not set");
+        }
+        return sessionEntryID;
+    }
+
     public void sendMessage(final String message) {
         if (mCastSession != null) {
             mCastSession.sendMessage(nameSpace, message).setResultCallback(new ResultCallbacks<Status>() {
@@ -394,8 +411,10 @@ public class KCastProviderV3Impl implements KCastProvider {
             @Override
             public void onSessionEnded(Session session, int i) {
                 LOGD(TAG, "SessionManagerListener onSessionEnded");
-                disconnectFromCastDevice();
-                isInSession = false;
+                if (isInSession) {
+                    disconnectFromCastDevice();
+                    isInSession = false;
+                }
             }
 
             @Override
@@ -413,6 +432,7 @@ public class KCastProviderV3Impl implements KCastProvider {
             public void onSessionResumeFailed(Session session, int i) {
                 LOGD(TAG, "SessionManagerListener onSessionResumeFailed");
                 disconnectFromCastDevice();
+                isInSession = false;
             }
 
             @Override

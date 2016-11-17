@@ -145,6 +145,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     public KCastProvider setCastProvider(KCastProvider castProvider) {
+        boolean isFirstSetup = true;
+        if (mCastProvider != null) { // if we get notifications of number of connected devices we can do logic not to change media first time
+            isFirstSetup = false;
+        }
+
         mCastProvider = castProvider;
         if (mCastProvider == null) {
             return null;
@@ -162,7 +167,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
         mWebView.triggerEvent("chromecastDeviceConnected", "" + getCurrentPlaybackTime());
 
-        if(isReconnect) {
+        if(isReconnect) { // && !isFirstSetup) || mCastProvider.getSessionEntryID() != null) {
             asyncEvaluate("{mediaProxy.entry.id}", "EntryId", new PlayerViewController.EvaluateListener() {
                 @Override
                 public void handler(final String idEvaluateResponse) {
@@ -177,18 +182,19 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                             }
                         }
                         if (getConfig().getConfigValueString("proxyData") == null || "".equals(getConfig().getConfigValueString("proxyData"))) {
-                            changeMedia(idEvaluateResponse);
+                            castChangeMedia(idEvaluateResponse);
                         } else {
                             try {
                                 JSONObject changeMediaJSON = new JSONObject();
                                 JSONObject proxyData = new JSONObject(getConfig().getConfigValueString("proxyData"));
                                 changeMediaJSON.put("entryId", idEvaluateResponse);
                                 changeMediaJSON.put("proxyData", proxyData);
-                                changeMedia(changeMediaJSON);
+                                castChangeMedia(changeMediaJSON);
                             } catch (JSONException e) {
                                 LOGE(TAG, "Error could not create change media proxy dat object");
                             }
                         }
+
                     }
                 }
             });
@@ -325,6 +331,31 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         }
         isMediaChanged = true;
         playerController.changeMedia();
+        sendNotification("changeMedia", proxyData.toString());
+    }
+
+    public void castChangeMedia(String entryId) {
+        if (entryId != null && entryId.length() > 0) {
+            JSONObject entryJson = new JSONObject();
+            try {
+                isMediaChanged = true;
+                entryJson.put("entryId", entryId);
+                String jsonString = entryJson.toString();
+                playerController.castChangeMedia();
+                sendNotification("changeMedia",jsonString);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void castChangeMedia(JSONObject proxyData) {
+        if (proxyData == null) {
+            return;
+        }
+        isMediaChanged = true;
+        playerController.castChangeMedia();
         sendNotification("changeMedia", proxyData.toString());
     }
 
