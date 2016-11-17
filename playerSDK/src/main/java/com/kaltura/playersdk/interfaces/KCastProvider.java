@@ -25,6 +25,7 @@ public interface KCastProvider {
     String getSessionEntryID();
     void setAppBackgroundState(boolean appBgState);
     boolean getAppBackgroundState();
+    int getNumOfConnectedSenders();
 
     interface KCastProviderListener {
         void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl);

@@ -43,6 +43,8 @@ public class KCastProviderV3Impl implements KCastProvider {
     private String mCastLogoUrl = "";
     private boolean isInSession = false;
     private boolean appInbg = false;
+
+    private int numOfConnectedSenders = 0;
     //private boolean isPlayAfterEnded = false;
     //private String[] currentMediaParams;
     //@NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
@@ -73,7 +75,14 @@ public class KCastProviderV3Impl implements KCastProvider {
         mCastSession = mSessionManager.getCurrentCastSession();
     }
 
+    @Override
+    public int getNumOfConnectedSenders() {
+        return numOfConnectedSenders;
+    }
 
+    public void setNumOfConnectedSenders(int numOfConnectedSenders) {
+        this.numOfConnectedSenders = numOfConnectedSenders;
+    }
 
     public void addCastStateListener(CastStateListener castStateListener) {
         mCastContext.addCastStateListener(castStateListener);
@@ -136,6 +145,17 @@ public class KCastProviderV3Impl implements KCastProvider {
                             mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
                         }
                     }
+                }
+
+                @Override
+                public void ccOnSenderConnected(int numOfSendersConnected) {
+                    LOGD(TAG, "ccOnSenderConnected :" + numOfSendersConnected);
+                    setNumOfConnectedSenders(numOfSendersConnected);
+                }
+                @Override
+                public void ccOnSenderDisconnected(int numOfSendersConnected) {
+                    LOGD(TAG, "ccOnSenderDisconnected :" + numOfSendersConnected);
+                    setNumOfConnectedSenders(numOfSendersConnected);
                 }
 
                 @Override
@@ -230,6 +250,9 @@ public class KCastProviderV3Impl implements KCastProvider {
             //mInternalListener.onCastStateChanged("hideConnectingMessage");
             mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
             mInternalListener.onStopCasting(appInbg);
+            if (getNumOfConnectedSenders() == 1) {
+                setNumOfConnectedSenders(0);
+            }
         }
         teardown();
     }
