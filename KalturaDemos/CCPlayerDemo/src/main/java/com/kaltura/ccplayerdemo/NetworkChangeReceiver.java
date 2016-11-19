@@ -1,4 +1,8 @@
-package com.kaltura.adplayerdemo;
+/*
+ * Copyright (c)  2015, Viacom 18 Media Private Limited. All Rights Reserved
+ */
+
+package com.kaltura.ccplayerdemo;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
