@@ -90,6 +90,7 @@ public class KPPlayerConfig implements Serializable{
 		mAdMimeType = KMediaFormat.mp4_clear.mimeType;
 		mAdPreferredBitrate = -1; // in bits
 		mContentPreferredBitrate = -1; // in KBits
+		addConfig("nativeVersion", BuildConfig.VERSION_NAME);
 	}
 	
 	private KPPlayerConfig() {}
@@ -130,7 +131,6 @@ public class KPPlayerConfig implements Serializable{
 		};
 		Uri uri = Uri.parse(embedFrameURL);
 		config.mServerURL = uri.getScheme() + "://" + uri.getAuthority();
-		
 		return config;
 	}
 
@@ -157,7 +157,7 @@ public class KPPlayerConfig implements Serializable{
 				}
 			}
 		}
-
+		config.addConfig("nativeVersion", BuildConfig.VERSION_NAME);
 		return config;
 	}
 

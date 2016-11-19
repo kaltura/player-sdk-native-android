@@ -33,6 +33,7 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Exoplayer
 import com.google.android.libraries.mediaframework.exoplayerextensions.RendererBuilderFactory;
 import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.VideoSurfaceView;
+import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 
@@ -97,6 +98,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         return new KPlayerListener() {
             public void eventWithValue(KPlayer player, String eventName, String eventValue) {}
             public void eventWithJSON(KPlayer player, String eventName, String jsonValue) {}
+            public void asyncEvaluate(String expression, String expressionID, PlayerViewController.EvaluateListener evaluateListener) {}
             public void contentCompleted(KPlayer currentPlayer) {}
         };
     }
@@ -186,11 +188,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                 if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
-                     mExoPlayer.setSurface(holder.getSurface());
-                     mReadiness = KState.READY;
-                     mExoPlayer.addListener(KExoPlayer.this);
-                 }
+                if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
+                    mExoPlayer.setSurface(holder.getSurface());
+                    mReadiness = KState.READY;
+                    mExoPlayer.addListener(KExoPlayer.this);
+                }
             }
 
             @Override
@@ -247,6 +249,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void play() {
 
         if (isPlaying() || mReadiness == KState.PLAYING) {
+            mPassedPlay = true;
             return;
         }
         LOGD(TAG, "action: play called");
@@ -390,6 +393,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         prepareWithConfigurationMode = true;
     }
 
+    @Override
+    public void setPrepareWithConfigurationModeOff() {
+        prepareWithConfigurationMode = false;
+    }
 
 
 //    private void savePlayerState() {
@@ -467,9 +474,14 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             case ExoPlayer.STATE_ENDED:
                 LOGD(TAG, "STATE_ENDED mReadiness: " + mReadiness + " playWhenReady: " + playWhenReady + " mBuffering: " + mBuffering);
-                if (mReadiness == KState.IDLE) {
+
+                if (mReadiness == KState.IDLE || mReadiness == KState.PAUSED) {
                     return;
                 }
+                if (mReadiness == KState.SEEKING && playWhenReady) {
+                    mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                }
+
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
                     mReadiness = KState.IDLE;
@@ -513,7 +525,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             mExoPlayer.prepare();
             return;
         } else if (e instanceof ExoPlaybackException && e.getCause() instanceof android.media.MediaCodec.CryptoException) {
-            errorString = "DRM Error"; // probably license issue
+            errorString = "DRM Error. Trying to recover"; // probably license issue
+            mExoPlayer.prepare();
+            return;
         } else if (e instanceof ExoPlaybackException
                 && e.getCause() instanceof MediaCodecTrackRenderer.DecoderInitializationException) {
             // Special case for decoder initialization failures.
@@ -534,11 +548,32 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
                         decoderInitializationException.decoderName;
             }
         }
+        else if (e.getCause() instanceof com.google.android.exoplayer.upstream.HttpDataSource.HttpDataSourceException) {
+            mExoPlayer.prepare();
+            errorString = "HttpDataSourceException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
+        } else if (e.getCause() instanceof java.net.UnknownHostException) {
+            mExoPlayer.prepare();
+            errorString = "UnknownHostException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
+        } else if (e.getCause() instanceof java.net.ConnectException) {
+            mExoPlayer.prepare();
+            errorString = "ConnectException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
+        }
+        else if (e.getCause() instanceof java.lang.IllegalStateException) {
+            mExoPlayer.prepare();
+            errorString = "IllegalStateException . Trying to recover";
+            LOGE(TAG, errorString);
+            return;
+        }
         if (!"".equals(errorString)) {
             LOGE(TAG, errorString);
             errorString += "-";
         }
-
         mPlayerListener.eventWithValue(KExoPlayer.this, KPlayerListener.ErrorKey, TAG + "-" + errMsg + "-" + errorString + e.getMessage());
     }
 
