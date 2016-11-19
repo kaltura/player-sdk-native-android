@@ -20,8 +20,15 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
 
     public interface KCastKalturaChannelListener {
         void readyForMedia(String[] castParams);
+        void ccOnSenderConnected(int numOfSendersConnected);
+        void ccOnSenderDisconnected(int numOfSendersConnected);
+        void ccUpdateAdDuration(int adDuration);
+        void ccUserInitiatedPlay();
+        void ccReceiverAdOpen();
+        void ccReceiverAdComplete();
         void textTeacksRecived(HashMap<String,Integer> textTrackHash);
         void videoTracksReceived(List<Integer> videoTracksList);
+        void onCastReceiverError(String errorMsg, int errorCode);
     }
 
     public KCastKalturaChannel(String nameSpace, KCastKalturaChannelListener listener) {
@@ -42,7 +49,54 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
                 mListener.readyForMedia(Arrays.copyOfRange(params, 1, 3));
             }
         }
-        else if (s1.contains("\"captions\"")){
+        else if (s1.contains("userInitiatedPlay")){
+            LOGD(TAG, "onMessageReceived userInitiatedPlay");
+            //mListener.ccUserInitiatedPlay();
+        }
+        else if (s1.startsWith("chromecastReceiverAdDuration")) {
+            String[] params = s1.split("\\|");
+            if (params.length == 2) {
+                if (params[1] != null) {
+                    LOGD(TAG, "onMessageReceived chromecastReceiverAdDuration = " + params[1]);
+                    //mListener.ccUpdateAdDuration(Integer.valueOf(params[1]));
+                }
+            }
+        }
+        else if (s1.contains("chromecastReceiverAdOpen")){
+            LOGD(TAG, "onMessageReceived chromecastReceiverAdOpen");
+            mListener.ccReceiverAdOpen();
+        }
+        else if (s1.contains("chromecastReceiverAdComplete")){
+            LOGD(TAG, "onMessageReceived chromecastReceiverAdComplete");
+            mListener.ccReceiverAdComplete();
+        }
+        else if (s1.startsWith("chromecastReceiverOnSenderConnected")) {
+            String[] params = s1.split("\\|");
+            if (params.length == 2) {
+                if (params[1] != null) {
+                    LOGD(TAG, "onMessageReceived chromecastReceiverOnSenderConnected = " + params[1]);
+                    mListener.ccOnSenderConnected(Integer.valueOf(params[1]));
+                }
+            }
+        }
+        else if (s1.startsWith("chromecastReceiverOnSenderDisconnected")) {
+            String[] params = s1.split("\\|");
+            if (params.length == 2) {
+                if (params[1] != null) {
+                    LOGD(TAG, "onMessageReceived chromecastReceiverOnSenderDisconnected = " + params[1]);
+                    mListener.ccOnSenderDisconnected(Integer.valueOf(params[1]));
+                }
+            }
+        }
+        else if (s1.contains("\"Data Loaded\"")){
+            //mListener.dataLoaded();
+        }
+        else if (s1.contains("\"aborted\"")){
+            //mListener.dataAborted();
+        } else if (s1.toLowerCase().contains("\"error\"")){
+            List<String> errMessage = parseErrormessage(s1);
+            mListener.onCastReceiverError(errMessage.get(0),Integer.valueOf(errMessage.get(1)));
+        } else if (s1.contains("\"captions\"")){
             mListener.textTeacksRecived(parseCaptions(s1));
         } else if (s1.contains("\"video_bitrates\"")) {
             mListener.videoTracksReceived(parseVideoBitrates(s1));
@@ -72,5 +126,24 @@ public class KCastKalturaChannel implements Cast.MessageReceivedCallback {
             videoBitratesList.add(Integer.valueOf(elm));
         }
         return videoBitratesList;
+    }
+
+    public List<String> parseErrormessage(String errorMsg) {
+        List<String> errorParams = new ArrayList<>();
+        //onMessageReceived <urn:x-cast:com.kaltura.cast.player> <mediaHostState: Fatal Error: code = 3>
+        errorMsg = errorMsg.replaceAll(" ", "");
+        if (errorMsg.contains(":") && errorMsg.contains("code=")) {
+            String[] erorrParts = errorMsg.split(":");
+            if (erorrParts.length != 2) {
+                errorParams.add(erorrParts[0]);
+                String[] codeParts = erorrParts[1].split("=");
+                errorParams.add(codeParts[1]);
+            }
+            return errorParams;
+        }
+
+        errorParams.add(errorMsg);
+        errorParams.add("-1");
+        return errorParams;
     }
 }

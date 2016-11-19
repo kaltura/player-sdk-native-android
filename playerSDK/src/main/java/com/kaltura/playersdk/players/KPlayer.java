@@ -52,4 +52,6 @@ public interface KPlayer {
 
     void setPrepareWithConfigurationMode();
 
+    void setPrepareWithConfigurationModeOff();
+
 }
