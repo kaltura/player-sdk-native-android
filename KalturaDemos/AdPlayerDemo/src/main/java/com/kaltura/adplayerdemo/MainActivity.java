@@ -23,12 +23,10 @@ import com.google.android.libraries.mediaframework.exoplayerextensions.Video;
 import com.google.android.libraries.mediaframework.layeredvideo.SimpleVideoPlayer;
 import com.kaltura.playersdk.KPPlayerConfig;
 import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.config.KProxyData;
 import com.kaltura.playersdk.events.KPEventListener;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.types.KPError;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +44,10 @@ public class MainActivity extends AppCompatActivity
 
     private final String adUrl1 = "http://html5demos.com/assets/dizzy.mp4";
     //private final String adUrl = "http://dpndczlul8yjf.cloudfront.net/creatives/assets/9d266094-8d1e-49e3-b13c-249515529bfc/c01b6747-0a3b-4480-9286-811d469b977d.mp4";
+
     private final String adUrl2 = "http://dpndczlul8yjf.cloudfront.net/creatives/assets/79dba610-b5ee-448b-8e6b-531b3d3ebd54/5fe7eb54-0296-4688-af06-9526007054a4.mp4";
     private final String adUrl = "http://dpndczlul8yjf.cloudfront.net/creatives/assets/c00cfcf0-985c-4d83-b32a-af8824025e9b/fa69a864-0e37-4597-b2f0-bdaceb16b56b.mp4";
+    private final String playerUrl = "http://player-as.ott.kaltura.com/225/v2.48.9_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.12/mwEmbed//mwEmbedFrame.php"; // "http://player-as.ott.kaltura.com/225/v2.48.6_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.7/mwEmbed/mwEmbedFrame.php"
 
     private static final String TAG = "KalturaMultiPlayer";
     private Button mPlayPauseButton;
@@ -110,8 +110,8 @@ public class MainActivity extends AppCompatActivity
                     mPlayer.detachView();
 
                     try {
-                        config = KPPlayerConfig.fromJSONObject(new JSONObject(getJson("388409")));
-                    } catch (JSONException e) {
+                        config = getConfig("388409");
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     if (adList.size() > 0) {
@@ -151,40 +151,29 @@ public class MainActivity extends AppCompatActivity
             mPlayer.loadPlayerIntoActivity(this);
 
 //            KPPlayerConfig config = new KPPlayerConfig("http://cdnapi.kaltura.com", "26698911", "1831271").setEntryId("1_o426d3i4");
-//            //config.addConfig("autoPlay", "true");
-//            //config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
-////            config.addConfig("topBarContainer.hover", "true");
-////            config.addConfig("controlBarContainer.hover", "true");
+//            config.addConfig("autoPlay", "true");
+//            config.addConfig("debugKalturaPlayer", Boolean.TRUE.toString());
+//            config.addConfig("topBarContainer.hover", "true");
+//            config.addConfig("controlBarContainer.hover", "true");
 //            config.addConfig("controlBarContainer.plugin", "true");
-////            config.addConfig("topBarContainer.plugin", "true");
+//            config.addConfig("topBarContainer.plugin", "true");
 //            config.addConfig("largePlayBtn.plugin", "true");
-////            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
-////
-////            config.addConfig("doubleClick.adTagUrl",adTagUrl);
-////            config.addConfig("doubleClick.plugin","true");
+
+//            String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=%2F3510761%2FadRulesSampleTags&ciu_szs=160x600%2C300x250%2C728x90&cust_params=adrule%3Dpremidpostwithpod&impl=s&gdfp_req=1&env=vp&ad_rule=1&vid=12345&cmsid=3601&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+//            config.addConfig("doubleClick.adTagUrl",adTagUrl);
+//            config.addConfig("doubleClick.plugin","true");
+//
+//            String json = getJson("384080"/*"388409"*/); //456237
 
 
-            String json = getJson("384080"/*"388409"*/); //456237
-
-
-            //KPPlayerConfig config = null;
             try {
-                config = KPPlayerConfig.fromJSONObject(new JSONObject(json));
-
-                config.addConfig("topBarContainer.hover", "true");
-                //config.addConfig("autoPlay", "true");
-                config.addConfig("controlBarContainer.plugin", "true");
-                config.addConfig("durationLabel.prefix", " ");
-                config.addConfig("largePlayBtn.plugin", "true");
-                //        config.addConfig("mediaProxy.mediaPlayFrom", String.valueOf("100"));
-                config.addConfig("scrubber.sliderPreview", "false");
-                //config.addConfig("largePlayBtn","false");
-                //config.addConfig("debugKalturaPlayer", "true");
-                config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
+                if (config == null) {
+                    config = getConfig("384080");
+                }
                 mPlayer.setKDPAttribute("nextBtnComponent", "visible", "false");
                 mPlayer.setKDPAttribute("prevBtnComponent", "visible", "false");
 
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -199,76 +188,44 @@ public class MainActivity extends AppCompatActivity
         return mPlayer;
     }
 
-    public String getJson(String mediaID) {
-        String json = "{\n" +
-                "  \"base\": {\n" +
-                "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.7_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.11/mwEmbed/mwEmbedFrame.php\",\n" +
-                //                 "    \"server\": \"http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
-
-                "    \"partnerId\": \"\",\n" +
-                "    \"uiConfId\": \"32626752\",\n" +
-                //"    \"entryId\": \"374130\"\n" +
-                //                 "    \"entryId\": \"384080\"\n" +
-                "    \"entryId\": \"" + mediaID + "\"\n" +
-
-
-                "  },\n" +
-                "  \"extra\": {\n" +
-                "    \"watermark.plugin\": \"true\",\n" +
-                "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
-                "    \"watermark.title\": \"Viacom18\",\n" +
-                "    \"watermark.cssClass\": \"topRight\",\n" +
-                "    \n" +
-                "    \"controlBarContainer.hover\": true,\n" +
-                "    \"controlBarContainer.plugin\": true,\n" +
-//                    "    \"adultPlayer.plugin\": false,\n" +
-                "    \"kidsPlayer.plugin\": true,\n" +
-                "    \"nextBtnComponent.plugin\": true,\n" +
-                "    \"prevBtnComponent.plugin\": true,\n" +
-                "    \n" +
-                "    \"liveCore.disableLiveCheck\": true,\n" +
-                //"    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
-                "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
-                "    \"proxyData\": {\n";
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 /*4.3*/) {
-            json = json + "\"config\": {\n" +
-                    "                                    \"flavorassets\": {\n" +
-                    "                                        \"filters\": {\n" +
-                    "                                            \"include\": {\n" +
-                    "                                                \"Format\": [\n" +
-                    "                                                    \"Tablet Main\"\n" + // dash Main/dash Mobile
-                    "                                                ]\n" +
-                    "                                            }\n" +
-                    "                                        }\n" +
-                    "                                    }\n" +
-                    "                                },";
-        }
-        json = json + "      \"MediaID\": \"" + mediaID + "\",\n" +
-                "      \"iMediaID\": \"" + mediaID + "\",\n" +
-                "      \"mediaType\": \"0\",\n" +
-                "      \"picSize\": \"640x360\",\n" +
-                "      \"withDynamic\": \"false\",\n" +
-                "      \"initObj\": {\n" +
-                "        \"ApiPass\": \"11111\",\n" +
-                "        \"ApiUser\": \"tvpapi_225\",\n" +
-                "        \"DomainID\": 0,\n" +
-                "        \"Locale\": {\n" +
-                "            \"LocaleCountry\": \"null\",\n" +
-                "            \"LocaleDevice\": \"null\",\n" +
-                "            \"LocaleLanguage\": \"null\",\n" +
-                "            \"LocaleUserState\": \"Unknown\"\n" +
-                "        },\n" +
-                "        \"Platform\": \"Cellular\",\n" +
-                "        \"SiteGuid\": \"\",\n" +
-                "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "}\n";
-        return json;
-
-
+    public KPPlayerConfig getConfig(String mediaID) {
+        KPPlayerConfig config = new KPPlayerConfig(playerUrl, "32626752", "");
+        config.setEntryId(mediaID);
+        config.addConfig("topBarContainer.hover", "true");
+        //config.addConfig("autoPlay", "true");
+        config.addConfig("controlBarContainer.plugin", "true");
+        config.addConfig("durationLabel.prefix", " ");
+        config.addConfig("largePlayBtn.plugin", "true");
+        //config.addConfig("mediaProxy.mediaPlayFrom", String.valueOf("100"));
+        config.addConfig("scrubber.sliderPreview", "false");
+        //config.addConfig("largePlayBtn","false");
+        //config.addConfig("debugKalturaPlayer", "true");
+        config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
+        config.addConfig("watermark.plugin", "true");
+        config.addConfig("watermark.img", "https://voot-kaltura.s3.amazonaws.com/voot-watermark.png");
+        config.addConfig("watermark.title", "Viacom18");
+        config.addConfig("watermark.cssClass", "topRight");
+        config.addConfig("controlBarContainer.hover", "true");
+        config.addConfig("controlBarContainer.plugin", "true");
+        config.addConfig("kidsPlayer.plugin", "true,");
+        config.addConfig("nextBtnComponent.plugin", "true");
+        config.addConfig("prevBtnComponent.plugin", "true");
+        config.addConfig("liveCore.disableLiveCheck", "true");
+//        config.addConfig("tvpapiGetLicensedLinks.plugin", "true");
+        config.addConfig("TVPAPIBaseUrl", "http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=");
+        config.addProxyData(KProxyData.newBuilder().setMediaId(mediaID)
+                .setIMediaId(mediaID)
+                .setMediaType("0")
+                .setPicSize(640, 360)
+                .setWithDynamic(false)
+                .setDomainId(0)
+                .setUserProtection("tvpapi_225", "11111", "aa5e1b6c96988d68")
+                .setSiteGuid("")
+                .setPlatform("Cellular")
+                .setLocale("", "", "Unknown", "")
+                .addProxyConfigFilter("dash Main")
+                .build());
+        return config;
     }
 
     private RelativeLayout getPlayerContainer() {
@@ -410,15 +367,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
-        LOGD(TAG, "onKPlayerStateChanged state = "  +state.name());
+        LOGD(TAG, "onKPlayerStateChanged state = " + state.name());
         if (state == KPlayerState.READY) {
             LOGD(TAG, "onKPlayerStateChanged PLAYER STATE_READY");
             kPlayerReady = true;
             mPlayer.getMediaControl().pause();
-            if (randomNum != 1)  { //ad failed
+            if (randomNum != 1) { //ad failed
                 mPlayer.getMediaControl().start();
             }
-
         }
         if (state == KPlayerState.ENDED && adIsDone) {
             LOGD(TAG, "onKPlayerStateChanged PLAYER STATE_ENDED");
@@ -491,17 +447,18 @@ public class MainActivity extends AppCompatActivity
         ViewGroup.LayoutParams lp = mPlayer.getLayoutParams();
         lp = new ViewGroup.LayoutParams(lp.width, lp.height);
         mPlayer.addView(adPlayerContainer, lp);
-
-        Video source = new Video(adUrl, Video.VideoType.MP4);
-        mAdPlayer = new SimpleVideoPlayer(this, adPlayerContainer, source, "", true);
-        mAdPlayer.disableSeeking();
         changeAdMedia(adList.get(0), 0);
     }
 
     public void changeAdMedia(String adUrl, final int index) {
 
         Video source = new Video(adUrl, Video.VideoType.MP4);
-        mAdPlayer.changedMedia(adPlayerContainer, source, true);
+        if (mAdPlayer == null) {
+            mAdPlayer = new SimpleVideoPlayer(this, adPlayerContainer, source, "", true);
+            mAdPlayer.disableSeeking();
+        } else {
+            mAdPlayer.changedMedia(adPlayerContainer, source, true);
+        }
         mAdPlayer.addPlaybackListener(new ExoplayerWrapper.PlaybackListener() {
             @Override
             public void onStateChanged(boolean playWhenReady, int playbackState) {
@@ -634,5 +591,75 @@ public class MainActivity extends AppCompatActivity
             mPlayer.saveState();
             mPlayer.getMediaControl().pause();
         }
+    }
+
+    public String getJsonString(String mediaID) {
+        String json = "{\n" +
+                "  \"base\": {\n" +
+                "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.7_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.11/mwEmbed/mwEmbedFrame.php\",\n" +
+                //                 "    \"server\": \"http://192.168.160.160/html5.kaltura/mwEmbed/mwEmbedFrame.php\",\n" +
+
+                "    \"partnerId\": \"\",\n" +
+                "    \"uiConfId\": \"32626752\",\n" +
+                //"    \"entryId\": \"374130\"\n" +
+                //                 "    \"entryId\": \"384080\"\n" +
+                "    \"entryId\": \"" + mediaID + "\"\n" +
+
+
+                "  },\n" +
+                "  \"extra\": {\n" +
+                "    \"watermark.plugin\": \"true\",\n" +
+                "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
+                "    \"watermark.title\": \"Viacom18\",\n" +
+                "    \"watermark.cssClass\": \"topRight\",\n" +
+                "    \n" +
+                "    \"controlBarContainer.hover\": true,\n" +
+                "    \"controlBarContainer.plugin\": true,\n" +
+//                    "    \"adultPlayer.plugin\": false,\n" +
+                "    \"kidsPlayer.plugin\": true,\n" +
+                "    \"nextBtnComponent.plugin\": true,\n" +
+                "    \"prevBtnComponent.plugin\": true,\n" +
+                "    \n" +
+                "    \"liveCore.disableLiveCheck\": true,\n" +
+                //"    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
+                "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
+                "    \"proxyData\": {\n";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 /*4.3*/) {
+            json = json + "\"config\": {\n" +
+                    "                                    \"flavorassets\": {\n" +
+                    "                                        \"filters\": {\n" +
+                    "                                            \"include\": {\n" +
+                    "                                                \"Format\": [\n" +
+                    "                                                    \"Tablet Main\"\n" + // dash Main/dash Mobile
+                    "                                                ]\n" +
+                    "                                            }\n" +
+                    "                                        }\n" +
+                    "                                    }\n" +
+                    "                                },";
+        }
+        json = json + "      \"MediaID\": \"" + mediaID + "\",\n" +
+                "      \"iMediaID\": \"" + mediaID + "\",\n" +
+                "      \"mediaType\": \"0\",\n" +
+                "      \"picSize\": \"640x360\",\n" +
+                "      \"withDynamic\": \"false\",\n" +
+                "      \"initObj\": {\n" +
+                "        \"ApiPass\": \"11111\",\n" +
+                "        \"ApiUser\": \"tvpapi_225\",\n" +
+                "        \"DomainID\": 0,\n" +
+                "        \"Locale\": {\n" +
+                "            \"LocaleCountry\": \"null\",\n" +
+                "            \"LocaleDevice\": \"null\",\n" +
+                "            \"LocaleLanguage\": \"null\",\n" +
+                "            \"LocaleUserState\": \"Unknown\"\n" +
+                "        },\n" +
+                "        \"Platform\": \"Cellular\",\n" +
+                "        \"SiteGuid\": \"\",\n" +
+                "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }\n" +
+                "}\n";
+        return json;
     }
 }

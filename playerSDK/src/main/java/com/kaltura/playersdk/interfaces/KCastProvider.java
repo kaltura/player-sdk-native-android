@@ -21,8 +21,11 @@ public interface KCastProvider {
     boolean isReconnected();
     boolean isConnected();
     boolean isCasting();
+    long getStreamDuration();
+    String getSessionEntryID();
     void setAppBackgroundState(boolean appBgState);
     boolean getAppBackgroundState();
+    int getNumOfConnectedSenders();
 
     interface KCastProviderListener {
         void onCastMediaRemoteControlReady(KCastMediaRemoteControl castMediaRemoteControl);

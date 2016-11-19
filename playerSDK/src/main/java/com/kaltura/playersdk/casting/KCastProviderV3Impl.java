@@ -43,6 +43,8 @@ public class KCastProviderV3Impl implements KCastProvider {
     private String mCastLogoUrl = "";
     private boolean isInSession = false;
     private boolean appInbg = false;
+
+    private int numOfConnectedSenders = 0;
     //private boolean isPlayAfterEnded = false;
     //private String[] currentMediaParams;
     //@NonNull private KPlayerListener mPlayerListener = noopPlayerListener();
@@ -73,7 +75,14 @@ public class KCastProviderV3Impl implements KCastProvider {
         mCastSession = mSessionManager.getCurrentCastSession();
     }
 
+    @Override
+    public int getNumOfConnectedSenders() {
+        return numOfConnectedSenders;
+    }
 
+    public void setNumOfConnectedSenders(int numOfConnectedSenders) {
+        this.numOfConnectedSenders = numOfConnectedSenders;
+    }
 
     public void addCastStateListener(CastStateListener castStateListener) {
         mCastContext.addCastStateListener(castStateListener);
@@ -136,6 +145,17 @@ public class KCastProviderV3Impl implements KCastProvider {
                             mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
                         }
                     }
+                }
+
+                @Override
+                public void ccOnSenderConnected(int numOfSendersConnected) {
+                    LOGD(TAG, "ccOnSenderConnected :" + numOfSendersConnected);
+                    setNumOfConnectedSenders(numOfSendersConnected);
+                }
+                @Override
+                public void ccOnSenderDisconnected(int numOfSendersConnected) {
+                    LOGD(TAG, "ccOnSenderDisconnected :" + numOfSendersConnected);
+                    setNumOfConnectedSenders(numOfSendersConnected);
                 }
 
                 @Override
@@ -230,6 +250,9 @@ public class KCastProviderV3Impl implements KCastProvider {
             //mInternalListener.onCastStateChanged("hideConnectingMessage");
             mInternalListener.onCastStateChanged("chromecastDeviceDisConnected");
             mInternalListener.onStopCasting(appInbg);
+            if (getNumOfConnectedSenders() == 1) {
+                setNumOfConnectedSenders(0);
+            }
         }
         teardown();
     }
@@ -286,6 +309,31 @@ public class KCastProviderV3Impl implements KCastProvider {
             return mCastSession.getRemoteMediaClient().isPlaying() || mCastSession.getRemoteMediaClient().isPaused() || mCastSession.getRemoteMediaClient().getMediaInfo() != null;
         }
         return false;
+    }
+
+    @Override
+    public long getStreamDuration() {
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+            return mCastSession.getRemoteMediaClient().getStreamDuration();
+        }
+        return -1;
+    }
+
+    @Override
+    public String getSessionEntryID() {
+        String sessionEntryID = null;
+        if (mCastSession != null && mCastSession.getRemoteMediaClient() != null &&
+            mCastSession.getRemoteMediaClient().getMediaInfo() != null &&
+            mCastSession.getRemoteMediaClient().getMediaInfo().getMetadata() != null) {
+            sessionEntryID =  mCastSession.getRemoteMediaClient().getMediaInfo().getMetadata().getString(KChromeCastPlayer.KEY_ENTRY_ID);
+        }
+
+        if (sessionEntryID != null) {
+            LOGD(TAG, "sessionEntryID = " + sessionEntryID);
+        } else {
+            LOGD(TAG, "sessionEntryID is not set");
+        }
+        return sessionEntryID;
     }
 
     public void sendMessage(final String message) {
@@ -386,8 +434,10 @@ public class KCastProviderV3Impl implements KCastProvider {
             @Override
             public void onSessionEnded(Session session, int i) {
                 LOGD(TAG, "SessionManagerListener onSessionEnded");
-                disconnectFromCastDevice();
-                isInSession = false;
+                if (isInSession) {
+                    disconnectFromCastDevice();
+                    isInSession = false;
+                }
             }
 
             @Override
@@ -405,6 +455,7 @@ public class KCastProviderV3Impl implements KCastProvider {
             public void onSessionResumeFailed(Session session, int i) {
                 LOGD(TAG, "SessionManagerListener onSessionResumeFailed");
                 disconnectFromCastDevice();
+                isInSession = false;
             }
 
             @Override

@@ -1,4 +1,5 @@
-package com.kaltura.adplayerdemo;
+
+package com.kaltura.ccplayerdemo;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

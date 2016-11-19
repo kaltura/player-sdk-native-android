@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return null;
             }
 
-            config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.49.rc12/mwEmbedFrame.php", "33189171", "2068231").setEntryId(currentMediaId);
+            config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.49/mwEmbedFrame.php", "33189171", "2068231").setEntryId(currentMediaId);
             config.addConfig("controlBarContainer.plugin", "false");
             config.addConfig("topBarContainer.plugin", "false");
             config.addConfig("largePlayBtn.plugin", "false");

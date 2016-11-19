@@ -81,6 +81,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private String mEntryThumbnailUrl = "";
     private String mMediaProxy = "";
 
+    long positionBeforeChangeMediaForCasting = 0;
 
 
     private KCastProviderV3Impl mCastProvider;
@@ -172,7 +173,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     @Override
                     public void run() {
                         if (player != null && mCastPlayer != null) {
-                            mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
+                            long fromPosition = positionBeforeChangeMediaForCasting;// != 0 ? positionBeforeChangeMediaForCasting : player.getCurrentPlaybackTime();
+                            player.setCurrentPlaybackTime(fromPosition);
+                            mCastPlayer.load(fromPosition, mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
+                            positionBeforeChangeMediaForCasting = 0;
+                            currentState = UIState.Play;
                         }
                     }
                 }, 250);
@@ -190,8 +195,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             public void onStopCasting(boolean appInBg) {
                 if (mCastPlayer != null) {
                     if(player != null) {
-                        if (mCastProvider != null && mCastProvider.getCastSession() != null && mCastProvider.getCastSession().getRemoteMediaClient() != null)
-                        {
+                        if (mCastProvider != null && mCastProvider.getCastSession() != null && mCastProvider.getCastSession().getRemoteMediaClient() != null) {
                             player.setCurrentPlaybackTime(mCastProvider.getCastSession().getRemoteMediaClient().getApproximateStreamPosition());
                         } else {
                             player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
@@ -201,12 +205,16 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     mCastPlayer = null;
                 }
                 mCastProvider = null;
-                currentState = UIState.Pause;
                 LOGD(TAG,"isBackgrounded = " + isBackgrounded + " appInBg = " + appInBg);
                 if (!isBackgrounded && !appInBg) {
-                    play();
+                    LOGD(TAG,"disconnect and PLAY");
+                    //play();
+                    if (player != null) {
+                        player.play();
+                    }
                 } else {
                     //some cases doPause does not influance
+                    LOGD(TAG,"disconnect and PAUSE");
                     if (appInBg) {
                         pause();
                     } else if (isBackgrounded) {
@@ -215,8 +223,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         }
                     }
                 }
+                currentState = UIState.Pause;
             }
-
 
             @Override
             public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
@@ -297,6 +305,21 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     //remove caption before changeMedia
     public void changeMedia() {
+        positionBeforeChangeMediaForCasting = 0;
+        if(mCastPlayer != null && mCastPlayer.hasMediaSession(true)) {
+            mCastPlayer.pause();
+        }
+        if (player != null) {
+            player.pause();
+        }
+        //player.setCurrentPlaybackTime(0);
+        //player.switchTrack(TrackType.TEXT,-1);
+    }
+
+    public void castChangeMedia() {
+        if (player != null) {
+            positionBeforeChangeMediaForCasting = player.getCurrentPlaybackTime();
+        }
         if(mCastPlayer != null && mCastPlayer.hasMediaSession(true)) {
             mCastPlayer.pause();
         }
@@ -422,6 +445,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
                     mCastProvider.getCastMediaRemoteControl().play();
+
                 }
             }
         }
