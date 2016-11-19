@@ -1,9 +1,11 @@
 package com.kaltura.inlineplayerdemo;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,6 +114,21 @@ public class PlayerFragment extends Fragment {
         }
         super.onPause();
     }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+
+        super.onConfigurationChanged(newConfig);
+        int currentOrientation = newConfig.orientation;
+
+        if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE){
+            Log.v("TAG","Landscape !!!");
+        }
+        else {
+            Log.v("TAG","Portrait !!!");
+        }
+    }
+
 
     @Override
     public void onStop() {

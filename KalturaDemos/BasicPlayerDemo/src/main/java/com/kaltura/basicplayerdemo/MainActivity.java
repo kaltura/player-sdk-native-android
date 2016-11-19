@@ -103,6 +103,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             config.addConfig("sourceSelector.displayMode", "bitrate");
             config.addConfig("audioSelector.plugin", "true");
             config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
+            config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
+            config.addConfig("EmbedPlayer.ShowPosterOnStop", "false");
+            config.addConfig("controlBarContainer.plugin", "true");
+            config.addConfig("controlBarContainer.hover", "true");
+
 
             //String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x360&iu=/6062/iab_vast_samples/skippable&ciu_szs=300x250,728x90&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
             //config.addConfig("doubleClick.adTagUrl",adTagUrl);
