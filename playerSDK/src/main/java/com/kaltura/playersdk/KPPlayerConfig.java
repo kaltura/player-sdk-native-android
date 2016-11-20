@@ -20,9 +20,12 @@ import java.util.regex.Pattern;
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 
 
-public class KPPlayerConfig implements Serializable{
-	
-	public static class CacheConfig {
+public class KPPlayerConfig implements Serializable {
+	private static final long serialVersionUID = 1706315590872690078L;
+
+	public static class CacheConfig  implements Serializable {
+		private static final long serialVersionUID = 2063441329719148889L;
+
 		List<Pattern> includePatterns = new ArrayList<>();
 		
 		public void addIncludePattern(String pattern) {
