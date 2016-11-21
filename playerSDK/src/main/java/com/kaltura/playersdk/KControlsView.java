@@ -314,13 +314,13 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse webResourceResponse) {
-            String errMsg = "WebViewError:";
+            String errMsg = "WebViewError:onReceivedHttpError:";
             errMsg += webResourceResponse.getStatusCode() + "-" ;
-            if (request != null && request.getUrl() != null) {
-                errMsg += request.getUrl().toString() + "-";
-            }
             if (webResourceResponse != null) {
-                errMsg += webResourceResponse.getReasonPhrase();
+                errMsg += webResourceResponse.getReasonPhrase()+ "-";
+            }
+            if (request != null && request.getUrl() != null) {
+                errMsg += request.getUrl().toString() ;
             }
 
             if (errMsg.contains("favicon.ico")) {
@@ -331,7 +331,8 @@ public class KControlsView extends WebView implements View.OnTouchListener {
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-           controlsViewClient.handleKControlsError(new KPError(error.toString()));
+            controlsViewClient.handleKControlsError(new KPError(error.toString()));
+            //handler.proceed(); //Should test if solves primary error: 3 certificate: Issued to: CN=www.google-analytics.com;
         }
 
         private WebResourceResponse textResponse(String text) {
