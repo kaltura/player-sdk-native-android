@@ -139,6 +139,9 @@ public class KCastProviderV3Impl implements KCastProvider {
                     // Receiver send the new content
                     if (params != null) {
                         //currentMediaParams = params;
+                        if (mCastMediaRemoteControl != null) {
+                            mCastMediaRemoteControl.removeListeners();
+                        }
                         mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
                         ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(params);
                         if (mInternalListener != null) {
