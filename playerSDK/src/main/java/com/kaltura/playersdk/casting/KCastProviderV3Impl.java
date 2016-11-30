@@ -467,6 +467,8 @@ public class KCastProviderV3Impl implements KCastProvider {
                 if (mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
                     LOGD(TAG, "onSessionSuspended CURRENT POSITION = " + mCastSession.getRemoteMediaClient().getApproximateStreamPosition());
                 }
+                disconnectFromCastDevice();
+                isInSession = false;
             }
         };
     }
