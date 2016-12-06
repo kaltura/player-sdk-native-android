@@ -8,6 +8,7 @@ import com.kaltura.playersdk.players.KChromeCastPlayer;
  */
 public interface KCastInternalListener extends KCastMediaRemoteControl.KCastMediaRemoteControlListener {
     void onStartCasting(KChromeCastPlayer remoteMediaPlayer);
+    void onDataLoaded();
     void onCastStateChanged(String state);
     void onStopCasting(boolean appInBg);
 }

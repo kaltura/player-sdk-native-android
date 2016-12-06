@@ -177,10 +177,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                             player.setCurrentPlaybackTime(fromPosition);
                             mCastPlayer.load(fromPosition, mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
                             positionBeforeChangeMediaForCasting = 0;
-                            currentState = UIState.Play;
                         }
                     }
                 }, 250);
+            }
+
+            @Override
+            public void onDataLoaded() {
+                currentState = UIState.Play;
             }
 
             @Override
@@ -312,6 +316,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player != null) {
             player.pause();
         }
+        currentState = UIState.CastChangeMedia;
         //player.setCurrentPlaybackTime(0);
         //player.switchTrack(TrackType.TEXT,-1);
     }
@@ -357,7 +362,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                             mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
                         }
 
-                        mEntryDescription = jObject.getString("description");
+                        if (jObject.has("description") && JSONObject.NULL.equals(jObject.get("description"))) {
+                            mEntryDescription = "";
+                        } else {
+                            mEntryDescription = jObject.getString("description");
+                        }
 
 
                         LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
@@ -378,12 +387,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     }
 
-    private enum UIState {
+    public enum UIState {
         Idle,
         Play,
         Pause,
         Seeking,
-        Replay
+        Replay,
+        CastChangeMedia
     }
 
     public static Set<KMediaFormat> supportedFormats(Context context) {
@@ -794,6 +804,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.locale = locale;
     }
 
+    public UIState getCurrentState() {
+        return currentState;
+    }
 
     // [START ContentProgressProvider region]
     @Override

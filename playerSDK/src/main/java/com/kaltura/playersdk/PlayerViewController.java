@@ -313,10 +313,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (entryId != null && entryId.length() > 0) {
             JSONObject entryJson = new JSONObject();
             try {
+                if (mCastProvider != null && playerController.getCurrentState() == KPlayerController.UIState.CastChangeMedia) {
+                    return;
+                }
                 isMediaChanged = true;
                 entryJson.put("entryId", entryId);
                 String jsonString = entryJson.toString();
                 playerController.changeMedia();
+                registerChangeMediaDoneEvent();
                 sendNotification("changeMedia",jsonString);
 
             } catch (JSONException e) {
@@ -329,8 +333,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (proxyData == null) {
             return;
         }
+        if (mCastProvider != null && playerController.getCurrentState() == KPlayerController.UIState.CastChangeMedia) {
+            return;
+        }
         isMediaChanged = true;
         playerController.changeMedia();
+        registerChangeMediaDoneEvent();
         sendNotification("changeMedia", proxyData.toString());
     }
 
@@ -338,12 +346,14 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (entryId != null && entryId.length() > 0) {
             JSONObject entryJson = new JSONObject();
             try {
+                if (playerController.getCurrentState() == KPlayerController.UIState.CastChangeMedia) {
+                    return;
+                }
                 isMediaChanged = true;
                 entryJson.put("entryId", entryId);
                 String jsonString = entryJson.toString();
                 playerController.castChangeMedia();
                 sendNotification("changeMedia",jsonString);
-
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -352,6 +362,9 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
 
     public void castChangeMedia(JSONObject proxyData) {
         if (proxyData == null) {
+            return;
+        }
+        if (playerController.getCurrentState() == KPlayerController.UIState.CastChangeMedia) {
             return;
         }
         isMediaChanged = true;
@@ -925,6 +938,17 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             }
             mCallBackReadyRegistrations.add(listener);
         }
+    }
+
+    private void registerChangeMediaDoneEvent() {
+        addKPlayerEventListener("onChangeMediaDone’", "onChangeMediaDone’", new PlayerViewController.EventListener() {
+            @Override
+            public void handler(String eventName, String params) {
+                LOGD(TAG, "onChangeMediaDone");
+                isMediaChanged = false;
+                removeKPlayerEventListener("onChangeMediaDone", "onChangeMediaDone");
+            }
+        });
     }
 
     public void addKPlayerEventListener(final String event, final String eventID, final EventListener listener) {
