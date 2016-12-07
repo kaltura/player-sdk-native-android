@@ -554,8 +554,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             LOGE(TAG, errorString);
             return;
         } else if (e.getCause() instanceof java.net.UnknownHostException) {
-            mExoPlayer.prepare();
-            errorString = "UnknownHostException . Trying to recover";
+            //mExoPlayer.prepare();
+            errorString = "UnknownHostException - probably no network.";
             LOGE(TAG, errorString);
             return;
         } else if (e.getCause() instanceof java.net.ConnectException) {

@@ -143,6 +143,7 @@ public class KCastProviderV3Impl implements KCastProvider {
                             mCastMediaRemoteControl.removeListeners();
                         }
                         mCastMediaRemoteControl = new KChromeCastPlayer(mCastSession);
+
                         ((KChromeCastPlayer) mCastMediaRemoteControl).setMediaInfoParams(params);
                         if (mInternalListener != null) {
                             mInternalListener.onStartCasting((KChromeCastPlayer) mCastMediaRemoteControl);
@@ -191,6 +192,12 @@ public class KCastProviderV3Impl implements KCastProvider {
                 public void ccReceiverAdComplete() {
                     LOGD(TAG, "ccReceiverAdComplete");
                     mProviderListener.onCastReceiverAdComplete();
+                }
+
+                @Override
+                public void dataLoaded() {
+                    LOGD(TAG, "dataLoaded");
+                    mInternalListener.onDataLoaded();
                 }
 
                 @Override
