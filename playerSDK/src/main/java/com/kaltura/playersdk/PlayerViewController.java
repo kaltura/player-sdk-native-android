@@ -316,11 +316,13 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
                 if (mCastProvider != null && playerController.getCurrentState() == KPlayerController.UIState.CastChangeMedia) {
                     return;
                 }
+                if (mCastProvider == null) {
+                    registerChangeMediaDoneEvent();
+                }
                 isMediaChanged = true;
                 entryJson.put("entryId", entryId);
                 String jsonString = entryJson.toString();
                 playerController.changeMedia();
-                registerChangeMediaDoneEvent();
                 sendNotification("changeMedia",jsonString);
 
             } catch (JSONException e) {
@@ -336,9 +338,11 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         if (mCastProvider != null && playerController.getCurrentState() == KPlayerController.UIState.CastChangeMedia) {
             return;
         }
+        if (mCastProvider == null) {
+            registerChangeMediaDoneEvent();
+        }
         isMediaChanged = true;
         playerController.changeMedia();
-        registerChangeMediaDoneEvent();
         sendNotification("changeMedia", proxyData.toString());
     }
 
@@ -941,12 +945,12 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
     }
 
     private void registerChangeMediaDoneEvent() {
-        addKPlayerEventListener("onChangeMediaDone’", "onChangeMediaDone’", new PlayerViewController.EventListener() {
+        addKPlayerEventListener("onChangeMediaDone", "PlayerViewControllerOnChangeMediaDone", new PlayerViewController.EventListener() {
             @Override
             public void handler(String eventName, String params) {
                 LOGD(TAG, "onChangeMediaDone");
                 isMediaChanged = false;
-                removeKPlayerEventListener("onChangeMediaDone", "onChangeMediaDone");
+                removeKPlayerEventListener("onChangeMediaDone", "PlayerViewControllerOnChangeMediaDone");
             }
         });
     }
