@@ -14,7 +14,6 @@ import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRenderingSettings;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
-import com.google.ads.interactivemedia.v3.api.UiElement;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
@@ -24,7 +23,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
@@ -161,7 +159,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         //mimeTypes.add("video/3gpp");
 
         renderingSettings.setMimeTypes(mimeTypes);
-        renderingSettings.setUiElements(Collections.<UiElement>emptySet());
+        //renderingSettings.setUiElements(Collections.<UiElement>emptySet());
 
         //Set<UiElement> set = new HashSet<UiElement>();
         //set.add(UiElement.AD_ATTRIBUTION);
