@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
 
 
     private PlayerViewController getPlayer(KPPlayerConfig config) {
-
+        config.addConfig("EmbedPlayer.PreloadNativeComponent", "true");
         if (mPlayer == null) {
             mPlayer = new PlayerViewController(this);
             mPlayerContainer.addView(mPlayer, new ViewGroup.LayoutParams(mPlayerContainer.getLayoutParams()));
@@ -84,10 +84,18 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
 
             mPlayer.setOnKPErrorEventListener(this);
             mPlayer.setOnKPStateChangedEventListener(this);
+            mPlayer.registerReadyEvent(new PlayerViewController.ReadyEventListener() {
+                @Override
+                public void handler() {
+                    LOGD(TAG, "Player ready after prefetch - will now destroy player");
+                    //mPlayer.removePlayer();
+                }
+            });
 
         } else {
             mPlayer.changeConfiguration(config);
         }
+
 
         return mPlayer;
     }

@@ -3,4 +3,10 @@
     <string name="video">Video</string>
     <string name="audio">Audio</string>
     <string name="text">Text</string>
+
+    <string name="app_id">2A6E530B</string>
+    <string name="cast_logo_url">""</string>
+    <string name="media_route_menu_title">Play on&#8230;</string>
+    <string name="show_queue">Show Queue</string>
+
 </resources>

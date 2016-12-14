@@ -16,11 +16,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/checkBox">
 
-        <ImageButton
+        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/stat_sys_download"
-            android:layout_toRightOf="@+id/checkBox"
             android:layout_marginLeft="15dp"
             android:id="@+id/download_btn"/>
 

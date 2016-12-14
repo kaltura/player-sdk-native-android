@@ -89,18 +89,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPlayer = (PlayerViewController)findViewById(R.id.player);
             mPlayer.loadPlayerIntoActivity(this);
 
-            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.rc3/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+            KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.49/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
             //KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.46.rc9/mwEmbedFrame.php", "12905712", "243342").setEntryId("0_uka1msg4");
             config.setAutoPlay(true);
             mPlayPauseButton.setText("Pause");
 
             //config.addConfig("debugKalturaPlayer", "true");
             //config.addConfig("controlBarContainer.hover", "true");
+            //config.addConfig("fullScreenBtn.plugin", "true");
+
             config.addConfig("closedCaptions.plugin", "true");
             config.addConfig("sourceSelector.plugin", "true");
             config.addConfig("sourceSelector.displayMode", "bitrate");
             config.addConfig("audioSelector.plugin", "true");
             config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
+            config.addConfig("EmbedPlayer.HidePosterOnStart", "true");
+            config.addConfig("EmbedPlayer.ShowPosterOnStop", "false");
+            config.addConfig("controlBarContainer.plugin", "true");
+            config.addConfig("controlBarContainer.hover", "true");
+
 
             //String adTagUrl = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x360&iu=/6062/iab_vast_samples/skippable&ciu_szs=300x250,728x90&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
             //config.addConfig("doubleClick.adTagUrl",adTagUrl);

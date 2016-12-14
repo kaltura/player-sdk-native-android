@@ -20,7 +20,7 @@ public interface KCastMediaRemoteControl {
     State getCastMediaRemoteControlState();
     long getCurrentPosition();
     long getDuration();
-    boolean hasMediaSession(); // if there is conncetion esteblished  & working
+    boolean hasMediaSession(boolean validateCastConnectingState); // if there is conncetion esteblished  & working
     void switchTextTrack(int index);
     int getSelectedTextTrackIndex();
 
@@ -33,6 +33,7 @@ public interface KCastMediaRemoteControl {
         void onCastMediaProgressUpdate(long currentPosition);
         void onCastMediaStateChanged(State state);
         void onTextTrackSwitch(int trackIndex);
+        void onError(String errorMessage, Exception e);
     }
 
     enum State {
