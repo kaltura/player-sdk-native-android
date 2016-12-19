@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.kaltura.playersdk.utils.LogUtils.LOGD;
 
@@ -43,6 +44,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
         mContentManager.start();
     }
 
+
     public void loadItems(String fileName) {
 
         String itemsString = Utilities.readAssetToString(mContext, fileName);
@@ -52,12 +54,33 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
             JSONObject baseConfig = content.getJSONObject("baseConfig");
             JSONObject items = content.getJSONObject("items");
 
-
             for (Iterator<String> it = items.keys(); it.hasNext(); ) {
                 String key = it.next();
 
-                KPPlayerConfig config = KPPlayerConfig.fromJSONObject(baseConfig);
+
                 JSONObject jsonItem = items.getJSONObject(key);
+                String mediaId = getString(jsonItem, "mediaId");
+
+                JSONObject kpConfig = new JSONObject(getKPConfigJSON(mediaId));
+                KPPlayerConfig config = KPPlayerConfig.fromJSONObject(kpConfig);
+                String vootDeploy = config.getServerURL().replaceAll("/mwEmbed/mwEmbedFrame.php","");
+                //String vootDeploy = "http://player-as.ott.kaltura.com/225/v2.48.1_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.4";
+                final String nextPng = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Next.png";
+                final String prvPng  = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Previous.png";
+                final String kidsPlay  = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Play.png";
+                final String kidsPause = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Kids/images/Pause.png";
+                final String adultPlay  = vootDeploy +  "/kwidget-ps/ps/modules/viacom/resources/Player_Adult/images/Play.png";
+                final String adultPause = vootDeploy + "/kwidget-ps/ps/modules/viacom/resources/Player_Adult/images/Pause.png";
+                final String watermark  = "https://voot-kaltura.s3.amazonaws.com/voot-watermark.png";
+                config.getCacheConfig().addIncludePattern(Pattern.compile(watermark, Pattern.LITERAL));
+                config.getCacheConfig().addIncludePattern(Pattern.compile(nextPng, Pattern.LITERAL));
+                config.getCacheConfig().addIncludePattern(Pattern.compile(prvPng, Pattern.LITERAL));
+                config.getCacheConfig().addIncludePattern(Pattern.compile(kidsPlay, Pattern.LITERAL));
+                config.getCacheConfig().addIncludePattern(Pattern.compile(kidsPause, Pattern.LITERAL));
+                config.getCacheConfig().addIncludePattern(Pattern.compile(adultPlay, Pattern.LITERAL));
+                config.getCacheConfig().addIncludePattern(Pattern.compile(adultPause, Pattern.LITERAL));
+
+                config.getCacheConfig().addIncludePattern(".*kwidget-ps/ps/modules/viacom/resources/.+/images.*");
 
                 String entryId = getString(jsonItem, "entryId");
                 if (entryId == null) {
@@ -79,6 +102,66 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
         } catch (JSONException e) {
             Log.e(getClass().getSimpleName(), "Error parsing json", e);
         }
+    }
+
+
+    private String getKPConfigJSON(String mediaId) {
+        String configString= "{\n" +
+                "  \"base\": {\n" +
+                // "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.6_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.7/mwEmbed/mwEmbedFrame.php\",\n" +
+                // "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.7_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.11/mwEmbed/mwEmbedFrame.php\",\n" +
+                "    \"server\": \"http://player-as.ott.kaltura.com/225/v2.48.9_viacom_v0.31_v0.4.1_viacom_proxy_v0.4.12/mwEmbed//mwEmbedFrame.php\",\n" +
+                "    \"partnerId\": \"\",\n" +
+                "    \"uiConfId\": \"32626752\"\n" +
+                "  },\n" +
+                "  \"extra\": {\n" +
+                "    \"watermark.plugin\": \"true\",\n" +
+                "    \"watermark.img\": \"https://voot-kaltura.s3.amazonaws.com/voot-watermark.png\",\n" +
+                "    \"watermark.title\": \"Viacom18\",\n" +
+                "    \"watermark.cssClass\": \"topRight\",\n" +
+                "    \"controlBarContainer.hover\": true,\n" +
+                "    \"controlBarContainer.plugin\": true,\n" +
+                "    \"kidsPlayer.plugin\": true,\n" +
+                "    \"nextBtnComponent.plugin\": true,\n" +
+                "    \"prevBtnComponent.plugin\": true,\n" +
+                "    \"liveCore.disableLiveCheck\": true,\n" +
+                // "    \"tvpapiGetLicensedLinks.plugin\": true,\n" +
+                "    \"TVPAPIBaseUrl\": \"http://tvpapi-as.ott.kaltura.com/v3_4/gateways/jsonpostgw.aspx?m=\",\n" +
+                "    \"proxyData\": {\n" +
+                "      \"config\": {\n" +
+                "        \"flavorassets\": {\n" +
+                "          \"filters\": {\n" +
+                "            \"include\": {\n" +
+                "              \"Format\": [\n" +
+                "                \"dash Mobile\"\n" +
+                "              ]\n" +
+                "            }\n" +
+                "          }\n" +
+                "        }\n" +
+                "      },\n" +
+                "      \"MediaID\": \"" + mediaId + "\",\n" +
+                "      \"iMediaID\": \"" + mediaId + "\",\n" +
+                "      \"mediaType\": \"0\",\n" +
+                "      \"picSize\": \"640x360\",\n" +
+                "      \"withDynamic\": \"false\",\n" +
+                "      \"initObj\": {\n" +
+                "        \"ApiPass\": \"11111\",\n" +
+                "        \"ApiUser\": \"tvpapi_225\",\n" +
+                "        \"DomainID\": 0,\n" +
+                "        \"Locale\": {\n" +
+                "          \"LocaleCountry\": \"null\",\n" +
+                "          \"LocaleDevice\": \"null\",\n" +
+                "          \"LocaleLanguage\": \"null\",\n" +
+                "          \"LocaleUserState\": \"Unknown\"\n" +
+                "        },\n" +
+                "        \"Platform\": \"Cellular\",\n" +
+                "        \"SiteGuid\": \"\",\n" +
+                "        \"UDID\": \"aa5e1b6c96988d68\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+        return configString;
     }
 
     private String getString(JSONObject jsonObject, String key) {
@@ -168,21 +251,6 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
     @Override
     public void onDownloadClick(int itemId, DownloadState downloadState) {
         DownloadItem item = getItem(itemId).findDownloadItem();
-        if (item != null) {
-            LOGD("Download state click", "state = " + item.getState().name());
-            switch (item.getState()) {
-                case NEW:
-                    item.loadMetadata();
-                    break;
-                case INFO_LOADED:
-                case PAUSED:
-                    item.startDownload();
-                    break;
-                case IN_PROGRESS:
-                    item.pauseDownload();
-                    break;
-            }
-        }
         if (item != null && item.getState() != DownloadState.COMPLETED) {
             item.loadMetadata();
         }
@@ -203,19 +271,19 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadComplete(DownloadItem item) {
-        LOGD("Download state", "completed");
+        LOGD("download", "completed");
         String localPath = getLocalPath(item.getItemId());
         VideoItem videoItem = findItemByMediaId(item.getItemId());
-        if (localPath != null && videoItem != null) {
-            LocalAssetsManager.registerAsset(mContext, videoItem.config, videoItem.flavorId, localPath, new LocalAssetsManager.AssetRegistrationListener() {
+        if (localPath != null && !localPath.isEmpty() && videoItem != null) {
+            LocalAssetsManager.registerAsset(mContext, videoItem.config, null, localPath, new LocalAssetsManager.AssetRegistrationListener() {
                 @Override
                 public void onRegistered(String assetPath) {
-                    LOGD("Download state", "Register successful");
+                    LOGD("download", "Register successfully");
                 }
 
                 @Override
                 public void onFailed(String assetPath, Exception error) {
-                    LOGD("Download state", "Register failed " + error.getMessage());
+                    LOGD("download", "Register failed " + error.getMessage());
                 }
             });
         }
@@ -227,7 +295,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onProgressChange(DownloadItem item, long downloadedBytes) {
-        LOGD("Download state", "onProgressChange: downloaded " + downloadedBytes);
+        LOGD("onProgressChange", "downloaded " + downloadedBytes);
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
             view.bind(item);
@@ -236,7 +304,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadStart(DownloadItem item) {
-        LOGD("Download state", "onDownloadStart");
+        LOGD("onDownloadStart", "");
 
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
@@ -246,7 +314,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadPause(DownloadItem item) {
-        LOGD("Download state", "onDownloadPause");
+        LOGD("onDownloadPause", "");
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
             view.bind(item);
@@ -256,7 +324,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadStop(DownloadItem item) {
-        LOGD("Download state", "onDownloadStop");
+        LOGD("onDownloadStop", "");
         DownloadItemView view = getView(getItemPositionByMediaId(item.getItemId()));
         if (view != null) {
             view.bind(item);
@@ -265,32 +333,28 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
 
     @Override
     public void onDownloadMetadata(DownloadItem item, Exception error) {
-        LOGD("Download state", "onDownloadMetaData state = " + item.getState().toString());
-        DownloadState state = item.getState();
-        if (state == DownloadState.INFO_LOADED || state == DownloadState.NEW) {
-            DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
-            if (trackSelector != null) {
-                List<DownloadItem.Track> downloadedVideoTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.VIDEO);
+        LOGD("onDownloadMetadata", "");
 
-                List<DownloadItem.Track> availableTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
-                if (availableTracks.size() > 0) {
-                    trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, availableTracks);
-                }
-                try {
-                    trackSelector.apply();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
+        if (trackSelector != null) {
+            List<DownloadItem.Track> downloadedVideoTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.VIDEO);
+
+            List<DownloadItem.Track> availableTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
+            if (availableTracks.size() > 0) {
+                trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, availableTracks);
             }
-
-            item.startDownload();
+            try {
+                trackSelector.apply();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
+        item.startDownload();
     }
 
     @Override
     public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-        LOGD("Download state", "onTracksAvailable");
-
         // Select lowest-resolution video
         List<DownloadItem.Track> videoTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.VIDEO);
         DownloadItem.Track minVideo = Collections.min(videoTracks, DownloadItem.Track.bitrateComparator);
