@@ -233,3 +233,8 @@ License and Copyright Information
 ===
 
 All player-sdk-native-ios code is released under the AGPLv3 unless a different license for a particular library is specified in the applicable library path
+
+#Code Contribution
+
+You are weclome to send pull reuests to the `develop` branch 
+Notice that you are required to sign [CLA] (http://bit.ly/KalturaContrib) before doing so.
