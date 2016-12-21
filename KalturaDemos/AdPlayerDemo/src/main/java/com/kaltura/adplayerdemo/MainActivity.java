@@ -191,6 +191,7 @@ public class MainActivity extends AppCompatActivity
     public KPPlayerConfig getConfig(String mediaID) {
         KPPlayerConfig config = new KPPlayerConfig(playerUrl, "32626752", "");
         config.setEntryId(mediaID);
+        config.addConfig("multiDrm.plugin", "false");
         config.addConfig("topBarContainer.hover", "true");
         //config.addConfig("autoPlay", "true");
         config.addConfig("controlBarContainer.plugin", "true");
