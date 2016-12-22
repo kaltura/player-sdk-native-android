@@ -110,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
                 } else {
-
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                     Toast.makeText(MainActivity.this, "Permission denied to read your External storage", Toast.LENGTH_SHORT).show();
@@ -126,6 +125,10 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
     @Override
     public void onKPlayerStateChanged(PlayerViewController playerViewController, KPlayerState state) {
         Log.d("onKPlayerStateChanged:", " " + state);
+        if (state == KPlayerState.PLAYING) {
+            int trackCount = mPlayer.getTrackManager().getAudioTrackList().size();
+            Toast.makeText(MainActivity.this, "audio tracks count = " + trackCount, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

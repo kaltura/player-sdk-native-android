@@ -70,6 +70,8 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
                 config.setLocalContentId(key);
 
                 config.addConfig("autoPlay", "true");
+                config.addConfig("closedCaptions.plugin", "true");
+                config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
 
                 VideoItem item = new VideoItem(config, flavorId, remoteUrl, key);
                 item.setContentManager(mContentManager);
@@ -268,7 +270,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
         LOGD("Download state", "onDownloadMetaData state = " + item.getState().toString());
         DownloadState state = item.getState();
         if (state == DownloadState.INFO_LOADED || state == DownloadState.NEW) {
-            DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
+            /*DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
             if (trackSelector != null) {
                 List<DownloadItem.Track> downloadedVideoTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.VIDEO);
 
@@ -281,7 +283,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
 
             item.startDownload();
         }
@@ -291,9 +293,16 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
     public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
         LOGD("Download state", "onTracksAvailable");
 
-        // Select lowest-resolution video
-        List<DownloadItem.Track> videoTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.VIDEO);
-        DownloadItem.Track minVideo = Collections.min(videoTracks, DownloadItem.Track.bitrateComparator);
-        trackSelector.setSelectedTracks(DownloadItem.TrackType.VIDEO, Collections.singletonList(minVideo));
+        if (trackSelector != null) {
+            // Select lowest-resolution video
+            List<DownloadItem.Track> videoTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.VIDEO);
+            DownloadItem.Track minVideo = Collections.min(videoTracks, DownloadItem.Track.bitrateComparator);
+            trackSelector.setSelectedTracks(DownloadItem.TrackType.VIDEO, Collections.singletonList(minVideo));
+
+            List<DownloadItem.Track> allAudioTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
+            trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, allAudioTracks);
+            List<DownloadItem.Track> allTextTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.TEXT);
+            trackSelector.setSelectedTracks(DownloadItem.TrackType.TEXT, allTextTracks);
+        }
     }
 }
