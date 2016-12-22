@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         LinearLayout mContainer = (LinearLayout) findViewById(R.id.items);
 
         mVideoItemsLoader = new VideoItemsLoader(this);
-        mVideoItemsLoader.loadItems("content.json");
+        mVideoItemsLoader.loadItems("content_lmi.json");
         mVideoItemsLoader.attachToParent(mContainer);
 
         findViewById(R.id.btn_play).setOnClickListener(new View.OnClickListener() {
@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         });
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
     }
-
 
     private PlayerViewController getPlayer(KPPlayerConfig config) {
         config.addConfig("EmbedPlayer.PreloadNativeComponent", "true");
@@ -127,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         Log.d("onKPlayerStateChanged:", " " + state);
         if (state == KPlayerState.PLAYING) {
             int trackCount = mPlayer.getTrackManager().getAudioTrackList().size();
-            Toast.makeText(MainActivity.this, "audio tracks count = " + trackCount, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivity.this, "audio tracks count = " + trackCount, Toast.LENGTH_SHORT).show();
         }
     }
 
