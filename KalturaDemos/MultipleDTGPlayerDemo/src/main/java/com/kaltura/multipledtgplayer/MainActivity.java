@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         LinearLayout mContainer = (LinearLayout) findViewById(R.id.items);
 
         mVideoItemsLoader = new VideoItemsLoader(this);
-        mVideoItemsLoader.loadItems("content_lmi.json");
+        mVideoItemsLoader.loadItems("content.json");
         mVideoItemsLoader.attachToParent(mContainer);
 
         findViewById(R.id.btn_play).setOnClickListener(new View.OnClickListener() {
