@@ -72,6 +72,7 @@ public class VideoItemsLoader implements DownloadItemView.OnItemListener, Downlo
                 config.addConfig("autoPlay", "true");
                 config.addConfig("closedCaptions.plugin", "true");
                 config.addConfig("closedCaptions.showEmbeddedCaptions", "true");
+                config.addConfig("audioSelector.plugin", "true");
 
                 VideoItem item = new VideoItem(config, flavorId, remoteUrl, key);
                 item.setContentManager(mContentManager);

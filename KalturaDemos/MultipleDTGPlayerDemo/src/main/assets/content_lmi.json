@@ -1,7 +1,7 @@
 {
   "baseConfig": {
     "base": {
-      "server": "http://kgit.html5video.org/tags/v2.48.rc10/mwEmbedFrame.php",
+      "server": "https://cdnapisec.kaltura.com/html5/html5lib/v2.51/mwEmbedFrame.php",
       "partnerId": "2066791",
       "uiConfId": "37747971"
     }
