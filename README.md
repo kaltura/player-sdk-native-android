@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f2a5e4f7e871446bafa982f8cc997d5d)](https://www.codacy.com/app/PlayKit/player-sdk-native-android?utm_source=github.com&utm_medium=referral&utm_content=kaltura/player-sdk-native-android&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/kaltura/player-sdk-native-android.svg?branch=master)](https://travis-ci.org/kaltura/player-sdk-native-android)
 
 
