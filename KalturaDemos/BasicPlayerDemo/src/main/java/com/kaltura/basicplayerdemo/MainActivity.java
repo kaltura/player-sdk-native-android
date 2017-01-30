@@ -116,8 +116,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             /****FOR TRACKS****/
             //// Tracks on Web supported only from 2.44
-            //// if TracksEventListener  is removed the tracks will be pushed to the web layer o/w app controled via
-            ////onTracksUpdate and the mPlayer.getTrackManager() methodes
+            //// if TracksEventListener is removed the tracks will be pushed to the web layer o/w app controlled via
+            //// onTracksUpdate and the mPlayer.getTrackManager() methods
             //mPlayer.setTracksEventListener(this);
             //mPlayer.setVideoTrackEventListener(this);
             //mPlayer.setTextTrackEventListener(this);
