@@ -112,6 +112,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         player.loadPlayerIntoActivity(activity);
 
         config.addConfig("EmbedPlayer.PreloadNativeComponent", "true");
+        config.addConfig("autoPlay", "false");
 
         player.initWithConfiguration(config);
 
@@ -135,11 +136,16 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
         player.registerReadyEvent(new ReadyEventListener() {
             @Override
             public void handler() {
-                LOGD(TAG, "Player ready after prefetch - will now destroy player");
-                player.removePlayer();
-                if (prefetchListener != null) {
-                    prefetchListener.onPrefetchFinished();
-                }
+                player.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        LOGD(TAG, "Player ready after prefetch - will now destroy player");
+                        player.removePlayer();
+                        if (prefetchListener != null) {
+                            prefetchListener.onPrefetchFinished();
+                        }
+                    }
+                }, 10*1000);
             }
         });
     }
