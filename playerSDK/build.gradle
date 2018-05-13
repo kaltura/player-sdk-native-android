@@ -9,14 +9,22 @@ try {
 apply from: "../kalturaCommon.gradle"
 
 android {
-    compileSdkVersion kaltura.compileSdkVersion
-    buildToolsVersion '24.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.0'
+
+//    defaultConfig {
+//        minSdkVersion kaltura.minSdkVersion
+//        targetSdkVersion kaltura.targetSdkVersion
+//        versionName kaltura.version
+//    }
 
     defaultConfig {
-        minSdkVersion kaltura.minSdkVersion
-        targetSdkVersion kaltura.targetSdkVersion
+        minSdkVersion 17
+        targetSdkVersion 27
+        versionCode 16
         versionName kaltura.version
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -31,9 +39,9 @@ android {
 
 dependencies {
     compile project(':googlemediaframework')
-    compile 'com.google.android.gms:play-services-cast:9.4.0'
-    compile 'com.android.support:mediarouter-v7:24.2.1'
-    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.google.android.gms:play-services-cast:10.2.1'
+    compile 'com.android.support:mediarouter-v7:27.0.0'
+    compile 'com.android.support:appcompat-v7:27.0.0'
     compile 'com.google.ads.interactivemedia.v3:interactivemedia:3.3.2'
 }
 
